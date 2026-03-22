@@ -1250,3 +1250,685 @@ Automatická detekce a maskování osobních údajů:
   • Oprávnění "View PII" pro agenty, kteří potřebují vidět plná data
   • Audit log: kdo odhalil maskovaná data
 ```
+
+---
+
+## DOPLNĚNÍ PO HLOUBKOVÉ ANALÝZE (v3 — 2026-03-22)
+
+> Výsledky systematické analýzy nesrovnalostí, chybějících scénářů a edge cases.
+> Všechna rozhodnutí projednána a schválena.
+
+---
+
+### Aktualizovaná pracovní hierarchie (5 úrovní)
+
+```
+Iniciativa → Projekt → Epic → Úkol (typy: Story, Task, Bug, Design Task...) → Podúkol
+```
+
+- **Epic** = nová úroveň mezi Projektem a Úkolem, seskupuje související úkoly/stories
+- **Story** = typ Úkolu (ne samostatná hierarchická úroveň)
+- Jira migrace: Epic → Epic, Story → Úkol (typ Story), Task → Podúkol
+- Progress agregace: Podúkoly → Úkoly → Epic → Projekt → Iniciativa → OKR KR
+
+### OKR vazba na projekty
+
+```
+OKR Key Result → Iniciativa → Projekt (vždy přes Iniciativu)
+```
+
+- Projekt se NIKDY neváže přímo na KR — vždy přes Iniciativu
+- Každý projekt patřící do OKR systému musí mít nadřazenou Iniciativu
+- Progress: Úkoly → Projekt → Iniciativa → KR (jednosměrná agregace)
+
+---
+
+### Autentizace & bezpečnost
+
+#### MFA
+```
+Google SSO uživatelé: MFA řešeno na straně Google (Workspace admin vynucuje)
+Lokální účty (Guest/external): MFA povinné
+  • Metody: TOTP (Google Authenticator, Authy) + recovery kódy (jednorázové, 10 kusů)
+  • Setup: povinný při prvním přihlášení
+  • Ztráta MFA zařízení: admin reset + nový setup
+```
+
+#### Session management
+```
+Konfigurovatelné per role (admin nastavuje):
+  • Idle timeout: per role (default — Executive: 15min, Agent: 30min, Team Member: 60min, Guest: 15min)
+  • Max session: per role (default — Executive: 8h, ostatní: 12h, Guest: 4h)
+  • Multi-device: povoleno (max 3 souběžné sessions)
+  • Offboarding: okamžitá invalidace VŠECH sessions + API tokenů + OAuth2 tokenů
+  • PHI přístup: automaticky přísnější (idle 15min bez ohledu na roli)
+```
+
+#### Politika hesel (lokální účty — NIST 800-63B)
+```
+  • Min 12 znaků, bez požadavku na speciální znaky
+  • Bez rotace (rotace snižuje bezpečnost dle NIST)
+  • Breach password check (haveibeenpwned API při nastavení)
+  • Zámek po 5 neúspěšných pokusech + CAPTCHA + progressive delay
+  • IP-level rate limiting na /login (100 req/min per IP)
+  • Reset hesla: token s expirací 1h, jednorázové použití, email notifikace
+```
+
+#### Invite flow (dva oddělené toky)
+```
+Google SSO invite:
+  Admin → Invite (email + role + tým) → Email s odkazem → Klik → Google SSO → Účet vytvořen → Onboarding
+
+Lokální účet invite:
+  Admin → Invite (email + role + tým, typ: lokální) → Email s odkazem → Klik → Nastavení hesla → MFA setup → Účet vytvořen → Onboarding
+
+Invite link: expiruje 72h, jednorázový token, kryptograficky podepsaný
+Admin vidí stav pozvánky: Pending / Accepted / Expired (možnost znovu zaslat)
+Interní zaměstnanci: výhradně Google SSO (admin nemůže vytvořit lokální účet pro interního)
+Lokální účet: pouze pro Guest/external role
+```
+
+---
+
+### GDPR & audit log
+
+```
+Řešení rozporu "nikdy nemazat" vs. GDPR právo na výmaz:
+
+  PSEUDONYMIZACE:
+  • Při výmazu/deaktivaci uživatele se v audit logu nahradí PII anonymním ID
+    ("Deleted User #42", "deleted-42@anonymized.local")
+  • Klíč pseudonymizace se permanentně smaže — nelze zpětně identifikovat
+  • Audit log zůstává nepřepisovatelný a kompletní (akce, timestampy, entity)
+  • Pouze PII se nahradí — struktura logu zachována
+
+  GDPR export (čl. 20):
+  • Uživatel může spustit export vlastních dat (self-service)
+  • Formát: JSON
+  • Scope: profil, přiřazené entity, komentáře, time logy, audit záznamy
+  • Lhůta: do 30 dní (automaticky, obvykle okamžitě)
+  • Dostupné i po deaktivaci (admin spustí na žádost)
+
+  Retence:
+  • Admin konfiguruje retenci per typ entity
+  • Audit log: pseudonymizovaný navždy (bez PII)
+  • Archivovaná data: anonymizace PII při GDPR žádosti
+```
+
+### LLM integrace & PHI
+
+```
+PHI data jsou ZCELA VYLOUČENA z LLM zpracování:
+  • Entity označené PHI se nikdy neposílají do externích LLM providerů
+  • LLM funkce (sumarizace, Q&A, prioritizace) na PHI entitách: nedostupné (tlačítko disabled)
+  • Ostatní data: DPA (Data Processing Agreement) s každým LLM providerem povinné
+  • Geografická lokalizace: pouze EU endpointy
+  • Uživatel vidí disclaimer: "Tato data budou zpracována externím AI modelem"
+  • Admin konfiguruje: které LLM funkce jsou povoleny per modul
+
+LLM fallback:
+  • Auto-switch na záložního providera při nedostupnosti
+  • Priorita providerů konfigurovatelná adminem
+  • Health check každých 60s
+  • Pokud všichni nedostupní: AI funkce disabled s info "AI dočasně nedostupné"
+```
+
+---
+
+### Hierarchie oprávnění
+
+```
+3 vrstvy oprávnění — NEJRESTRIKTIVNĚJŠÍ VÍTĚZÍ:
+
+  1. Systémová role (Executive, PM, Team Member, Agent, Reader, Guest)
+     = baseline oprávnění per modul
+  2. Entity-level override (admin nastaví per konkrétní projekt/entitu)
+     = může jen OMEZIT, nikdy ROZŠÍŘIT systémovou roli
+  3. Task-level role (Assignee, Reporter, Viewer, custom)
+     = oprávnění v rámci entity
+
+  PHI override: PHI označení VŽDY přebíjí vše
+  • I Executive musí být explicitně přidán na PHI entitu
+  • Guest NIKDY nemá přístup k PHI (hard block, admin nemůže override)
+
+  "Edit own" definice (Team Member):
+  • = entity, kde je uživatel Assignee NEBO Reporter
+  • NE entity, kde je pouze Viewer nebo @mentioned
+```
+
+### Izolace dat mezi týmy
+
+```
+Per tým konfigurace:
+  • Každý tým má default visibility: private / internal
+  • Nový projekt v týmu dědí default visibility týmu
+  • PM může přepsat visibility na konkrétním projektu
+  • Private: vidí jen členové týmu + explicitně pozvaní
+  • Internal: vidí všichni interní uživatelé (ne Guests)
+  • Doporučené defaults: HR/Finance = private, Engineering/Marketing = internal
+```
+
+---
+
+### Workflow doplnění
+
+#### Sprint cancellation
+```
+Sprint cancel = PM/admin volba per úkol:
+  • PM rozhodne u každého úkolu: vrátit do backlogu / přesunout do dalšího sprintu / uzavřít (Won't Do)
+  • Dialog při cancelu zobrazí seznam úkolů s volbami
+  • Time logy zachovány (vázány na úkol, ne sprint)
+  • Burndown ukončen, sprint metrics zachovány v historii
+  • Retrospektiva: volitelná (PM rozhodne)
+  • Oprávnění: PM + admin
+```
+
+#### Incident reopen
+```
+Reopen s časovým limitem:
+  • Přechod Closed → Reopened: možný do X dní po Closed (admin konfiguruje, default 7 dní)
+  • Po uplynutí limitu: pouze nový incident s vazbou "related to"
+  • Kdo může reopen: reporter, agent, auto (Sentry trigger)
+  • SLA se RESTARTUJE od nuly při reopen
+  • Reopen důvod: povinné pole
+  • Sentry: nový alert po Closed → nový incident (pokud mimo limit)
+```
+
+#### Parent-child konzistence stavů
+```
+HARD BLOCK na parent:
+  • Projekt nemůže být Completed dokud všechny Epicy/Úkoly nejsou Done/Closed/Cancelled
+  • Iniciativa nemůže být Closed dokud všechny Projekty nejsou Completed/Archived/Cancelled
+  • OKR Key Result: scoring nezávislý na stavu children (manuální + auto agregace)
+  • Systém zobrazí seznam blockerů (otevřené children) při pokusu o uzavření
+  • Stav "Cancelled" a "Won't Do" na child = splňuje podmínku pro uzavření parentu
+```
+
+#### Emergency Change Management
+```
+ECAB (Emergency CAB):
+  • Emergency Change schvaluje ECAB = 2-3 předdefinované osoby (admin konfiguruje, např. IT Director + Security Lead)
+  • Přeskočen: čekání na plánovanou CAB schůzku
+  • Impact Assessment: povinný ale zkrácený formulář
+  • Implementace: okamžitě po ECAB schválení
+  • Post-Implementation Review: povinné do 48h
+  • Rollback plán: povinný před schválením
+  • Zpětné zamítnutí při Post-Review: možné → rollback + incident
+```
+
+#### Approval timeout & delegace
+```
+Approval timeout:
+  • Timeout → eskalace na nadřízeného schvalovatele
+  • Pokud i nadřízený nereaguje (2. timeout): auto-reject s důvodem "timeout"
+  • Max 2 úrovně eskalace, pak auto-reject
+  • Timeout konfigurovatelný per workflow krok (default: 3 pracovní dny)
+
+Parallel approval: UNANIMITA
+  • Všichni paralelní schvalovatelé musí souhlasit
+  • Jeden reject = Rejected (celý krok)
+  • Jeden timeout = eskalace na nadřízeného daného schvalovatele
+
+Delegace:
+  • Schvalovatel může delegovat POUZE na osobu se stejnou nebo vyšší systémovou rolí
+  • Řetězová delegace zakázána (max 1 úroveň)
+  • Delegace má expiraci (admin konfiguruje, default: 14 dní)
+  • Původní schvalovatel může odvolat delegaci
+  • Audit log: kdo delegoval, na koho, kdy
+```
+
+#### Offboarding flow (rozšířený)
+```
+Trigger: deaktivace uživatele
+Auto akce (okamžité):
+  • Invalidace VŠECH sessions + API tokenů + OAuth2 tokenů
+  • Odebrání přístupových práv
+  • Audit log: záznam o deaktivaci
+
+Auto-reassign:
+  • Úkoly: auto přiřazení team leadovi + notifikace PM
+  • Approvals čekající na schválení: auto delegace na nadřízeného (eskalace)
+  • SLA: pause na 24h pro re-assign incidentů
+  • Incidenty: auto-routing pravidla (round-robin na dostupné agenty)
+  • KB stránky: vlastnictví přeřazeno na team lead
+  • Recurring tasks: přeřazeny na team lead
+
+GDPR: pseudonymizace (viz GDPR sekce)
+```
+
+---
+
+### SLA doplnění
+
+#### SLA pause ochrana (anti-gaming)
+```
+  • SLA se pauzne max N-krát per ticket (admin konfiguruje, default 3)
+  • Celková doba pauzy max M hodin per ticket (admin konfiguruje, default 72h)
+  • Po překročení: SLA běží i ve stavu Pending
+  • Auto-close: ticket v Pending bez odpovědi se auto-close po X pracovních dnech (admin, default 5)
+  • Reporting: metrika "Pending ratio per agent" v SLA dashboardu
+```
+
+#### Sentry ↔ Incident integrace
+```
+  • Auto-resolve: jen pokud incident je ve stavu Assigned (agent ještě nezačal)
+  • Pokud In Progress / Pending: Sentry status se zobrazí jako metadata, stav NEMĚNIT, notifikace agenta
+  • Nový alert po Closed: VŽDY nový incident s vazbou "related to" (ne reopen)
+  • Nový alert po Resolved (v reopen limitu): reopen existujícího
+  • Deduplikace: dle Sentry issue ID (fingerprint)
+  • Stack trace z Sentry: PII masking aplikováno automaticky
+```
+
+---
+
+### Projekt On Hold (rozšířený)
+```
+Hard freeze + sprint close:
+  • Aktivní sprint se automaticky ukončí (Early Close) — PM rozhodne per úkol (backlog/další sprint/Won't Do)
+  • Úkoly: read-only (kromě admin)
+  • Rule engine: pravidla pozastavena pro tento projekt
+  • SLA na linkovaných incidentech: POKRAČUJE (incidenty žijí nezávisle na projektu)
+  • Nové úkoly: nelze vytvářet (kromě admin)
+  • Přechod z On Hold: PM nebo admin → zpět do Active
+```
+
+---
+
+### Rule Engine (rozšířený)
+```
+Ochrana proti cirkulárním pravidlům:
+  • Max 5 řetězených provedení (rule triggers rule)
+  • Po překročení: zastavení + error log + notifikace admina
+  • Pravidla s chybou: automatická deaktivace po 3 selhání za 24h
+  • Error log: důvod selhání, dotčené entity, timestamp
+
+Chybové stavy:
+  • THEN akce selže (např. přiřazení deaktivovanému uživateli): skip akce + error log + notifikace admina
+  • Workflow stav odstraněn, pravidlo ho referuje: pravidlo auto-deaktivováno + admin warning
+```
+
+---
+
+### Concurrent state transitions
+```
+First-write-wins + idempotence:
+  • První operace projde, druhá je idempotentní
+  • Pokud stav už je Resolved → druhý "Resolve" = OK (žádná chyba)
+  • Audit log: záznam jen první změny
+  • Agent collision detection (service desk): presence indikátory (kdo prohlíží ticket)
+```
+
+---
+
+### KB stránky — editace Published
+```
+Vždy přes review:
+  • Každá editace Published stránky vytvoří Draft verzi
+  • Published verze zůstává viditelná uživatelům během review procesu
+  • Draft prochází standardním review (Draft → In Review → Approved → Published)
+  • Po schválení: Published verze se nahradí novou
+  • Verzování: každý přechod do Published = nová verze s diff
+  • Inline komentáře z Published verze: zachovány, přeneseny na novou verzi (pokud relevantní text existuje)
+```
+
+---
+
+### Notifikace — kategorizace událostí
+```
+3 úrovně:
+  URGENT (vždy okamžitě, nelze vypnout):
+    • SLA breach / pre-breach (90%)
+    • Eskalace
+    • Blocker / critical incident
+    • Approval request (timeout blízko)
+
+  NORMAL (dle uživatelské preference: okamžitě / digest):
+    • @mention
+    • Přiřazení úkolu/incidentu
+    • Změna stavu na sledované entitě
+    • Komentář na přiřazené entitě
+    • Review request
+
+  LOW (default: digest, uživatel může přepnout na okamžitě):
+    • Watch update (změna na sledované entitě bez přiřazení)
+    • Komentář od jiného watche
+    • Sprint/milestone blížící se deadline
+    • Nový článek v KB space
+
+  Digest NIKDY neduplikuje okamžité notifikace
+  Admin může vynutit "vždy okamžitě" pro specifické typy (notification scheme)
+  Notifikace pro archivované entity: Watch subscriptions se automaticky odstraní
+```
+
+---
+
+### Workload
+```
+Jednotky: hodiny primárně, SP sekundárně
+  • Workload heatmapa: hodiny (kapacita h/týden vs. alokace z time trackingu)
+  • Sprint board: Story Points (pro velocity, burndown)
+  • Cross-projekt view: hodiny (společný jmenovatel)
+
+Nepřítomnost / dovolená:
+  • Google Calendar integrace: Calendar události automaticky snižují dostupnou kapacitu
+  • HR service request (dovolená/nemocenská) → Calendar event → auto snížení kapacity
+  • Svátky (ČR): předdefinovaný kalendář, auto snížení kapacity
+  • Uživatel nemusí nic ručně logovat — systém odečte z Calendar
+
+Non-project čas:
+  • Porady: automaticky z Calendar (délka events)
+  • Ostatní non-project čas: nesleduje se systémově (odečteno z Calendar events)
+```
+
+---
+
+### My Work
+```
+Dedikovaná sekce "My Work" v hlavní navigaci:
+  • Všechny mé úkoly, incidenty, approvals, reviews z VŠECH projektů
+  • Filtry: stav, projekt, priorita, deadline, typ entity
+  • Řazení: priorita, deadline, datum vytvoření
+  • Views: kanban (per stav) / list (řádky)
+  • Actionable: změna stavu, komentář, approve/reject přímo z My Work
+  • Quick filters: "Overdue", "Due today", "Blockers", "Needs review"
+```
+
+---
+
+### Saved Filters
+```
+Uložené filtry jako vlastní funkce:
+  • Uživatel uloží kombinaci podmínek (projekt, stav, assignee, priorita, tagy, custom fields...) jako pojmenovaný filtr
+  • Osobní nebo sdílený s týmem
+  • Aplikovatelný na různé views (list, kanban, timeline)
+  • Rychlý přístup z navigace + command palette
+  • Odlišné od Views: filtr = podmínky, view = filtr + typ zobrazení + konfigurace sloupců
+```
+
+---
+
+### Komponenty
+```
+Komponenta = vlastní entita (Jira model):
+  • Atributy: název, popis, vlastník (tým), lead (osoba)
+  • Úkoly, projekty i incidenty se tagují komponentou
+  • Auto-routing: incident označený komponentou → auto-přiřazení na vlastníka týmu + notifikace leada
+  • Filtrování a reporting per komponenta: "Vše co se týká Payment Module"
+  • Impact analýza: které komponenty jsou dotčeny incidentem, vazby mezi komponentami
+```
+
+---
+
+### Tagy — scope
+```
+Globální + per-projekt tagy:
+  • Admin vytváří globální tagy (sdílené celou organizací): #critical, #blocked, #quick-win
+  • Uživatelé vytváří per-projekt tagy (viditelné jen v projektu): #sprint-5, #migration-batch-2
+  • Kolize řešena scope: globální tag #migration vs. per-projekt tag #migration v projektu HR
+  • Admin může: přejmenovat, mergovat, smazat globální tagy
+  • PM může: spravovat per-projekt tagy svého projektu
+  • Barevné kódování, filtrování a seskupování zachováno
+```
+
+---
+
+### Vícejazyčnost
+```
+Jen UI:
+  • Překlad rozhraní (tlačítka, menu, systémové hlášky, formuláře): CZ / EN / SK
+  • Obsah (KB stránky, úkoly, komentáře): v jazyce, v jakém ho autor napíše
+  • Žádné vícejazyčné verze obsahu — jde o interní nástroj jedné firmy
+  • PII/PHI auto-detekce: regex vzory pro CZ, SK i EN formáty (rodné číslo CZ/SK, phone, email)
+```
+
+---
+
+### Sémantické vyhledávání & RBAC
+```
+Post-filter přístup:
+  • Indexuj VŠECHNY entity do vektorové DB (embeddings)
+  • Při vyhledávání: najdi top N×2 výsledků, pak odfiltruj entity bez oprávnění
+  • Vrať top N výsledků po filtraci
+  • Private notes (jen agenti): indexovány, ale filtrované pro ne-agenty
+  • PHI entity: indexovány, ale filtrované dle PHI přístupu
+  • Změna oprávnění: re-indexace není nutná (filtr je runtime)
+```
+
+---
+
+### Kaskádové mazání
+```
+Soft delete VŽDY (Koš):
+  • Každé smazání = přesun do Koše (soft delete)
+  • Koš: entity read-only, obnovitelné X dní (admin konfiguruje: 30/60/90)
+  • Children zůstávají živé (osamostatněné) — NEKASKÁDUJE se
+    • Smazání projektu: úkoly/epicy zůstanou (bez projektu, viditelné v My Work)
+    • Smazání úkolu: time logy zachovány, podúkoly zůstanou (bez parentu)
+    • Smazání iniciativy: projekty zůstanou (bez iniciativy)
+  • Po uplynutí koše: trvalé smazání + anonymizace PII v audit logu
+  • Přílohy/soubory: smazány s entitou (v koši), fyzicky odstraněny po expiraci koše
+  • Time logy: NIKDY nemazat (účetní/reportingové účely) — anonymizace PII při GDPR
+```
+
+---
+
+### Custom fields scope
+```
+Custom fields na VŠECH uživatelských entitách (kromě systémových):
+  ANO: Úkol, Podúkol, Epic, Projekt, Iniciativa, Incident, Service Request, Change,
+       KB stránka, Meeting Notes, Time Log, Asset, Release, Risk, Retrospektiva
+  NE:  Komentáře, Notifikace, Audit log záznamy, Tagy, Session
+
+  Custom fields jsou:
+  • Indexovány pro full-text i sémantický search
+  • Dostupné v Rule Engine jako podmínky
+  • Dostupné v reportech jako sloupce/filtry
+  • Dostupné v Saved Filters
+  • Exportovatelné (CSV, PDF)
+```
+
+---
+
+### Guest + PHI
+```
+Hard block:
+  • Systém NEDOVOLÍ přidat Guest na entitu označenou PHI
+  • Chybová hláška: "Guest uživatelé nemají přístup k PHI entitám"
+  • Admin NEMŮŽE override — žádné výjimky
+  • Guest na projektu s PHI entitami: vidí jen ne-PHI entity v projektu
+```
+
+---
+
+### Export — velké datové sady
+```
+Async export + notifikace:
+  • Malé exporty (<100 záznamů): synchronní download
+  • Velké exporty: async zpracování na pozadí
+    • Progress bar v UI
+    • Notifikace po dokončení (in-app + email)
+    • Download link v notifikacích (expiruje 24h)
+  • Export šablony + branding: zachováno (admin definuje logo, barvy, záhlaví)
+```
+
+---
+
+### CSV import
+```
+Preview + partial import:
+  • Krok 1: Upload CSV + mapování sloupců na pole entity
+  • Krok 2: Preview s validací — seznam chyb per řádek (typ, důvod)
+  • Krok 3: Uživatel může opravit mapování nebo přeskočit chybné řádky
+  • Krok 4: Import jen platných řádků
+  • Krok 5: Report: co se importovalo (počet), co se přeskočilo (downloadovatelný error CSV)
+  • Velké importy (>500 řádků): async s progress barem + notifikace
+```
+
+---
+
+### Recurring tasks
+```
+Vždy vytvořit novou instanci:
+  • Nová instance se vytvoří v pevný čas (cron schedule) bez ohledu na stav předchozí
+  • Alert při hromadění otevřených instancí: 3+ otevřených → notifikace assignee + PM
+  • Šablona (master) změna: ovlivní jen BUDOUCÍ instance (existující nezměněny)
+  • Zrušení recurring serie: budoucí instance se nevytváří, existující zůstanou
+  • End date: volitelný (nekonečná série pokud nenastaveno)
+  • Workload: počítá se jen aktuální instance (ne budoucí)
+```
+
+---
+
+### Release Management
+```
+Jednoduchý model — 3 stavy:
+  Planned → Released / Cancelled
+
+  • Planned: kolekce úkolů/features přiřazených k release verzi
+  • Released: deploy proběhl, release notes generovány
+  • Cancelled: No-Go nebo failed deploy → nový release pro další pokus
+  • Failed deploy: Cancelled + auto-vytvoření incidentu
+  • Kdo rozhoduje Go/No-Go: PM + QA Lead (konfigurovatelné per projekt)
+  • Go/No-Go checklist: všechny položky musí být zaškrtnuty (hard block)
+  • Release notes: auto-generovány z fix version úkolů
+```
+
+---
+
+### Bulk operace
+```
+Undo 30s + audit:
+  • Po bulk operaci: toast s "Undo" tlačítkem (30s window)
+  • Bulk delete: povinný potvrzovací dialog s počtem dotčených entit
+  • Audit trail: každá změna jako samostatný záznam, sřetězené společným batch ID
+  • Batch ID umožňuje: zobrazit celou bulk operaci v audit logu, undo celé operace
+```
+
+---
+
+### Performance SLA
+```
+Definované cíle:
+  • Page load: <2s (P95)
+  • Globální search: <500ms (P95)
+  • API response: <200ms (P95)
+  • Real-time notifikace: <1s latence
+  • KB co-authoring: <100ms latence
+  • Max souběžných uživatelů: 200
+  • Export: async nad 10s zpracování
+  • Monitoring: od začátku (APM, error tracking, latence metriky)
+```
+
+---
+
+### Přístupnost (WCAG)
+```
+WCAG 2.1 AA:
+  • Keyboard navigace: všechny akce dostupné z klávesnice
+  • Screen reader kompatibilita: ARIA labely, semantic HTML
+  • Kontrast: min 4.5:1 (text), 3:1 (velký text, UI komponenty)
+  • Focus indikátory: viditelné na všech interaktivních elementech
+  • Skip links, landmark roles, formulářové labely
+  • Testování: automatizované (axe-core) + manuální screen reader testy
+```
+
+---
+
+### Feature flags
+```
+Vestavěný feature flag mechanismus:
+  • Admin zapne/vypne funkce per tým / role / uživatel
+  • Gradual rollout: 10% → 50% → 100% (per tým)
+  • Dashboard: přehled aktivních flagů, kdo má co zapnuto
+  • Kombinovatelné s modulární viditelností (existující funkce)
+  • Použití: nové features, A/B experimenty, postupná migrace
+```
+
+---
+
+### Migrace dat
+```
+Paralelní provoz + inkrementální migrace:
+  • Migrace po modulech: KB → Projekty/Úkoly → ITSM (v tomto pořadí)
+  • Každý modul: import → validace (automatická + manuální) → paralelní provoz 2 týdny → switch
+  • Rollback: návrat na původní systém (data zachována, Nexus data se zahazují)
+  • Starý systém: read-only po switch (archiv 6 měsíců)
+  • Validace: automatický report shody (počty entit, vazby, přílohy)
+  • Jira → Nexus mapping: Epic → Epic, Story → Úkol (typ Story), Task → Podúkol, Component → Komponenta
+```
+
+---
+
+### Mobilní přístup
+```
+Responzivní web (mobile-friendly):
+  • Hlavní UI: optimalizováno pro desktop
+  • Service desk portál + tickety + notifikace: responzivní web layout
+  • Agent na mobilu: komentář, změna stavu, přiřazení — základní akce
+  • Ne nativní appka, ne PWA (v MVP)
+  • Email reply → komentář: funguje z jakéhokoli zařízení
+```
+
+---
+
+### Tribes (upřesnění)
+```
+Tribes = virtuální group:
+  • Tribe je seskupení lidí z různých týmů (bez vlastních projektů, OKR, service desku)
+  • Slouží pro: @mention (@tribe-digital-transformation), filtraci, komunikaci
+  • Tribe Lead: koordinátor bez speciálních systémových oprávnění
+  • Uživatel může být v Týmu i Tribe současně
+  • Tribe NEPŘIDÁVÁ žádná oprávnění — přístup je určen Týmem a systémovou rolí
+```
+
+---
+
+### Scrum Master
+```
+PM = Scrum Master:
+  • Neexistuje oddělená Scrum Master systémová role
+  • PM (Project/Product Manager) má všechny Scrum Master pravomoci:
+    sprint management, backlog refinement, retro facilitace, velocity tracking
+  • Pokud tým potřebuje odlišit PM od SM: custom role na projektu (informativní, bez speciálních oprávnění)
+```
+
+---
+
+### Planning Poker (vestavěný)
+```
+Real-time estimation session:
+  • PM vybere úkoly z backlogu pro estimation
+  • Tým hlasuje: skryté karty, reveal po hlasování všech
+  • Sekvence: Fibonacci (1,2,3,5,8,13,21) nebo T-shirt (XS,S,M,L,XL) — konfigurovatelné per projekt
+  • Timeout per kolo: admin konfiguruje (default 3 min)
+  • Pokud ne všichni hlasují do timeoutu: reveal s hlasy, kteří přišli. Chybějící = "–"
+  • Diskuze po revealu, nové kolo (volitelné)
+  • Finální odhad se automaticky uloží na úkol (PM potvrdí)
+  • Integrace: z backlog refinement session nebo sprint planning
+```
+
+---
+
+### Dark mode
+```
+Light + Dark + System auto:
+  • Uživatel volí v profilu: Light / Dark / System (dle OS nastavení)
+  • Exporty (PDF/PPTX/PNG): VŽDY v light mode (print-friendly)
+  • Email notifikace: VŽDY light mode
+  • Service desk portál: respektuje desk branding (ne user dark mode)
+  • Design tokeny / CSS variables od začátku pro podporu theming
+```
+
+---
+
+### Budget tracking — sazby
+```
+Sazba per role, skrytá:
+  • Admin definuje hodinovou sazbu per systémovou roli (Developer: X Kč/h, PM: Y Kč/h)
+  • Sazba je skrytá pro samotného uživatele (Team Member nevidí svou sazbu)
+  • Budget vidí: PM (svůj projekt), Executive (vše)
+  • Team Member vidí: jen své hodiny, NE Kč částky
+  • Měna: jedna (Kč), bez multi-currency v MVP
+  • Automatický výpočet: hodiny × sazba role = náklady
+  • Variance report: odhad vs. skutečnost (z time trackingu)
+```

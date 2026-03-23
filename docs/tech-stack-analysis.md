@@ -3,6 +3,7 @@
 > Platforma: interní produktivitní systém (50–200 uživatelů)
 > Firemní kompetence: PHP (Laravel, Symfony, Nette), Alpine.js, PostgreSQL, RabbitMQ
 > Cíl: maximalizovat využití existujícího know-how, minimalizovat onboarding cost
+> Poslední aktualizace: březen 2026
 
 ---
 
@@ -13,24 +14,29 @@
 │                    KLÍČOVÁ ROZHODNUTÍ                                     │
 │                                                                           │
 │  Q: Laravel vs. Symfony vs. Nette?                                        │
-│  A: Laravel                                                               │
+│  A: Laravel 13 (vyšel 17. března 2026)                                    │
 │     • Nejrychlejší vývoj (Eloquent, queues, broadcasting, scheduler)      │
 │     • Největší ekosystém balíčků                                          │
 │     • Nejlepší DX pro produktový vývoj                                    │
 │     • Symfony komponenty pod kapotou (plynulý přechod pro Symfony devs)   │
-│     • Laravel Reverb / Soketi pro real-time (KB co-authoring)             │
+│     • Laravel Reverb pro real-time (KB co-authoring)                      │
+│     • Laravel AI SDK — provider-agnostické AI rozhraní (v13)             │
+│     • PHP atributy místo $fillable/$hidden (v13)                         │
+│     • Passkeys autentizace (v13)                                          │
 │                                                                           │
 │  Q: SPA vs. Livewire vs. klasický server-rendered?                        │
-│  A: Inertia.js + React 19 (SPA feeling, Laravel routing)                  │
+│  A: Inertia.js v2 + React 19 (SPA feeling, Laravel routing)              │
 │     • Největší frontend ekosystém (komponenty, knihovny, komunita)        │
 │     • React Native pro budoucí mobilní appku                              │
-│     • Inertia = žádné API duplikace, server-side routing                  │
+│     • Inertia v2 = deferred props, prefetching, polling, WhenVisible     │
+│     • History encryption pro citlivá data v browser history              │
 │     • Full SPA UX (Kanban drag&drop, Gantt, real-time)                    │
 │     • Alternativa: Livewire 3 pro admin panel (jednodušší CRUD)           │
+│     • RSC (React Server Components) nerelevantní — Inertia model lepší  │
 │                                                                           │
 │  Q: Proč React a ne Vue?                                                   │
 │  A: React má objektivně větší ekosystém:                                   │
-│     • Víc komponentových knihoven (shadcn/ui, Radix, dnd-kit...)          │
+│     • Víc komponentových knihoven (shadcn/ui, Radix, Pragmatic DnD...)   │
 │     • Větší hiring pool                                                    │
 │     • React Native = sdílení kódu s budoucí mobilní appkou               │
 │     • Inertia.js má plnohodnotný React adapter — s Laravel bez problému  │
@@ -43,6 +49,14 @@
 │     • Row-level security pro PHI data                                     │
 │     • Recursive CTE pro hierarchie (OKR, org struktura, KB)              │
 │     • Advisory locks pro conflict detection                               │
+│                                                                           │
+│  Q: RabbitMQ vs. Redis queues?                                             │
+│  A: Redis + Laravel Horizon (zjednodušení infrastruktury)                  │
+│     • Redis už v stacku (cache, sessions, presence, broadcasting)        │
+│     • Horizon = real-time dashboard, auto-balancing workerů              │
+│     • Nativní Laravel integrace, žádná extra infrastruktura              │
+│     • Oddělená Redis DB pro queues vs cache (eviction politika)          │
+│     • RabbitMQ overkill pro 50–200 uživatelů v monolitu                  │
 │                                                                           │
 │  Q: Monorepo vs. microservices?                                            │
 │  A: Monolitická Laravel aplikace (modulární)                               │
@@ -64,38 +78,39 @@
 │  ┌─ FRONTEND ─────────────────────────────────────────────────────────┐    │
 │  │                                                                     │    │
 │  │  Runtime:        React 19 + TypeScript                               │    │
-│  │  Routing/Glue:   Inertia.js (server-side routing, SPA UX)          │    │
-│  │  Styling:        Tailwind CSS 4                                     │    │
-│  │  Komponenty:     shadcn/ui (Radix primitives) + custom design sys. │    │
-│  │  State:          Zustand (global state) + React hooks (local)      │    │
+│  │  Routing/Glue:   Inertia.js v2 (server-side routing, SPA UX)      │    │
+│  │  Styling:        Tailwind CSS 4 (CSS-first config, OKLCH barvy)    │    │
+│  │  Komponenty:     shadcn/ui CLI v4 (Radix primitives) + design sys. │    │
+│  │  State:          Zustand (client state) + TanStack Query (server)  │    │
 │  │  Build:          Vite 6                                             │    │
 │  │                                                                     │    │
 │  │  Specializované knihovny:                                           │    │
-│  │    • Tiptap (rich text editor — KB, komentáře, meeting notes)      │    │
-│  │    • Y.js (CRDT pro real-time co-authoring KB)                     │    │
-│  │    • @dnd-kit (Kanban drag & drop)                                 │    │
+│  │    • Tiptap v3 (rich text editor — KB, komentáře, meeting notes)   │    │
+│  │    • Y.js + Hocuspocus (CRDT pro real-time co-authoring KB)       │    │
+│  │    • Pragmatic DnD (Atlassian — Kanban drag & drop)               │    │
 │  │    • @tanstack/react-table (tabulkové views)                       │    │
-│  │    • dhtmlxGantt nebo bryntum-gantt (Timeline/Gantt view)          │    │
-│  │    • Recharts / Apache ECharts (grafy, burndown, CFD)              │    │
+│  │    • SVAR React Gantt (MIT licence, Timeline/Gantt view)           │    │
+│  │    • Recharts (grafy, burndown, CFD, velocity)                     │    │
 │  │    • react-i18next (lokalizace CZ/EN/SK)                           │    │
 │  │    • Mermaid.js (diagramy v KB)                                    │    │
+│  │    • TanStack Query (server state management)                      │    │
 │  │    • React Native (budoucí mobilní appka — sdílení logiky)        │    │
 │  │                                                                     │    │
 │  │  Admin panel (jednodušší CRUD sekce):                              │    │
 │  │    • Livewire 3 + Alpine.js (workflow konfigurace, org struktura)  │    │
-│  │    • Filament PHP (admin scaffolding — CRUD, forms, tables)        │    │
+│  │    • Filament 4 (admin scaffolding — CRUD, forms, tables, MFA)    │    │
 │  │                                                                     │    │
 │  └─────────────────────────────────────────────────────────────────────┘    │
 │                                                                             │
 │  ┌─ BACKEND ──────────────────────────────────────────────────────────┐    │
 │  │                                                                     │    │
-│  │  Framework:      Laravel 12 (PHP 8.4)                               │    │
+│  │  Framework:      Laravel 13 (PHP 8.4)                               │    │
 │  │  API:            Inertia responses (hlavní UI)                      │    │
 │  │                  + REST API (externí integrace, Power BI, webhooky) │    │
-│  │  Auth:           Laravel Socialite (Google SSO)                     │    │
+│  │  Auth:           Laravel Socialite (Google SSO) + Passkeys (v13)   │    │
 │  │                  + Laravel Sanctum (API tokens)                     │    │
 │  │  Authorization:  Custom policy layer (role × modul × entita × akce)│    │
-│  │  Queues:         Laravel Queue + RabbitMQ driver                    │    │
+│  │  Queues:         Laravel Queue + Redis driver + Horizon             │    │
 │  │  Scheduler:      Laravel Task Scheduling (CRON jobs)               │    │
 │  │  Real-time:      Laravel Reverb (WebSocket server)                  │    │
 │  │  Search:         Laravel Scout + PostgreSQL FTS (tsvector)          │    │
@@ -103,7 +118,8 @@
 │  │  File storage:   Laravel Filesystem (local / S3-compatible)        │    │
 │  │  Email:          Laravel Mail + inbound processing                  │    │
 │  │  PDF/PPTX:       Laravel Snappy / DomPDF + PhpPresentation         │    │
-│  │  Performance:    Laravel Octane (Swoole/FrankenPHP)                 │    │
+│  │  AI:             Laravel AI SDK (provider-agnostic, v13)            │    │
+│  │  Performance:    Laravel Octane (FrankenPHP — doporučený driver)    │    │
 │  │                                                                     │    │
 │  │  Domain moduly:                                                     │    │
 │  │    app/Modules/                                                     │    │
@@ -130,12 +146,16 @@
 │                                                                             │
 │  ┌─ DATABÁZE & STORAGE ───────────────────────────────────────────────┐    │
 │  │                                                                     │    │
-│  │  Primární DB:    PostgreSQL 17                                      │    │
+│  │  Primární DB:    PostgreSQL 18                                      │    │
 │  │                    • Hlavní data store                              │    │
+│  │                    • uuidv7() pro timestamp-ordered PK              │    │
 │  │                    • JSONB pro custom fields                        │    │
 │  │                    • tsvector pro full-text search                  │    │
 │  │                    • Row-level security pro PHI                     │    │
+│  │                    • pgAudit pro audit logging PHI operací          │    │
+│  │                    • pgcrypto pro column-level šifrování PHI        │    │
 │  │                    • pg_trgm pro fuzzy matching (duplikáty)         │    │
+│  │                    • Virtual generated columns (v18)                │    │
 │  │                                                                     │    │
 │  │  Cache:          Redis 7                                            │    │
 │  │                    • Session storage                                │    │
@@ -144,19 +164,21 @@
 │  │                    • Rate limiting                                  │    │
 │  │                    • Broadcasting backend (Reverb)                  │    │
 │  │                                                                     │    │
-│  │  Queue broker:   RabbitMQ                                           │    │
+│  │  Queue:          Redis (oddělená DB od cache)                       │    │
+│  │                    + Laravel Horizon (monitoring, auto-balancing)   │    │
 │  │                    • Async jobs (notifikace, emaily, export)        │    │
 │  │                    • SLA timer events                               │    │
 │  │                    • Rule engine execution                          │    │
 │  │                    • LLM API calls                                  │    │
 │  │                    • Migrace/import dat (long-running)              │    │
-│  │                    • Delayed messages (eskalace, reminders)         │    │
+│  │                    • Delayed jobs (eskalace, reminders)             │    │
 │  │                                                                     │    │
 │  │  Full-text:      PostgreSQL FTS (v1)                                │    │
 │  │                  → Meilisearch (v2, pokud PG FTS nestačí)          │    │
 │  │                                                                     │    │
-│  │  File storage:   MinIO (S3-compatible, self-hosted)                │    │
+│  │  File storage:   SeaweedFS (S3-compatible, self-hosted)             │    │
 │  │                  nebo lokální filesystem (malé nasazení)            │    │
+│  │                  ⚠ MinIO v maintenance mode od 12/2025 — nepoužívat│    │
 │  │                                                                     │    │
 │  └─────────────────────────────────────────────────────────────────────┘    │
 │                                                                             │
@@ -176,11 +198,12 @@
 │  │                                                                     │    │
 │  │  Monitoring:     Laravel Telescope (dev)                            │    │
 │  │                  Laravel Pulse (prod monitoring)                    │    │
+│  │                  Laravel Horizon (queue dashboard)                  │    │
 │  │                  Sentry (error tracking — i integrace s ITSM)      │    │
 │  │                                                                     │    │
 │  │  Backup:         pg_dump (automated daily)                          │    │
 │  │                  WAL archiving (point-in-time recovery)             │    │
-│  │                  File storage backup (MinIO mirroring)              │    │
+│  │                  File storage backup (SeaweedFS replication)        │    │
 │  │                                                                     │    │
 │  └─────────────────────────────────────────────────────────────────────┘    │
 │                                                                             │
@@ -198,7 +221,7 @@
 │                              │                                              │
 │ HIERARCHIE & NAVIGACE        │                                              │
 │ 5-úrovňová hierarchie        │ PostgreSQL recursive CTE + closure table     │
-│ Progress agregace            │ Async recalc přes RabbitMQ (bottom-up)       │
+│ Progress agregace            │ Async recalc přes Redis queue (bottom-up)    │
 │ Cross-module vazby           │ Polymorfní relace (morphTo/morphMany)        │
 │                              │                                              │
 │ REAL-TIME FUNKCE             │                                              │
@@ -210,7 +233,7 @@
 │ WORKFLOW ENGINE              │                                              │
 │ Konfigurovatelné workflows   │ State machine pattern (custom, DB-driven)    │
 │ Approval řetězce             │ Workflow modul: parallel/sequential nodes    │
-│ SLA tracking + eskalace      │ RabbitMQ delayed messages + scheduler        │
+│ SLA tracking + eskalace      │ Redis delayed jobs + Horizon + scheduler     │
 │ Rule engine                  │ Event-driven: Laravel Events + custom rules  │
 │                              │                                              │
 │ AUTENTIZACE & PRÁVA          │                                              │
@@ -220,19 +243,19 @@
 │ Audit trail                  │ Append-only audit tabulka, DB triggers       │
 │                              │                                              │
 │ KNOWLEDGE BASE               │                                              │
-│ Rich text editor             │ Tiptap (ProseMirror) + custom extensions     │
+│ Rich text editor             │ Tiptap v3 (ProseMirror) + custom extensions  │
 │ Verzování + diff             │ Verze v DB, diff computed (unified diff)     │
 │ Inline komentáře             │ Tiptap marks + komentářová vrstva            │
 │ Mermaid / PlantUML           │ Tiptap extension + Mermaid.js renderer       │
 │ Synced content blocks        │ Referencované bloky s live subscription      │
 │                              │                                              │
 │ VIEWS & VIZUALIZACE          │                                              │
-│ Kanban board                 │ @dnd-kit + custom React komponenty           │
-│ Gantt / Timeline             │ dhtmlxGantt nebo custom (SVG + React)        │
+│ Kanban board                 │ Pragmatic DnD (Atlassian) + React komponenty │
+│ Gantt / Timeline             │ SVAR React Gantt (MIT, open-source)          │
 │ Tabulka / List               │ @tanstack/react-table (virtualized rows)    │
 │ Kalendář                     │ FullCalendar (React wrapper)                 │
-│ Burndown / CFD / grafy       │ Recharts / ECharts (interaktivní, velká data)│
-│ Workload heatmapa            │ Custom React + ECharts                       │
+│ Burndown / CFD / grafy       │ Recharts (interaktivní, deklarativní API)    │
+│ Workload heatmapa            │ Custom React + Recharts                      │
 │ Dependency graph             │ D3.js nebo ECharts graph                     │
 │                              │                                              │
 │ SERVICE MANAGEMENT           │                                              │
@@ -249,7 +272,7 @@
 │                              │                                              │
 │ LLM INTEGRACE                │                                              │
 │ Multi-provider               │ Abstraktní LLM service (strategy pattern)   │
-│ Meeting sumarizace           │ Async job → RabbitMQ → LLM API → result     │
+│ Meeting sumarizace           │ Async job → Redis queue → LLM API → result  │
 │ KB Q&A asistent              │ RAG: pgvector embeddings + LLM              │
 │                              │                                              │
 │ INTEGRACE                    │                                              │
@@ -258,7 +281,7 @@
 │ Sentry                       │ Sentry webhook → auto incident              │
 │ Slack / Teams                │ Outgoing webhooks + bot API                  │
 │ REST API (Power BI aj.)      │ Laravel API Resources + Sanctum tokens      │
-│ Webhooky                     │ Outbound: async HTTP via RabbitMQ            │
+│ Webhooky                     │ Outbound: async HTTP via Redis queue         │
 │                              │                                              │
 │ EXPORT & REPORTING           │                                              │
 │ PDF export                   │ Laravel Snappy (wkhtmltopdf) / Browsershot  │
@@ -296,7 +319,7 @@
 │               ▼                           │                                 │
 │  ┌──────────────────────────────────────────────────────────────────┐       │
 │  │                    Laravel Application                           │       │
-│  │               (PHP 8.4 + Octane/FrankenPHP)                      │       │
+│  │               (PHP 8.4 + Octane/FrankenPHP — doporučený driver)   │       │
 │  │                                                                  │       │
 │  │  ┌──────┐ ┌──────┐ ┌──────┐ ┌──────┐ ┌──────┐ ┌──────┐        │       │
 │  │  │ Auth │ │ Org  │ │Goals │ │Proj. │ │ ITSM │ │  KB  │        │       │
@@ -311,20 +334,24 @@
 │  └─────┼────────┼────────┼────────┼─────────────────────────────────┘       │
 │        │        │        │        │                                          │
 │        ▼        ▼        ▼        ▼                                          │
-│  ┌──────────┐ ┌──────┐ ┌────────────┐ ┌───────────┐                        │
-│  │PostgreSQL│ │Redis │ │  RabbitMQ  │ │   MinIO   │                        │
-│  │  17      │ │  7   │ │            │ │ (files)   │                        │
-│  │          │ │      │ │ Queues:    │ │           │                        │
-│  │ • Data   │ │• Cache│ │ • default  │ │ • Uploads │                        │
-│  │ • JSONB  │ │• Sess.│ │ • emails   │ │ • Verze   │                        │
-│  │ • FTS    │ │• Pres.│ │ • exports  │ │ • Avatars │                        │
-│  │ • pgvect.│ │• Rate │ │ • llm      │ │           │                        │
-│  │ • Audit  │ │      │ │ • sla      │ │           │                        │
-│  └──────────┘ └──────┘ │ • rules    │ └───────────┘                        │
-│                         │ • webhooks │                                       │
-│                         └────────────┘                                       │
+│  ┌──────────┐ ┌───────────────────┐ ┌───────────┐                          │
+│  │PostgreSQL│ │Redis 7            │ │ SeaweedFS │                          │
+│  │  18      │ │                   │ │ (files)   │                          │
+│  │          │ │ DB 0: Cache       │ │           │                          │
+│  │ • Data   │ │  • Sess, Pres.   │ │ • Uploads │                          │
+│  │ • JSONB  │ │  • Rate limiting  │ │ • Verze   │                          │
+│  │ • FTS    │ │                   │ │ • Avatars │                          │
+│  │ • pgvect.│ │ DB 1: Queues     │ │           │                          │
+│  │ • Audit  │ │  • default, email│ └───────────┘                          │
+│  │ • pgAudit│ │  • exports, llm  │                                        │
+│  │ • uuidv7 │ │  • sla, rules    │                                        │
+│  └──────────┘ │  • webhooks      │                                        │
+│               │                   │                                        │
+│               │ DB 2: Broadcasting│                                        │
+│               │  • Reverb backend │                                        │
+│               └───────────────────┘                                        │
 │                                                                             │
-│  ┌─ Queue Workers ──────────────────────────────────────────────────┐       │
+│  ┌─ Queue Workers (Laravel Horizon — auto-balancing) ──────────────┐       │
 │  │  worker-default:  obecné joby (notifikace, audit, recalc)       │       │
 │  │  worker-email:    odesílání + příjem emailů                     │       │
 │  │  worker-export:   PDF, PPTX, CSV, GDPR export                  │       │
@@ -393,6 +420,15 @@
 │  │  Entity drží: current_state_id FK → workflow_states          │           │
 │  └──────────────────────────────────────────────────────────────┘           │
 │                                                                             │
+│  Primární klíče (UUIDv7 — PostgreSQL 18):                                  │
+│  ┌──────────────────────────────────────────────────────────────┐           │
+│  │  Všechny tabulky používají uuidv7() jako PK:                 │           │
+│  │    • Timestamp-ordered → lepší B-tree indexovatelnost        │           │
+│  │    • Globálně unikátní → bezpečné pro cross-module vazby    │           │
+│  │    • Nativní v PostgreSQL 18 (žádná PHP knihovna)            │           │
+│  │    id UUID PRIMARY KEY DEFAULT uuidv7()                      │           │
+│  └──────────────────────────────────────────────────────────────┘           │
+│                                                                             │
 │  Audit Trail (append-only):                                                 │
 │  ┌──────────────────────────────────────────────────────────────┐           │
 │  │  audit_logs (partitioned by month)                           │           │
@@ -402,7 +438,8 @@
 │  │    ip_address, user_agent, created_at                        │           │
 │  │                                                              │           │
 │  │  Partitioning: měsíční partitions (performance + retence)    │           │
-│  │  PHI reads: logovány, běžné reads: ne                        │           │
+│  │  PHI reads: logovány přes pgAudit, běžné reads: ne          │           │
+│  │  Retence: 6 let (healthcare compliance)                     │           │
 │  └──────────────────────────────────────────────────────────────┘           │
 │                                                                             │
 │  Polymorfní vazby (cross-module):                                           │
@@ -436,7 +473,7 @@
 │                      FRONTEND STRUCTURE                                     │
 │                                                                             │
 │  resources/js/                                                              │
-│  ├── app.tsx                         (Inertia + React bootstrap)           │
+│  ├── app.tsx                         (Inertia v2 + React bootstrap)       │
 │  ├── types/                          (TypeScript types, generated from BE) │
 │  ├── hooks/                          (shared React hooks)                  │
 │  │   ├── useRealtime.ts              (Reverb WebSocket)                    │
@@ -445,10 +482,10 @@
 │  │   ├── useFilters.ts                                                     │
 │  │   └── useDebouncedSearch.ts                                             │
 │  ├── components/                     (reusable UI components)              │
-│  │   ├── ui/                         (shadcn/ui: Button, Modal, Badge...)  │
-│  │   ├── editor/                     (Tiptap wrapper + extensions)         │
-│  │   ├── kanban/                     (KanbanBoard, KanbanColumn, Card)     │
-│  │   ├── gantt/                      (GanttChart, GanttRow, Dependency)    │
+│  │   ├── ui/                         (shadcn/ui v4: Button, Modal, Badge) │
+│  │   ├── editor/                     (Tiptap v3 wrapper + extensions)     │
+│  │   ├── kanban/                     (Pragmatic DnD — Board, Column, Card)│
+│  │   ├── gantt/                      (SVAR Gantt — Timeline, Dependencies)│
 │  │   ├── table/                      (DataTable, filters, sort)            │
 │  │   ├── forms/                      (FormBuilder, DynamicField)           │
 │  │   └── charts/                     (Burndown, CFD, Velocity, Pie)       │
@@ -461,17 +498,24 @@
 │  │   ├── Knowledge/                                                        │
 │  │   ├── Goals/                                                            │
 │  │   ├── Reports/                                                          │
-│  │   └── Admin/                      (Livewire / Filament hybrid)         │
-│  └── stores/                         (Zustand stores)                      │
-│      ├── useAuthStore.ts                                                   │
-│      ├── useNotificationStore.ts                                           │
-│      └── usePresenceStore.ts                                               │
+│  │   └── Admin/                      (Livewire / Filament 4 hybrid)      │
+│  ├── stores/                         (Zustand stores — client state)      │
+│  │   ├── useAuthStore.ts                                                   │
+│  │   ├── useNotificationStore.ts                                           │
+│  │   └── usePresenceStore.ts                                               │
+│  └── queries/                        (TanStack Query — server state)      │
+│      ├── useProjectsQuery.ts                                               │
+│      ├── useTasksQuery.ts                                                  │
+│      └── useKnowledgeQuery.ts                                              │
 │                                                                             │
-│  Inertia flow:                                                              │
-│    1. User naviguje → Inertia request                                       │
+│  Inertia v2 flow:                                                           │
+│    1. User naviguje → Inertia request (async, non-blocking)                │
 │    2. Laravel controller → return Inertia::render('Projects/Show', $data)  │
 │    3. React přijme props → renderuje SPA stránku                           │
-│    4. Žádné API duplikace — server-side routing, client-side rendering     │
+│    4. Deferred props se donačtou na pozadí (těžká data)                    │
+│    5. Prefetching přednahraje data pro viditelné linky                     │
+│    6. WhenVisible lazy-loaduje data při scrollu (infinite scroll)          │
+│    7. Žádné API duplikace — server-side routing, client-side rendering     │
 │                                                                             │
 │  React Native (budoucí):                                                    │
 │    • Sdílení TypeScript typů, hooks, Zustand stores, API vrstvy           │
@@ -488,15 +532,15 @@
 ┌────────────────────────────┬────────────────────────────────────────────────┐
 │ Package                    │ Účel                                           │
 ├────────────────────────────┼────────────────────────────────────────────────┤
-│ inertiajs/inertia-laravel  │ Server-side adapter pro Inertia.js            │
+│ inertiajs/inertia-laravel  │ Server-side adapter pro Inertia.js v2         │
 │ laravel/socialite          │ Google SSO                                     │
 │ laravel/sanctum            │ API token auth                                │
 │ laravel/reverb             │ WebSocket server (real-time)                   │
+│ laravel/horizon            │ Queue monitoring + auto-balancing (Redis)     │
 │ laravel/scout              │ Full-text search abstrakce                    │
-│ laravel/octane             │ High-performance server (Swoole/FrankenPHP)   │
+│ laravel/octane             │ High-performance server (FrankenPHP)          │
 │ laravel/pulse              │ Prod monitoring dashboard                     │
 │ laravel/telescope          │ Dev debugging dashboard                       │
-│ laravel/horizon            │ Queue monitoring (Redis) / custom RabbitMQ UI │
 │ spatie/laravel-permission  │ Role + permission management (základ)         │
 │ spatie/laravel-activitylog │ Audit trail (základ, rozšíříme)               │
 │ spatie/laravel-medialibrary│ File management + conversions                 │
@@ -504,12 +548,10 @@
 │ maatwebsite/excel          │ CSV/XLSX import/export                        │
 │ barryvdh/laravel-snappy    │ PDF generování                                │
 │ phpoffice/phppresentation  │ PPTX export                                   │
-│ vladimir-yuldashev/        │                                               │
-│   laravel-queue-rabbitmq   │ RabbitMQ queue driver                         │
-│ pgvector/pgvector          │ Vector embeddings pro AI search               │
+│ pgvector/pgvector          │ Vector embeddings pro AI search (HNSW indexy) │
 │ tightenco/ziggy            │ Laravel routes v JS (pro Inertia)             │
 │ spatie/laravel-data        │ DTO / data objects                            │
-│ filament/filament          │ Admin panel scaffolding                       │
+│ filament/filament          │ Admin panel scaffolding (v4 — MFA, nested)   │
 └────────────────────────────┴────────────────────────────────────────────────┘
 ```
 
@@ -520,16 +562,13 @@
 ```yaml
 # Produkční služby:
 services:
-  app:          # Laravel + Octane (FrankenPHP)
+  app:          # Laravel + Octane (FrankenPHP — doporučený driver)
   reverb:       # Laravel Reverb (WebSocket)
-  worker:       # Queue worker (default)
-  worker-email: # Queue worker (email)
-  worker-llm:   # Queue worker (LLM calls)
+  horizon:      # Laravel Horizon (queue manager + workers)
   scheduler:    # Laravel scheduler (cron)
-  postgres:     # PostgreSQL 17
-  redis:        # Redis 7
-  rabbitmq:     # RabbitMQ 3.13 (management plugin)
-  minio:        # MinIO (S3-compatible storage)
+  postgres:     # PostgreSQL 18
+  redis:        # Redis 7 (cache DB 0 + queues DB 1 + broadcasting DB 2)
+  seaweedfs:    # SeaweedFS (S3-compatible storage, náhrada za MinIO)
   mailpit:      # Dev only: email testing
 ```
 
@@ -542,9 +581,9 @@ services:
 │  S touto architekturou a počtem uživatelů:                       │
 │                                                                  │
 │  • Jeden server (8 CPU, 32 GB RAM) zvládne celý stack           │
-│  • Octane/FrankenPHP: tisíce req/s (vs. stovky s PHP-FPM)      │
-│  • PostgreSQL: miliony řádků bez problémů                       │
-│  • RabbitMQ: tisíce msg/s (queue nikdy nebude bottleneck)       │
+│  • Octane/FrankenPHP: 15 000 req/s (3.5x vs PHP-FPM)           │
+│  • PostgreSQL 18: miliony řádků, async I/O, uuidv7             │
+│  • Redis queues + Horizon: tisíce msg/s, auto-balancing         │
 │  • Redis cache: sub-ms response na opakované queries            │
 │  • Reverb: stovky concurrent WebSocket connections              │
 │                                                                  │
@@ -583,7 +622,9 @@ services:
 │                            │          │                                      │
 │ PostgreSQL                 │ Žádný    │ Už používáte                        │
 │                            │          │                                      │
-│ RabbitMQ                   │ Žádný    │ Už používáte                        │
+│ Redis queues + Horizon     │ Nízký    │ Redis už používáte. Horizon =      │
+│                            │          │ dashboard + auto-balancing.        │
+│                            │          │ Onboarding: 1-2 dny               │
 │                            │          │                                      │
 │ Redis                      │ Nízký    │ Standard v Laravel ekosystému       │
 │                            │          │                                      │
@@ -591,11 +632,15 @@ services:
 │                            │          │ pro dev environment                  │
 │                            │          │                                      │
 │ Y.js / CRDT                │ Vysoký   │ Specializovaná oblast, ale Tiptap  │
-│                            │          │ + Y.js mají dobrou dokumentaci.     │
-│                            │          │ Doporučení: PoC nejdřív             │
+│                            │          │ v3 + Y.js + Hocuspocus mají dobrou │
+│                            │          │ dokumentaci. Doporučení: PoC nejdřív│
 │                            │          │                                      │
-│ Tiptap editor              │ Střední  │ ProseMirror-based, React support.   │
-│                            │          │ Dobrá docs. Onboarding: 1-2 týdny  │
+│ Tiptap v3 editor           │ Střední  │ ProseMirror-based, React + JSX     │
+│                            │          │ support. Dobrá docs. Onboarding:   │
+│                            │          │ 1-2 týdny                           │
+│                            │          │                                      │
+│ TanStack Query             │ Nízký    │ Jednoduchý API, React hooks.       │
+│                            │          │ Onboarding: 2-3 dny                │
 └────────────────────────────┴──────────┴──────────────────────────────────────┘
 ```
 
@@ -632,7 +677,21 @@ services:
 │                            │             │                                  │
 │ MongoDB (custom fields)    │ ❌ Zamítnuto │ PG JSONB řeší totéž, jeden DB   │
 │                            │             │                                  │
-│ Kafka (místo RabbitMQ)     │ ❌ Zamítnuto │ Overkill, už máte RabbitMQ      │
+│ RabbitMQ (místo Redis Q)   │ ❌ Zamítnuto │ Zbytečný overhead pro monolit   │
+│                            │             │ Redis + Horizon = jednodušší,    │
+│                            │             │ méně infrastruktury              │
+│                            │             │                                  │
+│ Kafka (message broker)     │ ❌ Zamítnuto │ Overkill pro 50-200 uživatelů   │
+│                            │             │                                  │
+│ MinIO (object storage)     │ ❌ Zamítnuto │ V maintenance mode od 12/2025   │
+│                            │             │ Nepřijímá PR, žádné nové Docker  │
+│                            │             │ images → SeaweedFS jako náhrada  │
+│                            │             │                                  │
+│ @dnd-kit (drag & drop)     │ ❌ Zamítnuto │ Zpomalená údržba, pomalé bugy   │
+│                            │             │ → Pragmatic DnD (Atlassian)      │
+│                            │             │                                  │
+│ dhtmlxGantt / Bryntum      │ ❌ Zamítnuto │ Komerční licence                │
+│                            │             │ → SVAR React Gantt (MIT, zdarma) │
 │                            │             │                                  │
 │ Meilisearch (search)       │ ⏳ Fáze 2   │ Pokud PG FTS nebude stačit      │
 │                            │             │ (typo tolerance, faceting)       │
@@ -666,22 +725,75 @@ services:
 │ Vendor lock-in (Laravel)       │ Nízké riziko: Laravel je OSS, PHP standard│
 │                                │ Modulární architektura umožní migraci      │
 │                                │                                             │
-│ RabbitMQ message loss          │ Durable queues, publisher confirms,        │
-│                                │ dead-letter exchange, monitoring           │
+│ PHI compliance                 │ pgAudit, pgcrypto, TLS 1.3, RLS,          │
+│ (healthcare data)              │ encrypted backups, network segmentace,     │
+│                                │ data masking v logách, session timeout     │
+│                                │                                             │
+│ Redis queue job loss           │ retry_after > timeout, idempotentní joby, │
+│                                │ Horizon monitoring, oddělená Redis DB     │
 └────────────────────────────────┴─────────────────────────────────────────────┘
 ```
 
 ---
 
-## 13. DOPORUČENÝ VÝVOJOVÝ PLÁN
+## 13. PHI BEZPEČNOST (HEALTHCARE COMPLIANCE)
+
+```
+┌─────────────────────────────────────────────────────────────────────────────┐
+│                    BEZPEČNOSTNÍ VRSTVY PRO PHI DATA                         │
+│                                                                             │
+│  Šifrování:                                                                 │
+│    • At rest: AES-256 pro DB soubory a backupy                             │
+│    • In transit: TLS 1.3 pro všechna spojení (app↔DB, app↔Redis, klient)  │
+│    • Column-level: pgcrypto (PGP_SYM_ENCRYPT) pro citlivé sloupce         │
+│    • Key management: rotace klíčů, uložení v KMS (ne v kódu)              │
+│                                                                             │
+│  Audit logging:                                                             │
+│    • pgAudit: logování SELECT/INSERT/UPDATE/DELETE na PHI tabulkách        │
+│    • Konfigurace: pgaudit.log = 'read, write, role' pro PHI               │
+│    • Centralizované, immutable úložiště logů                              │
+│    • Retence: 6 let (healthcare compliance)                                │
+│                                                                             │
+│  Přístupová kontrola:                                                      │
+│    • PostgreSQL RLS — oddělení dat mezi rolemi                             │
+│    • Princip nejmenšího oprávnění — app DB user bez DROP/CREATE           │
+│    • Oddělený DB user pro migrace vs. runtime                              │
+│    • MFA pro administrátorské účty (Filament 4 + Passkeys)                │
+│                                                                             │
+│  Backup bezpečnost:                                                        │
+│    • Šifrované backupy (pg_dump + GPG)                                     │
+│    • WAL archiving na šifrované úložiště                                  │
+│    • Pravidelné restore drills                                             │
+│    • Offsite kopie                                                         │
+│                                                                             │
+│  Infrastruktura:                                                            │
+│    • Network segmentace — DB a Redis nepřístupné z internetu              │
+│    • Firewall — pouze app server přistupuje k DB                          │
+│    • Docker secrets místo environment variables pro credentials            │
+│                                                                             │
+│  Aplikační vrstva:                                                         │
+│    • Data masking v logách (Laravel nesmí logovat PHI)                     │
+│    • Session timeout a automatické odhlášení                              │
+│    • RBAC s audit trailem kdo co viděl/změnil                             │
+│    • Inertia v2 History Encryption pro citlivá data v browser history     │
+│                                                                             │
+└─────────────────────────────────────────────────────────────────────────────┘
+```
+
+---
+
+## 14. DOPORUČENÝ VÝVOJOVÝ PLÁN
 
 ```
 Fáze 0 — Setup (1-2 týdny):
-  • Laravel projekt + Docker Compose
-  • PostgreSQL + Redis + RabbitMQ
-  • Inertia + Vue + Tailwind + Vite
+  • Laravel 13 projekt + Docker Compose
+  • PostgreSQL 18 + Redis 7 (cache + queues + broadcasting)
+  • Inertia v2 + React 19 + TypeScript + Tailwind CSS 4 + Vite 6
+  • shadcn/ui CLI v4 + design system preset
   • CI/CD pipeline (GitHub Actions)
-  • Auth (Google SSO)
+  • Auth (Google SSO + Passkeys)
+  • SeaweedFS (S3-compatible file storage)
+  • Laravel Horizon (queue management)
 
 Fáze 1 — Core (MVP):
   • Org struktura + uživatelé + práva

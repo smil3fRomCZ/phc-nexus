@@ -126,13 +126,22 @@ ROLE (kdo jsem)
             └─ AKCE (read / create / edit / delete / admin)
 ```
 
-### Role na úkolech (single person per role)
+### Role na úkolech (capability matrix)
 
 ```
-Systémové (vždy):          Custom (per typ úkolu):
-  • Assignee                 Dev task:     + Developer, + Code Reviewer
-  • Reporter                 Design task:  + Designer, + Design Reviewer
-  • Viewer                   QA task:      + Tester
+Systémové role — kardinalita per typ úkolu:
+  • Assignee    — konfigurovatelné: single (default Task/Bug) nebo multi (Design Task, ...)
+  • Reporter    — VŽDY single
+  • Reviewer    — VŽDY multi
+  • Tester      — VŽDY multi
+  • Viewer      — multi
+
+Custom role (per typ úkolu):
+  Dev task:     + Developer (multi), + Code Reviewer (multi)
+  Design task:  + Designer (multi), + Design Reviewer (multi)
+  QA task:      + Tester (multi)
+
+Viz v7 rozhodnutí #7 — capability matrix.
 ```
 
 ---
@@ -155,10 +164,14 @@ Systémové (vždy):          Custom (per typ úkolu):
 │                    At Risk                                 │
 │                    Off Track                               │
 │                                                            │
-│  Mid-cycle změny KR:                                       │
-│    • KR lze přidat/odebrat/editovat kdykoli během cyklu   │
+│  Mid-cycle změny KR (amendment proces):                     │
+│    • Po schválení cyklu = baseline ZMRAZENA                │
+│    • KR změny JEN přes amendment (request + schválení       │
+│      vlastníkem Objective)                                  │
+│    • Původní baseline zůstává viditelná pro reporting       │
 │    • Každá změna: audit log + notifikace stakeholderům     │
 │    • Progress tracking: zachová historii (před/po změně)   │
+│    Viz v7 rozhodnutí #5 — zmrazená baseline.               │
 └────────────────────────────────────────────────────────────┘
 
 Portfolio = kolekce projektů
@@ -435,14 +448,18 @@ Admin může přidat na jakýkoli typ entity:
   • Multi-select
 ```
 
-### Rule Engine (automatizace)
+### Rule Engine (automatizace) — ODLOŽENO na Fázi 5
 
 ```
+⚠ V první verzi (MVP): HARDCODED core policies (SLA timery, eskalace, notifikace).
+  Rule engine přijde až po stabilizaci domény (Fáze 5 dle tech-stack roadmapy).
+  Viz v7 rozhodnutí #10.
+
 WHEN: [událost nebo čas]
   AND: [podmínky]
   THEN: [akce]
 
-Příklady:
+Příklady (hardcoded v MVP, konfigurovatelné od Fáze 5):
   • Úkol 3d po deadline + stav != Done → priorita High + notif PM + label "overdue"
   • Incident přiřazen → SLA timer start
   • Projekt health = Red 14 dní → exec alert
@@ -1281,7 +1298,16 @@ Při přesunu parent úkolu do Done:
 ### Zdravotnická data / PHI handling (GDPR + zákon o zdravotních službách ČR)
 ```
 Pro tickety obsahující citlivé zdravotnické údaje (dle GDPR čl. 9 — zvláštní kategorie osobních údajů):
-  • Označení ticketu jako "Contains PHI" (manuální nebo auto-detekce)
+
+  Klasifikace (vícevrstvá — viz v7 rozhodnutí #1):
+  • Vybrané desk typy (klinický incident, pacientský request) a formuláře:
+    POVINNÉ pole "Data Classification" při založení (PHI / Non-PHI / Unknown)
+  • Default stav "Unknown" = LLM funkce DISABLED, přístup omezený (jako PHI)
+  • Explicitní klasifikace "Non-PHI" = LLM funkce povoleny
+  • Ruční flag "Contains PHI" = DOPLNĚK pro ostatní moduly (projekty, KB)
+    — není jediný gate, ale rozšiřuje ochranu na entity mimo povinnou klasifikaci
+
+  Ochrana:
   • Omezený přístup: pouze přiřazení agenti + admin
   • Šifrování citlivých polí at rest
   • Audit log: kdo přistoupil k PHI datům (zákon č. 372/2011 Sb.)
@@ -1419,9 +1445,11 @@ Lokální účet: pouze pro Guest/external role
 ### LLM integrace & PHI
 
 ```
-PHI data jsou ZCELA VYLOUČENA z LLM zpracování:
+PHI a neklasifikovaná data jsou VYLOUČENA z LLM zpracování (viz v7 rozhodnutí #1):
   • Entity označené PHI se nikdy neposílají do externích LLM providerů
-  • LLM funkce (sumarizace, Q&A, prioritizace) na PHI entitách: nedostupné (tlačítko disabled)
+  • Entity s klasifikací "Unknown" = LLM funkce DISABLED (default pro healthcare desk typy)
+  • LLM funkce povoleny TEK po explicitní klasifikaci "Non-PHI"
+  • LLM funkce (sumarizace, Q&A, prioritizace) na PHI/Unknown entitách: nedostupné (tlačítko disabled)
   • Ostatní data: DPA (Data Processing Agreement) s každým LLM providerem povinné
   • Geografická lokalizace: pouze EU endpointy
   • Uživatel vidí disclaimer: "Tato data budou zpracována externím AI modelem"
@@ -1458,6 +1486,7 @@ LLM fallback:
   "Edit own" definice (Team Member):
   • = entity, kde je uživatel Assignee NEBO Reporter
   • NE entity, kde je pouze Viewer nebo @mentioned
+  • Při multi-Assignee: KAŽDÝ assignee má "edit own" práva (viz v7 #7)
 ```
 
 ### Izolace dat mezi týmy
@@ -1530,9 +1559,9 @@ Approval timeout:
   • Request NIKDY není auto-rejected kvůli timeoutu — vždy se najde schvalovatel
   • Timeout konfigurovatelný per workflow krok (default: 3 pracovní dny)
 
-Parallel approval: KONFIGUROVATELNÉ per workflow krok
-  • Režimy: unanimita / majorita / minimálně N z M / vážené hlasování
-  • Default: majorita (nadpoloviční většina)
+Parallel approval (viz v7 rozhodnutí #2):
+  • Healthcare/regulované workflow: JEDEN REŽIM — all required approvers must approve, any reject blocks
+  • Ne-regulované workflow (Fáze 2+): volitelné režimy (majorita / N z M) — zatím neimplementováno
   • Jeden timeout = eskalace na nadřízeného daného schvalovatele
 
 Delegace:
@@ -2910,39 +2939,53 @@ Pravidelný review obsahu Knowledge Base:
 ### SLA při změně priority mid-ticket
 
 ```
-Pravidlo: PŮVODNÍ SLA ZŮSTÁVÁ
+Pravidlo: ASYMETRICKÉ (viz v7 rozhodnutí #4)
 
-  • Změna priority ticketu po vytvoření NEOVLIVNÍ běžící SLA timer
-  • Ticket doběhne s SLA odpovídajícím prioritě v momentě vytvoření (snapshot)
+  DOWNGRADE priority (např. P1→P3):
+  • SLA se NEMĚNÍ — zůstává snapshot z momentu vytvoření
+  • Ochrana proti gaming (agent sníží prioritu pro uvolnění SLA)
+
+  UPGRADE priority (např. P3→P1):
+  • SLA se PŘEPOČÍTÁ na přísnější target od momentu změny
+  • Nebo se aktivuje přísnější target pro zbývající čas (whichever is stricter)
+  • Důvod: legitimní urgence (pacient v ohrožení) musí mít odpovídající SLA
+
+  Společné:
   • Změna priority ovlivní:
     - Routing a eskalace (nová priorita se použije pro eskalační matici)
     - Řazení ve frontě agentů (vyšší priorita = výš ve frontě)
-    - Reporting: ticket se reportuje pod AKTUÁLNÍ prioritou, SLA pod PŮVODNÍ
-  • Důvod: ochrana proti gaming (agent sníží prioritu pro uvolnění SLA)
-    a zároveň férovost (upgrade priority nezpůsobí okamžitý breach)
+    - Reporting: ticket se reportuje pod AKTUÁLNÍ prioritou
   • Admin vidí v dashboardu: počet priority změn per agent (monitoring gaming)
 ```
 
 ---
 
-### First Response definice (SLA metrika)
+### SLA metriky — dvě oddělené (viz v7 rozhodnutí #3)
 
 ```
-First Response = první VEŘEJNÝ komentář agenta NEBO přiřazení agentovi
+DVĚ SAMOSTATNÉ METRIKY (nahrazuje původní sloučenou "First Response"):
 
-  Co SE počítá:
-  • Veřejný komentář agenta (viditelný pro reportera)
-  • Přiřazení ticketu agentovi (přechod do stavu Assigned)
-  • Cokoliv nastane DŘÍVE = first response
+  1. Time to Ownership = přiřazení agentovi
+     • Interní metrika (zákazník nevidí)
+     • Měří rychlost triáže a přiřazení
+     • Start: vytvoření ticketu
+     • Stop: přechod do stavu Assigned (přiřazení agentovi)
 
-  Co se NEPOČÍTÁ:
+  2. Time to First Public Reply = první veřejná odpověď agenta
+     • SLA metrika vůči zákazníkovi (primární pro SLA reporting)
+     • Start: vytvoření ticketu
+     • Stop: první veřejný komentář agenta (viditelný pro reportera)
+
+  Co se NEPOČÍTÁ do žádné z metrik:
   • Automatická systémová odpověď (potvrzení přijetí ticketu)
-  • Kategorizace bez přiřazení (Submitted → Categorized)
   • Private note (interní poznámka viditelná jen agentům)
   • Změna priority, tagu nebo custom fieldu
 
-  Důvod: first response musí znamenat, že se někdo reálně ujal ticketu.
-  Pouhá kategorizace bez přiřazení neznamená, že zákazník dostal odpověď.
+  Co se počítá JEN do Time to Ownership (ne do First Public Reply):
+  • Kategorizace s přiřazením (Submitted → Assigned)
+
+  SLA breach se vyhodnocuje vůči Time to First Public Reply.
+  Time to Ownership je diagnostická/interní metrika.
 ```
 
 ---
@@ -2950,13 +2993,11 @@ First Response = první VEŘEJNÝ komentář agenta NEBO přiřazení agentovi
 ### Parallel approval — rejection logika
 
 ```
-Pravidlo: JEDEN REJECT = BLOKUJE (veto právo)
+Pravidlo: JEDEN REJECT = BLOKUJE (viz v7 rozhodnutí #2)
 
-  Platí pro VŠECHNY parallel approval režimy:
-  • Unanimita: 1 Reject → okamžitě Rejected, ostatní hlasování zastaveno
-  • Majorita: 1 Reject → okamžitě Rejected, ostatní hlasování zastaveno
-  • N z M: 1 Reject → okamžitě Rejected, ostatní hlasování zastaveno
-  • Vážené hlasování: 1 Reject → okamžitě Rejected
+  Jeden režim pro healthcare/regulované workflow:
+  • All required approvers must approve
+  • 1 Reject → okamžitě Rejected, ostatní hlasování zastaveno
 
   Chování po Reject:
   • Notifikace žadateli + všem schvalovatelům: "Zamítnuto uživatelem X"
@@ -2966,6 +3007,7 @@ Pravidlo: JEDEN REJECT = BLOKUJE (veto právo)
 
   Důvod: v healthcare prostředí je bezpečnější blokovat při jakémkoli nesouhlasu.
   Pokud schvalovatel vidí problém, proces se zastaví a řeší se.
+  Ostatní režimy (majorita, N z M, vážené) odloženy do Fáze 2+ pro ne-regulované workflow.
 ```
 
 ---
@@ -2973,27 +3015,32 @@ Pravidlo: JEDEN REJECT = BLOKUJE (veto právo)
 ### OKR progress agregace
 
 ```
-Pravidlo: DVA PARALELNÍ POHLEDY (auto-agregace + manuální scoring)
+Pravidlo: DVA PARALELNÍ POHLEDY — PEVNÉ ROLE (viz v7 rozhodnutí #5 a #6)
 
-  Auto-agregace (systémová):
+  Auto-agregace (systémová — DIAGNOSTICKÝ SIGNÁL):
   • Progress KR = průměr progress všech navázaných Projektů/Iniciativ
   • Počítá se automaticky, real-time
-  • Zobrazení: progress bar na KR kartě (label "Auto")
+  • Zobrazení: progress bar na KR kartě (label "Reference")
   • Vzorec: prostý průměr (všechny vazby mají stejnou váhu)
+  • NENÍ oficiální reporting hodnota — slouží jako diagnostika
 
-  Manuální scoring (vlastníkem KR):
+  Manuální scoring (vlastníkem KR — OFICIÁLNÍ BUSINESS REPORTING):
   • Vlastník KR nastavuje scoring 0–1.0 dle vlastního úsudku
   • Aktualizace: při check-inech (týdenní/měsíční reminder)
-  • Zobrazení: číselná hodnota na KR kartě (label "Manual")
-
-  Dashboard zobrazuje OBĚ hodnoty vedle sebe:
-  • PM/Executive si volí, kterou hodnotu použije pro reporting
-  • Výchozí pro reporting: manuální scoring (auto-agregace jako reference)
+  • Zobrazení: číselná hodnota na KR kartě (label "Official")
+  • Toto je VŽDY hodnota použitá pro business reporting (ne volba per dashboard)
   • Při Closing OKR cyklu: finální scoring je VŽDY manuální (0–1.0)
+
+  Zmrazená baseline (viz v7 rozhodnutí #5):
+  • Po schválení OKR cyklu = KR baseline ZMRAZENA
+  • Změny KR jen přes amendment proces (request + schválení vlastníkem Objective)
+  • Původní baseline zůstává viditelná v reportingu vedle aktuální hodnoty
+  • Audit log: každý amendment zaznamenaný (kdo, co, kdy, důvod)
 
   Důvod: auto-agregace nepostihuje kvalitativní aspekty (KR může být
   "50% hotovo" dle úkolů, ale klíčový deliverable stále chybí).
-  Manuální scoring dává vlastníkovi kontrolu.
+  Manuální scoring dává vlastníkovi kontrolu. Bez zmrazené baseline
+  je reporting manipulovatelný (tým přepíše KR na to, co reálně splnil).
 ```
 
 ---
@@ -3093,12 +3140,11 @@ Rozšířený Service Request workflow:
 ### Entity override — bez ceiling (potvrzení)
 
 ```
-Pravidlo: ENTITY OVERRIDE BEZ CEILING (beze změny)
+Pravidlo: ENTITY OVERRIDE S GOVERNANCE (viz v7 rozhodnutí #8)
 
-  Potvrzení stávajícího designu:
+  Základní mechanismus (beze změny):
   • Entity override PŘEPISUJE systémovou roli (může rozšířit i omezit)
   • Neexistuje ceiling (strop) per systémovou roli
-  • Reader MŮŽE být povýšen na Full přístup na konkrétní entitě
   • Admin je plně odpovědný za správnost overridů
 
   Ochranná opatření (stávající):
@@ -3106,12 +3152,15 @@ Pravidlo: ENTITY OVERRIDE BEZ CEILING (beze změny)
   • Guest + PHI: hard block, admin NEMŮŽE override
   • Audit log: každý entity override zaznamenaný (kdo, komu, jaký přístup)
 
-  Doplněná ochranná opatření:
+  Governance pojistky (nové — nahrazují pouhý warning dialog):
+  • Rozšíření nad systémovou roli = ČASOVĚ OMEZENÝ GRANT
+    - Admin nastaví expiraci (default: 90 dní)
+    - Po expiraci: automatické odebrání override + notifikace adminovi
+    - Trvale rozšířený override jen přes explicitní prodloužení
+  • POVINNÝ business důvod (textové pole při vytvoření override)
   • Admin dashboard: přehled všech entity overridů (filtr: per role, per entita)
-  • Warning při přidělení Full přístupu uživateli s rolí Reader/Guest:
-    "Přidělujete Full přístup uživateli s rolí Reader. Pokračovat?" (potvrzovací dialog)
+  • Warning při přidělení Full přístupu uživateli s rolí Reader/Guest (zachováno)
   • Pravidelný review: admin dostane kvartální reminder k revizi overridů
-    (seznam overridů, které rozšiřují přístup nad rámec systémové role)
 ```
 
 ---
@@ -3176,13 +3225,308 @@ Pravidlo: 5 POKUSŮ (oprava checklistu)
 
 | # | Oblast | Stav | Detaily |
 |---|--------|------|---------|
-| 130 | SLA při změně priority | ✅ | Původní SLA zůstává, změna priority ovlivní jen routing/eskalace |
-| 131 | First Response definice | ✅ | Veřejný komentář NEBO přiřazení agentovi (cokoliv dříve) |
-| 132 | Parallel approval rejection | ✅ | Jeden Reject = veto, okamžité zastavení hlasování |
-| 133 | OKR dva pohledy | ✅ | Auto-agregace + manuální scoring paralelně, manuální pro reporting |
+| 130 | SLA při změně priority | ⚠️ AKTUALIZOVÁNO v7 | Asymetrické: downgrade nemění SLA, upgrade přepočítá |
+| 131 | First Response definice | ⚠️ AKTUALIZOVÁNO v7 | Rozděleno na Time to Ownership + Time to First Public Reply |
+| 132 | Parallel approval rejection | ⚠️ AKTUALIZOVÁNO v7 | Jeden režim pro healthcare, ostatní odloženy do Fáze 2+ |
+| 133 | OKR dva pohledy | ⚠️ AKTUALIZOVÁNO v7 | Manuální = oficiální (pevné), auto = reference. Zmrazená baseline |
 | 134 | Sprint close flow | ✅ | PM rozhodne per úkol (backlog / další sprint / Won't Do) |
 | 135 | On-call rotace | ✅ | Schedule per desk, auto-routing mimo business hours, eskalace |
 | 136 | Service Request Rejected | ✅ | Nový stav Rejected s povinným důvodem, bez CSAT |
-| 137 | Entity override bez ceiling | ✅ | Beze změny + warning dialog + kvartální review overridů |
+| 137 | Entity override bez ceiling | ⚠️ AKTUALIZOVÁNO v7 | Governance: časový grant + povinný důvod + expirace |
 | 138 | PHI auto-detekce scope | ✅ | Pouze na sensitive polích, BEZ auto-detekce ve volném textu |
 | 139 | Webhook retry (oprava) | ✅ | 5 pokusů (oprava checklistu #102 z 3 na 5) |
+
+---
+
+## ZPŘÍSNĚNÍ A REDUKCE (v7 — 2026-03-23)
+
+> 10 doporučení z review bezpečnosti, konzistence a MVP scope.
+> Cíl: zamknout pravidla tam, kde volitelnost vytvářela riziko nebo rozpor.
+> Všechna rozhodnutí projednána a schválena.
+
+---
+
+### v7 #1 — PHI klasifikace: povinné pole, ne jen ruční flag
+
+```
+Pravidlo: VÍCEVRSTVÁ KLASIFIKACE (nahrazuje čistě ruční "Contains PHI")
+
+  Povinná klasifikace při založení (vybrané desk typy a formuláře):
+  • Klinický incident, pacientský request, HR sensitive request a další
+    admin-definované typy: POVINNÉ pole "Data Classification" při založení
+  • Hodnoty: PHI / Non-PHI / Unknown
+  • Default: Unknown
+
+  Důsledky klasifikace:
+  • PHI → LLM disabled, omezený přístup, šifrování, audit
+  • Unknown → LLM disabled, omezený přístup (zacházení jako PHI dokud není klasifikováno)
+  • Non-PHI → LLM povoleno, standardní přístup
+
+  Ruční flag "Contains PHI":
+  • Zachován jako DOPLNĚK pro ostatní moduly (projekty, KB, úkoly)
+  • Kdokoliv může označit entitu jako PHI (rozšiřuje ochranu)
+  • Ale NENÍ jediný gate — vybrané typy mají povinnou klasifikaci
+
+  Důvod: reaktivní model (někdo musí označit) je nebezpečný — do označení
+  LLM zpracovává potenciálně citlivá data. Proaktivní default "Unknown = chráněno"
+  je bezpečnější pro healthcare prostředí.
+
+  Aktualizované sekce: PHI handling, LLM integrace & PHI.
+```
+
+---
+
+### v7 #2 — Approval model: jeden režim pro healthcare
+
+```
+Pravidlo: JEDEN REŽIM PRO REGULOVANÉ WORKFLOW
+
+  Healthcare / regulované schvalování:
+  • All required approvers must approve
+  • Any reject blocks (veto právo)
+  • Žádná majorita, žádné N z M, žádné vážené hlasování
+
+  Důvod: pokud platí "1 reject = stop" (viz v6 rozhodnutí), tak majorita / N z M /
+  vážené hlasování se chovají identicky jako unanimita. Držet 4 režimy, které produkují
+  stejný výsledek, je zbytečná složitost a matoucí pro admina.
+
+  Ne-regulované workflow (Fáze 2+):
+  • Volitelné režimy (majorita, N z M) mohou být přidány pro ne-healthcare procesy
+  • Podmínka: v ne-regulovaném režimu 1 reject NEMUSÍ blokovat (odlišná sémantika)
+  • Zatím neimplementováno — odloženo
+
+  Aktualizované sekce: Parallel approval, Parallel approval — rejection logika.
+```
+
+---
+
+### v7 #3 — SLA: dvě oddělené metriky
+
+```
+Pravidlo: TIME TO OWNERSHIP + TIME TO FIRST PUBLIC REPLY
+
+  Nahrazuje sloučenou "First Response" metriku:
+
+  1. Time to Ownership (interní):
+     • = přiřazení agentovi
+     • Měří efektivitu triáže
+     • Nezobrazuje se zákazníkovi
+
+  2. Time to First Public Reply (SLA vůči zákazníkovi):
+     • = první veřejná odpověď agenta
+     • Toto je metrika pro SLA breach vyhodnocení
+     • Zákazník vidí: "Odpověď do X hodin"
+
+  Důvod: přiřazení agentovi je interní operace — zákazník o ní neví.
+  Sloučení obou do jedné metriky umožňovalo splnit SLA pouhým přiřazením
+  bez skutečné odpovědi zákazníkovi.
+
+  Aktualizovaná sekce: First Response definice (přejmenována na SLA metriky).
+```
+
+---
+
+### v7 #4 — SLA při změně priority: asymetrické pravidlo
+
+```
+Pravidlo: DOWNGRADE NEMĚNÍ, UPGRADE PŘEPOČÍTÁ
+
+  Downgrade (např. P1→P3):
+  • SLA se NEMĚNÍ — snapshot z momentu vytvoření
+  • Ochrana proti gaming
+
+  Upgrade (např. P3→P1):
+  • SLA se přepočítá: přísnější target od momentu změny
+  • Nebo přísnější target pro zbývající čas (whichever is stricter)
+
+  Důvod: čistý snapshot model je bezpečný proti gaming (downgrade),
+  ale při legitimní urgenci (pacient v ohrožení, P3→P1) je absurdní
+  držet P3 SLA timer. Asymetrické pravidlo řeší oba scénáře.
+
+  Aktualizovaná sekce: SLA při změně priority mid-ticket.
+```
+
+---
+
+### v7 #5 — OKR: zmrazená baseline po schválení cyklu
+
+```
+Pravidlo: BASELINE ZMRAZENA PO SCHVÁLENÍ
+
+  Po schválení OKR cyklu:
+  • KR baseline (cílová hodnota, popis, metrika) = ZMRAZENA
+  • Změny KR jen přes AMENDMENT PROCES:
+    - Request od vlastníka KR
+    - Schválení vlastníkem nadřazeného Objective
+    - Povinný důvod změny
+    - Audit log: původní → nová hodnota
+  • Původní baseline VŽDY viditelná v reportingu vedle aktuální hodnoty
+
+  Co NENÍ amendment (volně editovatelné):
+  • Manuální scoring (check-in hodnota 0–1.0)
+  • Confidence level (On Track / At Risk / Off Track)
+  • Komentáře a poznámky
+
+  Důvod: bez zmrazené baseline je reporting manipulovatelný — tým může
+  v posledním týdnu cyklu přepsat KR na to, co reálně splnil, a dosáhnout
+  100% score. Zmrazená baseline chrání integritu reportingu.
+
+  Aktualizované sekce: OKR cyklus (mid-cycle změny), OKR progress agregace.
+```
+
+---
+
+### v7 #6 — OKR: manuální score = oficiální reporting
+
+```
+Pravidlo: MANUÁLNÍ SCORE JE OFICIÁLNÍ, AUTO JE REFERENCE
+
+  Pevné pravidlo (ne volba per dashboard):
+  • Manuální scoring = jediná hodnota pro business reporting
+  • Auto-agregace = diagnostický signál (label "Reference")
+  • PM/Executive NEMŮŽE přepnout reporting na auto-agregaci
+
+  Dashboard zobrazuje obě hodnoty, ale:
+  • Export, executive summary, OKR review = vždy manuální score
+  • Auto-agregace = informativní, pomáhá vlastníkovi KR při check-inu
+
+  Důvod: volba per dashboard = každý reportuje jiné číslo = nekonzistentní
+  reporting. Jedno pevné pravidlo eliminuje zmatek.
+
+  Aktualizovaná sekce: OKR progress agregace.
+```
+
+---
+
+### v7 #7 — Task role: capability matrix
+
+```
+Pravidlo: EXPLICITNÍ KARDINALITA PER ROLE
+
+  Systémové role — capability matrix:
+  ┌────────────┬────────────────────────────────────────────┐
+  │ Role       │ Kardinalita                                │
+  ├────────────┼────────────────────────────────────────────┤
+  │ Assignee   │ Konfigurovatelné per typ úkolu:            │
+  │            │   single (default: Task, Bug)              │
+  │            │   multi (Design Task, ...)                 │
+  │ Reporter   │ VŽDY single                                │
+  │ Reviewer   │ VŽDY multi                                 │
+  │ Tester     │ VŽDY multi                                 │
+  │ Viewer     │ multi                                      │
+  └────────────┴────────────────────────────────────────────┘
+
+  "Edit own" při multi-Assignee:
+  • KAŽDÝ assignee má "edit own" práva na entitě
+  • Conflict resolution: last-write-wins (same as single assignee)
+  • Notifikace: změna pole → notifikace ostatním assignees
+
+  Důvod: single Reviewer na code review je nerealistické. Single Assignee
+  na design tasku s 3 designéry rovněž. Bez explicitní matice bude
+  "edit own" kolidovat s reálným delivery flow.
+
+  Aktualizovaná sekce: Role na úkolech, "Edit own" definice.
+```
+
+---
+
+### v7 #8 — Entity override: governance místo warning dialogu
+
+```
+Pravidlo: ČASOVĚ OMEZENÝ GRANT + POVINNÝ DŮVOD
+
+  Rozšíření nad systémovou roli (entity override směrem nahoru):
+  • ČASOVĚ OMEZENÝ GRANT s expirací (admin nastaví, default: 90 dní)
+  • POVINNÝ business důvod (textové pole, nelze vynechat)
+  • Po expiraci: automatické odebrání override + notifikace adminovi
+  • Trvale rozšířený override: jen přes explicitní prodloužení (nový grant)
+
+  Omezení nad systémovou roli (entity override směrem dolů):
+  • Bez expirace (omezení platí, dokud admin neodebere)
+  • Business důvod povinný
+
+  Warning dialog zachován, ale NENÍ jediná pojistka.
+
+  Důvod: samotný warning "Pokračovat? [Ano/Ne]" pro Reader→Full je slabý gate.
+  Časový grant + povinný důvod + automatická expirace výrazně snižuje riziko
+  zapomenutých rozšířených přístupů.
+
+  Aktualizovaná sekce: Entity override — bez ceiling.
+```
+
+---
+
+### v7 #9 — MVP scope: tvrdé zúžení na primární hodnotu
+
+```
+Pravidlo: FÁZE 1 = PROJECTS + WORK + ZÁKLADNÍ SCHVALOVÁNÍ
+
+  MVP (Fáze 1) — UZAMČENÝ scope:
+  • Org struktura + uživatelé + práva
+  • Projekty + úkoly (Story, Task, Bug) + Epics
+  • Workflow (hardcoded stavy, ne rule engine)
+  • Kanban + tabulka view
+  • Komentáře, přílohy, audit trail
+  • Základní approval flow (all must approve / any reject blocks)
+  • Notifikace (in-app + email)
+  • PHI klasifikace (povinné pole na healthcare typech)
+
+  ODLOŽENO na Fázi 2+:
+  • OKR / Goals (Fáze 2)
+  • Sprint management, velocity (Fáze 2)
+  • ITSM / Service Desk (Fáze 3)
+  • Knowledge Base (Fáze 4)
+  • Rule engine (Fáze 5)
+  • LLM/AI funkce (Fáze 5)
+  • Migrace z Jira/Asana/Confluence (Fáze 5)
+  • Ne-regulované approval režimy (Fáze 2+)
+
+  Důvod: spec chce nahradit Jira, JSM, Asanu i Confluence najednou. Příliš široký
+  MVP scope = žádný modul není dostatečně dobrý. Uzamknout primární hodnotu
+  (Projects + Work) a dodat ji kvalitně.
+
+  Konzistentní s: tech-stack-analysis.md Fáze 1.
+```
+
+---
+
+### v7 #10 — Rule engine: až po stabilizaci domény
+
+```
+Pravidlo: MVP = HARDCODED CORE POLICIES, RULE ENGINE OD FÁZE 5
+
+  Fáze 1 (MVP):
+  • SLA timery, eskalace, notifikace = hardcoded pravidla
+  • Workflow přechody = hardcoded per typ entity
+  • Automatické akce (onboarding, offboarding) = hardcoded
+
+  Fáze 5 (rule engine):
+  • WHEN/AND/THEN konfigurovatelná pravidla
+  • Admin UI pro správu pravidel
+  • Podmínka: business pravidla musí být nejdřív stabilní
+    (jinak konfigurujeme pravidla, která se ještě mění)
+
+  Důvod: rule engine je v návrhu příliš brzy centrální součástí, ale business
+  pravidla sama ještě nejsou dostatečně zredukovaná a stabilní (viz v7 #1–#8).
+  Hardcoded pravidla v MVP jsou jednodušší na implementaci, testování a debugging.
+
+  Konzistentní s: tech-stack-analysis.md Fáze 5.
+  Aktualizovaná sekce: Rule Engine (automatizace).
+```
+
+---
+
+### Aktualizovaný finální checklist (v7 — 149 oblastí)
+
+| # | Oblast | Stav | Detaily |
+|---|--------|------|---------|
+| 140 | PHI povinná klasifikace | ✅ | Povinné pole Data Classification na healthcare typech, Unknown = chráněno |
+| 141 | Approval jeden režim | ✅ | Healthcare: all approve / any reject. Ostatní režimy Fáze 2+ |
+| 142 | SLA dvě metriky | ✅ | Time to Ownership (interní) + Time to First Public Reply (SLA) |
+| 143 | SLA asymetrické pravidlo | ✅ | Downgrade nemění SLA, upgrade přepočítá na přísnější target |
+| 144 | OKR zmrazená baseline | ✅ | Po schválení cyklu baseline zmrazena, změny jen přes amendment |
+| 145 | OKR oficiální score | ✅ | Manuální = oficiální reporting, auto = reference (pevné pravidlo) |
+| 146 | Task role capability matrix | ✅ | Explicitní kardinalita: Assignee konfig., Reporter single, Reviewer/Tester multi |
+| 147 | Entity override governance | ✅ | Časově omezený grant + povinný důvod + automatická expirace |
+| 148 | MVP scope uzamčen | ✅ | Fáze 1 = Projects + Work + basic approvals + notifications |
+| 149 | Rule engine odložen | ✅ | Hardcoded core policies v MVP, rule engine od Fáze 5 |

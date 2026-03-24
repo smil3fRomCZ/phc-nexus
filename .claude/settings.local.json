@@ -1,0 +1,26 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(git config:*)",
+      "Bash(git status:*)",
+      "Bash(git add:*)",
+      "Bash(git commit:*)",
+      "Bash(git push:*)",
+      "Bash(curl -s https://api.github.com/repos/shadcn-ui/ui/releases?per_page=10)",
+      "Bash(python3 -c \":*)",
+      "Bash(curl -s https://api.github.com/repos/filamentphp/filament/releases?per_page=10)",
+      "Bash(curl -s https://api.github.com/repos/shadcn-ui/ui/tags?per_page=10)",
+      "Bash(curl -s https://api.github.com/repos/filamentphp/filament)",
+      "Bash(curl -s https://registry.npmjs.org/shadcn)",
+      "Bash(curl -s https://repo.packagist.org/p2/filament/filament.json)",
+      "WebSearch",
+      "WebFetch(domain:ui.shadcn.com)",
+      "WebFetch(domain:github.com)",
+      "WebFetch(domain:filamentphp.com)",
+      "WebFetch(domain:packagist.org)",
+      "WebFetch(domain:hafiz.dev)",
+      "WebFetch(domain:laravel-news.com)",
+      "WebFetch(domain:www.npmjs.com)"
+    ]
+  }
+}

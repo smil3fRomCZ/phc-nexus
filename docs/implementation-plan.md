@@ -14,7 +14,7 @@
 
 2. Jedna hlavní aplikační osa:
    Laravel + Inertia + React
-   Filament/Livewire jen pro technickou administraci
+   Filament 5 / Livewire 4 jen pro technickou administraci
 
 3. Žádná předčasná platformizace:
    žádný rule engine v MVP
@@ -30,6 +30,10 @@
 6. Domain-first delivery:
    nejdřív kvalitní Projects + Work
    až potom rozšiřovat modulový záběr
+
+7. Explicitní rozhodnutí u security-sensitive scope:
+   auth model, PHI scope a export pravidla
+   musí mít písemné rozhodnutí dřív než začne implementace
 ```
 
 ---
@@ -39,6 +43,7 @@
 ### In scope
 
 - Organizace, uživatelé, role, přístupová práva
+- interní Google SSO onboarding přes invite
 - Projekty
 - Epiky a úkoly
 - Stavové přechody per typ entity
@@ -52,6 +57,7 @@
 
 ### Out of scope
 
+- externí identity model, pokud není výslovně potvrzený ADR
 - OKR / Goals
 - Sprint velocity / workload
 - Service Desk / ITSM
@@ -70,10 +76,10 @@
 1. Platform setup
 2. Identity a authorization
 3. Organization model
-4. Projects modul
-5. Work modul
-6. Approvals
-7. Audit + files + comments
+4. Cross-cutting foundation: audit envelope + files contract + comments model
+5. Projects modul
+6. Work modul
+7. Approvals
 8. Notifications
 9. Polishing, hardening, E2E
 10. Produkční rollout na VPS
@@ -81,6 +87,7 @@
 ### Proč toto pořadí
 
 - Bez identity, rolí a authorization nelze správně stavět Work ani Approvals.
+- Audit trail, file storage contract a comment model jsou u regulovaných flow základní capability, ne jen pozdější doplněk.
 - Projects a Work nesou hlavní business hodnotu MVP.
 - Approvals mají být nad stabilním modelem entit, ne obráceně.
 - Audit, files a notifications jsou průřezové capability, které je lepší připojit na ustálené use-casy.
@@ -101,8 +108,10 @@ Založit projekt, pipeline a běhové prostředí bez business komplexity.
 - Dockerfile
 - `docker-compose.dev.yml`
 - `docker-compose.prod.yml`
-- PostgreSQL + Redis + Caddy
+- PostgreSQL + Redis (dva kontejnery: cache + data) + Caddy + PHP-FPM
 - Inertia + React + TypeScript + Tailwind
+- zvolený storage backend pro MVP (`local` nebo `S3-compatible`) včetně restore postupu
+- baseline notification transportu pro MVP (`DB + email`; realtime až pokud bude prokázaně nutný)
 - CI: lint + test + build
 - základní observability a error handling
 
@@ -111,6 +120,7 @@ Založit projekt, pipeline a běhové prostředí bez business komplexity.
 - aplikace běží lokálně přes Compose
 - image lze buildnout bez manuálních kroků
 - test pipeline běží v CI
+- je rozhodnutý storage backend a je popsaný restore files
 
 ---
 
@@ -128,11 +138,14 @@ Zprovoznit autentizaci a primární authorization model.
 - role matrix
 - policy enforcement
 - PHI klasifikace a základní access pravidla
+- ADR pro auth scope MVP (`jen interní Google Workspace` vs. `externí účty/guest`)
+- PHI scope matrix: entity, sensitive pole, export omezení, audit pravidla
 
 ### Exit criteria
 
-- každý endpoint a každá Inertia page má autorizační pravidla
+- každý endpoint, Inertia page, file download, export a background side effect má autorizační pravidla
 - existují testy pro critical auth flows
+- existuje rozhodnutí, zda guest/external flow je v MVP nebo až po MVP
 
 ---
 
@@ -144,6 +157,9 @@ Dodat základní projektový kontext.
 
 ### Deliverables
 
+- minimální audit envelope pro business akce
+- file attachment contract
+- comment thread model
 - projekty CRUD
 - základní metadata projektu
 - projektové členství
@@ -154,6 +170,8 @@ Dodat základní projektový kontext.
 
 - projekt lze založit, upravit, archivovat
 - přístup je řízený podle rolí a členství
+- audit zapisuje hlavní business akce v konzistentním formátu
+- storage kontrakt je použitelný pro přílohy bez změny API v dalších milestonech
 
 ---
 
@@ -178,6 +196,7 @@ Dodat hlavní operativní práci v systému.
 
 - tým zvládne řídit běžný delivery flow pouze v PHC Nexus
 - všechny hlavní přechody jsou auditované
+- comments a files fungují na stabilním storage a audit modelu z předchozího milestone
 
 ---
 
@@ -195,11 +214,13 @@ Dodat regulovaný approval model a základní notifikace.
 - email notifikace
 - in-app notifikace
 - reminder jobs
+- explicitní pravidla pro timeout/escalation/delegation v MVP
 
 ### Exit criteria
 
 - approval flow funguje end-to-end
 - notifikace jsou idempotentní
+- approval rozhodnutí, delegace a timeouty mají audit stopu
 
 ---
 
@@ -235,6 +256,8 @@ Připravit MVP na nasazení a první provoz.
 - deploy script
 - backupy
 - logging
+- storage decision record
+- monitoring baseline
 
 ### B. Backend
 
@@ -243,6 +266,8 @@ Připravit MVP na nasazení a první provoz.
 - policies
 - queue jobs
 - audit
+- export guards
+- file/download authorization
 
 ### C. Frontend
 
@@ -251,6 +276,7 @@ Připravit MVP na nasazení a první provoz.
 - forms
 - kanban
 - table views
+- notification UX bez závislosti na realtime vrstvě
 
 ### D. Quality
 
@@ -280,6 +306,8 @@ Každý task v backlogu má mít:
 - data impact
 - security/privacy impact
 - test scope
+- authz impact
+- audit/export impact
 
 ### Epics pro MVP
 
@@ -412,6 +440,7 @@ Používat **Conventional Commits**.
   - volitelně semver tag
 - staging deploy ze stejného image
 - production deploy stejného image po schválení
+- release nesmí měnit storage backend ani auth model bez explicitního ADR
 
 ### Tagging
 
@@ -438,17 +467,18 @@ Používat **Conventional Commits**.
   - `app`
   - `worker`
   - `scheduler`
-  - `reverb`
+  - `reverb` jen pokud realtime use-case ospravedlní provozní složitost
 
 ### Na VPS běží samostatně
 
-- reverse proxy (`Caddy` nebo `Nginx`)
-- `app`
+- `caddy` (reverse proxy + TLS)
+- `app` (PHP-FPM)
 - `worker`
 - `scheduler`
 - `reverb` pokud je potřeba
 - `postgres`
-- `redis`
+- `redis-cache` (allkeys-lru)
+- `redis-data` (noeviction — sessions + queues)
 
 ### Důležité pravidlo
 
@@ -461,6 +491,9 @@ Nedávat do jednoho kontejneru zároveň:
 - Redis
 
 To komplikuje restart policy, scaling, observability i debugging.
+
+Realtime není podmínka pro první releasable MVP.
+DB-backed notifikace + email jsou preferovaný baseline; Reverb je upgrade po ověření use-case a provozních nákladů.
 
 ---
 
@@ -486,7 +519,7 @@ Použít pro:
 
 - unit testy pro čistou business logiku
 - feature testy pro HTTP/use-case flows
-- authorization testy pro kritické endpointy
+- authorization testy pro kritické endpointy, downloads, exporty a jobs
 - queue job testy pro side effects
 
 ### Frontend
@@ -503,6 +536,8 @@ Použít pro:
 5. approval flow
 6. komentář + příloha
 7. notifikace po důležité akci
+8. PHI/Non-PHI access rozdíl
+9. export/download guard
 
 ---
 
@@ -517,6 +552,7 @@ Task je hotový pouze pokud:
 - má odpovídající testy
 - má vyřešený authorization impact
 - má vyřešený audit/security impact
+- má vyřešený export/download impact, pokud pracuje s daty nebo přílohami
 - je zdokumentovaný, pokud mění workflow nebo provoz
 
 ---
@@ -554,19 +590,25 @@ Task je hotový pouze pokud:
 ## 16. RIZIKA REALIZACE
 
 - Scope creep z business dokumentu
+- Neuzavřený auth scope pro externí/guest uživatele
+- Nejasná PHI hranice mezi moduly a exporty
 - Předčasný rule engine
 - Příliš mnoho „shared“ helperů místo doménových služeb
 - Slabé authorization testy
 - Velké PR bez jasné hranice odpovědnosti
 - Produkční deploy bez odzkoušeného restore
+- Realtime vrstva přidaná dřív než je ověřená skutečná potřeba
 
 ### Mitigace
 
 - držet MVP scope lock
+- uzavřít auth model ADR před implementací guest/external flow
+- vytvořit PHI scope matrix před implementací exportů a files
 - weekly scope review
 - trunk-based branch discipline
 - release checklist
 - restore drills
+- realtime zavádět až po měření a ověření use-case
 
 ---
 
@@ -589,6 +631,11 @@ Task je hotový pouze pokud:
 
 ## 18. PRVNÍ 3 TÝDNY — KONKRÉTNÍ PLÁN
 
+Předpoklad:
+
+- malý tým se schopností paralelně pokrýt platformu, backend a frontend
+- pokud tým tuto kapacitu nemá, plán níže je třeba číst jako `must / should`, ne jako pevný termín
+
 ### Týden 1
 
 - založení projektu
@@ -596,16 +643,22 @@ Task je hotový pouze pokud:
 - CI pipeline
 - auth skeleton
 - Inertia shell + layout
+- rozhodnutí storage backendu
+- ADR auth scope
 
 ### Týden 2
 
 - organization model
 - user roles
 - authorization matrix
+- PHI scope matrix
 - project CRUD
 
 ### Týden 3
 
+- audit envelope
+- file attachment contract
+- comment thread model
 - task model
 - task CRUD
 - status transitions
@@ -620,6 +673,8 @@ Po tomto dokumentu dává smysl vytvořit:
 - `docs/adr/ADR-001-mvp-scope.md`
 - `docs/adr/ADR-002-git-strategy.md`
 - `docs/adr/ADR-003-docker-deployment-model.md`
+- `docs/adr/ADR-004-auth-scope-mvp.md`
+- `docs/architecture/phi-scope-matrix.md`
 - `docs/runbooks/deploy.md`
 - `docs/runbooks/backup-restore.md`
 - `docs/testing-strategy.md`

@@ -4,6 +4,8 @@
 > Nahrazuje: Jira (Software, Service Management, Product Discovery), Asana, Confluence.
 > Cílová skupina: 50–200 uživatelů, více týmů a oddělení.
 > Vícejazyčné UI: CZ / EN / SK
+> Poznámka k interpretaci: tento dokument popisuje kompletní business roadmapu.
+> Pro MVP / Fázi 1 mají přednost rozhodnutí v sekci `v7` a `docs/implementation-plan.md`.
 
 ---
 
@@ -375,8 +377,9 @@ Change Management (CAB):
 ```
 ┌─ PŘIHLÁŠENÍ ──────────────────────────────────────────────┐
 │                                                            │
-│  Primární: Google SSO (Google Workspace účty)              │
-│  Fallback: Lokální účet (email + heslo) pro externí        │
+│  MVP / Fáze 1: Google SSO (Google Workspace účty)          │
+│  Fáze 2+: Lokální účet (email + heslo) pro external/Guest  │
+│            pouze pokud bude potvrzen samostatným ADR       │
 │                                                            │
 └────────────────────────────────────────────────────────────┘
 
@@ -387,8 +390,9 @@ Change Management (CAB):
 │  Admin klikne "Invite"                                     │
 │    → Zadá email + role + tým                               │
 │      → Uživatel dostane email s odkazem                    │
-│        → Klikne → Google SSO → účet vytvořen               │
-│          → Auto: onboarding workflow se spustí              │
+│        → MVP interní uživatel: Google SSO → účet vytvořen  │
+│          → Auto: onboarding workflow se spustí             │
+│        → Guest/external flow: mimo MVP, viz sekce níže     │
 │                                                            │
 └────────────────────────────────────────────────────────────┘
 ```
@@ -420,6 +424,10 @@ Change Management (CAB):
 │  Uložení: osobní nebo sdílený pohled s týmem              │
 └────────────────────────────────────────────────────────────┘
 ```
+
+Poznámka k delivery:
+  • MVP / Fáze 1 garantuje `Kanban` + `Tabulka / List`
+  • Timeline / Gantt, Kalendář, Workload heatmapa a Dependency graph jsou Fáze 2+
 
 ---
 
@@ -511,6 +519,8 @@ Limity (admin): max velikost, povolené typy, storage quota
 ### LLM integrace
 
 ```
+Fáze 5+ pouze. Není součást MVP / Fáze 1.
+
 ┌──────────────┬────────────────────────────────────────────┐
 │ Zápisy       │ Sumarizace, extrakce akčních bodů          │
 │ Reporty      │ Generování status reportů z dat            │
@@ -605,6 +615,10 @@ Limity (admin): max velikost, povolené typy, storage quota
 
 ## 10. CHECKLIST — MÁ BUSINESS LOGIKA VŠE?
 
+Poznámka:
+  Tento checklist ověřuje úplnost business roadmapy, ne implementační prioritu pro MVP.
+  Pro Fázi 1 platí tvrdé omezení v `v7 #9` a v `docs/implementation-plan.md`.
+
 | Oblast | Stav | Detaily |
 |--------|------|---------|
 | Hierarchie práce | ✅ | 5 úrovní: Iniciativa → Projekt → Epic → Úkol → Podúkol |
@@ -623,19 +637,19 @@ Limity (admin): max velikost, povolené typy, storage quota
 | Release Management | ✅ | Kolekce features, Go/No-Go checklist |
 | Retrospektivy | ✅ | Vestavěné, hlasování, auto úkoly |
 | Onboarding | ✅ | Auto workflow při přidání člena |
-| Views | ✅ | 4 základní + 4 speciální, konfigurovatelné |
+| Views | ⚠️ | MVP: Kanban + tabulka. Timeline, kalendář a speciální views Fáze 2+ |
 | Org struktura | ✅ | Oddělení → Týmy + Tribes |
-| Role & práva | ✅ | 6 rolí (vč. Guest), granulární (role × modul × entita × akce) |
-| Autentizace | ✅ | Google SSO + lokální účty |
+| Role & práva | ⚠️ | MVP: interní role. Guest/external role je Fáze 2+ / pending ADR |
+| Autentizace | ⚠️ | MVP: Google SSO. Lokální účty jen pro Guest/external mimo MVP |
 | Registrace | ✅ | Invite-only |
 | Custom fields | ✅ | Plně konfig. na všech entitách |
-| Rule Engine | ✅ | Trigger + podmínka + akce |
-| Eskalace | ✅ | Auto (rule engine) + manuální |
+| Rule Engine | ⏳ | Odloženo do Fáze 5; MVP používá hardcoded core policies |
+| Eskalace | ⚠️ | MVP: hardcoded pro approvals/SLA. Obecná automatizace až s rule enginem |
 | Audit trail | ✅ | Plný log, nepřepisovatelný |
-| Notifikace | ✅ | In-app, email, Slack/Teams/Mattermost |
+| Notifikace | ⚠️ | MVP: in-app + email. Chat kanály a pokročilé schéma Fáze 2+ |
 | File management | ✅ | Přílohy, verzování, limity |
 | Google Workspace | ✅ | Calendar, Drive, Gmail, Docs |
-| LLM integrace | ✅ | 4 use cases, multi-provider |
+| LLM integrace | ⏳ | Fáze 5+, mimo MVP |
 | Reporting | ✅ | Dashboardy, Power BI API, PDF/PPTX |
 | Cross-module vazby | ✅ | Automatické propojení mezi moduly |
 | Administrace | ✅ | Kompletní admin panel |
@@ -716,16 +730,20 @@ Archivovaná data: read-only, hledatelná, možnost obnovit
 ### Migrace dat
 
 ```
+Fáze 5+ pouze. Není součást MVP / Fáze 1.
+
 Import — plná migrace z Jira / Asana / Confluence:
   • Projekty, úkoly, KB stránky, incidenty
   • Včetně historie a příloh
 
 Export — plný export dat z Nexusu (anti vendor lock-in):
-  • Admin může exportovat VŠECHNA data: projekty, úkoly, KB, tickety, historie, přílohy
+  • Standard export: jen ne-PHI data dle oprávnění uživatele
+  • GDPR export (self-service): per uživatel, viz GDPR sekce
+  • Regulovaný/admin export: samostatný režim s explicitním oprávněním a auditem
+  • PHI data jsou vyloučena z běžných exportů
   • Formát: JSON (strukturovaný) + CSV (tabulkový) + přílohy (ZIP)
-  • Scope: celá organizace nebo per modul/projekt
+  • Scope: per projekt / modul; celofiremní export jen v admin/regulovaném režimu
   • Async zpracování s notifikací po dokončení
-  • GDPR export (per uživatel): viz GDPR sekce
 ```
 
 ### API
@@ -890,6 +908,10 @@ Sprint analytics: committed vs. completed, carry-over
 
 ## 13. FINÁLNÍ CHECKLIST (93 oblastí)
 
+Poznámka:
+  Tato tabulka je kumulativní roadmap checklist. `✅` zde znamená "business oblast je popsána",
+  ne "patří do MVP". MVP scope je uzamčen až ve `v7 #9`.
+
 | # | Oblast | Stav | Detaily |
 |---|--------|------|---------|
 | | **HIERARCHIE & STRATEGIE** | | |
@@ -927,26 +949,26 @@ Sprint analytics: committed vs. completed, carry-over
 | 28 | Eskalace | ✅ | Auto (rule engine) + manuální |
 | 29 | Cross-module vazby | ✅ | Automatické propojení mezi moduly |
 | | **VIEWS & UX** | | |
-| 30 | Views | ✅ | 4 základní + 4 speciální, konfigurovatelné |
+| 30 | Views | ⚠️ | MVP: Kanban + tabulka. Timeline, kalendář a speciální views Fáze 2+ |
 | 31 | Osobní dashboard | ✅ | Home: úkoly, approvals, overdue, workload, oblíbené |
 | 32 | Favorites & recent | ✅ | Hvězdička + nedávné + rychlý přístup |
 | 33 | Watchers / follow | ✅ | Watch na entitě → notifikace |
 | 34 | Bulk operace | ✅ | Hromadné akce nad více entitami |
 | | **ORG & PŘÍSTUPY** | | |
 | 35 | Org struktura | ✅ | Oddělení → Týmy + Tribes |
-| 36 | Role & práva | ✅ | 6 rolí (vč. Guest), granulární (role × modul × entita × akce) |
-| 37 | Autentizace | ✅ | Google SSO + lokální účty |
+| 36 | Role & práva | ⚠️ | MVP: interní role. Guest/external role Fáze 2+ / pending ADR |
+| 37 | Autentizace | ⚠️ | MVP: Google SSO. Lokální účty jen pro Guest/external mimo Fázi 1 |
 | 38 | Registrace | ✅ | Invite-only + onboarding workflow |
 | 39 | GDPR / governance | ✅ | Export dat, anonymizace, processing log |
 | | **KONFIGURACE & ADMIN** | | |
 | 40 | Custom fields | ✅ | Plně konfig. na všech entitách |
 | 41 | Šablony (vše) | ✅ | Projekty, úkoly, incidenty, KB, meeting notes |
-| 42 | Rule Engine | ✅ | Trigger + podmínka + akce |
+| 42 | Rule Engine | ⏳ | Fáze 5. MVP používá hardcoded core policies |
 | 43 | Tagy & labely | ✅ | Globální, barevné, admin + uživatelské |
 | 44 | Administrace | ✅ | Kompletní admin panel |
 | | **PRŮŘEZOVÉ FUNKCE** | | |
 | 45 | Audit trail | ✅ | Plný log, nepřepisovatelný |
-| 46 | Notifikace | ✅ | In-app, email, Slack/Teams/Mattermost API |
+| 46 | Notifikace | ⚠️ | MVP: in-app + email. Chat konektory a pokročilé schéma Fáze 2+ |
 | 47 | Notif. předvolby | ✅ | Granulární per událost × kanál + digest |
 | 48 | Globální search | ✅ | Full-text + filtry napříč moduly |
 | 49 | File management | ✅ | Přílohy, verzování, limity |
@@ -954,14 +976,14 @@ Sprint analytics: committed vs. completed, carry-over
 | 51 | Email inbound | ✅ | Auto ticket z emailu, reply → komentář |
 | | **INTEGRACE** | | |
 | 52 | Google Workspace | ✅ | Calendar, Drive, Gmail, Docs |
-| 53 | LLM integrace | ✅ | 4 use cases, multi-provider |
+| 53 | LLM integrace | ⏳ | Fáze 5+, mimo MVP |
 | 54 | REST API | ✅ | API-first, OAuth2, webhooky, OpenAPI docs |
-| 55 | CSV/Excel I/O | ✅ | Import + export |
+| 55 | CSV/Excel I/O | ⚠️ | Běžný export bez PHI. Plná migrace/import mimo MVP |
 | 56 | Reporting | ✅ | Dashboardy, Power BI API, PDF/PPTX |
 | | **INFRASTRUKTURA** | | |
 | 57 | Lokalizace | ✅ | CZ / EN / SK |
 | 58 | Archivace & retence | ✅ | Konfigurovatelné, read-only archiv |
-| 59 | Migrace dat | ✅ | Plná migrace z Jira/Asana/Confluence |
+| 59 | Migrace dat | ⏳ | Fáze 5, mimo MVP |
 | 60 | Backup & DR | ✅ | Auto zálohy, point-in-time recovery |
 | 61 | Mobilní přístup | ✅ | Responzivní web (desktop-first, mobile-friendly) |
 | 62 | Offline | ✅ | Ne (vždy online) |
@@ -988,8 +1010,8 @@ Sprint analytics: committed vs. completed, carry-over
 | 82 | Ticket merge / split | ✅ | Spojení a rozdělení ticketů |
 | 83 | Diagramy nativně | ✅ | Mermaid / PlantUML v rich text editoru |
 | 84 | KB import Confluence/Notion | ✅ | Import wizard pro migraci KB obsahu |
-| 85 | Guest / external collaborator | ✅ | Omezený přístup pro dodavatele/klienty |
-| 86 | AI rozšíření (8 use cases) | ✅ | +Sprint planning AI, decomposition, semantic search, predictive delivery |
+| 85 | Guest / external collaborator | ⏳ | Fáze 2+ / pending ADR |
+| 86 | AI rozšíření (8 use cases) | ⏳ | Fáze 5+, mimo MVP |
 | 87 | Conflict resolution | ✅ | CRDT pro KB, merge dialog pro entity |
 | 88 | Circular dependency detection | ✅ | Validace cyklických závislostí |
 | 89 | Projekt lifecycle | ✅ | Draft → Active → On Hold → Completed → Archived |
@@ -1218,17 +1240,21 @@ Rozšíření existující migrace (Jira/Asana/Confluence pro projekty/úkoly)
 
 ### Guest / external collaborator role
 ```
+Fáze 2+ pouze. Není součást MVP / Fáze 1 bez samostatného ADR.
+
 Nová role: Guest
   • Přístup jen ke konkrétním projektům/entitám (explicitně pozvaný)
   • Oprávnění: read + komentáře (konfigurovatelné per pozvání)
   • Bez přístupu k admin, reportům, org struktuře
   • Vizuálně odlišený (badge "External")
-  • Autentizace: lokální účet (email + heslo) nebo Google SSO
+  • Autentizace: lokální účet (email + heslo) nebo Google SSO podle budoucího ADR
   • Invite s expirací (volitelný datum konce přístupu)
 ```
 
 ### AI rozšíření (nad rámec 4 základních use cases)
 ```
+Fáze 5+ pouze. Není součást MVP / Fáze 1.
+
 Nové AI use cases:
   5. Sprint planning AI — na základě velocity, kapacity a backlogu navrhne obsah sprintu
   6. Auto-decomposition — z epiku/user story vygeneruje podúkoly s odhadem
@@ -1400,6 +1426,7 @@ Google SSO invite:
   Admin → Invite (email + role + tým) → Email s odkazem → Klik → Google SSO → Účet vytvořen → Onboarding
 
 Lokální účet invite:
+  Fáze 2+ / pending ADR:
   Admin → Invite (email + role + tým, typ: lokální) → Email s odkazem → Klik → Nastavení hesla → MFA setup → Účet vytvořen → Onboarding
 
 Invite link: expiruje 72h, jednorázový token, kryptograficky podepsaný
@@ -3516,7 +3543,7 @@ Pravidlo: MVP = HARDCODED CORE POLICIES, RULE ENGINE OD FÁZE 5
 
 ---
 
-### Aktualizovaný finální checklist (v7 — 149 oblastí)
+### Aktualizovaný finální checklist (v7 — 151 oblastí)
 
 | # | Oblast | Stav | Detaily |
 |---|--------|------|---------|
@@ -3530,3 +3557,5 @@ Pravidlo: MVP = HARDCODED CORE POLICIES, RULE ENGINE OD FÁZE 5
 | 147 | Entity override governance | ✅ | Časově omezený grant + povinný důvod + automatická expirace |
 | 148 | MVP scope uzamčen | ✅ | Fáze 1 = Projects + Work + basic approvals + notifications |
 | 149 | Rule engine odložen | ✅ | Hardcoded core policies v MVP, rule engine od Fáze 5 |
+| 150 | Auth scope MVP | ✅ | Fáze 1 = interní Google SSO invite-only. Guest/external až po ADR |
+| 151 | Export režimy | ✅ | Standard export bez PHI, GDPR export per user, regulated/admin export s auditem |

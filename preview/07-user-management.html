@@ -1,0 +1,762 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>User Management - PHC Nexus</title>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+  <style>
+    :root {
+      --color-brand-primary: #f5a623;
+      --color-brand-primary-hover: #e09000;
+      --color-brand-primary-soft: #fff8eb;
+      --color-brand-primary-muted: #ffd080;
+      --color-text-strong: #172b4d;
+      --color-text-default: #42526e;
+      --color-text-muted: #6b778c;
+      --color-text-subtle: #97a0af;
+      --color-text-on-brand: #ffffff;
+      --color-surface-canvas: #f4f5f7;
+      --color-surface-panel: #ffffff;
+      --color-surface-panel-subtle: #fafbfc;
+      --color-surface-panel-muted: #f7f8fa;
+      --color-border-subtle: #ebecf0;
+      --color-border-default: #dfe1e6;
+      --color-border-strong: #c1c7d0;
+      --color-status-success-bg: #e3fcef; --color-status-success-fg: #006644;
+      --color-status-warning-bg: #fff0b3; --color-status-warning-fg: #974f0c;
+      --color-status-danger-bg: #ffebe6; --color-status-danger-fg: #bf2600;
+      --color-status-info-bg: #deebff; --color-status-info-fg: #0747a6;
+      --color-status-neutral-bg: #dfe1e6; --color-status-neutral-fg: #42526e;
+      --color-status-review-bg: #eae6ff; --color-status-review-fg: #5243aa;
+      --font-sans: "Inter", -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+      --font-mono: "SFMono-Regular", Consolas, monospace;
+      --font-size-xs: 0.6875rem; --font-size-sm: 0.75rem; --font-size-base: 0.875rem;
+      --font-size-md: 1rem; --font-size-lg: 1.125rem; --font-size-xl: 1.375rem; --font-size-2xl: 1.75rem;
+      --space-1: 0.25rem; --space-2: 0.5rem; --space-3: 0.75rem; --space-4: 1rem;
+      --space-5: 1.25rem; --space-6: 1.5rem; --space-8: 2rem; --space-10: 2.5rem; --space-12: 3rem;
+      --radius-sm: 0.25rem; --radius-md: 0.5rem; --radius-lg: 0.75rem;
+      --shadow-sm: 0 1px 2px rgba(0,0,0,0.05); --shadow-md: 0 4px 6px rgba(0,0,0,0.07);
+      --shadow-lg: 0 8px 24px rgba(23,43,77,0.12);
+      --shell-topbar-height: 3rem; --shell-sidebar-width: 16rem;
+    }
+
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    body {
+      font-family: var(--font-sans);
+      font-size: var(--font-size-base);
+      color: var(--color-text-default);
+      background: var(--color-surface-canvas);
+      line-height: 1.5;
+    }
+
+    /* ── Topbar ── */
+    .topbar {
+      position: fixed; top: 0; left: 0; right: 0;
+      height: var(--shell-topbar-height);
+      background: var(--color-surface-panel);
+      border-bottom: 1px solid var(--color-border-default);
+      display: flex; align-items: center;
+      padding: 0 var(--space-4);
+      z-index: 100;
+    }
+    .topbar-logo {
+      display: flex; align-items: center; gap: var(--space-2);
+      font-weight: 700; font-size: var(--font-size-md);
+      color: var(--color-text-strong);
+      min-width: var(--shell-sidebar-width);
+      padding-right: var(--space-4);
+    }
+    .topbar-logo svg { flex-shrink: 0; }
+    .topbar-center { flex: 1; display: flex; justify-content: center; }
+    .topbar-search {
+      width: 100%; max-width: 420px;
+      padding: var(--space-2) var(--space-3);
+      border: 1px solid var(--color-border-default);
+      border-radius: var(--radius-md);
+      font-family: var(--font-sans);
+      font-size: var(--font-size-sm);
+      color: var(--color-text-default);
+      background: var(--color-surface-panel-subtle);
+      outline: none;
+      transition: border-color 150ms ease-out;
+    }
+    .topbar-search::placeholder { color: var(--color-text-subtle); }
+    .topbar-search:focus { border-color: var(--color-brand-primary); }
+    .topbar-right {
+      display: flex; align-items: center; gap: var(--space-4);
+      min-width: 120px; justify-content: flex-end;
+    }
+    .topbar-bell {
+      position: relative; cursor: pointer;
+      color: var(--color-text-muted);
+      display: flex; align-items: center;
+    }
+    .topbar-bell-badge {
+      position: absolute; top: -4px; right: -6px;
+      background: var(--color-brand-primary);
+      color: var(--color-text-on-brand);
+      font-size: 0.625rem; font-weight: 600;
+      width: 16px; height: 16px; border-radius: 50%;
+      display: flex; align-items: center; justify-content: center;
+    }
+    .topbar-avatar {
+      width: 28px; height: 28px; border-radius: 50%;
+      background: var(--color-brand-primary);
+      color: var(--color-text-on-brand);
+      font-size: var(--font-size-xs); font-weight: 600;
+      display: flex; align-items: center; justify-content: center;
+      cursor: pointer;
+    }
+
+    /* ── Sidebar ── */
+    .sidebar {
+      position: fixed; top: var(--shell-topbar-height); left: 0; bottom: 0;
+      width: var(--shell-sidebar-width);
+      background: var(--color-surface-panel);
+      border-right: 1px solid var(--color-border-default);
+      padding: var(--space-4) 0;
+      overflow-y: auto;
+      z-index: 90;
+    }
+    .nav-section-label {
+      font-size: var(--font-size-xs);
+      font-weight: 600;
+      text-transform: uppercase;
+      letter-spacing: 0.05em;
+      color: var(--color-text-subtle);
+      padding: var(--space-4) var(--space-4) var(--space-2);
+    }
+    .nav-item {
+      display: flex; align-items: center; gap: var(--space-3);
+      padding: var(--space-2) var(--space-4);
+      color: var(--color-text-default);
+      text-decoration: none;
+      font-size: var(--font-size-base);
+      font-weight: 500;
+      border-left: 3px solid transparent;
+      cursor: pointer;
+      transition: background-color 150ms ease-out;
+    }
+    .nav-item:hover { background: var(--color-surface-panel-muted); }
+    .nav-item.active {
+      background: var(--color-brand-primary-soft);
+      border-left-color: var(--color-brand-primary);
+      color: var(--color-brand-primary-hover);
+    }
+    .nav-item svg { flex-shrink: 0; color: var(--color-text-muted); }
+    .nav-item.active svg { color: var(--color-brand-primary-hover); }
+
+    /* ── Main ── */
+    .main {
+      margin-left: var(--shell-sidebar-width);
+      margin-top: var(--shell-topbar-height);
+      padding: var(--space-8) var(--space-12);
+      min-height: calc(100vh - var(--shell-topbar-height));
+    }
+
+    /* ── Breadcrumb ── */
+    .breadcrumb {
+      font-size: var(--font-size-sm);
+      color: var(--color-text-muted);
+      margin-bottom: var(--space-2);
+    }
+    .breadcrumb a { color: var(--color-text-muted); text-decoration: none; }
+    .breadcrumb a:hover { color: var(--color-brand-primary-hover); }
+    .breadcrumb-sep { margin: 0 var(--space-1); }
+
+    /* ── Page Header ── */
+    .page-header {
+      display: flex; align-items: center; justify-content: space-between;
+      margin-bottom: var(--space-8);
+    }
+    .page-title {
+      font-size: var(--font-size-2xl); font-weight: 700;
+      color: var(--color-text-strong);
+    }
+    .page-actions { display: flex; gap: var(--space-3); }
+
+    /* ── Buttons ── */
+    .btn {
+      display: inline-flex; align-items: center; gap: var(--space-2);
+      padding: var(--space-2) var(--space-4);
+      border-radius: var(--radius-md);
+      font-family: var(--font-sans);
+      font-size: var(--font-size-base);
+      font-weight: 500;
+      cursor: pointer;
+      transition: all 150ms ease-out;
+      border: 1px solid transparent;
+      line-height: 1.5;
+    }
+    .btn-primary {
+      background: var(--color-brand-primary);
+      color: var(--color-text-on-brand);
+    }
+    .btn-primary:hover { background: var(--color-brand-primary-hover); }
+    .btn-secondary {
+      background: var(--color-surface-panel);
+      color: var(--color-text-default);
+      border-color: var(--color-border-default);
+    }
+    .btn-secondary:hover { background: var(--color-surface-panel-muted); border-color: var(--color-border-strong); }
+
+    /* ── Stat Tiles ── */
+    .stat-tiles {
+      display: grid; grid-template-columns: repeat(3, 1fr);
+      gap: var(--space-4);
+      margin-bottom: var(--space-6);
+    }
+    .stat-tile {
+      background: var(--color-surface-panel);
+      border: 1px solid var(--color-border-subtle);
+      border-radius: var(--radius-md);
+      padding: var(--space-5);
+      display: flex; flex-direction: column; gap: var(--space-1);
+    }
+    .stat-tile-label {
+      font-size: var(--font-size-sm);
+      color: var(--color-text-muted);
+      font-weight: 500;
+    }
+    .stat-tile-value {
+      font-size: var(--font-size-2xl);
+      font-weight: 700;
+      color: var(--color-text-strong);
+    }
+    .stat-tile-indicator {
+      display: inline-block;
+      width: 8px; height: 8px;
+      border-radius: 50%;
+      margin-right: var(--space-2);
+    }
+
+    /* ── Filter Bar ── */
+    .filter-bar {
+      display: flex; gap: var(--space-3); align-items: center;
+      margin-bottom: var(--space-4);
+      flex-wrap: wrap;
+    }
+    .filter-select, .filter-input {
+      padding: var(--space-2) var(--space-3);
+      border: 1px solid var(--color-border-default);
+      border-radius: var(--radius-md);
+      font-family: var(--font-sans);
+      font-size: var(--font-size-sm);
+      color: var(--color-text-default);
+      background: var(--color-surface-panel);
+      outline: none;
+      transition: border-color 150ms ease-out;
+    }
+    .filter-select:focus, .filter-input:focus { border-color: var(--color-brand-primary); }
+    .filter-input { min-width: 200px; }
+
+    /* ── Table ── */
+    .table-wrapper {
+      background: var(--color-surface-panel);
+      border: 1px solid var(--color-border-subtle);
+      border-radius: var(--radius-md);
+      overflow: hidden;
+    }
+    table { width: 100%; border-collapse: collapse; }
+    thead th {
+      text-align: left;
+      padding: var(--space-3) var(--space-4);
+      font-size: var(--font-size-xs);
+      font-weight: 600;
+      text-transform: uppercase;
+      letter-spacing: 0.04em;
+      color: var(--color-text-muted);
+      background: var(--color-surface-panel-subtle);
+      border-bottom: 1px solid var(--color-border-default);
+    }
+    tbody td {
+      padding: var(--space-3) var(--space-4);
+      border-bottom: 1px solid var(--color-border-subtle);
+      font-size: var(--font-size-base);
+      vertical-align: middle;
+    }
+    tbody tr { transition: background-color 120ms ease-out; }
+    tbody tr:hover { background: var(--color-brand-primary-soft); }
+    tbody tr:last-child td { border-bottom: none; }
+    tbody tr.pending td { color: var(--color-text-muted); font-style: italic; }
+    tbody tr.pending .user-name { font-style: italic; }
+
+    .user-cell { display: flex; align-items: center; gap: var(--space-3); }
+    .user-avatar {
+      width: 32px; height: 32px; border-radius: 50%;
+      display: flex; align-items: center; justify-content: center;
+      font-size: var(--font-size-xs); font-weight: 600;
+      color: var(--color-text-on-brand); flex-shrink: 0;
+    }
+    .user-name { font-weight: 500; color: var(--color-text-strong); white-space: nowrap; }
+    tbody tr.pending .user-name { color: var(--color-text-muted); }
+    .user-email { color: var(--color-text-muted); font-size: var(--font-size-sm); }
+
+    /* ── Lozenges ── */
+    .lozenge {
+      display: inline-flex; align-items: center;
+      padding: 2px var(--space-2);
+      border-radius: var(--radius-sm);
+      font-size: var(--font-size-xs);
+      font-weight: 600;
+      white-space: nowrap;
+    }
+    .lozenge-success { background: var(--color-status-success-bg); color: var(--color-status-success-fg); }
+    .lozenge-warning { background: var(--color-status-warning-bg); color: var(--color-status-warning-fg); }
+    .lozenge-danger { background: var(--color-status-danger-bg); color: var(--color-status-danger-fg); }
+    .lozenge-info { background: var(--color-status-info-bg); color: var(--color-status-info-fg); }
+    .lozenge-neutral { background: var(--color-status-neutral-bg); color: var(--color-status-neutral-fg); }
+    .lozenge-review { background: var(--color-status-review-bg); color: var(--color-status-review-fg); }
+
+    .actions-btn {
+      background: none; border: none; cursor: pointer;
+      color: var(--color-text-muted); font-size: var(--font-size-lg);
+      padding: var(--space-1) var(--space-2);
+      border-radius: var(--radius-sm);
+      transition: background-color 120ms ease-out;
+      letter-spacing: 2px;
+    }
+    .actions-btn:hover { background: var(--color-surface-panel-muted); color: var(--color-text-default); }
+
+    .last-login { white-space: nowrap; font-size: var(--font-size-sm); color: var(--color-text-muted); }
+
+    /* ── Modal ── */
+    .modal-backdrop {
+      position: fixed; inset: 0;
+      background: rgba(23, 43, 77, 0.5);
+      display: flex; align-items: center; justify-content: center;
+      z-index: 200;
+    }
+    .modal {
+      background: var(--color-surface-panel);
+      border-radius: var(--radius-lg);
+      box-shadow: var(--shadow-lg);
+      max-width: 480px; width: 100%;
+      padding: var(--space-8);
+    }
+    .modal-title {
+      font-size: var(--font-size-xl); font-weight: 700;
+      color: var(--color-text-strong);
+      margin-bottom: var(--space-6);
+    }
+    .form-group { margin-bottom: var(--space-5); }
+    .form-label {
+      display: block;
+      font-size: var(--font-size-sm); font-weight: 500;
+      color: var(--color-text-default);
+      margin-bottom: var(--space-1);
+    }
+    .form-input, .form-select, .form-textarea {
+      width: 100%;
+      padding: var(--space-2) var(--space-3);
+      border: 1px solid var(--color-border-default);
+      border-radius: var(--radius-md);
+      font-family: var(--font-sans);
+      font-size: var(--font-size-base);
+      color: var(--color-text-default);
+      background: var(--color-surface-panel);
+      outline: none;
+      transition: border-color 150ms ease-out;
+    }
+    .form-input:focus, .form-select:focus, .form-textarea:focus { border-color: var(--color-brand-primary); }
+    .form-textarea { resize: vertical; min-height: 80px; }
+    .form-note {
+      font-size: var(--font-size-sm);
+      color: var(--color-text-muted);
+      margin-bottom: var(--space-6);
+      display: flex; align-items: flex-start; gap: var(--space-2);
+    }
+    .form-note svg { flex-shrink: 0; margin-top: 1px; }
+    .modal-actions {
+      display: flex; gap: var(--space-3); justify-content: flex-end;
+    }
+  </style>
+</head>
+<body>
+
+<!-- ── Topbar ── -->
+<header class="topbar">
+  <div class="topbar-logo">
+    <svg width="22" height="22" viewBox="0 0 22 22" fill="none">
+      <circle cx="11" cy="11" r="10" fill="#f5a623"/>
+      <circle cx="11" cy="11" r="4" fill="#fff"/>
+    </svg>
+    PHC Nexus
+  </div>
+  <div class="topbar-center">
+    <input class="topbar-search" type="text" placeholder="Search users, projects, tasks...">
+  </div>
+  <div class="topbar-right">
+    <div class="topbar-bell">
+      <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+        <path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9"/>
+        <path d="M13.73 21a2 2 0 0 1-3.46 0"/>
+      </svg>
+      <span class="topbar-bell-badge">3</span>
+    </div>
+    <div class="topbar-avatar">JM</div>
+  </div>
+</header>
+
+<!-- ── Sidebar ── -->
+<nav class="sidebar">
+  <div class="nav-section-label">Main</div>
+  <a class="nav-item" href="#">
+    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="7" height="7"/><rect x="14" y="3" width="7" height="7"/><rect x="3" y="14" width="7" height="7"/><rect x="14" y="14" width="7" height="7"/></svg>
+    Dashboard
+  </a>
+  <a class="nav-item" href="#">
+    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M2 3h6a4 4 0 0 1 4 4v14a3 3 0 0 0-3-3H2z"/><path d="M22 3h-6a4 4 0 0 0-4 4v14a3 3 0 0 1 3-3h7z"/></svg>
+    Projects
+  </a>
+  <a class="nav-item" href="#">
+    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="18" height="18" rx="2"/><line x1="3" y1="9" x2="21" y2="9"/><line x1="9" y1="21" x2="9" y2="9"/></svg>
+    Task Board
+  </a>
+  <a class="nav-item" href="#">
+    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 20h9"/><path d="M16.5 3.5a2.121 2.121 0 1 1 3 3L7 19l-4 1 1-4L16.5 3.5z"/></svg>
+    My Tasks
+  </a>
+
+  <div class="nav-section-label">Management</div>
+  <a class="nav-item" href="#">
+    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="9 11 12 14 22 4"/><path d="M21 12v7a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11"/></svg>
+    Approvals
+  </a>
+  <a class="nav-item" href="#">
+    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9"/><path d="M13.73 21a2 2 0 0 1-3.46 0"/></svg>
+    Notifications
+  </a>
+
+  <div class="nav-section-label">Admin</div>
+  <a class="nav-item active" href="#">
+    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg>
+    Users
+  </a>
+  <a class="nav-item" href="#">
+    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="16" y1="13" x2="8" y2="13"/><line x1="16" y1="17" x2="8" y2="17"/></svg>
+    Documents
+  </a>
+</nav>
+
+<!-- ── Main Content ── -->
+<main class="main">
+  <div class="breadcrumb">
+    <a href="#">Home</a><span class="breadcrumb-sep">&gt;</span>
+    <a href="#">Admin</a><span class="breadcrumb-sep">&gt;</span>
+    <span>Users</span>
+  </div>
+
+  <div class="page-header">
+    <h1 class="page-title">User Management</h1>
+    <div class="page-actions">
+      <button class="btn btn-primary" id="openModal">
+        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
+        Invite User
+      </button>
+      <button class="btn btn-secondary">
+        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
+        Export
+      </button>
+    </div>
+  </div>
+
+  <!-- Stat tiles -->
+  <div class="stat-tiles">
+    <div class="stat-tile">
+      <span class="stat-tile-label">Total Users</span>
+      <span class="stat-tile-value">
+        <span class="stat-tile-indicator" style="background: var(--color-status-neutral-fg);"></span>47
+      </span>
+    </div>
+    <div class="stat-tile">
+      <span class="stat-tile-label">Active</span>
+      <span class="stat-tile-value">
+        <span class="stat-tile-indicator" style="background: var(--color-status-success-fg);"></span>42
+      </span>
+    </div>
+    <div class="stat-tile">
+      <span class="stat-tile-label">Pending Invite</span>
+      <span class="stat-tile-value">
+        <span class="stat-tile-indicator" style="background: var(--color-status-warning-fg);"></span>5
+      </span>
+    </div>
+  </div>
+
+  <!-- Filter bar -->
+  <div class="filter-bar">
+    <select class="filter-select">
+      <option>All Roles</option>
+      <option>Admin</option>
+      <option>Manager</option>
+      <option>Developer</option>
+      <option>Viewer</option>
+    </select>
+    <select class="filter-select">
+      <option>All Teams</option>
+      <option>Frontend</option>
+      <option>Backend</option>
+      <option>Design</option>
+      <option>DevOps</option>
+      <option>HR</option>
+      <option>Legal &amp; IT</option>
+      <option>Operations</option>
+      <option>Compliance</option>
+      <option>Full Stack</option>
+    </select>
+    <select class="filter-select">
+      <option>All Statuses</option>
+      <option>Active</option>
+      <option>Inactive</option>
+      <option>Pending</option>
+    </select>
+    <input class="filter-input" type="text" placeholder="Search by name or email...">
+  </div>
+
+  <!-- User table -->
+  <div class="table-wrapper">
+    <table>
+      <thead>
+        <tr>
+          <th>User</th>
+          <th>Email</th>
+          <th>Role</th>
+          <th>Team</th>
+          <th>Status</th>
+          <th>Last Login</th>
+          <th style="width: 48px;"></th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr>
+          <td>
+            <div class="user-cell">
+              <div class="user-avatar" style="background: #0747a6;">JM</div>
+              <span class="user-name">Jan Melicha&#345;&#237;k</span>
+            </div>
+          </td>
+          <td class="user-email">jan.melicharik@phc.cz</td>
+          <td><span class="lozenge lozenge-danger">Admin</span></td>
+          <td>Frontend</td>
+          <td><span class="lozenge lozenge-success">Active</span></td>
+          <td class="last-login">Today, 09:15</td>
+          <td><button class="actions-btn" title="Actions">&middot;&middot;&middot;</button></td>
+        </tr>
+        <tr>
+          <td>
+            <div class="user-cell">
+              <div class="user-avatar" style="background: #5243aa;">PN</div>
+              <span class="user-name">Petra Nov&#225;kov&#225;</span>
+            </div>
+          </td>
+          <td class="user-email">petra.novakova@phc.cz</td>
+          <td><span class="lozenge lozenge-review">Manager</span></td>
+          <td>Legal &amp; IT</td>
+          <td><span class="lozenge lozenge-success">Active</span></td>
+          <td class="last-login">Today, 08:30</td>
+          <td><button class="actions-btn" title="Actions">&middot;&middot;&middot;</button></td>
+        </tr>
+        <tr>
+          <td>
+            <div class="user-cell">
+              <div class="user-avatar" style="background: #0065ff;">MK</div>
+              <span class="user-name">Martin Kol&#225;&#345;</span>
+            </div>
+          </td>
+          <td class="user-email">martin.kolar@phc.cz</td>
+          <td><span class="lozenge lozenge-info">Developer</span></td>
+          <td>Backend</td>
+          <td><span class="lozenge lozenge-success">Active</span></td>
+          <td class="last-login">Today, 10:02</td>
+          <td><button class="actions-btn" title="Actions">&middot;&middot;&middot;</button></td>
+        </tr>
+        <tr>
+          <td>
+            <div class="user-cell">
+              <div class="user-avatar" style="background: #6554c0;">ES</div>
+              <span class="user-name">Eva Svobodov&#225;</span>
+            </div>
+          </td>
+          <td class="user-email">eva.svobodova@phc.cz</td>
+          <td><span class="lozenge lozenge-review">Manager</span></td>
+          <td>Design</td>
+          <td><span class="lozenge lozenge-success">Active</span></td>
+          <td class="last-login">Yesterday</td>
+          <td><button class="actions-btn" title="Actions">&middot;&middot;&middot;</button></td>
+        </tr>
+        <tr>
+          <td>
+            <div class="user-cell">
+              <div class="user-avatar" style="background: #00875a;">TH</div>
+              <span class="user-name">Tom&#225;&#353; H&#225;jek</span>
+            </div>
+          </td>
+          <td class="user-email">tomas.hajek@phc.cz</td>
+          <td><span class="lozenge lozenge-info">Developer</span></td>
+          <td>DevOps</td>
+          <td><span class="lozenge lozenge-success">Active</span></td>
+          <td class="last-login">Today, 07:45</td>
+          <td><button class="actions-btn" title="Actions">&middot;&middot;&middot;</button></td>
+        </tr>
+        <tr>
+          <td>
+            <div class="user-cell">
+              <div class="user-avatar" style="background: #97a0af;">LD</div>
+              <span class="user-name">Lucie Dvo&#345;&#225;kov&#225;</span>
+            </div>
+          </td>
+          <td class="user-email">lucie.dvorakova@phc.cz</td>
+          <td><span class="lozenge lozenge-neutral">Viewer</span></td>
+          <td>HR</td>
+          <td><span class="lozenge lozenge-success">Active</span></td>
+          <td class="last-login">Mar 23</td>
+          <td><button class="actions-btn" title="Actions">&middot;&middot;&middot;</button></td>
+        </tr>
+        <tr>
+          <td>
+            <div class="user-cell">
+              <div class="user-avatar" style="background: #0052cc;">FP</div>
+              <span class="user-name">Filip Proch&#225;zka</span>
+            </div>
+          </td>
+          <td class="user-email">filip.prochazka@phc.cz</td>
+          <td><span class="lozenge lozenge-info">Developer</span></td>
+          <td>Backend</td>
+          <td><span class="lozenge lozenge-success">Active</span></td>
+          <td class="last-login">Today, 11:00</td>
+          <td><button class="actions-btn" title="Actions">&middot;&middot;&middot;</button></td>
+        </tr>
+        <tr>
+          <td>
+            <div class="user-cell">
+              <div class="user-avatar" style="background: #8777d9;">KC</div>
+              <span class="user-name">Kate&#345;ina &#268;ern&#225;</span>
+            </div>
+          </td>
+          <td class="user-email">katerina.cerna@phc.cz</td>
+          <td><span class="lozenge lozenge-review">Manager</span></td>
+          <td>Operations</td>
+          <td><span class="lozenge lozenge-success">Active</span></td>
+          <td class="last-login">Yesterday</td>
+          <td><button class="actions-btn" title="Actions">&middot;&middot;&middot;</button></td>
+        </tr>
+        <tr class="pending">
+          <td>
+            <div class="user-cell">
+              <div class="user-avatar" style="background: #c1c7d0;">DN</div>
+              <span class="user-name">David N&#283;mec</span>
+            </div>
+          </td>
+          <td class="user-email">david.nemec@phc.cz</td>
+          <td><span class="lozenge lozenge-info">Developer</span></td>
+          <td>Frontend</td>
+          <td><span class="lozenge lozenge-neutral">Inactive</span></td>
+          <td class="last-login">Mar 10</td>
+          <td><button class="actions-btn" title="Actions">&middot;&middot;&middot;</button></td>
+        </tr>
+        <tr class="pending">
+          <td>
+            <div class="user-cell">
+              <div class="user-avatar" style="background: #c1c7d0;">AV</div>
+              <span class="user-name">Anna Vesel&#225;</span>
+            </div>
+          </td>
+          <td class="user-email">anna.vesela@phc.cz</td>
+          <td><span class="lozenge lozenge-neutral">Viewer</span></td>
+          <td>Compliance</td>
+          <td><span class="lozenge lozenge-warning">Pending</span></td>
+          <td class="last-login">&mdash;</td>
+          <td><button class="actions-btn" title="Actions">&middot;&middot;&middot;</button></td>
+        </tr>
+        <tr class="pending">
+          <td>
+            <div class="user-cell">
+              <div class="user-avatar" style="background: #c1c7d0;">JK</div>
+              <span class="user-name">Jakub Kr&#225;l</span>
+            </div>
+          </td>
+          <td class="user-email">jakub.kral@phc.cz</td>
+          <td><span class="lozenge lozenge-info">Developer</span></td>
+          <td>Full Stack</td>
+          <td><span class="lozenge lozenge-warning">Pending</span></td>
+          <td class="last-login">&mdash;</td>
+          <td><button class="actions-btn" title="Actions">&middot;&middot;&middot;</button></td>
+        </tr>
+        <tr class="pending">
+          <td>
+            <div class="user-cell">
+              <div class="user-avatar" style="background: #c1c7d0;">BS</div>
+              <span class="user-name">Barbora &#352;&#357;astn&#225;</span>
+            </div>
+          </td>
+          <td class="user-email">barbora.stastna@phc.cz</td>
+          <td><span class="lozenge lozenge-neutral">Viewer</span></td>
+          <td>HR</td>
+          <td><span class="lozenge lozenge-warning">Pending</span></td>
+          <td class="last-login">&mdash;</td>
+          <td><button class="actions-btn" title="Actions">&middot;&middot;&middot;</button></td>
+        </tr>
+      </tbody>
+    </table>
+  </div>
+</main>
+
+<!-- ── Invite Modal ── -->
+<div class="modal-backdrop" id="inviteModal">
+  <div class="modal">
+    <h2 class="modal-title">Invite New User</h2>
+    <div class="form-group">
+      <label class="form-label" for="inviteEmail">Email</label>
+      <input class="form-input" id="inviteEmail" type="email" placeholder="colleague@phc.cz">
+    </div>
+    <div class="form-group">
+      <label class="form-label" for="inviteRole">Role</label>
+      <select class="form-select" id="inviteRole">
+        <option value="">Select a role...</option>
+        <option>Admin</option>
+        <option>Manager</option>
+        <option selected>Developer</option>
+        <option>Viewer</option>
+      </select>
+    </div>
+    <div class="form-group">
+      <label class="form-label" for="inviteTeam">Team</label>
+      <select class="form-select" id="inviteTeam">
+        <option value="">Select a team...</option>
+        <option>Frontend</option>
+        <option>Backend</option>
+        <option>Design</option>
+        <option>DevOps</option>
+        <option>HR</option>
+        <option>Legal &amp; IT</option>
+        <option>Operations</option>
+        <option>Compliance</option>
+        <option>Full Stack</option>
+      </select>
+    </div>
+    <div class="form-group">
+      <label class="form-label" for="inviteMsg">Message <span style="color: var(--color-text-subtle); font-weight: 400;">(optional)</span></label>
+      <textarea class="form-textarea" id="inviteMsg" placeholder="Add a personal note to the invitation..."></textarea>
+    </div>
+    <div class="form-note">
+      <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="color: var(--color-text-subtle);"><circle cx="12" cy="12" r="10"/><line x1="12" y1="16" x2="12" y2="12"/><line x1="12" y1="8" x2="12.01" y2="8"/></svg>
+      User will receive an invitation email and must sign in via Google SSO.
+    </div>
+    <div class="modal-actions">
+      <button class="btn btn-secondary" id="cancelModal">Cancel</button>
+      <button class="btn btn-primary">Send Invite</button>
+    </div>
+  </div>
+</div>
+
+<script>
+  // Simple modal toggle for preview
+  const modal = document.getElementById('inviteModal');
+  document.getElementById('openModal').addEventListener('click', () => { modal.style.display = 'flex'; });
+  document.getElementById('cancelModal').addEventListener('click', () => { modal.style.display = 'none'; });
+  modal.addEventListener('click', (e) => { if (e.target === modal) modal.style.display = 'none'; });
+</script>
+</body>
+</html>

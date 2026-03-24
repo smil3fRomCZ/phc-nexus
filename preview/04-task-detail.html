@@ -1,0 +1,979 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>TASK-127: Implement SSO login flow - PHC Nexus</title>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+<style>
+:root {
+  --color-brand-primary: #f5a623;
+  --color-brand-primary-hover: #e09000;
+  --color-brand-primary-soft: #fff8eb;
+  --color-brand-primary-muted: #ffd080;
+  --color-text-strong: #172b4d;
+  --color-text-default: #42526e;
+  --color-text-muted: #6b778c;
+  --color-text-subtle: #97a0af;
+  --color-text-on-brand: #ffffff;
+  --color-surface-canvas: #f4f5f7;
+  --color-surface-panel: #ffffff;
+  --color-surface-panel-subtle: #fafbfc;
+  --color-surface-panel-muted: #f7f8fa;
+  --color-border-subtle: #ebecf0;
+  --color-border-default: #dfe1e6;
+  --color-border-strong: #c1c7d0;
+  --color-status-success-bg: #e3fcef; --color-status-success-fg: #006644;
+  --color-status-warning-bg: #fff0b3; --color-status-warning-fg: #974f0c;
+  --color-status-danger-bg: #ffebe6; --color-status-danger-fg: #bf2600;
+  --color-status-info-bg: #deebff; --color-status-info-fg: #0747a6;
+  --color-status-neutral-bg: #dfe1e6; --color-status-neutral-fg: #42526e;
+  --color-status-review-bg: #eae6ff; --color-status-review-fg: #5243aa;
+  --font-sans: "Inter", -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+  --font-mono: "SFMono-Regular", Consolas, monospace;
+  --font-size-xs: 0.6875rem; --font-size-sm: 0.75rem; --font-size-base: 0.875rem;
+  --font-size-md: 1rem; --font-size-lg: 1.125rem; --font-size-xl: 1.375rem; --font-size-2xl: 1.75rem;
+  --space-1: 0.25rem; --space-2: 0.5rem; --space-3: 0.75rem; --space-4: 1rem;
+  --space-5: 1.25rem; --space-6: 1.5rem; --space-8: 2rem; --space-10: 2.5rem; --space-12: 3rem;
+  --radius-sm: 0.25rem; --radius-md: 0.5rem; --radius-lg: 0.75rem;
+  --shadow-sm: 0 1px 2px rgba(0,0,0,0.05); --shadow-md: 0 4px 6px rgba(0,0,0,0.07);
+  --shadow-lg: 0 8px 24px rgba(23,43,77,0.12);
+  --shell-topbar-height: 3rem; --shell-sidebar-width: 16rem;
+}
+
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+body {
+  font-family: var(--font-sans);
+  font-size: var(--font-size-base);
+  color: var(--color-text-default);
+  background: var(--color-surface-canvas);
+  line-height: 1.5;
+  -webkit-font-smoothing: antialiased;
+}
+
+/* ── Topbar ── */
+.topbar {
+  position: fixed; top: 0; left: 0; right: 0;
+  height: var(--shell-topbar-height);
+  background: var(--color-surface-panel);
+  border-bottom: 1px solid var(--color-border-subtle);
+  display: flex; align-items: center; justify-content: space-between;
+  padding: 0 var(--space-6);
+  z-index: 100;
+}
+.topbar-logo {
+  display: flex; align-items: center; gap: var(--space-2);
+  font-weight: 700; font-size: var(--font-size-md);
+  color: var(--color-text-strong);
+  text-decoration: none;
+  min-width: calc(var(--shell-sidebar-width) - var(--space-6));
+}
+.topbar-logo .dot {
+  width: 8px; height: 8px; border-radius: 50%;
+  background: var(--color-brand-primary);
+  display: inline-block;
+}
+.topbar-search {
+  flex: 1; max-width: 480px;
+  position: relative;
+}
+.topbar-search input {
+  width: 100%;
+  height: 2rem;
+  border: 1px solid var(--color-border-default);
+  border-radius: var(--radius-md);
+  padding: 0 var(--space-4) 0 2.25rem;
+  font-size: var(--font-size-base);
+  font-family: var(--font-sans);
+  color: var(--color-text-default);
+  background: var(--color-surface-panel-subtle);
+  transition: border-color 150ms ease-out, box-shadow 150ms ease-out;
+  outline: none;
+}
+.topbar-search input:focus {
+  border-color: var(--color-brand-primary);
+  box-shadow: 0 0 0 2px var(--color-brand-primary-soft);
+}
+.topbar-search .search-icon {
+  position: absolute; left: var(--space-3); top: 50%;
+  transform: translateY(-50%);
+  color: var(--color-text-subtle);
+}
+.topbar-right {
+  display: flex; align-items: center; gap: var(--space-5);
+}
+.notification-btn {
+  position: relative; background: none; border: none; cursor: pointer;
+  color: var(--color-text-muted); padding: var(--space-1);
+  transition: color 150ms ease-out;
+}
+.notification-btn:hover { color: var(--color-text-default); }
+.notification-badge {
+  position: absolute; top: -2px; right: -4px;
+  background: var(--color-brand-primary); color: var(--color-text-on-brand);
+  font-size: 0.625rem; font-weight: 700;
+  width: 16px; height: 16px; border-radius: 50%;
+  display: flex; align-items: center; justify-content: center;
+  line-height: 1;
+}
+.user-avatar-topbar {
+  width: 28px; height: 28px; border-radius: 50%;
+  background: var(--color-brand-primary);
+  color: var(--color-text-on-brand);
+  font-size: var(--font-size-xs); font-weight: 600;
+  display: flex; align-items: center; justify-content: center;
+  cursor: pointer;
+  transition: box-shadow 150ms ease-out;
+}
+.user-avatar-topbar:hover { box-shadow: 0 0 0 2px var(--color-brand-primary-muted); }
+
+/* ── Sidebar ── */
+.sidebar {
+  position: fixed; top: var(--shell-topbar-height); left: 0; bottom: 0;
+  width: var(--shell-sidebar-width);
+  background: var(--color-surface-panel);
+  border-right: 1px solid var(--color-border-subtle);
+  padding: var(--space-6) 0;
+  overflow-y: auto;
+  z-index: 90;
+}
+.nav-section { margin-bottom: var(--space-6); }
+.nav-section-label {
+  padding: 0 var(--space-6);
+  font-size: var(--font-size-xs);
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  color: var(--color-text-subtle);
+  margin-bottom: var(--space-2);
+}
+.nav-item {
+  display: flex; align-items: center; gap: var(--space-3);
+  padding: var(--space-2) var(--space-6);
+  font-size: var(--font-size-base);
+  color: var(--color-text-default);
+  text-decoration: none;
+  cursor: pointer;
+  transition: background 150ms ease-out, color 150ms ease-out;
+  border-left: 3px solid transparent;
+}
+.nav-item:hover { background: var(--color-surface-panel-muted); }
+.nav-item.active {
+  background: var(--color-brand-primary-soft);
+  border-left-color: var(--color-brand-primary);
+  color: var(--color-brand-primary-hover);
+  font-weight: 500;
+}
+.nav-item svg { flex-shrink: 0; }
+
+/* ── Main Content ── */
+.main {
+  margin-left: var(--shell-sidebar-width);
+  margin-top: var(--shell-topbar-height);
+  padding: var(--space-8) var(--space-12);
+  min-height: calc(100vh - var(--shell-topbar-height));
+}
+
+/* ── Breadcrumb ── */
+.breadcrumb {
+  display: flex; align-items: center; gap: var(--space-2);
+  font-size: var(--font-size-sm);
+  color: var(--color-text-muted);
+  margin-bottom: var(--space-6);
+}
+.breadcrumb a {
+  color: var(--color-text-muted); text-decoration: none;
+  transition: color 120ms ease-out;
+}
+.breadcrumb a:hover { color: var(--color-brand-primary-hover); }
+.breadcrumb .sep {
+  color: var(--color-text-subtle);
+  display: flex; align-items: center;
+}
+
+/* ── Two-column layout ── */
+.detail-layout {
+  display: grid;
+  grid-template-columns: 65% 35%;
+  gap: var(--space-8);
+  align-items: start;
+}
+
+/* ── Task Main Column ── */
+.task-main { min-width: 0; }
+
+.task-title-area {
+  display: flex; align-items: flex-start; justify-content: space-between;
+  gap: var(--space-4);
+  margin-bottom: var(--space-5);
+}
+.task-title {
+  font-size: var(--font-size-2xl);
+  font-weight: 700;
+  color: var(--color-text-strong);
+  line-height: 1.25;
+}
+.btn-subtle {
+  display: inline-flex; align-items: center; gap: var(--space-2);
+  padding: var(--space-1) var(--space-3);
+  border: 1px solid var(--color-border-default);
+  border-radius: var(--radius-md);
+  background: var(--color-surface-panel);
+  font-size: var(--font-size-sm);
+  font-family: var(--font-sans);
+  color: var(--color-text-muted);
+  cursor: pointer;
+  transition: border-color 150ms ease-out, color 150ms ease-out;
+  white-space: nowrap;
+  flex-shrink: 0;
+}
+.btn-subtle:hover { border-color: var(--color-border-strong); color: var(--color-text-default); }
+
+/* ── Metadata strip ── */
+.meta-strip {
+  display: flex; align-items: center; gap: var(--space-6);
+  padding: var(--space-3) var(--space-4);
+  background: var(--color-surface-panel-subtle);
+  border: 1px solid var(--color-border-subtle);
+  border-radius: var(--radius-md);
+  margin-bottom: var(--space-5);
+  font-size: var(--font-size-sm);
+  color: var(--color-text-muted);
+}
+.meta-strip .meta-item {
+  display: flex; align-items: center; gap: var(--space-2);
+}
+.meta-strip .meta-label { font-weight: 500; color: var(--color-text-muted); }
+.meta-strip .meta-sep {
+  width: 1px; height: 16px;
+  background: var(--color-border-default);
+}
+
+/* ── PHI Warning Banner ── */
+.phi-warning {
+  display: flex; align-items: center; gap: var(--space-3);
+  padding: var(--space-3) var(--space-4);
+  background: var(--color-brand-primary-soft);
+  border: 1px solid var(--color-brand-primary-muted);
+  border-left: 3px solid var(--color-brand-primary);
+  border-radius: var(--radius-md);
+  margin-bottom: var(--space-6);
+  font-size: var(--font-size-sm);
+  color: var(--color-brand-primary-hover);
+}
+.phi-warning svg { flex-shrink: 0; }
+
+/* ── Sections ── */
+.section {
+  margin-bottom: var(--space-8);
+}
+.section-header {
+  display: flex; align-items: center; gap: var(--space-3);
+  font-size: var(--font-size-md);
+  font-weight: 600;
+  color: var(--color-text-strong);
+  margin-bottom: var(--space-4);
+  padding-bottom: var(--space-3);
+  border-bottom: 1px solid var(--color-border-subtle);
+}
+.section-count {
+  font-size: var(--font-size-xs);
+  font-weight: 600;
+  color: var(--color-text-muted);
+  background: var(--color-border-subtle);
+  padding: 0.125rem 0.5rem;
+  border-radius: 10px;
+}
+
+/* ── Description ── */
+.description {
+  font-size: var(--font-size-base);
+  color: var(--color-text-default);
+  line-height: 1.7;
+}
+.description p { margin-bottom: var(--space-3); }
+.description ul {
+  margin: var(--space-2) 0 var(--space-3) var(--space-6);
+}
+.description li {
+  margin-bottom: var(--space-1);
+}
+.description code {
+  font-family: var(--font-mono);
+  font-size: var(--font-size-sm);
+  background: var(--color-surface-panel-muted);
+  padding: 0.125rem 0.375rem;
+  border-radius: var(--radius-sm);
+  color: var(--color-text-strong);
+}
+
+/* ── Subtasks ── */
+.subtask-list { list-style: none; }
+.subtask-item {
+  display: flex; align-items: center; gap: var(--space-3);
+  padding: var(--space-2) var(--space-3);
+  border-radius: var(--radius-sm);
+  font-size: var(--font-size-base);
+  transition: background 120ms ease-out;
+}
+.subtask-item:hover { background: var(--color-surface-panel-muted); }
+.subtask-checkbox {
+  width: 18px; height: 18px;
+  border: 2px solid var(--color-border-strong);
+  border-radius: var(--radius-sm);
+  display: flex; align-items: center; justify-content: center;
+  flex-shrink: 0;
+  cursor: pointer;
+  transition: background 150ms ease-out, border-color 150ms ease-out;
+}
+.subtask-checkbox.checked {
+  background: var(--color-brand-primary);
+  border-color: var(--color-brand-primary);
+}
+.subtask-checkbox.checked svg { display: block; }
+.subtask-checkbox svg { display: none; }
+.subtask-text { color: var(--color-text-default); }
+.subtask-item.done .subtask-text {
+  text-decoration: line-through;
+  color: var(--color-text-muted);
+}
+
+/* ── Comments ── */
+.comment {
+  display: flex; gap: var(--space-3);
+  padding: var(--space-4) 0;
+  border-bottom: 1px solid var(--color-border-subtle);
+}
+.comment:last-of-type { border-bottom: none; }
+.comment-avatar {
+  width: 32px; height: 32px; border-radius: 50%;
+  font-size: var(--font-size-xs); font-weight: 600;
+  display: flex; align-items: center; justify-content: center;
+  flex-shrink: 0;
+  color: var(--color-text-on-brand);
+}
+.comment-body { flex: 1; min-width: 0; }
+.comment-header {
+  display: flex; align-items: baseline; gap: var(--space-2);
+  margin-bottom: var(--space-1);
+}
+.comment-author {
+  font-weight: 600; font-size: var(--font-size-base);
+  color: var(--color-text-strong);
+}
+.comment-time {
+  font-size: var(--font-size-xs);
+  color: var(--color-text-muted);
+}
+.comment-text {
+  font-size: var(--font-size-base);
+  color: var(--color-text-default);
+  line-height: 1.6;
+}
+.comment-text code {
+  font-family: var(--font-mono);
+  font-size: var(--font-size-sm);
+  background: var(--color-surface-panel-muted);
+  padding: 0.125rem 0.375rem;
+  border-radius: var(--radius-sm);
+}
+
+/* Comment input */
+.comment-input-area {
+  margin-top: var(--space-4);
+}
+.comment-textarea {
+  width: 100%;
+  min-height: 80px;
+  border: 1px solid var(--color-border-default);
+  border-radius: var(--radius-md);
+  padding: var(--space-3);
+  font-size: var(--font-size-base);
+  font-family: var(--font-sans);
+  color: var(--color-text-default);
+  resize: vertical;
+  outline: none;
+  transition: border-color 150ms ease-out;
+}
+.comment-textarea:focus {
+  border-color: var(--color-brand-primary);
+  box-shadow: 0 0 0 2px var(--color-brand-primary-soft);
+}
+.comment-actions {
+  display: flex; justify-content: flex-end;
+  margin-top: var(--space-2);
+}
+.btn-primary {
+  display: inline-flex; align-items: center;
+  padding: var(--space-2) var(--space-5);
+  border: none;
+  border-radius: var(--radius-md);
+  background: var(--color-brand-primary);
+  color: var(--color-text-on-brand);
+  font-size: var(--font-size-sm);
+  font-weight: 600;
+  font-family: var(--font-sans);
+  cursor: pointer;
+  transition: background 150ms ease-out;
+}
+.btn-primary:hover { background: var(--color-brand-primary-hover); }
+
+/* ── Activity Log ── */
+.activity-toggle {
+  display: flex; align-items: center; gap: var(--space-2);
+  background: none; border: none; cursor: pointer;
+  font-size: var(--font-size-md); font-weight: 600;
+  color: var(--color-text-strong);
+  font-family: var(--font-sans);
+  padding: 0;
+}
+.activity-toggle svg {
+  transition: transform 180ms ease-out;
+}
+.activity-toggle.open svg {
+  transform: rotate(90deg);
+}
+.activity-list {
+  margin-top: var(--space-4);
+  position: relative;
+  padding-left: var(--space-6);
+}
+.activity-list::before {
+  content: '';
+  position: absolute; left: 5px; top: 4px; bottom: 4px;
+  width: 2px;
+  background: var(--color-border-subtle);
+  border-radius: 1px;
+}
+.activity-item {
+  position: relative;
+  padding: var(--space-2) 0;
+  padding-left: var(--space-3);
+}
+.activity-item::before {
+  content: '';
+  position: absolute; left: calc(-1 * var(--space-6) + 2px);
+  top: 0.75rem;
+  width: 8px; height: 8px;
+  border-radius: 50%;
+  background: var(--color-border-strong);
+  border: 2px solid var(--color-surface-canvas);
+}
+.activity-time {
+  font-family: var(--font-mono);
+  font-size: var(--font-size-xs);
+  color: var(--color-text-muted);
+  margin-bottom: 0.125rem;
+}
+.activity-text {
+  font-size: var(--font-size-sm);
+  color: var(--color-text-default);
+}
+.activity-text strong {
+  font-weight: 600;
+  color: var(--color-text-strong);
+}
+
+/* ── Right Sidebar ── */
+.task-sidebar {
+  background: var(--color-surface-panel);
+  border: 1px solid var(--color-border-subtle);
+  border-radius: var(--radius-lg);
+  padding: var(--space-5);
+  position: sticky;
+  top: calc(var(--shell-topbar-height) + var(--space-8));
+}
+.sidebar-group {
+  padding-bottom: var(--space-4);
+  margin-bottom: var(--space-4);
+  border-bottom: 1px solid var(--color-border-subtle);
+}
+.sidebar-group:last-child {
+  padding-bottom: 0; margin-bottom: 0;
+  border-bottom: none;
+}
+.sidebar-field {
+  margin-bottom: var(--space-4);
+}
+.sidebar-field:last-child { margin-bottom: 0; }
+.sidebar-label {
+  font-size: var(--font-size-xs);
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  color: var(--color-text-subtle);
+  margin-bottom: var(--space-1);
+}
+.sidebar-value {
+  font-size: var(--font-size-base);
+  color: var(--color-text-default);
+  display: flex; align-items: center; gap: var(--space-2);
+}
+.sidebar-value .change-link {
+  font-size: var(--font-size-xs);
+  color: var(--color-text-muted);
+  text-decoration: none;
+  cursor: pointer;
+  margin-left: auto;
+  transition: color 120ms ease-out;
+}
+.sidebar-value .change-link:hover { color: var(--color-brand-primary-hover); }
+.sidebar-link {
+  color: var(--color-status-info-fg);
+  text-decoration: none;
+  font-size: var(--font-size-base);
+  transition: color 120ms ease-out;
+}
+.sidebar-link:hover { color: var(--color-brand-primary-hover); text-decoration: underline; }
+
+/* ── Lozenges ── */
+.lozenge {
+  display: inline-flex; align-items: center;
+  padding: 0.125rem 0.5rem;
+  border-radius: 3px;
+  font-size: var(--font-size-xs);
+  font-weight: 600;
+  line-height: 1.4;
+  white-space: nowrap;
+}
+.lozenge-info { background: var(--color-status-info-bg); color: var(--color-status-info-fg); }
+.lozenge-warning { background: var(--color-status-warning-bg); color: var(--color-status-warning-fg); }
+.lozenge-danger { background: var(--color-status-danger-bg); color: var(--color-status-danger-fg); }
+.lozenge-success { background: var(--color-status-success-bg); color: var(--color-status-success-fg); }
+
+/* ── Avatars ── */
+.avatar {
+  width: 24px; height: 24px; border-radius: 50%;
+  font-size: 0.625rem; font-weight: 600;
+  display: flex; align-items: center; justify-content: center;
+  flex-shrink: 0;
+  color: var(--color-text-on-brand);
+}
+.avatar-sm { width: 20px; height: 20px; font-size: 0.5625rem; }
+.avatar-jm { background: var(--color-brand-primary); }
+.avatar-th { background: #0065ff; }
+.avatar-mk { background: #6554c0; }
+.avatar-pn { background: #00875a; }
+.avatar-es { background: #ff5630; }
+
+/* ── Attachment list ── */
+.attachment-item {
+  display: flex; align-items: center; gap: var(--space-2);
+  padding: var(--space-2) 0;
+  font-size: var(--font-size-sm);
+}
+.attachment-icon {
+  color: var(--color-text-muted);
+  flex-shrink: 0;
+}
+.attachment-name {
+  color: var(--color-text-default);
+  flex: 1; min-width: 0;
+  overflow: hidden; text-overflow: ellipsis; white-space: nowrap;
+}
+.attachment-size {
+  color: var(--color-text-subtle);
+  font-size: var(--font-size-xs);
+  flex-shrink: 0;
+}
+
+/* ── Watchers ── */
+.watchers-row {
+  display: flex; align-items: center;
+}
+.watchers-row .avatar {
+  margin-left: -6px;
+  border: 2px solid var(--color-surface-panel);
+}
+.watchers-row .avatar:first-child { margin-left: 0; }
+.watchers-more {
+  margin-left: var(--space-1);
+  font-size: var(--font-size-xs);
+  color: var(--color-text-muted);
+  font-weight: 500;
+}
+
+/* ── Approval link ── */
+.approval-link {
+  display: inline-flex; align-items: center; gap: var(--space-1);
+  font-size: var(--font-size-sm);
+  color: var(--color-brand-primary-hover);
+  text-decoration: none;
+  font-weight: 500;
+  transition: color 120ms ease-out;
+  margin-top: var(--space-1);
+}
+.approval-link:hover { color: var(--color-brand-primary); text-decoration: underline; }
+</style>
+</head>
+<body>
+
+<!-- ── Topbar ── -->
+<header class="topbar">
+  <a class="topbar-logo" href="#">
+    <span class="dot"></span> PHC Nexus
+  </a>
+  <div class="topbar-search">
+    <svg class="search-icon" width="14" height="14" viewBox="0 0 16 16" fill="none"><circle cx="7" cy="7" r="5.5" stroke="currentColor" stroke-width="1.5"/><path d="M11 11l3.5 3.5" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/></svg>
+    <input type="text" placeholder="Search tasks, projects, docs...">
+  </div>
+  <div class="topbar-right">
+    <button class="notification-btn" aria-label="Notifications">
+      <svg width="18" height="18" viewBox="0 0 20 20" fill="none"><path d="M10 18a2 2 0 01-2-2h4a2 2 0 01-2 2zm6-4V9a6 6 0 10-12 0v5l-1.5 2h15L16 14z" stroke="currentColor" stroke-width="1.5" stroke-linejoin="round"/></svg>
+      <span class="notification-badge">3</span>
+    </button>
+    <div class="user-avatar-topbar">JM</div>
+  </div>
+</header>
+
+<!-- ── Sidebar ── -->
+<nav class="sidebar">
+  <div class="nav-section">
+    <div class="nav-section-label">Main</div>
+    <a class="nav-item" href="#">
+      <svg width="16" height="16" viewBox="0 0 16 16" fill="none"><rect x="1" y="1" width="6" height="6" rx="1" stroke="currentColor" stroke-width="1.5"/><rect x="9" y="1" width="6" height="6" rx="1" stroke="currentColor" stroke-width="1.5"/><rect x="1" y="9" width="6" height="6" rx="1" stroke="currentColor" stroke-width="1.5"/><rect x="9" y="9" width="6" height="6" rx="1" stroke="currentColor" stroke-width="1.5"/></svg>
+      Dashboard
+    </a>
+    <a class="nav-item" href="#">
+      <svg width="16" height="16" viewBox="0 0 16 16" fill="none"><path d="M2 3h12M2 6.5h12M2 10h12M2 13.5h12" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/></svg>
+      Projects
+    </a>
+    <a class="nav-item" href="#">
+      <svg width="16" height="16" viewBox="0 0 16 16" fill="none"><rect x="1" y="2" width="4" height="12" rx="1" stroke="currentColor" stroke-width="1.5"/><rect x="6" y="4" width="4" height="10" rx="1" stroke="currentColor" stroke-width="1.5"/><rect x="11" y="1" width="4" height="13" rx="1" stroke="currentColor" stroke-width="1.5"/></svg>
+      Task Board
+    </a>
+    <a class="nav-item active" href="#">
+      <svg width="16" height="16" viewBox="0 0 16 16" fill="none"><circle cx="8" cy="5" r="3.5" stroke="currentColor" stroke-width="1.5"/><path d="M2 14.5c0-3 2.5-5 6-5s6 2 6 5" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/></svg>
+      My Tasks
+    </a>
+  </div>
+  <div class="nav-section">
+    <div class="nav-section-label">Management</div>
+    <a class="nav-item" href="#">
+      <svg width="16" height="16" viewBox="0 0 16 16" fill="none"><path d="M4 8l3 3 5-6" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/><circle cx="8" cy="8" r="7" stroke="currentColor" stroke-width="1.5"/></svg>
+      Approvals
+    </a>
+    <a class="nav-item" href="#">
+      <svg width="16" height="16" viewBox="0 0 16 16" fill="none"><path d="M10 2a2 2 0 11-4 0 2 2 0 014 0zM10 8a2 2 0 11-4 0 2 2 0 014 0zM10 14a2 2 0 11-4 0 2 2 0 014 0z" fill="currentColor"/></svg>
+      Notifications
+    </a>
+  </div>
+  <div class="nav-section">
+    <div class="nav-section-label">Admin</div>
+    <a class="nav-item" href="#">
+      <svg width="16" height="16" viewBox="0 0 16 16" fill="none"><circle cx="5.5" cy="5" r="3" stroke="currentColor" stroke-width="1.5"/><circle cx="11.5" cy="5" r="3" stroke="currentColor" stroke-width="1.5"/><path d="M1 14c0-2.5 2-4 4.5-4s4.5 1.5 4.5 4M7 14c0-2.5 2-4 4.5-4s4.5 1.5 4.5 4" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/></svg>
+      Users
+    </a>
+    <a class="nav-item" href="#">
+      <svg width="16" height="16" viewBox="0 0 16 16" fill="none"><path d="M3 1h7l4 4v10a1 1 0 01-1 1H3a1 1 0 01-1-1V2a1 1 0 011-1z" stroke="currentColor" stroke-width="1.5" stroke-linejoin="round"/><path d="M10 1v4h4" stroke="currentColor" stroke-width="1.5" stroke-linejoin="round"/></svg>
+      Documents
+    </a>
+  </div>
+</nav>
+
+<!-- ── Main Content ── -->
+<main class="main">
+  <div class="breadcrumb">
+    <a href="#">Home</a>
+    <span class="sep"><svg width="8" height="8" viewBox="0 0 8 8" fill="none"><path d="M2.5 1l3 3-3 3" stroke="currentColor" stroke-width="1.2" stroke-linecap="round" stroke-linejoin="round"/></svg></span>
+    <a href="#">Patient Portal v2</a>
+    <span class="sep"><svg width="8" height="8" viewBox="0 0 8 8" fill="none"><path d="M2.5 1l3 3-3 3" stroke="currentColor" stroke-width="1.2" stroke-linecap="round" stroke-linejoin="round"/></svg></span>
+    <a href="#">Tasks</a>
+    <span class="sep"><svg width="8" height="8" viewBox="0 0 8 8" fill="none"><path d="M2.5 1l3 3-3 3" stroke="currentColor" stroke-width="1.2" stroke-linecap="round" stroke-linejoin="round"/></svg></span>
+    <span>TASK-127</span>
+  </div>
+
+  <div class="detail-layout">
+
+    <!-- ── Left Column ── -->
+    <div class="task-main">
+
+      <!-- Title -->
+      <div class="task-title-area">
+        <h1 class="task-title">Implement SSO login flow</h1>
+        <button class="btn-subtle">
+          <svg width="14" height="14" viewBox="0 0 16 16" fill="none"><path d="M11.5 1.5l3 3-9.5 9.5H2v-3L11.5 1.5z" stroke="currentColor" stroke-width="1.5" stroke-linejoin="round"/></svg>
+          Edit
+        </button>
+      </div>
+
+      <!-- Metadata strip -->
+      <div class="meta-strip">
+        <div class="meta-item">
+          <span class="meta-label">Type:</span> Task
+        </div>
+        <div class="meta-sep"></div>
+        <div class="meta-item">
+          <span class="meta-label">Created:</span> Mar 20
+        </div>
+        <div class="meta-sep"></div>
+        <div class="meta-item">
+          <span class="meta-label">Updated:</span> 2 hours ago
+        </div>
+      </div>
+
+      <!-- PHI Warning -->
+      <div class="phi-warning">
+        <svg width="18" height="18" viewBox="0 0 20 20" fill="none"><path d="M10 1l8 5.5v5c0 4-3.5 7-8 8.5-4.5-1.5-8-4.5-8-8.5v-5L10 1z" stroke="currentColor" stroke-width="1.5" stroke-linejoin="round"/><path d="M10 7v4M10 13v.5" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/></svg>
+        This task contains PHI classified data. Access is audited.
+      </div>
+
+      <!-- Description -->
+      <div class="section">
+        <div class="section-header">Description</div>
+        <div class="description">
+          <p>Implement Google SSO authentication flow for internal users. This includes:</p>
+          <ul>
+            <li>OAuth 2.0 integration with Google Workspace</li>
+            <li>Invite-based registration flow</li>
+            <li>Session management and timeout handling</li>
+            <li>Audit logging for authentication events</li>
+          </ul>
+          <p>Must comply with PHI access requirements per <code>ADR-004</code>.</p>
+        </div>
+      </div>
+
+      <!-- Subtasks -->
+      <div class="section">
+        <div class="section-header">
+          Subtasks
+          <span class="section-count">3/5</span>
+        </div>
+        <ul class="subtask-list">
+          <li class="subtask-item done">
+            <div class="subtask-checkbox checked">
+              <svg width="12" height="12" viewBox="0 0 12 12" fill="none"><path d="M2.5 6l2.5 2.5 4.5-5" stroke="white" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></svg>
+            </div>
+            <span class="subtask-text">Configure Google OAuth credentials</span>
+          </li>
+          <li class="subtask-item done">
+            <div class="subtask-checkbox checked">
+              <svg width="12" height="12" viewBox="0 0 12 12" fill="none"><path d="M2.5 6l2.5 2.5 4.5-5" stroke="white" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></svg>
+            </div>
+            <span class="subtask-text">Implement callback handler</span>
+          </li>
+          <li class="subtask-item done">
+            <div class="subtask-checkbox checked">
+              <svg width="12" height="12" viewBox="0 0 12 12" fill="none"><path d="M2.5 6l2.5 2.5 4.5-5" stroke="white" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></svg>
+            </div>
+            <span class="subtask-text">Add session management</span>
+          </li>
+          <li class="subtask-item">
+            <div class="subtask-checkbox"></div>
+            <span class="subtask-text">Write auth middleware tests</span>
+          </li>
+          <li class="subtask-item">
+            <div class="subtask-checkbox"></div>
+            <span class="subtask-text">Document SSO setup process</span>
+          </li>
+        </ul>
+      </div>
+
+      <!-- Comments -->
+      <div class="section">
+        <div class="section-header">
+          Comments
+          <span class="section-count">3</span>
+        </div>
+
+        <div class="comment">
+          <div class="comment-avatar avatar-pn">PN</div>
+          <div class="comment-body">
+            <div class="comment-header">
+              <span class="comment-author">Petra Novakova</span>
+              <span class="comment-time">2 days ago</span>
+            </div>
+            <div class="comment-text">Can we also add logging for failed auth attempts? This is critical for the compliance audit.</div>
+          </div>
+        </div>
+
+        <div class="comment">
+          <div class="comment-avatar avatar-jm">JM</div>
+          <div class="comment-body">
+            <div class="comment-header">
+              <span class="comment-author">Jan Melicharik</span>
+              <span class="comment-time">1 day ago</span>
+            </div>
+            <div class="comment-text">Good point. I'll add it as part of the audit logging subtask. @Martin can you review the audit schema?</div>
+          </div>
+        </div>
+
+        <div class="comment">
+          <div class="comment-avatar avatar-mk">MK</div>
+          <div class="comment-body">
+            <div class="comment-header">
+              <span class="comment-author">Martin Kolar</span>
+              <span class="comment-time">3 hours ago</span>
+            </div>
+            <div class="comment-text">Audit schema looks good. One suggestion: add <code>ip_address</code> to the <code>login_attempts</code> table for forensics.</div>
+          </div>
+        </div>
+
+        <div class="comment-input-area">
+          <textarea class="comment-textarea" placeholder="Add a comment..."></textarea>
+          <div class="comment-actions">
+            <button class="btn-primary">Comment</button>
+          </div>
+        </div>
+      </div>
+
+      <!-- Activity Log -->
+      <div class="section">
+        <div class="section-header" style="border-bottom: none; padding-bottom: 0; margin-bottom: 0;">
+          <button class="activity-toggle open" onclick="this.classList.toggle('open');this.closest('.section').querySelector('.activity-list').classList.toggle('collapsed');">
+            <svg width="12" height="12" viewBox="0 0 12 12" fill="none"><path d="M4 2l5 4-5 4" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></svg>
+            Activity
+          </button>
+        </div>
+
+        <div class="activity-list">
+          <div class="activity-item">
+            <div class="activity-time">Mar 25, 14:22</div>
+            <div class="activity-text"><strong>Jan Melicharik</strong> changed status from To Do &rarr; In Progress</div>
+          </div>
+          <div class="activity-item">
+            <div class="activity-time">Mar 24, 09:15</div>
+            <div class="activity-text"><strong>Jan Melicharik</strong> added subtask "Document SSO setup process"</div>
+          </div>
+          <div class="activity-item">
+            <div class="activity-time">Mar 23, 16:00</div>
+            <div class="activity-text"><strong>Petra Novakova</strong> added comment</div>
+          </div>
+          <div class="activity-item">
+            <div class="activity-time">Mar 22, 11:30</div>
+            <div class="activity-text"><strong>Eva Svobodova</strong> set priority to High</div>
+          </div>
+          <div class="activity-item">
+            <div class="activity-time">Mar 20, 09:00</div>
+            <div class="activity-text"><strong>Jan Melicharik</strong> created this task</div>
+          </div>
+        </div>
+      </div>
+
+    </div>
+
+    <!-- ── Right Sidebar ── -->
+    <aside class="task-sidebar">
+
+      <!-- Status & Priority -->
+      <div class="sidebar-group">
+        <div class="sidebar-field">
+          <div class="sidebar-label">Status</div>
+          <div class="sidebar-value">
+            <span class="lozenge lozenge-info">In Progress</span>
+            <a class="change-link" href="#">Change</a>
+          </div>
+        </div>
+        <div class="sidebar-field">
+          <div class="sidebar-label">Priority</div>
+          <div class="sidebar-value">
+            <span class="lozenge lozenge-danger">High</span>
+          </div>
+        </div>
+      </div>
+
+      <!-- People -->
+      <div class="sidebar-group">
+        <div class="sidebar-field">
+          <div class="sidebar-label">Assignee</div>
+          <div class="sidebar-value">
+            <div class="avatar avatar-sm avatar-jm">JM</div>
+            Jan Melicharik
+            <a class="change-link" href="#">Change</a>
+          </div>
+        </div>
+        <div class="sidebar-field">
+          <div class="sidebar-label">Reporter</div>
+          <div class="sidebar-value">
+            <div class="avatar avatar-sm avatar-pn">PN</div>
+            Petra Novakova
+          </div>
+        </div>
+      </div>
+
+      <!-- Context -->
+      <div class="sidebar-group">
+        <div class="sidebar-field">
+          <div class="sidebar-label">Project</div>
+          <div class="sidebar-value">
+            <a class="sidebar-link" href="#">Patient Portal v2</a>
+          </div>
+        </div>
+        <div class="sidebar-field">
+          <div class="sidebar-label">Epic</div>
+          <div class="sidebar-value">
+            <a class="sidebar-link" href="#">Authentication &amp; Security</a>
+          </div>
+        </div>
+        <div class="sidebar-field">
+          <div class="sidebar-label">Sprint</div>
+          <div class="sidebar-value">Sprint 4 (Mar 18 - Mar 31)</div>
+        </div>
+        <div class="sidebar-field">
+          <div class="sidebar-label">Due Date</div>
+          <div class="sidebar-value">Mar 28, 2026</div>
+        </div>
+      </div>
+
+      <!-- Classification & Approval -->
+      <div class="sidebar-group">
+        <div class="sidebar-field">
+          <div class="sidebar-label">Data Classification</div>
+          <div class="sidebar-value">
+            <span class="lozenge lozenge-warning" style="font-size: var(--font-size-sm); padding: 0.2rem 0.625rem;">PHI</span>
+          </div>
+        </div>
+        <div class="sidebar-field">
+          <div class="sidebar-label">Approval</div>
+          <div class="sidebar-value" style="flex-direction: column; align-items: flex-start; gap: var(--space-1);">
+            <span>Required before deploy</span>
+            <a class="approval-link" href="#">
+              View Approval
+              <svg width="12" height="12" viewBox="0 0 12 12" fill="none"><path d="M4.5 2.5l5 3.5-5 3.5" stroke="currentColor" stroke-width="1.3" stroke-linecap="round" stroke-linejoin="round"/></svg>
+            </a>
+          </div>
+        </div>
+      </div>
+
+      <!-- Attachments -->
+      <div class="sidebar-group">
+        <div class="sidebar-field">
+          <div class="sidebar-label">Attachments</div>
+          <div class="attachment-item">
+            <svg class="attachment-icon" width="14" height="14" viewBox="0 0 16 16" fill="none"><path d="M3 1h7l4 4v10a1 1 0 01-1 1H3a1 1 0 01-1-1V2a1 1 0 011-1z" stroke="currentColor" stroke-width="1.3" stroke-linejoin="round"/><path d="M10 1v4h4" stroke="currentColor" stroke-width="1.3" stroke-linejoin="round"/></svg>
+            <span class="attachment-name">auth-flow-diagram.png</span>
+            <span class="attachment-size">245 KB</span>
+          </div>
+          <div class="attachment-item">
+            <svg class="attachment-icon" width="14" height="14" viewBox="0 0 16 16" fill="none"><path d="M3 1h7l4 4v10a1 1 0 01-1 1H3a1 1 0 01-1-1V2a1 1 0 011-1z" stroke="currentColor" stroke-width="1.3" stroke-linejoin="round"/><path d="M10 1v4h4" stroke="currentColor" stroke-width="1.3" stroke-linejoin="round"/></svg>
+            <span class="attachment-name">sso-requirements.pdf</span>
+            <span class="attachment-size">1.2 MB</span>
+          </div>
+        </div>
+      </div>
+
+      <!-- Watchers -->
+      <div class="sidebar-group">
+        <div class="sidebar-field">
+          <div class="sidebar-label">Watchers</div>
+          <div class="watchers-row">
+            <div class="avatar avatar-sm avatar-jm">JM</div>
+            <div class="avatar avatar-sm avatar-pn">PN</div>
+            <div class="avatar avatar-sm avatar-mk">MK</div>
+            <span class="watchers-more">+2</span>
+          </div>
+        </div>
+      </div>
+
+    </aside>
+
+  </div>
+</main>
+
+<style>
+.activity-list.collapsed { display: none; }
+</style>
+
+</body>
+</html>

@@ -1,0 +1,565 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Notifications — PHC Nexus</title>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+<style>
+:root {
+  --color-brand-primary: #f5a623;
+  --color-brand-primary-hover: #e09000;
+  --color-brand-primary-soft: #fff8eb;
+  --color-brand-primary-muted: #ffd080;
+  --color-text-strong: #172b4d;
+  --color-text-default: #42526e;
+  --color-text-muted: #6b778c;
+  --color-text-subtle: #97a0af;
+  --color-text-on-brand: #ffffff;
+  --color-surface-canvas: #f4f5f7;
+  --color-surface-panel: #ffffff;
+  --color-surface-panel-subtle: #fafbfc;
+  --color-surface-panel-muted: #f7f8fa;
+  --color-border-subtle: #ebecf0;
+  --color-border-default: #dfe1e6;
+  --color-border-strong: #c1c7d0;
+  --color-status-success-bg: #e3fcef; --color-status-success-fg: #006644;
+  --color-status-warning-bg: #fff0b3; --color-status-warning-fg: #974f0c;
+  --color-status-danger-bg: #ffebe6; --color-status-danger-fg: #bf2600;
+  --color-status-info-bg: #deebff; --color-status-info-fg: #0747a6;
+  --color-status-neutral-bg: #dfe1e6; --color-status-neutral-fg: #42526e;
+  --color-status-review-bg: #eae6ff; --color-status-review-fg: #5243aa;
+  --font-sans: "Inter", -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+  --font-mono: "SFMono-Regular", Consolas, monospace;
+  --font-size-xs: 0.6875rem; --font-size-sm: 0.75rem; --font-size-base: 0.875rem;
+  --font-size-md: 1rem; --font-size-lg: 1.125rem; --font-size-xl: 1.375rem; --font-size-2xl: 1.75rem;
+  --space-1: 0.25rem; --space-2: 0.5rem; --space-3: 0.75rem; --space-4: 1rem;
+  --space-5: 1.25rem; --space-6: 1.5rem; --space-8: 2rem; --space-10: 2.5rem; --space-12: 3rem;
+  --radius-sm: 0.25rem; --radius-md: 0.5rem; --radius-lg: 0.75rem;
+  --shadow-sm: 0 1px 2px rgba(0,0,0,0.05); --shadow-md: 0 4px 6px rgba(0,0,0,0.07);
+  --shadow-lg: 0 8px 24px rgba(23,43,77,0.12);
+  --shell-topbar-height: 3rem; --shell-sidebar-width: 16rem;
+}
+
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+body {
+  font-family: var(--font-sans);
+  font-size: var(--font-size-base);
+  color: var(--color-text-default);
+  background: var(--color-surface-canvas);
+  line-height: 1.5;
+  -webkit-font-smoothing: antialiased;
+}
+
+/* ── Topbar ── */
+.topbar {
+  position: fixed; top: 0; left: 0; right: 0;
+  height: var(--shell-topbar-height);
+  background: var(--color-surface-panel);
+  border-bottom: 1px solid var(--color-border-default);
+  display: flex; align-items: center; justify-content: space-between;
+  padding: 0 var(--space-6);
+  z-index: 100;
+}
+.topbar-logo {
+  display: flex; align-items: center; gap: var(--space-2);
+  font-weight: 700; font-size: var(--font-size-md);
+  color: var(--color-text-strong); text-decoration: none;
+  min-width: calc(var(--shell-sidebar-width) - var(--space-6));
+}
+.topbar-logo .dot {
+  width: 8px; height: 8px; border-radius: 50%;
+  background: var(--color-brand-primary); display: inline-block;
+}
+.topbar-search {
+  flex: 0 1 28rem;
+  position: relative;
+}
+.topbar-search input {
+  width: 100%; height: 2rem;
+  border: 1px solid var(--color-border-default);
+  border-radius: var(--radius-md);
+  padding: 0 var(--space-4) 0 2rem;
+  font-size: var(--font-size-sm);
+  font-family: var(--font-sans);
+  color: var(--color-text-default);
+  background: var(--color-surface-panel-muted);
+  transition: border-color 150ms ease-out, background 150ms ease-out;
+  outline: none;
+}
+.topbar-search input:focus {
+  border-color: var(--color-brand-primary);
+  background: var(--color-surface-panel);
+}
+.topbar-search svg {
+  position: absolute; left: var(--space-2); top: 50%;
+  transform: translateY(-50%);
+  color: var(--color-text-subtle);
+}
+.topbar-actions {
+  display: flex; align-items: center; gap: var(--space-4);
+}
+.topbar-bell {
+  position: relative; background: none; border: none; cursor: pointer; color: var(--color-text-muted);
+  padding: var(--space-1);
+  transition: color 150ms ease-out;
+}
+.topbar-bell:hover { color: var(--color-text-default); }
+.topbar-bell .badge {
+  position: absolute; top: -2px; right: -4px;
+  background: var(--color-brand-primary); color: var(--color-text-on-brand);
+  font-size: 0.625rem; font-weight: 700;
+  width: 16px; height: 16px; border-radius: 50%;
+  display: flex; align-items: center; justify-content: center;
+  line-height: 1;
+}
+.topbar-avatar {
+  width: 28px; height: 28px; border-radius: 50%;
+  background: var(--color-brand-primary);
+  color: var(--color-text-on-brand);
+  font-size: var(--font-size-xs); font-weight: 600;
+  display: flex; align-items: center; justify-content: center;
+  cursor: pointer;
+}
+
+/* ── Sidebar ── */
+.sidebar {
+  position: fixed; top: var(--shell-topbar-height); left: 0; bottom: 0;
+  width: var(--shell-sidebar-width);
+  background: var(--color-surface-panel);
+  border-right: 1px solid var(--color-border-default);
+  padding: var(--space-4) 0;
+  overflow-y: auto; z-index: 90;
+}
+.sidebar-section {
+  margin-bottom: var(--space-4);
+}
+.sidebar-section-label {
+  font-size: var(--font-size-xs); font-weight: 600; text-transform: uppercase;
+  letter-spacing: 0.05em; color: var(--color-text-subtle);
+  padding: var(--space-2) var(--space-6) var(--space-1);
+}
+.sidebar-item {
+  display: flex; align-items: center; gap: var(--space-3);
+  padding: var(--space-2) var(--space-6);
+  font-size: var(--font-size-sm); font-weight: 500;
+  color: var(--color-text-default);
+  text-decoration: none;
+  border-left: 3px solid transparent;
+  transition: background 150ms ease-out, color 150ms ease-out, border-color 150ms ease-out;
+  cursor: pointer;
+}
+.sidebar-item:hover {
+  background: var(--color-surface-panel-muted);
+}
+.sidebar-item.active {
+  background: var(--color-brand-primary-soft);
+  border-left-color: var(--color-brand-primary);
+  color: var(--color-brand-primary-hover);
+}
+.sidebar-item svg { flex-shrink: 0; color: inherit; opacity: 0.7; }
+.sidebar-item.active svg { opacity: 1; }
+
+/* ── Main ── */
+.main {
+  margin-left: var(--shell-sidebar-width);
+  margin-top: var(--shell-topbar-height);
+  padding: var(--space-8) var(--space-12);
+  min-height: calc(100vh - var(--shell-topbar-height));
+}
+
+/* ── Page Header ── */
+.page-header {
+  display: flex; align-items: center; justify-content: space-between;
+  margin-bottom: var(--space-6);
+}
+.page-header h1 {
+  font-size: var(--font-size-xl); font-weight: 700;
+  color: var(--color-text-strong);
+}
+.page-header-actions {
+  display: flex; align-items: center; gap: var(--space-4);
+}
+.mark-all-read {
+  background: none; border: none; cursor: pointer;
+  font-family: var(--font-sans); font-size: var(--font-size-sm);
+  font-weight: 500; color: var(--color-brand-primary-hover);
+  transition: color 150ms ease-out;
+  padding: 0;
+}
+.mark-all-read:hover { color: var(--color-brand-primary); }
+.filter-select {
+  font-family: var(--font-sans); font-size: var(--font-size-sm);
+  color: var(--color-text-default);
+  border: 1px solid var(--color-border-default);
+  border-radius: var(--radius-md);
+  padding: var(--space-1) var(--space-3);
+  background: var(--color-surface-panel);
+  cursor: pointer; outline: none;
+  transition: border-color 150ms ease-out;
+}
+.filter-select:focus { border-color: var(--color-brand-primary); }
+
+/* ── Date Group ── */
+.date-group {
+  margin-bottom: var(--space-6);
+}
+.date-group-label {
+  font-size: var(--font-size-xs); font-weight: 600;
+  text-transform: uppercase; letter-spacing: 0.05em;
+  color: var(--color-text-subtle);
+  padding: var(--space-2) 0 var(--space-2);
+  border-bottom: 1px solid var(--color-border-subtle);
+  margin-bottom: 0;
+}
+
+/* ── Notification Item ── */
+.notif-list {
+  background: var(--color-surface-panel);
+  border: 1px solid var(--color-border-default);
+  border-radius: var(--radius-lg);
+  overflow: hidden;
+  box-shadow: var(--shadow-sm);
+}
+.notif-item {
+  display: flex; align-items: flex-start; gap: var(--space-4);
+  padding: var(--space-4) var(--space-5);
+  border-bottom: 1px solid var(--color-border-subtle);
+  transition: background 150ms ease-out;
+  cursor: pointer;
+}
+.notif-item:last-child { border-bottom: none; }
+.notif-item:hover { background: var(--color-surface-panel-muted); }
+.notif-item.unread {
+  background: var(--color-brand-primary-soft);
+  border-left: 3px solid var(--color-brand-primary);
+}
+.notif-item.unread:hover {
+  background: #fff3d6;
+}
+
+/* icon circle */
+.notif-icon {
+  width: 32px; height: 32px; border-radius: 50%;
+  display: flex; align-items: center; justify-content: center;
+  flex-shrink: 0;
+}
+.notif-icon.task     { background: var(--color-status-info-bg);    color: var(--color-status-info-fg); }
+.notif-icon.approval { background: var(--color-status-warning-bg); color: var(--color-status-warning-fg); }
+.notif-icon.comment  { background: var(--color-status-review-bg);  color: var(--color-status-review-fg); }
+.notif-icon.status   { background: var(--color-status-neutral-bg); color: var(--color-status-neutral-fg); }
+.notif-icon.success  { background: var(--color-status-success-bg); color: var(--color-status-success-fg); }
+.notif-icon.danger   { background: var(--color-status-danger-bg);  color: var(--color-status-danger-fg); }
+.notif-icon.warning  { background: var(--color-status-warning-bg); color: var(--color-status-warning-fg); }
+.notif-icon.system   { background: var(--color-surface-panel-muted); color: var(--color-text-muted); }
+
+.notif-body {
+  flex: 1; min-width: 0;
+}
+.notif-title {
+  font-size: var(--font-size-sm); color: var(--color-text-default);
+  line-height: 1.4;
+}
+.notif-item.unread .notif-title {
+  font-weight: 600; color: var(--color-text-strong);
+}
+.notif-title strong { font-weight: 600; color: var(--color-text-strong); }
+.notif-desc {
+  font-size: var(--font-size-xs); color: var(--color-text-muted);
+  margin-top: 2px; line-height: 1.4;
+}
+.notif-desc .quote {
+  font-style: italic;
+}
+.notif-link {
+  display: inline-block; margin-top: var(--space-1);
+  font-size: var(--font-size-xs); font-weight: 500;
+  color: var(--color-brand-primary-hover);
+  text-decoration: none;
+  transition: color 150ms ease-out;
+}
+.notif-link:hover { color: var(--color-brand-primary); }
+.notif-time {
+  flex-shrink: 0;
+  font-size: var(--font-size-xs); color: var(--color-text-subtle);
+  white-space: nowrap; padding-top: 2px;
+}
+
+/* ── Lozenge (inline) ── */
+.lozenge {
+  display: inline-flex; align-items: center;
+  padding: 1px var(--space-2);
+  font-size: 0.625rem; font-weight: 600;
+  border-radius: var(--radius-sm);
+  line-height: 1.4; white-space: nowrap;
+  vertical-align: middle;
+}
+.lozenge-danger  { background: var(--color-status-danger-bg);  color: var(--color-status-danger-fg); }
+.lozenge-warning { background: var(--color-status-warning-bg); color: var(--color-status-warning-fg); }
+.lozenge-success { background: var(--color-status-success-bg); color: var(--color-status-success-fg); }
+</style>
+</head>
+<body>
+
+<!-- ── Topbar ── -->
+<header class="topbar">
+  <a href="#" class="topbar-logo">
+    <span>PHC</span><span class="dot"></span><span>Nexus</span>
+  </a>
+  <div class="topbar-search">
+    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
+    <input type="text" placeholder="Search projects, tasks, docs...">
+  </div>
+  <div class="topbar-actions">
+    <button class="topbar-bell" aria-label="Notifications">
+      <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9"/><path d="M13.73 21a2 2 0 0 1-3.46 0"/></svg>
+      <span class="badge">3</span>
+    </button>
+    <div class="topbar-avatar">JM</div>
+  </div>
+</header>
+
+<!-- ── Sidebar ── -->
+<nav class="sidebar">
+  <div class="sidebar-section">
+    <div class="sidebar-section-label">Main</div>
+    <a class="sidebar-item" href="#">
+      <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="7" height="7"/><rect x="14" y="3" width="7" height="7"/><rect x="3" y="14" width="7" height="7"/><rect x="14" y="14" width="7" height="7"/></svg>
+      Dashboard
+    </a>
+    <a class="sidebar-item" href="#">
+      <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M2 3h6a4 4 0 0 1 4 4v14a3 3 0 0 0-3-3H2z"/><path d="M22 3h-6a4 4 0 0 0-4 4v14a3 3 0 0 1 3-3h7z"/></svg>
+      Projects
+    </a>
+    <a class="sidebar-item" href="#">
+      <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="18" height="18" rx="2"/><line x1="3" y1="9" x2="21" y2="9"/><line x1="9" y1="21" x2="9" y2="9"/></svg>
+      Task Board
+    </a>
+    <a class="sidebar-item" href="#">
+      <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 20h9"/><path d="M16.5 3.5a2.121 2.121 0 0 1 3 3L7 19l-4 1 1-4L16.5 3.5z"/></svg>
+      My Tasks
+    </a>
+  </div>
+  <div class="sidebar-section">
+    <div class="sidebar-section-label">Management</div>
+    <a class="sidebar-item" href="05-approval-detail.html">
+      <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg>
+      Approvals
+    </a>
+    <a class="sidebar-item active" href="#">
+      <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9"/><path d="M13.73 21a2 2 0 0 1-3.46 0"/></svg>
+      Notifications
+    </a>
+  </div>
+  <div class="sidebar-section">
+    <div class="sidebar-section-label">Admin</div>
+    <a class="sidebar-item" href="#">
+      <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg>
+      Users
+    </a>
+    <a class="sidebar-item" href="#">
+      <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="16" y1="13" x2="8" y2="13"/><line x1="16" y1="17" x2="8" y2="17"/></svg>
+      Documents
+    </a>
+  </div>
+</nav>
+
+<!-- ── Main Content ── -->
+<main class="main">
+  <!-- Page Header -->
+  <div class="page-header">
+    <h1>Notifications</h1>
+    <div class="page-header-actions">
+      <button class="mark-all-read">Mark all as read</button>
+      <select class="filter-select">
+        <option>All</option>
+        <option>Unread</option>
+        <option>Mentions</option>
+      </select>
+    </div>
+  </div>
+
+  <!-- Today -->
+  <div class="date-group">
+    <div class="date-group-label">Today</div>
+    <div class="notif-list">
+
+      <!-- 1: UNREAD - Task assigned -->
+      <div class="notif-item unread">
+        <div class="notif-icon task">
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="18" height="18" rx="2"/><line x1="3" y1="9" x2="21" y2="9"/><line x1="9" y1="21" x2="9" y2="9"/></svg>
+        </div>
+        <div class="notif-body">
+          <div class="notif-title"><strong>Task assigned:</strong> "Write integration tests" in Patient Portal v2</div>
+          <div class="notif-desc">Assigned by Petra Novakova</div>
+          <a href="#" class="notif-link">View ></a>
+        </div>
+        <div class="notif-time">1 hour ago</div>
+      </div>
+
+      <!-- 2: UNREAD - Approval needed (PHI) -->
+      <div class="notif-item unread">
+        <div class="notif-icon approval">
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg>
+        </div>
+        <div class="notif-body">
+          <div class="notif-title"><strong>Approval needed:</strong> "PHI Data Export Request" <span class="lozenge lozenge-danger">PHI</span></div>
+          <div class="notif-desc">Requested by Petra Novakova</div>
+          <a href="05-approval-detail.html" class="notif-link">View ></a>
+        </div>
+        <div class="notif-time">3 hours ago</div>
+      </div>
+
+      <!-- 3: Comment mention -->
+      <div class="notif-item">
+        <div class="notif-icon comment">
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg>
+        </div>
+        <div class="notif-body">
+          <div class="notif-title"><strong>Martin Kolar</strong> mentioned you in "Implement SSO login flow"</div>
+          <div class="notif-desc"><span class="quote">"...@Jan can you review the audit schema?"</span></div>
+          <a href="#" class="notif-link">View ></a>
+        </div>
+        <div class="notif-time">5 hours ago</div>
+      </div>
+
+      <!-- 4: Status changed -->
+      <div class="notif-item">
+        <div class="notif-icon status">
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="5" y1="12" x2="19" y2="12"/><polyline points="12 5 19 12 12 19"/></svg>
+        </div>
+        <div class="notif-body">
+          <div class="notif-title"><strong>Status changed:</strong> "Fix dashboard loading time" moved to In Review</div>
+          <div class="notif-desc">By Martin Kolar</div>
+          <a href="#" class="notif-link">View ></a>
+        </div>
+        <div class="notif-time">6 hours ago</div>
+      </div>
+
+      <!-- 5: Approval decided - rejected -->
+      <div class="notif-item">
+        <div class="notif-icon danger">
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><line x1="15" y1="9" x2="9" y2="15"/><line x1="9" y1="9" x2="15" y2="15"/></svg>
+        </div>
+        <div class="notif-body">
+          <div class="notif-title"><strong>Approval decided:</strong> Eva Svobodova rejected "PHI Data Export Request"</div>
+          <div class="notif-desc">Rejection reason provided</div>
+          <a href="05-approval-detail.html" class="notif-link">View ></a>
+        </div>
+        <div class="notif-time">8 hours ago</div>
+      </div>
+
+    </div>
+  </div>
+
+  <!-- Yesterday -->
+  <div class="date-group">
+    <div class="date-group-label">Yesterday</div>
+    <div class="notif-list">
+
+      <!-- 1: Comment -->
+      <div class="notif-item">
+        <div class="notif-icon comment">
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg>
+        </div>
+        <div class="notif-body">
+          <div class="notif-title"><strong>Petra Novakova</strong> commented on "Implement SSO login flow"</div>
+          <div class="notif-desc">New comment on task discussion</div>
+          <a href="#" class="notif-link">View ></a>
+        </div>
+        <div class="notif-time">1 day ago</div>
+      </div>
+
+      <!-- 2: Task completed -->
+      <div class="notif-item">
+        <div class="notif-icon success">
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg>
+        </div>
+        <div class="notif-body">
+          <div class="notif-title"><strong>Task completed:</strong> "Database migration script" marked as Done</div>
+          <div class="notif-desc">By Tomas Hajek</div>
+          <a href="#" class="notif-link">View ></a>
+        </div>
+        <div class="notif-time">1 day ago</div>
+      </div>
+
+      <!-- 3: Approval decided - approved -->
+      <div class="notif-item">
+        <div class="notif-icon success">
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg>
+        </div>
+        <div class="notif-body">
+          <div class="notif-title"><strong>Approval decided:</strong> Martin Kolar approved "PHI Data Export Request"</div>
+          <div class="notif-desc">Approval with comment</div>
+          <a href="05-approval-detail.html" class="notif-link">View ></a>
+        </div>
+        <div class="notif-time">1 day ago</div>
+      </div>
+
+      <!-- 4: Reminder -->
+      <div class="notif-item">
+        <div class="notif-icon warning">
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>
+        </div>
+        <div class="notif-body">
+          <div class="notif-title"><strong>Reminder:</strong> Approval "Release v2.1.0" deadline in 2 days</div>
+          <div class="notif-desc">Action required before deadline</div>
+          <a href="#" class="notif-link">View ></a>
+        </div>
+        <div class="notif-time">1 day ago</div>
+      </div>
+
+    </div>
+  </div>
+
+  <!-- Mar 23 -->
+  <div class="date-group">
+    <div class="date-group-label">Mar 23</div>
+    <div class="notif-list">
+
+      <!-- 1: New project member -->
+      <div class="notif-item">
+        <div class="notif-icon task">
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg>
+        </div>
+        <div class="notif-body">
+          <div class="notif-title"><strong>New project member:</strong> You were added to "GDPR Compliance"</div>
+          <div class="notif-desc">By Petra Novakova</div>
+          <a href="#" class="notif-link">View ></a>
+        </div>
+        <div class="notif-time">2 days ago</div>
+      </div>
+
+      <!-- 2: Task assigned -->
+      <div class="notif-item">
+        <div class="notif-icon task">
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="18" height="18" rx="2"/><line x1="3" y1="9" x2="21" y2="9"/><line x1="9" y1="21" x2="9" y2="9"/></svg>
+        </div>
+        <div class="notif-body">
+          <div class="notif-title"><strong>Task assigned:</strong> "Review security audit"</div>
+          <div class="notif-desc">Assigned by Eva Svobodova</div>
+          <a href="#" class="notif-link">View ></a>
+        </div>
+        <div class="notif-time">2 days ago</div>
+      </div>
+
+      <!-- 3: System digest -->
+      <div class="notif-item">
+        <div class="notif-icon system">
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 1 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 1 1-2.83-2.83l.06-.06A1.65 1.65 0 0 0 4.68 15a1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 1 1 2.83-2.83l.06.06A1.65 1.65 0 0 0 9 4.68a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 1 1 2.83 2.83l-.06.06A1.65 1.65 0 0 0 19.4 9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z"/></svg>
+        </div>
+        <div class="notif-body">
+          <div class="notif-title"><strong>System:</strong> Weekly digest</div>
+          <div class="notif-desc">12 tasks completed, 3 overdue</div>
+          <a href="#" class="notif-link">View ></a>
+        </div>
+        <div class="notif-time">2 days ago</div>
+      </div>
+
+    </div>
+  </div>
+</main>
+
+</body>
+</html>

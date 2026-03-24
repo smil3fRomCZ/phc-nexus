@@ -1,0 +1,674 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Task Board - PHC Nexus</title>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+<style>
+:root {
+  --color-brand-primary: #f5a623;
+  --color-brand-primary-hover: #e09000;
+  --color-brand-primary-soft: #fff8eb;
+  --color-brand-primary-muted: #ffd080;
+  --color-text-strong: #172b4d;
+  --color-text-default: #42526e;
+  --color-text-muted: #6b778c;
+  --color-text-subtle: #97a0af;
+  --color-text-on-brand: #ffffff;
+  --color-surface-canvas: #f4f5f7;
+  --color-surface-panel: #ffffff;
+  --color-surface-panel-subtle: #fafbfc;
+  --color-surface-panel-muted: #f7f8fa;
+  --color-border-subtle: #ebecf0;
+  --color-border-default: #dfe1e6;
+  --color-border-strong: #c1c7d0;
+  --color-status-success-bg: #e3fcef; --color-status-success-fg: #006644;
+  --color-status-warning-bg: #fff0b3; --color-status-warning-fg: #974f0c;
+  --color-status-danger-bg: #ffebe6; --color-status-danger-fg: #bf2600;
+  --color-status-info-bg: #deebff; --color-status-info-fg: #0747a6;
+  --color-status-neutral-bg: #dfe1e6; --color-status-neutral-fg: #42526e;
+  --color-status-review-bg: #eae6ff; --color-status-review-fg: #5243aa;
+  --font-sans: "Inter", -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+  --font-mono: "SFMono-Regular", Consolas, monospace;
+  --font-size-xs: 0.6875rem; --font-size-sm: 0.75rem; --font-size-base: 0.875rem;
+  --font-size-md: 1rem; --font-size-lg: 1.125rem; --font-size-xl: 1.375rem; --font-size-2xl: 1.75rem;
+  --space-1: 0.25rem; --space-2: 0.5rem; --space-3: 0.75rem; --space-4: 1rem;
+  --space-5: 1.25rem; --space-6: 1.5rem; --space-8: 2rem; --space-10: 2.5rem; --space-12: 3rem;
+  --radius-sm: 0.25rem; --radius-md: 0.5rem; --radius-lg: 0.75rem;
+  --shadow-sm: 0 1px 2px rgba(0,0,0,0.05); --shadow-md: 0 4px 6px rgba(0,0,0,0.07);
+  --shadow-lg: 0 8px 24px rgba(23,43,77,0.12);
+  --shell-topbar-height: 3rem; --shell-sidebar-width: 16rem;
+}
+
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+body {
+  font-family: var(--font-sans);
+  font-size: var(--font-size-base);
+  color: var(--color-text-default);
+  background: var(--color-surface-canvas);
+  line-height: 1.5;
+  -webkit-font-smoothing: antialiased;
+}
+
+/* ── Topbar ── */
+.topbar {
+  position: fixed; top: 0; left: 0; right: 0;
+  height: var(--shell-topbar-height);
+  background: var(--color-surface-panel);
+  border-bottom: 1px solid var(--color-border-subtle);
+  display: flex; align-items: center; justify-content: space-between;
+  padding: 0 var(--space-6);
+  z-index: 100;
+}
+.topbar-logo {
+  display: flex; align-items: center; gap: var(--space-2);
+  font-weight: 700; font-size: var(--font-size-md);
+  color: var(--color-text-strong);
+  text-decoration: none;
+  min-width: calc(var(--shell-sidebar-width) - var(--space-6));
+}
+.topbar-logo .dot {
+  width: 8px; height: 8px; border-radius: 50%;
+  background: var(--color-brand-primary);
+  display: inline-block;
+}
+.topbar-search {
+  flex: 1; max-width: 480px;
+  position: relative;
+}
+.topbar-search input {
+  width: 100%;
+  height: 2rem;
+  border: 1px solid var(--color-border-default);
+  border-radius: var(--radius-md);
+  padding: 0 var(--space-4) 0 2.25rem;
+  font-size: var(--font-size-base);
+  font-family: var(--font-sans);
+  color: var(--color-text-default);
+  background: var(--color-surface-panel-subtle);
+  transition: border-color 150ms ease-out, box-shadow 150ms ease-out;
+  outline: none;
+}
+.topbar-search input:focus {
+  border-color: var(--color-brand-primary);
+  box-shadow: 0 0 0 2px var(--color-brand-primary-soft);
+}
+.topbar-search .search-icon {
+  position: absolute; left: var(--space-3); top: 50%;
+  transform: translateY(-50%);
+  color: var(--color-text-subtle);
+}
+.topbar-right {
+  display: flex; align-items: center; gap: var(--space-5);
+}
+.notification-btn {
+  position: relative; background: none; border: none; cursor: pointer;
+  color: var(--color-text-muted); padding: var(--space-1);
+  transition: color 150ms ease-out;
+}
+.notification-btn:hover { color: var(--color-text-default); }
+.notification-badge {
+  position: absolute; top: -2px; right: -4px;
+  background: var(--color-brand-primary); color: var(--color-text-on-brand);
+  font-size: 0.625rem; font-weight: 700;
+  width: 16px; height: 16px; border-radius: 50%;
+  display: flex; align-items: center; justify-content: center;
+  line-height: 1;
+}
+.user-avatar {
+  width: 28px; height: 28px; border-radius: 50%;
+  background: var(--color-brand-primary);
+  color: var(--color-text-on-brand);
+  font-size: var(--font-size-xs); font-weight: 600;
+  display: flex; align-items: center; justify-content: center;
+  cursor: pointer;
+  transition: box-shadow 150ms ease-out;
+}
+.user-avatar:hover { box-shadow: 0 0 0 2px var(--color-brand-primary-muted); }
+
+/* ── Sidebar ── */
+.sidebar {
+  position: fixed; top: var(--shell-topbar-height); left: 0; bottom: 0;
+  width: var(--shell-sidebar-width);
+  background: var(--color-surface-panel);
+  border-right: 1px solid var(--color-border-subtle);
+  padding: var(--space-6) 0;
+  overflow-y: auto;
+  z-index: 90;
+}
+.nav-section { margin-bottom: var(--space-6); }
+.nav-section-label {
+  padding: 0 var(--space-6);
+  font-size: var(--font-size-xs);
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  color: var(--color-text-subtle);
+  margin-bottom: var(--space-2);
+}
+.nav-item {
+  display: flex; align-items: center; gap: var(--space-3);
+  padding: var(--space-2) var(--space-6);
+  font-size: var(--font-size-base);
+  color: var(--color-text-default);
+  text-decoration: none;
+  cursor: pointer;
+  transition: background 150ms ease-out, color 150ms ease-out;
+  border-left: 3px solid transparent;
+}
+.nav-item:hover { background: var(--color-surface-panel-muted); }
+.nav-item.active {
+  background: var(--color-brand-primary-soft);
+  border-left-color: var(--color-brand-primary);
+  color: var(--color-brand-primary-hover);
+  font-weight: 500;
+}
+.nav-item svg { flex-shrink: 0; }
+
+/* ── Main Content ── */
+.main {
+  margin-left: var(--shell-sidebar-width);
+  margin-top: var(--shell-topbar-height);
+  padding: var(--space-8) var(--space-12);
+  min-height: calc(100vh - var(--shell-topbar-height));
+}
+
+/* ── Page Header ── */
+.breadcrumb {
+  display: flex; align-items: center; gap: var(--space-2);
+  font-size: var(--font-size-sm);
+  color: var(--color-text-muted);
+  margin-bottom: var(--space-3);
+}
+.breadcrumb a {
+  color: var(--color-text-muted); text-decoration: none;
+  transition: color 120ms ease-out;
+}
+.breadcrumb a:hover { color: var(--color-brand-primary-hover); }
+.breadcrumb .sep { color: var(--color-text-subtle); }
+.page-header {
+  display: flex; align-items: flex-end; justify-content: space-between;
+  margin-bottom: var(--space-6);
+}
+.page-title {
+  font-size: var(--font-size-2xl);
+  font-weight: 700;
+  color: var(--color-text-strong);
+  line-height: 1.2;
+}
+.page-subtitle {
+  font-size: var(--font-size-sm);
+  color: var(--color-text-muted);
+  margin-top: var(--space-1);
+}
+
+/* ── Controls Bar ── */
+.controls-bar {
+  display: flex; align-items: center; gap: var(--space-3);
+  margin-bottom: var(--space-6);
+  flex-wrap: wrap;
+}
+.control-select {
+  height: 2rem;
+  border: 1px solid var(--color-border-default);
+  border-radius: var(--radius-md);
+  padding: 0 var(--space-8) 0 var(--space-3);
+  font-size: var(--font-size-sm);
+  font-family: var(--font-sans);
+  color: var(--color-text-default);
+  background: var(--color-surface-panel);
+  cursor: pointer;
+  appearance: none;
+  background-image: url("data:image/svg+xml,%3Csvg width='10' height='6' viewBox='0 0 10 6' fill='none' xmlns='http://www.w3.org/2000/svg'%3E%3Cpath d='M1 1l4 4 4-4' stroke='%236b778c' stroke-width='1.5' stroke-linecap='round' stroke-linejoin='round'/%3E%3C/svg%3E");
+  background-repeat: no-repeat;
+  background-position: right 0.75rem center;
+  transition: border-color 150ms ease-out;
+}
+.control-select:hover { border-color: var(--color-border-strong); }
+.control-btn {
+  height: 2rem;
+  border: 1px solid var(--color-border-default);
+  border-radius: var(--radius-md);
+  padding: 0 var(--space-4);
+  font-size: var(--font-size-sm);
+  font-family: var(--font-sans);
+  color: var(--color-text-default);
+  background: var(--color-surface-panel);
+  cursor: pointer;
+  display: flex; align-items: center; gap: var(--space-2);
+  transition: border-color 150ms ease-out, background 150ms ease-out;
+}
+.control-btn:hover { border-color: var(--color-border-strong); background: var(--color-surface-panel-subtle); }
+.control-btn-primary {
+  height: 2rem;
+  border: none;
+  border-radius: var(--radius-md);
+  padding: 0 var(--space-5);
+  font-size: var(--font-size-sm);
+  font-weight: 600;
+  font-family: var(--font-sans);
+  color: var(--color-text-on-brand);
+  background: var(--color-brand-primary);
+  cursor: pointer;
+  display: flex; align-items: center; gap: var(--space-2);
+  transition: background 150ms ease-out, box-shadow 150ms ease-out;
+  margin-left: auto;
+}
+.control-btn-primary:hover { background: var(--color-brand-primary-hover); }
+
+/* ── Kanban Board ── */
+.kanban-board {
+  display: flex;
+  gap: var(--space-4);
+  overflow-x: auto;
+  padding-bottom: var(--space-4);
+}
+.kanban-column {
+  flex: 1;
+  min-width: 240px;
+  background: var(--color-surface-canvas);
+  border-radius: var(--radius-lg);
+  display: flex;
+  flex-direction: column;
+}
+.column-header {
+  display: flex; align-items: center; gap: var(--space-2);
+  padding: var(--space-3) var(--space-4);
+  border-bottom: 2px solid var(--color-border-subtle);
+  margin-bottom: var(--space-2);
+}
+.column-title {
+  font-size: var(--font-size-sm);
+  font-weight: 600;
+  color: var(--color-text-strong);
+  text-transform: uppercase;
+  letter-spacing: 0.03em;
+}
+.column-count {
+  font-size: var(--font-size-xs);
+  font-weight: 600;
+  color: var(--color-text-muted);
+  background: var(--color-border-subtle);
+  padding: 0.125rem 0.5rem;
+  border-radius: 10px;
+  line-height: 1.4;
+}
+.column-cards {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-2);
+  padding: 0 var(--space-2) var(--space-2);
+  flex: 1;
+}
+
+/* ── Card ── */
+.card {
+  background: var(--color-surface-panel);
+  border: 1px solid var(--color-border-subtle);
+  border-radius: var(--radius-md);
+  padding: var(--space-3) var(--space-4);
+  cursor: pointer;
+  transition: border-color 150ms ease-out, box-shadow 180ms ease-out;
+}
+.card:hover {
+  border-color: var(--color-brand-primary-muted);
+  box-shadow: var(--shadow-sm);
+}
+.card.muted {
+  opacity: 0.65;
+}
+.card-title {
+  font-size: var(--font-size-sm);
+  font-weight: 500;
+  color: var(--color-text-strong);
+  line-height: 1.4;
+  margin-bottom: var(--space-3);
+}
+.card-footer {
+  display: flex; align-items: center; justify-content: space-between;
+}
+.card-meta {
+  display: flex; align-items: center; gap: var(--space-2);
+}
+
+/* ── Lozenges ── */
+.lozenge {
+  display: inline-flex; align-items: center;
+  padding: 0.125rem 0.5rem;
+  border-radius: 3px;
+  font-size: var(--font-size-xs);
+  font-weight: 600;
+  line-height: 1.4;
+  white-space: nowrap;
+}
+.lozenge-info { background: var(--color-status-info-bg); color: var(--color-status-info-fg); }
+.lozenge-warning { background: var(--color-status-warning-bg); color: var(--color-status-warning-fg); }
+.lozenge-danger { background: var(--color-status-danger-bg); color: var(--color-status-danger-fg); }
+.lozenge-danger-bold { background: var(--color-status-danger-fg); color: #fff; }
+.lozenge-success { background: var(--color-status-success-bg); color: var(--color-status-success-fg); }
+.lozenge-neutral { background: var(--color-status-neutral-bg); color: var(--color-status-neutral-fg); }
+
+/* ── Avatar ── */
+.avatar {
+  width: 24px; height: 24px; border-radius: 50%;
+  font-size: 0.625rem; font-weight: 600;
+  display: flex; align-items: center; justify-content: center;
+  flex-shrink: 0;
+  color: var(--color-text-on-brand);
+}
+.avatar-jm { background: var(--color-brand-primary); }
+.avatar-th { background: #0065ff; }
+.avatar-mk { background: #6554c0; }
+.avatar-pn { background: #00875a; }
+.avatar-es { background: #ff5630; }
+.avatar-none { background: var(--color-border-strong); color: var(--color-text-muted); font-size: 0.75rem; }
+
+/* ── PHI Badge ── */
+.phi-badge {
+  display: inline-flex; align-items: center; gap: 0.2rem;
+  padding: 0.0625rem 0.375rem;
+  border: 1px solid var(--color-brand-primary);
+  border-radius: 10px;
+  font-size: 0.5625rem;
+  font-weight: 700;
+  color: var(--color-brand-primary-hover);
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+  line-height: 1.5;
+}
+
+/* ── Comment count ── */
+.comment-count {
+  display: inline-flex; align-items: center; gap: 0.2rem;
+  font-size: var(--font-size-xs);
+  color: var(--color-text-muted);
+}
+</style>
+</head>
+<body>
+
+<!-- ── Topbar ── -->
+<header class="topbar">
+  <a class="topbar-logo" href="#">
+    <span class="dot"></span> PHC Nexus
+  </a>
+  <div class="topbar-search">
+    <svg class="search-icon" width="14" height="14" viewBox="0 0 16 16" fill="none"><circle cx="7" cy="7" r="5.5" stroke="currentColor" stroke-width="1.5"/><path d="M11 11l3.5 3.5" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/></svg>
+    <input type="text" placeholder="Search tasks, projects, docs...">
+  </div>
+  <div class="topbar-right">
+    <button class="notification-btn" aria-label="Notifications">
+      <svg width="18" height="18" viewBox="0 0 20 20" fill="none"><path d="M10 18a2 2 0 01-2-2h4a2 2 0 01-2 2zm6-4V9a6 6 0 10-12 0v5l-1.5 2h15L16 14z" stroke="currentColor" stroke-width="1.5" stroke-linejoin="round"/></svg>
+      <span class="notification-badge">3</span>
+    </button>
+    <div class="user-avatar">JM</div>
+  </div>
+</header>
+
+<!-- ── Sidebar ── -->
+<nav class="sidebar">
+  <div class="nav-section">
+    <div class="nav-section-label">Main</div>
+    <a class="nav-item" href="#">
+      <svg width="16" height="16" viewBox="0 0 16 16" fill="none"><rect x="1" y="1" width="6" height="6" rx="1" stroke="currentColor" stroke-width="1.5"/><rect x="9" y="1" width="6" height="6" rx="1" stroke="currentColor" stroke-width="1.5"/><rect x="1" y="9" width="6" height="6" rx="1" stroke="currentColor" stroke-width="1.5"/><rect x="9" y="9" width="6" height="6" rx="1" stroke="currentColor" stroke-width="1.5"/></svg>
+      Dashboard
+    </a>
+    <a class="nav-item" href="#">
+      <svg width="16" height="16" viewBox="0 0 16 16" fill="none"><path d="M2 3h12M2 6.5h12M2 10h12M2 13.5h12" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/></svg>
+      Projects
+    </a>
+    <a class="nav-item active" href="#">
+      <svg width="16" height="16" viewBox="0 0 16 16" fill="none"><rect x="1" y="2" width="4" height="12" rx="1" stroke="currentColor" stroke-width="1.5"/><rect x="6" y="4" width="4" height="10" rx="1" stroke="currentColor" stroke-width="1.5"/><rect x="11" y="1" width="4" height="13" rx="1" stroke="currentColor" stroke-width="1.5"/></svg>
+      Task Board
+    </a>
+    <a class="nav-item" href="#">
+      <svg width="16" height="16" viewBox="0 0 16 16" fill="none"><circle cx="8" cy="5" r="3.5" stroke="currentColor" stroke-width="1.5"/><path d="M2 14.5c0-3 2.5-5 6-5s6 2 6 5" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/></svg>
+      My Tasks
+    </a>
+  </div>
+  <div class="nav-section">
+    <div class="nav-section-label">Management</div>
+    <a class="nav-item" href="#">
+      <svg width="16" height="16" viewBox="0 0 16 16" fill="none"><path d="M4 8l3 3 5-6" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/><circle cx="8" cy="8" r="7" stroke="currentColor" stroke-width="1.5"/></svg>
+      Approvals
+    </a>
+    <a class="nav-item" href="#">
+      <svg width="16" height="16" viewBox="0 0 16 16" fill="none"><path d="M10 2a2 2 0 11-4 0 2 2 0 014 0zM10 8a2 2 0 11-4 0 2 2 0 014 0zM10 14a2 2 0 11-4 0 2 2 0 014 0z" fill="currentColor"/></svg>
+      Notifications
+    </a>
+  </div>
+  <div class="nav-section">
+    <div class="nav-section-label">Admin</div>
+    <a class="nav-item" href="#">
+      <svg width="16" height="16" viewBox="0 0 16 16" fill="none"><circle cx="5.5" cy="5" r="3" stroke="currentColor" stroke-width="1.5"/><circle cx="11.5" cy="5" r="3" stroke="currentColor" stroke-width="1.5"/><path d="M1 14c0-2.5 2-4 4.5-4s4.5 1.5 4.5 4M7 14c0-2.5 2-4 4.5-4s4.5 1.5 4.5 4" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/></svg>
+      Users
+    </a>
+    <a class="nav-item" href="#">
+      <svg width="16" height="16" viewBox="0 0 16 16" fill="none"><path d="M3 1h7l4 4v10a1 1 0 01-1 1H3a1 1 0 01-1-1V2a1 1 0 011-1z" stroke="currentColor" stroke-width="1.5" stroke-linejoin="round"/><path d="M10 1v4h4" stroke="currentColor" stroke-width="1.5" stroke-linejoin="round"/></svg>
+      Documents
+    </a>
+  </div>
+</nav>
+
+<!-- ── Main Content ── -->
+<main class="main">
+  <div class="breadcrumb">
+    <a href="#">Home</a>
+    <span class="sep">
+      <svg width="8" height="8" viewBox="0 0 8 8" fill="none"><path d="M2.5 1l3 3-3 3" stroke="currentColor" stroke-width="1.2" stroke-linecap="round" stroke-linejoin="round"/></svg>
+    </span>
+    <span>Patient Portal v2</span>
+  </div>
+
+  <div class="page-header">
+    <div>
+      <h1 class="page-title">Task Board</h1>
+      <div class="page-subtitle">Patient Portal v2</div>
+    </div>
+  </div>
+
+  <!-- Controls bar -->
+  <div class="controls-bar">
+    <select class="control-select">
+      <option>Patient Portal v2</option>
+      <option>Internal Tools</option>
+      <option>Mobile App</option>
+    </select>
+    <select class="control-select">
+      <option>Group by: Status</option>
+      <option>Group by: Priority</option>
+      <option>Group by: Assignee</option>
+    </select>
+    <button class="control-btn">
+      <svg width="14" height="14" viewBox="0 0 16 16" fill="none"><path d="M2 4h12M4 8h8M6 12h4" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/></svg>
+      Filter
+    </button>
+    <button class="control-btn-primary">
+      <svg width="14" height="14" viewBox="0 0 16 16" fill="none"><path d="M8 3v10M3 8h10" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/></svg>
+      Add Task
+    </button>
+  </div>
+
+  <!-- Kanban Board -->
+  <div class="kanban-board">
+
+    <!-- Backlog -->
+    <div class="kanban-column">
+      <div class="column-header">
+        <span class="column-title">Backlog</span>
+        <span class="column-count">3</span>
+      </div>
+      <div class="column-cards">
+        <div class="card">
+          <div class="card-title">Research competitor auth flows</div>
+          <div class="card-footer">
+            <span class="lozenge lozenge-info">Low</span>
+            <div class="avatar avatar-th">TH</div>
+          </div>
+        </div>
+        <div class="card">
+          <div class="card-title">Define error handling strategy</div>
+          <div class="card-footer">
+            <span class="lozenge lozenge-warning">Medium</span>
+            <div class="avatar avatar-mk">MK</div>
+          </div>
+        </div>
+        <div class="card">
+          <div class="card-title">Plan database indexing</div>
+          <div class="card-footer">
+            <span class="lozenge lozenge-info">Low</span>
+            <div class="avatar avatar-none">?</div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- To Do -->
+    <div class="kanban-column">
+      <div class="column-header">
+        <span class="column-title">To Do</span>
+        <span class="column-count">4</span>
+      </div>
+      <div class="column-cards">
+        <div class="card">
+          <div class="card-title">Update API documentation</div>
+          <div class="card-footer">
+            <span class="lozenge lozenge-warning">Medium</span>
+            <div class="avatar avatar-jm">JM</div>
+          </div>
+        </div>
+        <div class="card">
+          <div class="card-title">Setup monitoring alerts</div>
+          <div class="card-footer">
+            <span class="lozenge lozenge-info">Low</span>
+            <div class="avatar avatar-th">TH</div>
+          </div>
+        </div>
+        <div class="card">
+          <div class="card-title">Create seed data scripts</div>
+          <div class="card-footer">
+            <span class="lozenge lozenge-warning">Medium</span>
+            <div class="avatar avatar-pn">PN</div>
+          </div>
+        </div>
+        <div class="card">
+          <div class="card-title">Write integration tests</div>
+          <div class="card-footer">
+            <span class="lozenge lozenge-danger">High</span>
+            <div class="avatar avatar-mk">MK</div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- In Progress -->
+    <div class="kanban-column">
+      <div class="column-header">
+        <span class="column-title">In Progress</span>
+        <span class="column-count">3</span>
+      </div>
+      <div class="column-cards">
+        <div class="card">
+          <div class="card-title">Implement SSO login flow</div>
+          <div class="card-footer">
+            <div class="card-meta">
+              <span class="lozenge lozenge-danger">High</span>
+              <span class="phi-badge">
+                <svg width="8" height="8" viewBox="0 0 16 16" fill="none"><path d="M8 1l7 5v4c0 3.5-3 6-7 7-4-1-7-3.5-7-7V6l7-5z" stroke="currentColor" stroke-width="1.5" stroke-linejoin="round"/></svg>
+                PHI
+              </span>
+            </div>
+            <div class="avatar avatar-jm">JM</div>
+          </div>
+        </div>
+        <div class="card">
+          <div class="card-title">Design onboarding wizard</div>
+          <div class="card-footer">
+            <span class="lozenge lozenge-danger">High</span>
+            <div class="avatar avatar-es">ES</div>
+          </div>
+        </div>
+        <div class="card">
+          <div class="card-title">Refactor auth middleware</div>
+          <div class="card-footer">
+            <span class="lozenge lozenge-warning">Medium</span>
+            <div class="avatar avatar-jm">JM</div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- In Review -->
+    <div class="kanban-column">
+      <div class="column-header">
+        <span class="column-title">In Review</span>
+        <span class="column-count">2</span>
+      </div>
+      <div class="column-cards">
+        <div class="card">
+          <div class="card-title">Fix dashboard loading time</div>
+          <div class="card-footer">
+            <div class="card-meta">
+              <span class="lozenge lozenge-danger-bold">Critical</span>
+              <span class="comment-count">
+                <svg width="12" height="12" viewBox="0 0 16 16" fill="none"><path d="M2 2h12a1 1 0 011 1v8a1 1 0 01-1 1H5l-3 3V3a1 1 0 011-1z" stroke="currentColor" stroke-width="1.4" stroke-linejoin="round"/></svg>
+                3
+              </span>
+            </div>
+            <div class="avatar avatar-mk">MK</div>
+          </div>
+        </div>
+        <div class="card">
+          <div class="card-title">Add export permissions</div>
+          <div class="card-footer">
+            <div class="card-meta">
+              <span class="lozenge lozenge-danger">High</span>
+              <span class="phi-badge">
+                <svg width="8" height="8" viewBox="0 0 16 16" fill="none"><path d="M8 1l7 5v4c0 3.5-3 6-7 7-4-1-7-3.5-7-7V6l7-5z" stroke="currentColor" stroke-width="1.5" stroke-linejoin="round"/></svg>
+                PHI
+              </span>
+            </div>
+            <div class="avatar avatar-pn">PN</div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Done -->
+    <div class="kanban-column">
+      <div class="column-header">
+        <span class="column-title">Done</span>
+        <span class="column-count">3</span>
+      </div>
+      <div class="column-cards">
+        <div class="card muted">
+          <div class="card-title">Database migration script</div>
+          <div class="card-footer">
+            <span class="lozenge lozenge-neutral">Medium</span>
+            <div class="avatar avatar-th">TH</div>
+          </div>
+        </div>
+        <div class="card muted">
+          <div class="card-title">Setup CI pipeline</div>
+          <div class="card-footer">
+            <span class="lozenge lozenge-neutral">Low</span>
+            <div class="avatar avatar-jm">JM</div>
+          </div>
+        </div>
+        <div class="card muted">
+          <div class="card-title">Initial project scaffolding</div>
+          <div class="card-footer">
+            <span class="lozenge lozenge-neutral">Low</span>
+            <div class="avatar avatar-jm">JM</div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+  </div>
+</main>
+
+</body>
+</html>

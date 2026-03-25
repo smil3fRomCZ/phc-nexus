@@ -85,6 +85,9 @@ app/Modules/
 | [`docs/business-logic-summary.md`](docs/business-logic-summary.md) | Business logika |
 | [`docs/architecture/phi-scope-matrix.md`](docs/architecture/phi-scope-matrix.md) | PHI access pravidla |
 | [`docs/design/`](docs/design/) | Design systém, tokeny, page patterns |
+| [`docs/runbooks/deploy.md`](docs/runbooks/deploy.md) | Deploy na VPS (krok za krokem) |
+| [`docs/runbooks/backup-restore.md`](docs/runbooks/backup-restore.md) | Záloha a obnova DB, souborů, Redis |
+| [`docs/runbooks/monitoring.md`](docs/runbooks/monitoring.md) | Monitoring checklist a eskalace |
 | [`CLAUDE.md`](CLAUDE.md) | Instrukce pro Claude Code agenty |
 
 ## MVP Scope

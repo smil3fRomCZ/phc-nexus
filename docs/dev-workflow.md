@@ -1,0 +1,226 @@
+# PHC Nexus — Development Workflow
+
+Praktický průvodce lokálním vývojem. Vše běží v kontejnerech — žádné lokální PHP, Node ani Postgres instalace.
+
+---
+
+## Prerequisites
+
+- **Docker Desktop** (nebo OrbStack na macOS)
+- **Git**
+- **GitHub CLI** (`gh`) — pro PR workflow
+- Editor (VS Code / Cursor doporučen)
+
+---
+
+## Quick Start
+
+```bash
+# 1. Klonování
+git clone git@github.com:<org>/phc-nexus.git
+cd phc-nexus
+
+# 2. Environment
+cp .env.example .env
+
+# 3. Start
+docker compose up -d
+
+# 4. První setup (migrace + seed)
+docker compose exec app php artisan migrate --seed
+docker compose exec app php artisan key:generate
+```
+
+Po startu:
+
+| Služba | URL |
+|--------|-----|
+| Aplikace | https://localhost |
+| Horizon (queue dashboard) | https://localhost/horizon |
+| Telescope (debug, dev only) | https://localhost/telescope |
+| Mailpit (email testing) | http://localhost:8025 |
+
+---
+
+## Architektura kontejnerů
+
+```
+┌─────────────────────────────────────────────────┐
+│                    caddy                         │
+│           (reverse proxy + TLS)                  │
+│              :443 / :80                          │
+└──────────┬──────────────────────────────────────┘
+           │
+┌──────────▼──────────┐  ┌──────────────────────┐
+│        app           │  │       worker          │
+│     (PHP-FPM)        │  │   (queue:work via     │
+│    Inertia pages     │  │    Horizon)           │
+│      :9000           │  │                       │
+└──────────────────────┘  └───────────────────────┘
+                          ┌───────────────────────┐
+                          │      scheduler         │
+                          │  (schedule:run loop)   │
+                          └───────────────────────┘
+
+┌──────────────────────┐  ┌──────────┐  ┌──────────┐
+│      postgres         │  │redis-cache│  │redis-data│
+│   PostgreSQL 18       │  │allkeys-lru│  │noeviction│
+│      :5432            │  │   :6379   │  │   :6380  │
+└──────────────────────┘  └──────────┘  └──────────┘
+```
+
+Všechny `app`/`worker`/`scheduler` používají **stejný Docker image** — liší se jen `CMD`.
+
+---
+
+## Environment
+
+- `.env.example` — šablona (commitovaná)
+- `.env` — lokální konfigurace (gitignored)
+- Klíčové proměnné: `DB_*`, `REDIS_*`, `GOOGLE_CLIENT_ID`, `GOOGLE_CLIENT_SECRET`, `APP_KEY`
+
+---
+
+## Denní příkazy
+
+### Backend
+
+```bash
+# Artisan
+docker compose exec app php artisan <command>
+docker compose exec app php artisan migrate
+docker compose exec app php artisan migrate:rollback
+docker compose exec app php artisan tinker
+docker compose exec app php artisan make:model <Name> -mf
+
+# Testy
+docker compose exec app php artisan test
+docker compose exec app php artisan test --filter=<Module>
+
+# Static analysis
+docker compose exec app ./vendor/bin/phpstan analyse
+docker compose exec app ./vendor/bin/pint
+docker compose exec app ./vendor/bin/pint --test   # dry-run
+```
+
+### Frontend
+
+```bash
+# Dev server (Vite HMR)
+docker compose exec app npm run dev
+
+# Production build
+docker compose exec app npm run build
+
+# Testy
+docker compose exec app npx vitest run
+docker compose exec app npx vitest run --reporter=verbose
+
+# Lint & typecheck
+docker compose exec app npx eslint .
+docker compose exec app npx tsc --noEmit
+```
+
+### Logy & debugging
+
+```bash
+docker compose logs -f app
+docker compose logs -f worker
+docker compose logs -f scheduler
+docker compose exec app php artisan telescope:clear
+```
+
+---
+
+## Migrace
+
+```bash
+# Vytvořit migraci
+docker compose exec app php artisan make:migration create_<table>_table
+
+# Spustit
+docker compose exec app php artisan migrate
+
+# Rollback
+docker compose exec app php artisan migrate:rollback
+
+# Fresh reset (jen dev!)
+docker compose exec app php artisan migrate:fresh --seed
+```
+
+Konvence: UUIDv7 jako PK, timestamp sloupce, soft deletes kde vhodné.
+
+---
+
+## Jak přidat nový modul
+
+1. Vytvořit strukturu v `app/Modules/<Name>/` (nebo použít `/scaffold`)
+2. Přidat `ServiceProvider` a registrovat v `config/app.php`
+3. Vytvořit routes v `app/Modules/<Name>/Routes/web.php`
+4. Přidat migrace s prefixem modulu
+5. Vytvořit Inertia pages v `resources/js/Pages/<Name>/`
+6. Přidat Policy a registrovat v `AuthServiceProvider`
+7. Napsat feature testy v `tests/Feature/<Name>/`
+
+---
+
+## Jak přidat Inertia stránku
+
+1. Controller action vracející `Inertia::render('<Module>/<Page>', $props)`
+2. React komponenta v `resources/js/Pages/<Module>/<Page>.tsx`
+3. TypeScript interface pro props
+4. Route v module routes souboru
+5. Autorizace přes middleware nebo Policy
+6. Sledovat vzory z `docs/design/page-patterns.md`
+
+---
+
+## Git workflow
+
+```bash
+# Nová feature
+git checkout -b feat/<module>-<popis>
+# ... práce ...
+git add <soubory>
+git commit -m "feat(<module>): popis změny"
+git push -u origin feat/<module>-<popis>
+gh pr create
+
+# Po merge
+git checkout main
+git pull
+git branch -d feat/<module>-<popis>
+```
+
+- Branch žije 1–3 dny
+- Conventional Commits: `feat|fix|chore|docs|refactor(scope): summary`
+- Squash merge do `main`
+- PR: 300–600 řádků diffu
+
+---
+
+## Deployment flow
+
+```
+local                    staging                  production
+(docker compose up)  →   (stejný image, VPS)  →   (stejný image, po schválení)
+```
+
+- CI buildne image na merge do `main`
+- Image tagovaný git SHA + volitelně semver
+- Staging deploy průběžně
+- Production 1× týdně nebo dle potřeby
+- Hotfix: branch z `main` → `fix/...` → expedited review → deploy
+
+---
+
+## Troubleshooting
+
+| Problém | Řešení |
+|---------|--------|
+| Kontejner nenaběhne | `docker compose logs <service>`, ověřit `.env`, volné porty |
+| Migrace selhává | Ověřit že `postgres` container je healthy: `docker compose ps` |
+| Vite HMR nefunguje | Ověřit že Vite dev server běží, zkontrolovat Caddy proxy |
+| Queue nezpracovává | Zkontrolovat worker logy, ověřit `redis-data` je up |
+| Testy padají na DB | `docker compose exec app php artisan migrate:fresh --env=testing` |
+| Pomalý build | Ověřit `.dockerignore`, zvážit OrbStack místo Docker Desktop |

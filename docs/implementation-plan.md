@@ -122,6 +122,81 @@ Založit projekt, pipeline a běhové prostředí bez business komplexity.
 - test pipeline běží v CI
 - je rozhodnutý storage backend a je popsaný restore files
 
+### M0 Bootstrap Steps (akční checklist)
+
+Konkrétní sekvenční kroky od prázdného repo k běžícím kontejnerům:
+
+#### Step 1: Laravel Skeleton
+
+- [ ] `composer create-project laravel/laravel:^13.0 .` (nebo install do temp a merge)
+- [ ] Ověřit PHP 8.4 requirement v `composer.json`
+- [ ] Nastavit `.env.example` s PostgreSQL + Redis defaults
+- [ ] Odstranit default SQLite config, PostgreSQL jako default driver
+- [ ] Nastavit UUIDv7 jako default PK model trait
+
+#### Step 2: Dockerfile
+
+- [ ] Multi-stage Dockerfile: `composer install` (build) → PHP-FPM + Node (runtime)
+- [ ] Jeden image pro app/worker/scheduler (CMD override)
+- [ ] Node.js v build stage pro Vite
+- [ ] Non-root user pro security
+- [ ] `.dockerignore` pro node_modules, .git, tests, docs
+
+#### Step 3: Docker Compose (dev)
+
+- [ ] `docker-compose.yml` se službami: app, worker, scheduler, postgres, redis-cache, redis-data, caddy
+- [ ] Caddy s `Caddyfile` jako reverse proxy na app:9000
+- [ ] Volume mounts pro lokální vývoj (app kód, vendor, node_modules)
+- [ ] Postgres persistent volume
+- [ ] Health checks na postgres a redis
+- [ ] `.env` loading pro compose
+
+#### Step 4: Docker Compose (prod)
+
+- [ ] `docker-compose.prod.yml` (override — žádné volume mounts, built assets)
+- [ ] Stejný image reference, jiný CMD per service
+- [ ] Caddy s produkčním TLS (Let's Encrypt nebo vlastní cert)
+
+#### Step 5: Frontend Foundation
+
+- [ ] Instalace Inertia.js v2 (Laravel + React adapter)
+- [ ] Instalace React 19 + TypeScript
+- [ ] Instalace Tailwind CSS 4
+- [ ] Instalace shadcn/ui (init s tokeny z `design-tokens.md`)
+- [ ] Konfigurace Vite 6
+- [ ] App shell layout (sidebar + topbar dle `design-system.md`)
+- [ ] Smoke page (dashboard placeholder)
+
+#### Step 6: Module Directory Structure
+
+- [ ] Vytvořit `app/Modules/` base directory
+- [ ] Scaffold Auth modul skeleton
+- [ ] Konfigurovat module service provider auto-loading
+
+#### Step 7: CI Pipeline
+
+- [ ] GitHub Actions workflow: lint + test + build
+- [ ] PHPStan level 8 config
+- [ ] Pint config
+- [ ] ESLint + Prettier config
+- [ ] Vitest config
+- [ ] Docker image build step
+
+#### Step 8: Observability Baseline
+
+- [ ] Instalace Laravel Telescope (dev only)
+- [ ] Instalace Laravel Horizon (queue monitoring)
+- [ ] Sentry SDK (error tracking)
+- [ ] Strukturované logování
+
+#### Step 9: Verifikace
+
+- [ ] `docker compose up` spustí všechny služby bez chyb
+- [ ] Browser zobrazí placeholder dashboard page
+- [ ] `docker compose exec app php artisan test` projde
+- [ ] `docker compose exec app npx vitest run` projde
+- [ ] CI pipeline projde na push
+
 ---
 
 ### Milestone 1 — Identity & Access

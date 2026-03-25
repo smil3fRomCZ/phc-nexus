@@ -108,7 +108,7 @@ Než je task hotový, ověř:
 - **TypeScript:** strict mode, interfaces pro doménové objekty, shadcn/ui komponenty
 - **DB:** UUIDv7 jako PK, timestamp sloupce, soft deletes kde vhodné
 - **Styling:** Design tokens z `docs/design/design-tokens.md`, žádné ad-hoc hex barvy
-- **Naming:** Angličtina v kódu, čeština v business dokumentech
+- **Naming:** Angličtina v kódu, čeština v dokumentech, PR popisech, commit messages a veškeré komunikaci
 - **Princip:** Žádná předčasná abstrakce, žádné generické helpery, žádný rule engine v MVP
 
 ## Key References

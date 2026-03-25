@@ -72,10 +72,11 @@ Každý modul obsahuje: `Models/`, `Actions/` (use-cases), `Controllers/`, `Poli
 ## Documentation Rules
 
 Po dokončení každého tasku nebo milestone:
-1. **Aktualizuj `docs/status.md`** — zapiš co bylo reálně implementováno (ne co bylo plánováno)
-2. **Module docs** — jakmile modul obsahuje business logiku, vytvoř/aktualizuj `app/Modules/<Name>/README.md`
-3. **Známé limitace** — zapiš technický dluh a workaroundy do status.md sekce "Známé limitace"
-4. **Historie změn** — přidej řádek do tabulky "Historie změn" v status.md
+1. **Aktualizuj `README.md`** — vždy v každém pushi/PR, aby odrážel aktuální stav projektu
+2. **Aktualizuj `docs/status.md`** — zapiš co bylo reálně implementováno (ne co bylo plánováno)
+3. **Module docs** — jakmile modul obsahuje business logiku, vytvoř/aktualizuj `app/Modules/<Name>/README.md`
+4. **Známé limitace** — zapiš technický dluh a workaroundy do status.md sekce "Známé limitace"
+5. **Historie změn** — přidej řádek do tabulky "Historie změn" v status.md
 
 Účel: debugging, onboarding nových agentů/devs, základ pro uživatelské manuály.
 

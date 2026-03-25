@@ -100,7 +100,7 @@
 | app | phc-nexus-app (PHP 8.4-FPM) | 9000 (internal) | Running |
 | caddy | caddy:2-alpine | 80, 443 | Running |
 | scheduler | phc-nexus-scheduler | — | Running |
-| worker | phc-nexus-worker | — | Exited (Horizon chybí) |
+| worker | phc-nexus-worker | — | Running (Horizon) |
 | postgres | postgres:17-alpine | 5432 | Healthy |
 | redis-cache | redis:7-alpine | 6379 | Healthy |
 | redis-data | redis:7-alpine | 6380 | Healthy |
@@ -110,7 +110,7 @@
 
 ## Známé limitace a technický dluh
 
-1. **Worker nefunguje** — Horizon není nainstalovaný, worker kontejner padá. Přijde v M1.
+1. ~~**Worker nefunguje**~~ — Vyřešeno: Horizon nainstalován, worker běží. Dashboard na `/horizon`.
 2. **Vite HMR v Dockeru** — Aktuálně je třeba `npm run build` lokálně. Vite dev server proxy přes Caddy je připraven, ale nebyl end-to-end ověřen.
 3. **Testy běží na SQLite in-memory** — phpunit.xml používá SQLite, ne PostgreSQL. Pro MVP feature testy to stačí, pro database-specific testy (JSONB, FTS) bude potřeba PostgreSQL test connection.
 4. **Žádné seed data** — migrace běží, ale seed je prázdný.
@@ -123,3 +123,4 @@
 | Datum | Milestone | Co se stalo |
 |-------|-----------|-------------|
 | 2026-03-25 | M0 | Foundation bootstrap: Laravel 13 + Inertia + React + Docker stack, CI pipeline, modulová struktura |
+| 2026-03-25 | M1 | Horizon setup: queue worker běží, dashboard na /horizon, dual Redis konfigurace |

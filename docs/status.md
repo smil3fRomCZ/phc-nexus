@@ -83,7 +83,7 @@
 | Modul | Status | Implementováno |
 |-------|--------|---------------|
 | Auth | **Aktivní** | Google SSO (redirect + callback), login stránka, logout, HandleInertiaRequests middleware |
-| Organization | Skeleton | Prázdná adresářová struktura |
+| Organization | **Aktivní** | Division, Team, Tribe modely + migrace, SystemRole + UserStatus enumy, User rozšířen o role/status/team |
 | Projects | Skeleton | Prázdná adresářová struktura |
 | Work | Skeleton | Prázdná adresářová struktura |
 | Approvals | Skeleton | Prázdná adresářová struktura |
@@ -125,3 +125,4 @@
 | 2026-03-25 | M0 | Foundation bootstrap: Laravel 13 + Inertia + React + Docker stack, CI pipeline, modulová struktura |
 | 2026-03-25 | M1 | Horizon setup: queue worker běží, dashboard na /horizon, dual Redis konfigurace |
 | 2026-03-25 | M1 | Google SSO: login/logout flow, Auth modul (controller, action, routes), login stránka, 8 testů |
+| 2026-03-25 | M1 | Org model: Division, Team, Tribe modely, SystemRole/UserStatus enumy, User rozšíření, 12 testů |

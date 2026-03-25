@@ -1,0 +1,152 @@
+services:
+  # ==========================================================================
+  # Application (PHP-FPM)
+  # ==========================================================================
+  app:
+    build:
+      context: .
+      dockerfile: Dockerfile
+      target: production
+    volumes:
+      - .:/var/www/html
+      - ./docker/php/php.dev.ini:/usr/local/etc/php/conf.d/app.ini:ro
+    # Laravel reads .env from volume mount — no env_file needed in dev
+    depends_on:
+      postgres:
+        condition: service_healthy
+      redis-cache:
+        condition: service_healthy
+      redis-data:
+        condition: service_healthy
+    networks:
+      - app-network
+
+  # ==========================================================================
+  # Queue Worker (Horizon)
+  # ==========================================================================
+  worker:
+    build:
+      context: .
+      dockerfile: Dockerfile
+      target: production
+    command: php artisan horizon
+    volumes:
+      - .:/var/www/html
+      - ./docker/php/php.dev.ini:/usr/local/etc/php/conf.d/app.ini:ro
+    # Laravel reads .env from volume mount — no env_file needed in dev
+    depends_on:
+      - app
+    networks:
+      - app-network
+
+  # ==========================================================================
+  # Scheduler (cron)
+  # ==========================================================================
+  scheduler:
+    build:
+      context: .
+      dockerfile: Dockerfile
+      target: production
+    command: sh -c "while true; do php artisan schedule:run --verbose --no-interaction; sleep 60; done"
+    volumes:
+      - .:/var/www/html
+      - ./docker/php/php.dev.ini:/usr/local/etc/php/conf.d/app.ini:ro
+    # Laravel reads .env from volume mount — no env_file needed in dev
+    depends_on:
+      - app
+    networks:
+      - app-network
+
+  # ==========================================================================
+  # Caddy (reverse proxy + TLS)
+  # ==========================================================================
+  caddy:
+    image: caddy:2-alpine
+    ports:
+      - "80:80"
+      - "443:443"
+    volumes:
+      - ./docker/caddy/Caddyfile:/etc/caddy/Caddyfile:ro
+      - caddy-data:/data
+      - caddy-config:/config
+      - ./public:/var/www/html/public:ro
+    depends_on:
+      - app
+    networks:
+      - app-network
+
+  # ==========================================================================
+  # PostgreSQL 17 (latest stable)
+  # ==========================================================================
+  postgres:
+    image: postgres:17-alpine
+    environment:
+      POSTGRES_DB: phc_nexus
+      POSTGRES_USER: phc_nexus
+      POSTGRES_PASSWORD: secret
+    ports:
+      - "5432:5432"
+    volumes:
+      - postgres-data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U phc_nexus"]
+      interval: 5s
+      timeout: 5s
+      retries: 5
+    networks:
+      - app-network
+
+  # ==========================================================================
+  # Redis — Cache (allkeys-lru)
+  # ==========================================================================
+  redis-cache:
+    image: redis:7-alpine
+    command: redis-server --maxmemory 128mb --maxmemory-policy allkeys-lru
+    ports:
+      - "6379:6379"
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 5s
+      timeout: 5s
+      retries: 5
+    networks:
+      - app-network
+
+  # ==========================================================================
+  # Redis — Data (noeviction, sessions + queues)
+  # ==========================================================================
+  redis-data:
+    image: redis:7-alpine
+    command: redis-server --maxmemory 128mb --maxmemory-policy noeviction --appendonly yes
+    ports:
+      - "6380:6379"
+    volumes:
+      - redis-data:/data
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 5s
+      timeout: 5s
+      retries: 5
+    networks:
+      - app-network
+
+  # ==========================================================================
+  # Mailpit (email testing)
+  # ==========================================================================
+  mailpit:
+    image: axllent/mailpit:latest
+    ports:
+      - "8025:8025"
+      - "1025:1025"
+    networks:
+      - app-network
+
+volumes:
+  postgres-data:
+  redis-data:
+  caddy-data:
+  caddy-config:
+
+networks:
+  app-network:
+    driver: bridge

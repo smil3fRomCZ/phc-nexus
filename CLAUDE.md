@@ -19,7 +19,7 @@ Tento soubor je hlavní instrukční sada pro Claude Code agenty pracující na 
 | Backend | Laravel 13 (PHP 8.4), Inertia.js v2 |
 | Frontend | React 19, TypeScript, Tailwind CSS 4, shadcn/ui, Vite 6 |
 | State | Inertia props (primární), Zustand (lokální UI), TanStack Query (nezávislé widgety) |
-| DB | PostgreSQL 18 (JSONB, FTS, UUIDv7 PK) |
+| DB | PostgreSQL 17 (JSONB, FTS, UUIDv7 PK) |
 | Cache/Queues | Redis — dva kontejnery: `redis-cache` (allkeys-lru), `redis-data` (noeviction, sessions + queues) |
 | Queues | Laravel Queue + Redis + Horizon |
 | Auth | Laravel Socialite (Google SSO) |
@@ -69,6 +69,16 @@ Každý modul obsahuje: `Models/`, `Actions/` (use-cases), `Controllers/`, `Poli
 - **Povinné E2E:** login, projekt CRUD, úkol CRUD, stav změna, approval flow, komentář + příloha, notifikace, PHI access, export guard
 - Každý PR musí obsahovat testy úměrné riziku
 
+## Documentation Rules
+
+Po dokončení každého tasku nebo milestone:
+1. **Aktualizuj `docs/status.md`** — zapiš co bylo reálně implementováno (ne co bylo plánováno)
+2. **Module docs** — jakmile modul obsahuje business logiku, vytvoř/aktualizuj `app/Modules/<Name>/README.md`
+3. **Známé limitace** — zapiš technický dluh a workaroundy do status.md sekce "Známé limitace"
+4. **Historie změn** — přidej řádek do tabulky "Historie změn" v status.md
+
+Účel: debugging, onboarding nových agentů/devs, základ pro uživatelské manuály.
+
 ## Definition of Done
 
 Než je task hotový, ověř:
@@ -80,6 +90,7 @@ Než je task hotový, ověř:
 - [ ] Authorization na každém endpointu/page/download
 - [ ] Audit trail pro business akce
 - [ ] PHI/export/download impact vyřešen
+- [ ] Dokumentace aktualizována (`docs/status.md`, module README pokud relevantní)
 - [ ] Dokumentováno, pokud mění workflow nebo provoz
 
 ## PHI / Security
@@ -104,6 +115,7 @@ Než je task hotový, ověř:
 
 | Dokument | Obsah |
 |----------|-------|
+| `docs/status.md` | Aktuální stav implementace (živý dokument) |
 | `docs/implementation-plan.md` | Milestony, delivery pořadí, git/PR/release strategie |
 | `docs/tech-stack-analysis.md` | Kompletní tech rozhodnutí |
 | `docs/business-logic-summary.md` | Business logika (číst jen MVP sekce) |

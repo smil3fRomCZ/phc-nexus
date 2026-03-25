@@ -11,7 +11,7 @@ return new class extends Migration
     public function up(): void
     {
         Schema::create('comments', function (Blueprint $table) {
-            $table->uuid('id')->primary()->unique();
+            $table->uuid('id')->primary();
             $table->string('commentable_type')->index();
             $table->uuid('commentable_id')->index();
             $table->uuid('parent_id')->nullable()->index();
@@ -22,6 +22,10 @@ return new class extends Migration
             $table->softDeletes();
 
             $table->index(['commentable_type', 'commentable_id']);
+        });
+
+        // Self-referencing FK must be added after table creation on PostgreSQL
+        Schema::table('comments', function (Blueprint $table) {
             $table->foreign('parent_id')->references('id')->on('comments')->nullOnDelete();
         });
     }

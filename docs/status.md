@@ -15,7 +15,7 @@
 | 2 | Projects Core | **DONE** | Audit envelope, file contract, comment model, projekty CRUD |
 | 3 | Work Core | **DONE** | Epiky, úkoly, kanban board, tabulka, stavové přechody |
 | 4 | Approvals & Notifications | **DONE** | Approval flow, in-app + email notifikace |
-| 5 | Hardening & Release | Not started | E2E, seed data, runbooks |
+| 5 | Hardening & Release | **In progress** | Seed data hotové, E2E a runbooky čekají |
 
 ---
 
@@ -114,7 +114,7 @@
 1. ~~**Worker nefunguje**~~ — Vyřešeno: Horizon nainstalován, worker běží. Dashboard na `/horizon`.
 2. **Vite HMR v Dockeru** — Aktuálně je třeba `npm run build` lokálně. Vite dev server proxy přes Caddy je připraven, ale nebyl end-to-end ověřen.
 3. **Testy běží na SQLite in-memory** — phpunit.xml používá SQLite, ne PostgreSQL. Pro MVP feature testy to stačí, pro database-specific testy (JSONB, FTS) bude potřeba PostgreSQL test connection.
-4. **Žádné seed data** — migrace běží, ale seed je prázdný.
+4. ~~**Žádné seed data**~~ — Vyřešeno: DemoSeeder s realistickou org strukturou, uživateli, projekty, epiky, úkoly, approvals a komentáři.
 5. **Design tokeny částečně** — v CSS jsou brand, text, surface, border, status tokeny. Chybí component-level tokeny (shell dimensions, button variants atd.).
 
 ---
@@ -139,3 +139,4 @@
 | 2026-03-25 | M3 | Kanban board + tabulka + stavové přechody: drag&drop board (5 sloupců), tabulkový view (filtry status/priorita, řazení), PATCH status endpoint s validací přechodů, hardcoded transitions na TaskStatus i EpicStatus, 21 testů (11 unit + 10 feature) |
 | 2026-03-25 | M4 | Approval flow: ApprovalRequest + ApprovalVote (polymorfní), RequestApproval + CastVote actions, režim all approve / any reject blocks, ApprovalPolicy (view/create/vote/cancel), controller + routes, reminder job, HasApprovals trait, factory, 2 Inertia pages, 12 feature testů |
 | 2026-03-25 | M4 | Notifikace: 4 notification třídy (ApprovalRequested, VoteCast, TaskAssigned, TaskStatusChanged), DB + email kanály, NotificationController (index/markAsRead/markAllAsRead/unreadCount), dispatch z approval flow, Inertia page, 9 feature testů |
+| 2026-03-25 | M5 | Seed data: DemoSeeder s realistickou strukturou — 2 divize, 4 týmy, tribe, 8 uživatelů (exec/PM/dev/QA/infra/support/reader), 3 projekty (aktivní/draft/PHI), 5 epiků, 15 úkolů, approval request, komentáře |

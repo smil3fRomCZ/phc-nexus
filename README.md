@@ -4,7 +4,7 @@ Interní produktivitní platforma pro Pears Health Care (50-200 uživatelů). Na
 
 ## Aktuální stav
 
-**Milestone 4 — Approvals & Notifications** (**DONE**) · 165 testů · [detailní stav](docs/status.md)
+**Milestone 5 — Hardening & Release** (v průběhu) · 165 testů · [detailní stav](docs/status.md)
 
 ### Co už funguje
 

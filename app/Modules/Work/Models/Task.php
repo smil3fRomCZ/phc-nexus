@@ -10,29 +10,52 @@ use App\Models\Concerns\HasComments;
 use App\Models\Concerns\HasPhiClassification;
 use App\Models\Concerns\HasUuidV7;
 use App\Models\User;
+use App\Modules\Projects\Models\Project;
+use App\Modules\Work\Enums\TaskPriority;
+use App\Modules\Work\Enums\TaskStatus;
+use Database\Factories\TaskFactory;
+use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\SoftDeletes;
 
-/**
- * Stub — plná implementace přijde v feat/m3-task-model.
- */
 class Task extends Model
 {
-    use Auditable, HasAttachments, HasComments, HasPhiClassification, HasUuidV7, SoftDeletes;
+    /** @use HasFactory<TaskFactory> */
+    use Auditable, HasAttachments, HasComments, HasFactory, HasPhiClassification, HasUuidV7, SoftDeletes;
 
     protected $fillable = [
-        'epic_id',
         'project_id',
+        'epic_id',
         'title',
         'description',
         'status',
+        'priority',
         'data_classification',
         'assignee_id',
         'reporter_id',
         'sort_order',
         'due_date',
     ];
+
+    protected function casts(): array
+    {
+        return [
+            'status' => TaskStatus::class,
+            'priority' => TaskPriority::class,
+            'due_date' => 'date',
+        ];
+    }
+
+    protected static function newFactory(): TaskFactory
+    {
+        return TaskFactory::new();
+    }
+
+    public function project(): BelongsTo
+    {
+        return $this->belongsTo(Project::class);
+    }
 
     public function epic(): BelongsTo
     {

@@ -13,6 +13,7 @@ use App\Models\User;
 use App\Modules\Organization\Models\Team;
 use App\Modules\Projects\Enums\ProjectStatus;
 use App\Modules\Work\Models\Epic;
+use App\Modules\Work\Models\Task;
 use Database\Factories\ProjectFactory;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
@@ -67,6 +68,11 @@ class Project extends Model
     public function epics(): HasMany
     {
         return $this->hasMany(Epic::class);
+    }
+
+    public function tasks(): HasMany
+    {
+        return $this->hasMany(Task::class);
     }
 
     protected static function newFactory(): ProjectFactory

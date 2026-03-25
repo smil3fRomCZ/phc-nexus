@@ -12,6 +12,8 @@ use App\Modules\Organization\Policies\TeamPolicy;
 use App\Modules\Organization\Policies\UserPolicy;
 use App\Modules\Projects\Models\Project;
 use App\Modules\Projects\Policies\ProjectPolicy;
+use App\Modules\Approvals\Models\ApprovalRequest;
+use App\Modules\Approvals\Policies\ApprovalRequestPolicy;
 use App\Modules\Work\Models\Epic;
 use App\Modules\Work\Models\Task;
 use App\Modules\Work\Policies\EpicPolicy;
@@ -34,5 +36,6 @@ class AppServiceProvider extends ServiceProvider
         Gate::policy(Project::class, ProjectPolicy::class);
         Gate::policy(Epic::class, EpicPolicy::class);
         Gate::policy(Task::class, TaskPolicy::class);
+        Gate::policy(ApprovalRequest::class, ApprovalRequestPolicy::class);
     }
 }

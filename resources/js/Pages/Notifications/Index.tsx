@@ -1,4 +1,5 @@
 import AppLayout from '@/Layouts/AppLayout';
+import { formatTime } from '@/utils/formatTime';
 import { router } from '@inertiajs/react';
 
 interface NotificationData {
@@ -46,21 +47,6 @@ export default function NotificationsIndex({ notifications, unreadCount }: Props
                 'Accept': 'application/json',
             },
         }).then(() => router.reload({ only: ['notifications', 'unreadCount'] }));
-    }
-
-    function formatTime(iso: string): string {
-        const date = new Date(iso);
-        const now = new Date();
-        const diffMs = now.getTime() - date.getTime();
-        const diffMin = Math.floor(diffMs / 60000);
-
-        if (diffMin < 1) return 'Právě teď';
-        if (diffMin < 60) return `${diffMin}m`;
-        const diffH = Math.floor(diffMin / 60);
-        if (diffH < 24) return `${diffH}h`;
-        const diffD = Math.floor(diffH / 24);
-
-        return `${diffD}d`;
     }
 
     return (

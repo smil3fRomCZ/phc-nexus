@@ -4,7 +4,7 @@ Interní produktivitní platforma pro Pears Health Care (50-200 uživatelů). Na
 
 ## Aktuální stav
 
-**Milestone 4 — Approvals & Notifications** (v průběhu) · 156 testů · [detailní stav](docs/status.md)
+**Milestone 4 — Approvals & Notifications** (**DONE**) · 165 testů · [detailní stav](docs/status.md)
 
 ### Co už funguje
 
@@ -15,6 +15,7 @@ Interní produktivitní platforma pro Pears Health Care (50-200 uživatelů). Na
 - **Tabulkový view** — řazení, filtrování (status, priorita), inline změna statusu
 - **Stavové přechody** — hardcoded allowed transitions na TaskStatus i EpicStatus, PATCH endpoint pro rychlou změnu
 - **Approval flow** — polymorfní approval requesty, režim all approve / any reject, hlasování, cancel, expirace, reminder job, audit, 2 Inertia pages
+- **Notifikace** — in-app (DB-backed) + email, 4 typy (approval requested, vote cast, task assigned, task status changed), mark as read, unread count endpoint, Inertia page
 - **Autentizace** — Google SSO login, invite-only onboarding (pozvánka emailem, expirace 72h)
 - **Organizační model** — oddělení (divisions) → týmy → uživatelé + tribes (cross-team skupiny)
 - **5 systémových rolí** — Executive, Project Manager, Team Member, Service Desk Agent, Reader
@@ -26,9 +27,9 @@ Interní produktivitní platforma pro Pears Health Care (50-200 uživatelů). Na
 - **Infrastruktura** — 8 Docker kontejnerů (app, worker/Horizon, scheduler, Caddy, PostgreSQL 17, 2× Redis, Mailpit)
 - **CI/CD** — GitHub Actions pipeline (Pint + testy + Vite build)
 
-### Co je další (M4 — Notifications)
+### Co je další (M5 — Hardening & Release)
 
-- In-app notifikace (DB-backed), email notifikace, notifikační preference
+- Seed/demo data, E2E scénáře, backup/restore runbook, deploy runbook, monitoring
 
 ## Quick Start
 
@@ -69,7 +70,7 @@ app/Modules/
   Projects/       — (M2 — rozpracované)
   Work/           — Epic + Task modely, CRUD, enumy, policies
   Approvals/      — ApprovalRequest, ApprovalVote, CastVote action, policies
-  Notifications/  — (M4)
+  Notifications/  — 4 notification třídy (DB + email), controller, Inertia page
   Files/          — (M2 — rozpracované)
 ```
 

@@ -15,7 +15,7 @@
 | 2 | Projects Core | **DONE** | Audit envelope, file contract, comment model, projekty CRUD |
 | 3 | Work Core | **DONE** | Epiky, úkoly, kanban board, tabulka, stavové přechody |
 | 4 | Approvals & Notifications | **DONE** | Approval flow, in-app + email notifikace |
-| 5 | Hardening & Release | **In progress** | Seed data hotové, E2E a runbooky čekají |
+| 5 | Hardening & Release | **DONE** | Seed data, runbooky, E2E testy (Playwright) |
 
 ---
 
@@ -141,3 +141,4 @@
 | 2026-03-25 | M4 | Notifikace: 4 notification třídy (ApprovalRequested, VoteCast, TaskAssigned, TaskStatusChanged), DB + email kanály, NotificationController (index/markAsRead/markAllAsRead/unreadCount), dispatch z approval flow, Inertia page, 9 feature testů |
 | 2026-03-25 | M5 | Seed data: DemoSeeder s realistickou strukturou — 2 divize, 4 týmy, tribe, 8 uživatelů (exec/PM/dev/QA/infra/support/reader), 3 projekty (aktivní/draft/PHI), 5 epiků, 15 úkolů, approval request, komentáře |
 | 2026-03-25 | M5 | Runbooky: deploy (VPS setup, build, update, rollback), backup/restore (PostgreSQL, Redis, file storage, disaster recovery, retence), monitoring (kontejnery, Horizon, DB, Redis, disk, logy, eskalace) |
+| 2026-03-25 | M5 | E2E testy: Playwright setup (Chromium), 15 scénářů — smoke (health, login, redirect, 404), auth (redirect, login page), authenticated (dashboard, projekty, kanban board, tabulka, approvals, notifikace, logout), E2E login bypass route |

@@ -5,6 +5,8 @@ declare(strict_types=1);
 namespace App\Providers;
 
 use App\Models\User;
+use App\Modules\Approvals\Models\ApprovalRequest;
+use App\Modules\Approvals\Policies\ApprovalRequestPolicy;
 use App\Modules\Organization\Models\Division;
 use App\Modules\Organization\Models\Team;
 use App\Modules\Organization\Policies\DivisionPolicy;
@@ -34,5 +36,6 @@ class AppServiceProvider extends ServiceProvider
         Gate::policy(Project::class, ProjectPolicy::class);
         Gate::policy(Epic::class, EpicPolicy::class);
         Gate::policy(Task::class, TaskPolicy::class);
+        Gate::policy(ApprovalRequest::class, ApprovalRequestPolicy::class);
     }
 }

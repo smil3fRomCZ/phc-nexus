@@ -4,7 +4,7 @@ Interní produktivitní platforma pro Pears Health Care (50-200 uživatelů). Na
 
 ## Aktuální stav
 
-**Milestone 3 — Work Core** (v průběhu) · 144 testů · [detailní stav](docs/status.md)
+**Milestone 4 — Approvals & Notifications** (v průběhu) · 156 testů · [detailní stav](docs/status.md)
 
 ### Co už funguje
 
@@ -14,6 +14,7 @@ Interní produktivitní platforma pro Pears Health Care (50-200 uživatelů). Na
 - **Kanban board** — drag&drop sloupce podle statusu, optimistický update, validace stavových přechodů
 - **Tabulkový view** — řazení, filtrování (status, priorita), inline změna statusu
 - **Stavové přechody** — hardcoded allowed transitions na TaskStatus i EpicStatus, PATCH endpoint pro rychlou změnu
+- **Approval flow** — polymorfní approval requesty, režim all approve / any reject, hlasování, cancel, expirace, reminder job, audit, 2 Inertia pages
 - **Autentizace** — Google SSO login, invite-only onboarding (pozvánka emailem, expirace 72h)
 - **Organizační model** — oddělení (divisions) → týmy → uživatelé + tribes (cross-team skupiny)
 - **5 systémových rolí** — Executive, Project Manager, Team Member, Service Desk Agent, Reader
@@ -25,9 +26,9 @@ Interní produktivitní platforma pro Pears Health Care (50-200 uživatelů). Na
 - **Infrastruktura** — 8 Docker kontejnerů (app, worker/Horizon, scheduler, Caddy, PostgreSQL 17, 2× Redis, Mailpit)
 - **CI/CD** — GitHub Actions pipeline (Pint + testy + Vite build)
 
-### Co je další (M4 — Approvals & Notifications)
+### Co je další (M4 — Notifications)
 
-- Approval request, required approvers, all approve / any reject, email + in-app notifikace
+- In-app notifikace (DB-backed), email notifikace, notifikační preference
 
 ## Quick Start
 
@@ -67,7 +68,7 @@ app/Modules/
   Audit/          — AuditEntry, AuditService, Auditable trait, PHI klasifikace
   Projects/       — (M2 — rozpracované)
   Work/           — Epic + Task modely, CRUD, enumy, policies
-  Approvals/      — (M4)
+  Approvals/      — ApprovalRequest, ApprovalVote, CastVote action, policies
   Notifications/  — (M4)
   Files/          — (M2 — rozpracované)
 ```

@@ -22,7 +22,9 @@ Vytvoř Pull Request podle projektových konvencí.
 
 4. **Vytvoř PR** přes `gh pr create` s tímto formátem:
 
-   **Title:** conventional commit styl — `type(scope): summary`
+   **Jazyk:** Veškerý text PR (title, body) MUSÍ být v **češtině**.
+
+   **Title:** conventional commit styl — `type(scope): shrnutí česky`
 
    **Body:**
    ```markdown

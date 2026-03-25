@@ -1,0 +1,35 @@
+# Production overrides — no volume mounts, built assets in image
+# Usage: docker compose -f docker-compose.yml -f docker-compose.prod.yml up -d
+
+services:
+  app:
+    volumes: []
+    restart: unless-stopped
+
+  worker:
+    volumes: []
+    restart: unless-stopped
+
+  scheduler:
+    volumes: []
+    restart: unless-stopped
+
+  caddy:
+    volumes:
+      - ./docker/caddy/Caddyfile.prod:/etc/caddy/Caddyfile:ro
+      - caddy-data:/data
+      - caddy-config:/config
+    restart: unless-stopped
+
+  postgres:
+    restart: unless-stopped
+
+  redis-cache:
+    restart: unless-stopped
+
+  redis-data:
+    restart: unless-stopped
+
+  mailpit:
+    profiles:
+      - debug

@@ -12,7 +12,7 @@
 |---|-----------|--------|----------|
 | 0 | Foundation | **DONE** | Docker stack, Laravel + Inertia + React, CI |
 | 1 | Identity & Access | **DONE** | Google SSO, invite flow, org model, role matrix, PHI klasifikace |
-| 2 | Projects Core | Not started | CRUD, členství, audit, files |
+| 2 | Projects Core | **In progress** | Audit envelope hotový, files/comments/CRUD čekají |
 | 3 | Work Core | Not started | Epiky, úkoly, kanban, tabulka |
 | 4 | Approvals & Notifications | Not started | Approval flow, email, in-app |
 | 5 | Hardening & Release | Not started | E2E, seed data, runbooks |
@@ -88,7 +88,7 @@
 | Work | Skeleton | Prázdná adresářová struktura |
 | Approvals | Skeleton | Prázdná adresářová struktura |
 | Notifications | Skeleton | Prázdná adresářová struktura |
-| Audit | **Aktivní** | PhiClassification enum, HasPhiClassification trait, PhiAccessGuard (access + export) |
+| Audit | **Aktivní** | PhiClassification, HasPhiClassification, PhiAccessGuard, AuditEntry model, AuditService, Auditable trait |
 | Files | Skeleton | Prázdná adresářová struktura |
 
 ---
@@ -129,3 +129,4 @@
 | 2026-03-25 | M1 | Role matrix: DivisionPolicy, TeamPolicy, UserPolicy, EnsureUserIsActive middleware, 17 testů |
 | 2026-03-25 | M1 | Invite flow: Invitation model, InviteUser action, email (Mailable), accept → Google SSO, expirace 72h, 10 testů |
 | 2026-03-25 | M1 | PHI klasifikace: PhiClassification enum, HasPhiClassification trait, PhiAccessGuard, scopes (nonPhi/exportable), 15 testů |
+| 2026-03-25 | M2 | Audit envelope: AuditEntry model (append-only), AuditService, Auditable trait (auto create/update/delete), AuditAction enum, 10 testů |

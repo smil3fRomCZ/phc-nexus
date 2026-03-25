@@ -21,7 +21,9 @@ final class GoogleAuthController extends Controller
     {
         $socialiteUser = Socialite::driver('google')->user();
 
-        $user = $authenticateUser->execute($socialiteUser);
+        $invitationToken = session()->pull('pending_invitation');
+
+        $user = $authenticateUser->execute($socialiteUser, $invitationToken);
 
         Auth::login($user, remember: true);
 

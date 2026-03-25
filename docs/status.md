@@ -89,7 +89,7 @@
 | Approvals | Skeleton | Prázdná adresářová struktura |
 | Notifications | Skeleton | Prázdná adresářová struktura |
 | Audit | **Aktivní** | PhiClassification, HasPhiClassification, PhiAccessGuard, AuditEntry model, AuditService, Auditable trait |
-| Files | Skeleton | Prázdná adresářová struktura |
+| Files | **Aktivní** | Attachment model (polymorfní), UploadAttachment/DownloadAttachment actions, HasAttachments trait, PHI download guard |
 
 ---
 
@@ -130,3 +130,4 @@
 | 2026-03-25 | M1 | Invite flow: Invitation model, InviteUser action, email (Mailable), accept → Google SSO, expirace 72h, 10 testů |
 | 2026-03-25 | M1 | PHI klasifikace: PhiClassification enum, HasPhiClassification trait, PhiAccessGuard, scopes (nonPhi/exportable), 15 testů |
 | 2026-03-25 | M2 | Audit envelope: AuditEntry model (append-only), AuditService, Auditable trait (auto create/update/delete), AuditAction enum, 10 testů |
+| 2026-03-25 | M2 | File contract: Attachment model (polymorfní), Upload/Download actions, HasAttachments trait, PHI download guard + audit, 8 testů |

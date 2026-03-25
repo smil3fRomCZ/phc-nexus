@@ -20,4 +20,20 @@ enum EpicStatus: string
             self::Cancelled => 'Zrušeno',
         };
     }
+
+    /** @return list<self> */
+    public function allowedTransitions(): array
+    {
+        return match ($this) {
+            self::Backlog => [self::InProgress, self::Cancelled],
+            self::InProgress => [self::Done, self::Backlog, self::Cancelled],
+            self::Done => [self::InProgress],
+            self::Cancelled => [self::Backlog],
+        };
+    }
+
+    public function canTransitionTo(self $target): bool
+    {
+        return in_array($target, $this->allowedTransitions(), true);
+    }
 }

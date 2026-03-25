@@ -4,7 +4,7 @@ Interní produktivitní platforma pro Pears Health Care (50-200 uživatelů). Na
 
 ## Aktuální stav
 
-**Milestone 2 — Projects Core** (v průběhu) · 74 testů · [detailní stav](docs/status.md)
+**Milestone 2 — Projects Core** (v průběhu) · 90 testů · [detailní stav](docs/status.md)
 
 ### Co už funguje
 
@@ -14,14 +14,14 @@ Interní produktivitní platforma pro Pears Health Care (50-200 uživatelů). Na
 - **Authorization matrix** — policies per role na Division, Team, User; team lead může spravovat svůj tým
 - **PHI klasifikace** — PHI/Non-PHI/Unknown na entitách, access guard (Reader = no PHI), export guard
 - **Audit trail** — append-only log, automatické sledování create/update/delete přes Auditable trait
+- **Přílohy** — polymorfní attachments na jakémkoli modelu, upload/download s PHI guardem a auditem
+- **Komentáře** — polymorfní threaded komentáře, editace s časovým razítkem, soft deletes, audit
 - **Infrastruktura** — 8 Docker kontejnerů (app, worker/Horizon, scheduler, Caddy, PostgreSQL 17, 2× Redis, Mailpit)
 - **CI/CD** — GitHub Actions pipeline (Pint + testy + Vite build)
 
 ### Co je rozpracované (M2)
 
-- File attachment contract (upload/download s authorization)
-- Comment thread model
-- Projekty CRUD + Inertia pages
+- Projekty CRUD + Inertia pages (model, členství, views)
 
 ## Quick Start
 

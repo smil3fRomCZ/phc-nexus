@@ -14,7 +14,7 @@
 | 1 | Identity & Access | **DONE** | Google SSO, invite flow, org model, role matrix, PHI klasifikace |
 | 2 | Projects Core | **DONE** | Audit envelope, file contract, comment model, projekty CRUD |
 | 3 | Work Core | **DONE** | Epiky, úkoly, kanban board, tabulka, stavové přechody |
-| 4 | Approvals & Notifications | **In progress** | Approval flow hotový, notifikace čekají |
+| 4 | Approvals & Notifications | **DONE** | Approval flow, in-app + email notifikace |
 | 5 | Hardening & Release | Not started | E2E, seed data, runbooks |
 
 ---
@@ -87,7 +87,7 @@
 | Projects | **Aktivní** | Project model (PHI, auditable, comments, attachments), CRUD controller, ProjectPolicy, membership, 4 Inertia pages, ProjectFactory |
 | Work | **Aktivní** | Epic CRUD, Task CRUD, kanban board (drag&drop), tabulkový view (filtry/řazení), stavové přechody (hardcoded), TaskStatus (6) + TaskPriority (4) + EpicStatus (4), 6 Inertia pages, PATCH status endpoint |
 | Approvals | **Aktivní** | ApprovalRequest + ApprovalVote modely (polymorfní), RequestApproval + CastVote actions, režim all approve / any reject, ApprovalPolicy, ApprovalController, reminder job, 3 enumy, 2 Inertia pages, HasApprovals trait |
-| Notifications | Skeleton | Prázdná adresářová struktura |
+| Notifications | **Aktivní** | 4 notification třídy (ApprovalRequested, VoteCast, TaskAssigned, TaskStatusChanged), DB + email kanály, NotificationController (index, markAsRead, markAllAsRead, unreadCount), Inertia page |
 | Audit | **Aktivní** | PhiClassification, HasPhiClassification, PhiAccessGuard, AuditEntry model, AuditService, Auditable trait |
 | Comments | **Aktivní** | Comment model (polymorfní, threaded), AddComment/EditComment actions, HasComments trait, soft deletes, audited |
 | Files | **Aktivní** | Attachment model (polymorfní), UploadAttachment/DownloadAttachment actions, HasAttachments trait, PHI download guard |
@@ -138,3 +138,4 @@
 | 2026-03-25 | M3 | Task model: CRUD (v epiku i standalone), TaskStatus (6 stavů) + TaskPriority (4 úrovně) enumy, TaskPolicy, TaskFactory, TaskController, 2 Inertia pages, quick-add, assignee/reporter, 11 testů |
 | 2026-03-25 | M3 | Kanban board + tabulka + stavové přechody: drag&drop board (5 sloupců), tabulkový view (filtry status/priorita, řazení), PATCH status endpoint s validací přechodů, hardcoded transitions na TaskStatus i EpicStatus, 21 testů (11 unit + 10 feature) |
 | 2026-03-25 | M4 | Approval flow: ApprovalRequest + ApprovalVote (polymorfní), RequestApproval + CastVote actions, režim all approve / any reject blocks, ApprovalPolicy (view/create/vote/cancel), controller + routes, reminder job, HasApprovals trait, factory, 2 Inertia pages, 12 feature testů |
+| 2026-03-25 | M4 | Notifikace: 4 notification třídy (ApprovalRequested, VoteCast, TaskAssigned, TaskStatusChanged), DB + email kanály, NotificationController (index/markAsRead/markAllAsRead/unreadCount), dispatch z approval flow, Inertia page, 9 feature testů |

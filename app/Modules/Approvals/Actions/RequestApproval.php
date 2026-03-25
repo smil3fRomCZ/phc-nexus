@@ -7,8 +7,10 @@ namespace App\Modules\Approvals\Actions;
 use App\Models\User;
 use App\Modules\Approvals\Enums\ApprovalMode;
 use App\Modules\Approvals\Models\ApprovalRequest;
+use App\Modules\Notifications\Notifications\ApprovalRequestedNotification;
 use Carbon\Carbon;
 use Illuminate\Database\Eloquent\Model;
+use Illuminate\Support\Facades\Notification;
 
 final class RequestApproval
 {
@@ -37,6 +39,12 @@ final class RequestApproval
             ]);
         }
 
-        return $request->load('votes.voter:id,name');
+        $request->load('votes.voter:id,name');
+
+        // Notifikovat approvers
+        $approvers = User::whereIn('id', $approverIds)->get();
+        Notification::send($approvers, new ApprovalRequestedNotification($request));
+
+        return $request;
     }
 }

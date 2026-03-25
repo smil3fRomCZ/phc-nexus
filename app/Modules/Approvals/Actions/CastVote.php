@@ -11,6 +11,7 @@ use App\Modules\Approvals\Models\ApprovalRequest;
 use App\Modules\Approvals\Models\ApprovalVote;
 use App\Modules\Audit\AuditService;
 use App\Modules\Audit\Enums\AuditAction;
+use App\Modules\Notifications\Notifications\ApprovalVoteCastNotification;
 use Illuminate\Validation\ValidationException;
 
 final class CastVote
@@ -68,6 +69,9 @@ final class CastVote
         );
 
         $this->resolveRequest($request);
+
+        // Notifikovat requestera o hlasu
+        $request->requester->notify(new ApprovalVoteCastNotification($request, $voter, $decision));
 
         return $vote->fresh();
     }

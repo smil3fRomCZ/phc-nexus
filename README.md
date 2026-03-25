@@ -4,7 +4,7 @@ Interní produktivitní platforma pro Pears Health Care (50-200 uživatelů). Na
 
 ## Aktuální stav
 
-**Milestone 5 — Hardening & Release** (v průběhu) · 165 testů · [detailní stav](docs/status.md)
+**Milestone 5 — Hardening & Release** (**DONE**) · 165 backend + 15 E2E testů · [detailní stav](docs/status.md)
 
 ### Co už funguje
 
@@ -27,9 +27,9 @@ Interní produktivitní platforma pro Pears Health Care (50-200 uživatelů). Na
 - **Infrastruktura** — 8 Docker kontejnerů (app, worker/Horizon, scheduler, Caddy, PostgreSQL 17, 2× Redis, Mailpit)
 - **CI/CD** — GitHub Actions pipeline (Pint + testy + Vite build)
 
-### Co je další (M5 — Hardening & Release)
+### MVP kompletní
 
-- Seed/demo data, E2E scénáře, backup/restore runbook, deploy runbook, monitoring
+Všech 5 milestones dokončeno. Aplikace je připravena k nasazení na VPS.
 
 ## Quick Start
 

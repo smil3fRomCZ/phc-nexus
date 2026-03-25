@@ -11,7 +11,7 @@ return new class extends Migration
     public function up(): void
     {
         Schema::create('comments', function (Blueprint $table) {
-            $table->uuid('id')->primary();
+            $table->uuid('id')->primary()->unique();
             $table->string('commentable_type')->index();
             $table->uuid('commentable_id')->index();
             $table->uuid('parent_id')->nullable()->index();

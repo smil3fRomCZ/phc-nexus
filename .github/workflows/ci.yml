@@ -83,9 +83,13 @@ jobs:
           DB_DATABASE: phc_nexus_test
           DB_USERNAME: phc_nexus
           DB_PASSWORD: secret
-          REDIS_HOST: 127.0.0.1
-          REDIS_PORT: 6379
+          REDIS_CACHE_HOST: 127.0.0.1
+          REDIS_CACHE_PORT: 6379
+          REDIS_DATA_HOST: 127.0.0.1
+          REDIS_DATA_PORT: 6379
           CACHE_STORE: redis
+          CACHE_REDIS_CONNECTION: cache
           QUEUE_CONNECTION: sync
           SESSION_DRIVER: redis
+          SESSION_CONNECTION: data
         run: php artisan test

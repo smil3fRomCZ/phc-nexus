@@ -1,6 +1,6 @@
 import AppLayout from '@/Layouts/AppLayout';
-import { Link, router, useForm } from '@inertiajs/react';
-import type { FormEvent } from 'react';
+import { Link, router } from '@inertiajs/react';
+import { useState } from 'react';
 
 interface Vote {
     id: string;
@@ -59,17 +59,19 @@ const decisionColors: Record<string, string> = {
 };
 
 export default function ApprovalShow({ project, approvalRequest: req, auth }: Props) {
-    const { data, setData, post, processing } = useForm({
-        decision: '',
-        comment: '',
-    });
+    const [comment, setComment] = useState('');
+    const [submitting, setSubmitting] = useState(false);
 
     const canVote = req.status === 'pending' &&
         req.votes.some((v) => v.voter.id === auth.user?.id && v.decision === null);
 
     function submitVote(decision: string) {
-        post(`/projects/${project.id}/approvals/${req.id}/vote`, {
-            data: { decision, comment: data.comment },
+        setSubmitting(true);
+        router.post(`/projects/${project.id}/approvals/${req.id}/vote`, {
+            decision,
+            comment,
+        }, {
+            onFinish: () => setSubmitting(false),
         });
     }
 
@@ -161,8 +163,8 @@ export default function ApprovalShow({ project, approvalRequest: req, auth }: Pr
                     <div className="rounded-lg border border-border-default bg-surface-secondary p-4">
                         <h3 className="mb-3 text-sm font-medium text-text-strong">Vaše rozhodnutí</h3>
                         <textarea
-                            value={data.comment}
-                            onChange={(e) => setData('comment', e.target.value)}
+                            value={comment}
+                            onChange={(e) => setComment(e.target.value)}
                             placeholder="Komentář (volitelný)..."
                             className="mb-3 w-full rounded-md border border-border-default bg-surface-primary px-3 py-2 text-sm focus:border-border-focus focus:outline-none"
                             rows={2}
@@ -170,14 +172,14 @@ export default function ApprovalShow({ project, approvalRequest: req, auth }: Pr
                         <div className="flex gap-2">
                             <button
                                 onClick={() => submitVote('approved')}
-                                disabled={processing}
+                                disabled={submitting}
                                 className="rounded-md bg-status-success px-4 py-2 text-sm font-medium text-white hover:opacity-90 disabled:opacity-50"
                             >
                                 Schválit
                             </button>
                             <button
                                 onClick={() => submitVote('rejected')}
-                                disabled={processing}
+                                disabled={submitting}
                                 className="rounded-md bg-status-danger px-4 py-2 text-sm font-medium text-white hover:opacity-90 disabled:opacity-50"
                             >
                                 Zamítnout

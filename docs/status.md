@@ -85,7 +85,7 @@
 | Auth | **Aktivní** | Google SSO (redirect + callback), login stránka, logout, HandleInertiaRequests middleware |
 | Organization | **Aktivní** | Division, Team, Tribe modely + migrace, SystemRole + UserStatus enumy, User rozšířen o role/status/team |
 | Projects | **Aktivní** | Project model (PHI, auditable, comments, attachments), CRUD controller, ProjectPolicy, membership, 4 Inertia pages, ProjectFactory |
-| Work | **Aktivní** | Epic model (CRUD, policy, factory), Task model (stub), EpicStatus enum, 2 Inertia pages |
+| Work | **Aktivní** | Epic model (CRUD, policy, factory), Task model (CRUD, policy, factory), EpicStatus + TaskStatus + TaskPriority enumy, 4 Inertia pages |
 | Approvals | Skeleton | Prázdná adresářová struktura |
 | Notifications | Skeleton | Prázdná adresářová struktura |
 | Audit | **Aktivní** | PhiClassification, HasPhiClassification, PhiAccessGuard, AuditEntry model, AuditService, Auditable trait |
@@ -135,3 +135,4 @@
 | 2026-03-25 | M2 | Comment model: Comment (polymorfní, threaded, soft deletes), AddComment/EditComment actions, HasComments trait, audited, 8 testů |
 | 2026-03-25 | M2 | Projects CRUD: Project model (PHI+audit+comments+attachments), controller, policy, membership, 4 Inertia pages, factory, 13 testů |
 | 2026-03-25 | M3 | Epic model: CRUD v rámci projektu, EpicStatus enum, EpicPolicy, factory, quick-add, 2 Inertia pages, Task stub, 9 testů |
+| 2026-03-25 | M3 | Task model: CRUD (v epiku i standalone), TaskStatus (6 stavů) + TaskPriority (4 úrovně) enumy, TaskPolicy, TaskFactory, TaskController, 2 Inertia pages, quick-add, assignee/reporter, 11 testů |

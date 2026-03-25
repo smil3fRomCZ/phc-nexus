@@ -4,13 +4,16 @@ Interní produktivitní platforma pro Pears Health Care (50-200 uživatelů). Na
 
 ## Aktuální stav
 
-**Milestone 3 — Work Core** (v průběhu) · 123 testů · [detailní stav](docs/status.md)
+**Milestone 3 — Work Core** (v průběhu) · 144 testů · [detailní stav](docs/status.md)
 
 ### Co už funguje
 
 - **Projekty** — CRUD s Inertia pages (index, create, show, edit), projektové klíče, membership, soft deletes
 - **Epiky** — CRUD v rámci projektu, quick-add formulář, EpicPolicy, Inertia pages
-- **Úkoly** — CRUD (v epiku i bez), TaskStatus (6 stavů), TaskPriority (4 úrovně), quick-add, assignee/reporter, TaskPolicy, Inertia pages, 11 testů
+- **Úkoly** — CRUD (v epiku i bez), TaskStatus (6 stavů), TaskPriority (4 úrovně), quick-add, assignee/reporter, TaskPolicy, Inertia pages
+- **Kanban board** — drag&drop sloupce podle statusu, optimistický update, validace stavových přechodů
+- **Tabulkový view** — řazení, filtrování (status, priorita), inline změna statusu
+- **Stavové přechody** — hardcoded allowed transitions na TaskStatus i EpicStatus, PATCH endpoint pro rychlou změnu
 - **Autentizace** — Google SSO login, invite-only onboarding (pozvánka emailem, expirace 72h)
 - **Organizační model** — oddělení (divisions) → týmy → uživatelé + tribes (cross-team skupiny)
 - **5 systémových rolí** — Executive, Project Manager, Team Member, Service Desk Agent, Reader
@@ -22,9 +25,9 @@ Interní produktivitní platforma pro Pears Health Care (50-200 uživatelů). Na
 - **Infrastruktura** — 8 Docker kontejnerů (app, worker/Horizon, scheduler, Caddy, PostgreSQL 17, 2× Redis, Mailpit)
 - **CI/CD** — GitHub Actions pipeline (Pint + testy + Vite build)
 
-### Co je další (M3 — Work Core)
+### Co je další (M4 — Approvals & Notifications)
 
-- Kanban board, tabulkový view, stavové přechody (transition service)
+- Approval request, required approvers, all approve / any reject, email + in-app notifikace
 
 ## Quick Start
 

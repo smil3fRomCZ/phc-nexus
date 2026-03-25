@@ -17,8 +17,13 @@ Route::middleware('auth')->group(function () {
     Route::get('projects/{project}/epics/{epic}/tasks', [TaskController::class, 'index'])->name('projects.epics.tasks.index');
     Route::post('projects/{project}/epics/{epic}/tasks', [TaskController::class, 'store'])->name('projects.epics.tasks.store');
 
+    // Board a tabulka
+    Route::get('projects/{project}/board', [TaskController::class, 'board'])->name('projects.tasks.board');
+    Route::get('projects/{project}/table', [TaskController::class, 'table'])->name('projects.tasks.table');
+
     // Detail, update, delete úkolu
     Route::get('projects/{project}/tasks/{task}', [TaskController::class, 'show'])->name('projects.tasks.show');
     Route::put('projects/{project}/tasks/{task}', [TaskController::class, 'update'])->name('projects.tasks.update');
+    Route::patch('projects/{project}/tasks/{task}/status', [TaskController::class, 'updateStatus'])->name('projects.tasks.updateStatus');
     Route::delete('projects/{project}/tasks/{task}', [TaskController::class, 'destroy'])->name('projects.tasks.destroy');
 });

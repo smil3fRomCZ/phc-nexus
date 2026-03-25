@@ -1,5 +1,6 @@
-import { Head, Link } from '@inertiajs/react';
+import { Head, Link, router, usePage } from '@inertiajs/react';
 import type { ReactNode } from 'react';
+import type { PageProps } from '@/types';
 
 interface AppLayoutProps {
     title?: string;
@@ -7,6 +8,8 @@ interface AppLayoutProps {
 }
 
 export default function AppLayout({ title, children }: AppLayoutProps) {
+    const { auth } = usePage<PageProps>().props;
+
     return (
         <>
             <Head title={title} />
@@ -23,6 +26,26 @@ export default function AppLayout({ title, children }: AppLayoutProps) {
                             <NavItem href="/" label="Dashboard" />
                         </ul>
                     </nav>
+                    {auth.user && (
+                        <div className="border-t border-border-default p-3">
+                            <div className="flex items-center justify-between">
+                                <div className="min-w-0">
+                                    <p className="truncate text-sm font-medium text-text-default">
+                                        {auth.user.name}
+                                    </p>
+                                    <p className="truncate text-xs text-text-muted">
+                                        {auth.user.email}
+                                    </p>
+                                </div>
+                                <button
+                                    onClick={() => router.post('/logout')}
+                                    className="ml-2 rounded px-2 py-1 text-xs text-text-muted hover:bg-surface-hover hover:text-text-default"
+                                >
+                                    Odhlásit
+                                </button>
+                            </div>
+                        </div>
+                    )}
                 </aside>
 
                 {/* Main content */}

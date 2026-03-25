@@ -11,7 +11,7 @@
 | # | Milestone | Status | Poznámka |
 |---|-----------|--------|----------|
 | 0 | Foundation | **DONE** | Docker stack, Laravel + Inertia + React, CI |
-| 1 | Identity & Access | Not started | Google SSO, role, PHI |
+| 1 | Identity & Access | **In progress** | Google SSO hotový, role a PHI čekají |
 | 2 | Projects Core | Not started | CRUD, členství, audit, files |
 | 3 | Work Core | Not started | Epiky, úkoly, kanban, tabulka |
 | 4 | Approvals & Notifications | Not started | Approval flow, email, in-app |
@@ -82,7 +82,7 @@
 
 | Modul | Status | Implementováno |
 |-------|--------|---------------|
-| Auth | Skeleton | Prázdná adresářová struktura |
+| Auth | **Aktivní** | Google SSO (redirect + callback), login stránka, logout, HandleInertiaRequests middleware |
 | Organization | Skeleton | Prázdná adresářová struktura |
 | Projects | Skeleton | Prázdná adresářová struktura |
 | Work | Skeleton | Prázdná adresářová struktura |
@@ -124,3 +124,4 @@
 |-------|-----------|-------------|
 | 2026-03-25 | M0 | Foundation bootstrap: Laravel 13 + Inertia + React + Docker stack, CI pipeline, modulová struktura |
 | 2026-03-25 | M1 | Horizon setup: queue worker běží, dashboard na /horizon, dual Redis konfigurace |
+| 2026-03-25 | M1 | Google SSO: login/logout flow, Auth modul (controller, action, routes), login stránka, 8 testů |

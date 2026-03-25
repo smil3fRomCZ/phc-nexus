@@ -11,7 +11,7 @@
 | # | Milestone | Status | Poznámka |
 |---|-----------|--------|----------|
 | 0 | Foundation | **DONE** | Docker stack, Laravel + Inertia + React, CI |
-| 1 | Identity & Access | **In progress** | Google SSO hotový, role a PHI čekají |
+| 1 | Identity & Access | **DONE** | Google SSO, invite flow, org model, role matrix, PHI klasifikace |
 | 2 | Projects Core | Not started | CRUD, členství, audit, files |
 | 3 | Work Core | Not started | Epiky, úkoly, kanban, tabulka |
 | 4 | Approvals & Notifications | Not started | Approval flow, email, in-app |
@@ -88,7 +88,7 @@
 | Work | Skeleton | Prázdná adresářová struktura |
 | Approvals | Skeleton | Prázdná adresářová struktura |
 | Notifications | Skeleton | Prázdná adresářová struktura |
-| Audit | Skeleton | Prázdná adresářová struktura |
+| Audit | **Aktivní** | PhiClassification enum, HasPhiClassification trait, PhiAccessGuard (access + export) |
 | Files | Skeleton | Prázdná adresářová struktura |
 
 ---
@@ -128,3 +128,4 @@
 | 2026-03-25 | M1 | Org model: Division, Team, Tribe modely, SystemRole/UserStatus enumy, User rozšíření, 12 testů |
 | 2026-03-25 | M1 | Role matrix: DivisionPolicy, TeamPolicy, UserPolicy, EnsureUserIsActive middleware, 17 testů |
 | 2026-03-25 | M1 | Invite flow: Invitation model, InviteUser action, email (Mailable), accept → Google SSO, expirace 72h, 10 testů |
+| 2026-03-25 | M1 | PHI klasifikace: PhiClassification enum, HasPhiClassification trait, PhiAccessGuard, scopes (nonPhi/exportable), 15 testů |

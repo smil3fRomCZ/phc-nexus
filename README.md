@@ -4,11 +4,12 @@ Interní produktivitní platforma pro Pears Health Care (50-200 uživatelů). Na
 
 ## Aktuální stav
 
-**Milestone 2 — Projects Core** (hotovo) · 103 testů · [detailní stav](docs/status.md)
+**Milestone 3 — Work Core** (v průběhu) · 112 testů · [detailní stav](docs/status.md)
 
 ### Co už funguje
 
 - **Projekty** — CRUD s Inertia pages (index, create, show, edit), projektové klíče, membership, soft deletes
+- **Epiky** — CRUD v rámci projektu, quick-add formulář, EpicPolicy, Inertia pages
 - **Autentizace** — Google SSO login, invite-only onboarding (pozvánka emailem, expirace 72h)
 - **Organizační model** — oddělení (divisions) → týmy → uživatelé + tribes (cross-team skupiny)
 - **5 systémových rolí** — Executive, Project Manager, Team Member, Service Desk Agent, Reader
@@ -22,7 +23,7 @@ Interní produktivitní platforma pro Pears Health Care (50-200 uživatelů). Na
 
 ### Co je další (M3 — Work Core)
 
-- Epiky a úkoly, stavový model, kanban board, tabulkový view
+- Úkoly (Task model, stavové přechody), kanban board, tabulkový view
 
 ## Quick Start
 

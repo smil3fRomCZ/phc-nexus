@@ -12,11 +12,13 @@ use App\Models\Concerns\HasUuidV7;
 use App\Models\User;
 use App\Modules\Organization\Models\Team;
 use App\Modules\Projects\Enums\ProjectStatus;
+use App\Modules\Work\Models\Epic;
 use Database\Factories\ProjectFactory;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\BelongsToMany;
+use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Database\Eloquent\SoftDeletes;
 
 class Project extends Model
@@ -60,6 +62,11 @@ class Project extends Model
         return $this->belongsToMany(User::class, 'project_members')
             ->withPivot('role')
             ->withTimestamps();
+    }
+
+    public function epics(): HasMany
+    {
+        return $this->hasMany(Epic::class);
     }
 
     protected static function newFactory(): ProjectFactory

@@ -24,6 +24,7 @@ export default function AppLayout({ title, children }: AppLayoutProps) {
                     <nav className="flex-1 overflow-y-auto p-3">
                         <ul className="space-y-1">
                             <NavItem href="/" label="Dashboard" />
+                            <NavItem href="/projects" label="Projekty" />
                         </ul>
                     </nav>
                     {auth.user && (

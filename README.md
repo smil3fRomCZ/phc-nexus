@@ -4,14 +4,15 @@ Interní produktivitní platforma pro Pears Health Care (50-200 uživatelů). Na
 
 ## Aktuální stav
 
-**Milestone 2 — Projects Core** (v průběhu) · 90 testů · [detailní stav](docs/status.md)
+**Milestone 2 — Projects Core** (hotovo) · 103 testů · [detailní stav](docs/status.md)
 
 ### Co už funguje
 
+- **Projekty** — CRUD s Inertia pages (index, create, show, edit), projektové klíče, membership, soft deletes
 - **Autentizace** — Google SSO login, invite-only onboarding (pozvánka emailem, expirace 72h)
 - **Organizační model** — oddělení (divisions) → týmy → uživatelé + tribes (cross-team skupiny)
 - **5 systémových rolí** — Executive, Project Manager, Team Member, Service Desk Agent, Reader
-- **Authorization matrix** — policies per role na Division, Team, User; team lead může spravovat svůj tým
+- **Authorization matrix** — policies per role na Division, Team, User, Project; PHI access guard
 - **PHI klasifikace** — PHI/Non-PHI/Unknown na entitách, access guard (Reader = no PHI), export guard
 - **Audit trail** — append-only log, automatické sledování create/update/delete přes Auditable trait
 - **Přílohy** — polymorfní attachments na jakémkoli modelu, upload/download s PHI guardem a auditem
@@ -19,9 +20,9 @@ Interní produktivitní platforma pro Pears Health Care (50-200 uživatelů). Na
 - **Infrastruktura** — 8 Docker kontejnerů (app, worker/Horizon, scheduler, Caddy, PostgreSQL 17, 2× Redis, Mailpit)
 - **CI/CD** — GitHub Actions pipeline (Pint + testy + Vite build)
 
-### Co je rozpracované (M2)
+### Co je další (M3 — Work Core)
 
-- Projekty CRUD + Inertia pages (model, členství, views)
+- Epiky a úkoly, stavový model, kanban board, tabulkový view
 
 ## Quick Start
 

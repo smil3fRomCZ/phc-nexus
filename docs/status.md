@@ -12,7 +12,7 @@
 |---|-----------|--------|----------|
 | 0 | Foundation | **DONE** | Docker stack, Laravel + Inertia + React, CI |
 | 1 | Identity & Access | **DONE** | Google SSO, invite flow, org model, role matrix, PHI klasifikace |
-| 2 | Projects Core | **In progress** | Audit envelope hotový, files/comments/CRUD čekají |
+| 2 | Projects Core | **DONE** | Audit envelope, file contract, comment model, projekty CRUD |
 | 3 | Work Core | Not started | Epiky, úkoly, kanban, tabulka |
 | 4 | Approvals & Notifications | Not started | Approval flow, email, in-app |
 | 5 | Hardening & Release | Not started | E2E, seed data, runbooks |
@@ -84,7 +84,7 @@
 |-------|--------|---------------|
 | Auth | **Aktivní** | Google SSO (redirect + callback), login stránka, logout, HandleInertiaRequests middleware |
 | Organization | **Aktivní** | Division, Team, Tribe modely + migrace, SystemRole + UserStatus enumy, User rozšířen o role/status/team |
-| Projects | Skeleton | Prázdná adresářová struktura |
+| Projects | **Aktivní** | Project model (PHI, auditable, comments, attachments), CRUD controller, ProjectPolicy, membership, 4 Inertia pages, ProjectFactory |
 | Work | Skeleton | Prázdná adresářová struktura |
 | Approvals | Skeleton | Prázdná adresářová struktura |
 | Notifications | Skeleton | Prázdná adresářová struktura |
@@ -133,3 +133,4 @@
 | 2026-03-25 | M2 | Audit envelope: AuditEntry model (append-only), AuditService, Auditable trait (auto create/update/delete), AuditAction enum, 10 testů |
 | 2026-03-25 | M2 | File contract: Attachment model (polymorfní), Upload/Download actions, HasAttachments trait, PHI download guard + audit, 8 testů |
 | 2026-03-25 | M2 | Comment model: Comment (polymorfní, threaded, soft deletes), AddComment/EditComment actions, HasComments trait, audited, 8 testů |
+| 2026-03-25 | M2 | Projects CRUD: Project model (PHI+audit+comments+attachments), controller, policy, membership, 4 Inertia pages, factory, 13 testů |

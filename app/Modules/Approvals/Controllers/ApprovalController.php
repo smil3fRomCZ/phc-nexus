@@ -12,6 +12,7 @@ use App\Modules\Approvals\Enums\ApprovalStatus;
 use App\Modules\Approvals\Models\ApprovalRequest;
 use App\Modules\Projects\Models\Project;
 use App\Modules\Work\Models\Task;
+use Carbon\Carbon;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Gate;
@@ -75,7 +76,7 @@ final class ApprovalController extends Controller
             requester: $request->user(),
             approverIds: $validated['approver_ids'],
             description: $validated['description'] ?? null,
-            expiresAt: isset($validated['expires_at']) ? \Carbon\Carbon::parse($validated['expires_at']) : null,
+            expiresAt: isset($validated['expires_at']) ? Carbon::parse($validated['expires_at']) : null,
         );
 
         return back()->with('success', 'Approval request vytvořen.');

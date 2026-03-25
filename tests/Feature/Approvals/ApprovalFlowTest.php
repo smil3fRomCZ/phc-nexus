@@ -5,10 +5,8 @@ declare(strict_types=1);
 namespace Tests\Feature\Approvals;
 
 use App\Models\User;
-use App\Modules\Approvals\Enums\ApprovalDecision;
 use App\Modules\Approvals\Enums\ApprovalStatus;
 use App\Modules\Approvals\Models\ApprovalRequest;
-use App\Modules\Approvals\Models\ApprovalVote;
 use App\Modules\Audit\Enums\AuditAction;
 use App\Modules\Audit\Models\AuditEntry;
 use App\Modules\Projects\Models\Project;

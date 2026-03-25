@@ -6,6 +6,7 @@ export interface User {
 }
 
 export interface PageProps {
+    [key: string]: unknown;
     auth: {
         user: User | null;
     };

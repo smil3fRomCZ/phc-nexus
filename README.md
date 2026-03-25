@@ -4,9 +4,9 @@ Interní produktivitní platforma pro Pears Health Care (50-200 uživatelů). Na
 
 ## Aktuální stav
 
-**Milestone 1 — Identity & Access** (v průběhu)
+**Milestone 1 — Identity & Access** (hotovo)
 
-Docker stack běží (Laravel 13, Inertia.js v2, React 19, TypeScript, Tailwind CSS 4, PostgreSQL 17, Redis dual, Caddy). Google SSO login, invite-only onboarding, organizační model (oddělení, týmy, tribes) a role matrix (policies) implementovány. Detailní stav viz [`docs/status.md`](docs/status.md).
+Docker stack běží (Laravel 13, Inertia.js v2, React 19, TypeScript, Tailwind CSS 4, PostgreSQL 17, Redis dual, Caddy). Google SSO login, invite-only onboarding, organizační model (oddělení, týmy, tribes), role matrix (policies) a PHI klasifikace implementovány. 64 testů. Detailní stav viz [`docs/status.md`](docs/status.md).
 
 ## Quick Start
 

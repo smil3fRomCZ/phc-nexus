@@ -1,24 +1,29 @@
 <?php
 
+declare(strict_types=1);
+
 namespace App\Providers;
 
+use App\Models\User;
+use App\Modules\Organization\Models\Division;
+use App\Modules\Organization\Models\Team;
+use App\Modules\Organization\Policies\DivisionPolicy;
+use App\Modules\Organization\Policies\TeamPolicy;
+use App\Modules\Organization\Policies\UserPolicy;
+use Illuminate\Support\Facades\Gate;
 use Illuminate\Support\ServiceProvider;
 
 class AppServiceProvider extends ServiceProvider
 {
-    /**
-     * Register any application services.
-     */
     public function register(): void
     {
         //
     }
 
-    /**
-     * Bootstrap any application services.
-     */
     public function boot(): void
     {
-        //
+        Gate::policy(Division::class, DivisionPolicy::class);
+        Gate::policy(Team::class, TeamPolicy::class);
+        Gate::policy(User::class, UserPolicy::class);
     }
 }

@@ -10,10 +10,10 @@ import {
     Bell,
     Users,
     FileText,
-    Search,
     LogOut,
     ChevronRight,
 } from 'lucide-react';
+import GlobalSearch from '@/Components/GlobalSearch';
 
 /* ── Types ── */
 
@@ -92,14 +92,7 @@ export default function AppLayout({ title, breadcrumbs, children }: AppLayoutPro
                     </Link>
 
                     <div className="flex flex-1 justify-center px-6">
-                        <div className="relative w-full max-w-[480px]">
-                            <Search className="pointer-events-none absolute left-3 top-1/2 h-[14px] w-[14px] -translate-y-1/2 text-text-muted" />
-                            <input
-                                type="text"
-                                placeholder="Search tasks, projects, docs..."
-                                className="h-8 w-full rounded-md border border-border-default bg-surface-hover pl-[2.25rem] pr-4 text-sm text-text-default placeholder:text-text-subtle outline-none transition-colors focus:border-brand-primary focus:shadow-[0_0_0_2px_var(--color-brand-soft)]"
-                            />
-                        </div>
+                        <GlobalSearch />
                     </div>
 
                     <div className="flex items-center gap-4">

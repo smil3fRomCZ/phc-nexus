@@ -49,9 +49,7 @@ export default function ApprovalsIndex({ project, approvalRequests }: Props) {
 
     return (
         <AppLayout title={`${project.key} — Approvals`} breadcrumbs={breadcrumbs}>
-            <h1 className="mb-6 text-2xl font-bold leading-tight text-text-strong">
-                Approvals
-            </h1>
+            <h1 className="mb-6 text-2xl font-bold leading-tight text-text-strong">Approvals</h1>
 
             <div className="space-y-2">
                 {approvalRequests.map((req) => (
@@ -61,12 +59,12 @@ export default function ApprovalsIndex({ project, approvalRequests }: Props) {
                         className="flex items-center justify-between rounded-lg border border-border-subtle bg-surface-primary px-5 py-3 no-underline transition-colors hover:bg-brand-soft"
                     >
                         <div className="flex items-center gap-3">
-                            <span className={`inline-flex items-center rounded-[10px] px-2 py-px text-xs font-semibold leading-relaxed ${statusColors[req.status] ?? ''}`}>
+                            <span
+                                className={`inline-flex items-center rounded-[10px] px-2 py-px text-xs font-semibold leading-relaxed ${statusColors[req.status] ?? ''}`}
+                            >
                                 {statusLabels[req.status] ?? req.status}
                             </span>
-                            <span className="text-base text-text-strong">
-                                {req.description ?? 'Approval request'}
-                            </span>
+                            <span className="text-base text-text-strong">{req.description ?? 'Approval request'}</span>
                         </div>
                         <div className="flex items-center gap-4 text-sm text-text-muted">
                             <span>{req.requester.name}</span>
@@ -77,9 +75,7 @@ export default function ApprovalsIndex({ project, approvalRequests }: Props) {
                     </Link>
                 ))}
                 {approvalRequests.length === 0 && (
-                    <p className="py-8 text-center text-base text-text-muted">
-                        No approval requests.
-                    </p>
+                    <p className="py-8 text-center text-base text-text-muted">No approval requests.</p>
                 )}
             </div>
         </AppLayout>

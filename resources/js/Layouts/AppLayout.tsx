@@ -114,9 +114,7 @@ export default function AppLayout({ title, breadcrumbs, children }: AppLayoutPro
                                 <div className="flex h-7 w-7 items-center justify-center rounded-full bg-brand-primary text-xs font-semibold text-text-inverse">
                                     {getInitials(auth.user.name)}
                                 </div>
-                                <span className="text-sm font-medium text-text-default">
-                                    {auth.user.name}
-                                </span>
+                                <span className="text-sm font-medium text-text-default">{auth.user.name}</span>
                             </div>
                         )}
                     </div>
@@ -178,9 +176,7 @@ export default function AppLayout({ title, breadcrumbs, children }: AppLayoutPro
                             <nav className="mb-1 flex items-center gap-1 text-sm text-text-subtle">
                                 {breadcrumbs.map((crumb, i) => (
                                     <span key={i} className="flex items-center gap-1">
-                                        {i > 0 && (
-                                            <ChevronRight className="h-3 w-3 text-text-subtle" />
-                                        )}
+                                        {i > 0 && <ChevronRight className="h-3 w-3 text-text-subtle" />}
                                         {crumb.href ? (
                                             <Link
                                                 href={crumb.href}

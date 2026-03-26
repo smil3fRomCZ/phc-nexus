@@ -69,16 +69,14 @@ export default function TaskShow({ project, task }: Props) {
             <div className="mx-auto max-w-4xl">
                 <div className="mb-6">
                     <div className="flex items-center gap-3">
-                        <h1 className="text-2xl font-bold leading-tight text-text-strong">
-                            {task.title}
-                        </h1>
-                        <span className={`inline-flex items-center rounded-[10px] px-2 py-px text-xs font-semibold leading-relaxed ${status}`}>
+                        <h1 className="text-2xl font-bold leading-tight text-text-strong">{task.title}</h1>
+                        <span
+                            className={`inline-flex items-center rounded-[10px] px-2 py-px text-xs font-semibold leading-relaxed ${status}`}
+                        >
                             {statusLabels[task.status] ?? task.status}
                         </span>
                     </div>
-                    {task.description && (
-                        <p className="mt-2 text-base text-text-default">{task.description}</p>
-                    )}
+                    {task.description && <p className="mt-2 text-base text-text-default">{task.description}</p>}
                 </div>
 
                 <div className="mb-6 grid grid-cols-2 gap-4 rounded-lg border border-border-subtle bg-surface-secondary p-5 text-sm md:grid-cols-4">
@@ -87,22 +85,30 @@ export default function TaskShow({ project, task }: Props) {
                         <p className="mt-1 font-medium text-text-strong">{statusLabels[task.status] ?? task.status}</p>
                     </div>
                     <div>
-                        <span className="text-xs font-semibold uppercase tracking-wider text-text-subtle">Priority</span>
+                        <span className="text-xs font-semibold uppercase tracking-wider text-text-subtle">
+                            Priority
+                        </span>
                         <p className={`mt-1 font-medium ${priorityColors[task.priority] ?? ''}`}>
                             {priorityLabels[task.priority] ?? task.priority}
                         </p>
                     </div>
                     <div>
-                        <span className="text-xs font-semibold uppercase tracking-wider text-text-subtle">Assignee</span>
+                        <span className="text-xs font-semibold uppercase tracking-wider text-text-subtle">
+                            Assignee
+                        </span>
                         <p className="mt-1 font-medium text-text-strong">{task.assignee?.name ?? '\u2014'}</p>
                     </div>
                     <div>
-                        <span className="text-xs font-semibold uppercase tracking-wider text-text-subtle">Reporter</span>
+                        <span className="text-xs font-semibold uppercase tracking-wider text-text-subtle">
+                            Reporter
+                        </span>
                         <p className="mt-1 font-medium text-text-strong">{task.reporter?.name ?? '\u2014'}</p>
                     </div>
                     {task.epic && (
                         <div>
-                            <span className="text-xs font-semibold uppercase tracking-wider text-text-subtle">Epic</span>
+                            <span className="text-xs font-semibold uppercase tracking-wider text-text-subtle">
+                                Epic
+                            </span>
                             <p className="mt-1 font-medium text-text-strong">
                                 <Link
                                     href={`/projects/${project.id}/epics/${task.epic.id}`}
@@ -115,13 +121,19 @@ export default function TaskShow({ project, task }: Props) {
                     )}
                     {task.due_date && (
                         <div>
-                            <span className="text-xs font-semibold uppercase tracking-wider text-text-subtle">Due Date</span>
+                            <span className="text-xs font-semibold uppercase tracking-wider text-text-subtle">
+                                Due Date
+                            </span>
                             <p className="mt-1 font-medium text-text-strong">{task.due_date}</p>
                         </div>
                     )}
                     <div>
-                        <span className="text-xs font-semibold uppercase tracking-wider text-text-subtle">Attachments / Comments</span>
-                        <p className="mt-1 font-medium text-text-strong">{task.attachments_count} / {task.comments_count}</p>
+                        <span className="text-xs font-semibold uppercase tracking-wider text-text-subtle">
+                            Attachments / Comments
+                        </span>
+                        <p className="mt-1 font-medium text-text-strong">
+                            {task.attachments_count} / {task.comments_count}
+                        </p>
                     </div>
                 </div>
             </div>

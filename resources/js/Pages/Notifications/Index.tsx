@@ -22,10 +22,7 @@ interface Props {
     unreadCount: number;
 }
 
-const BREADCRUMBS: Breadcrumb[] = [
-    { label: 'Home', href: '/' },
-    { label: 'Notifications' },
-];
+const BREADCRUMBS: Breadcrumb[] = [{ label: 'Home', href: '/' }, { label: 'Notifications' }];
 
 const typeIcons: Record<string, string> = {
     approval_requested: '\u2705',
@@ -40,7 +37,7 @@ export default function NotificationsIndex({ notifications, unreadCount }: Props
             method: 'PATCH',
             headers: {
                 'X-CSRF-TOKEN': document.querySelector<HTMLMetaElement>('meta[name="csrf-token"]')?.content ?? '',
-                'Accept': 'application/json',
+                Accept: 'application/json',
             },
         }).then(() => router.reload({ only: ['notifications', 'unreadCount'] }));
     }
@@ -50,7 +47,7 @@ export default function NotificationsIndex({ notifications, unreadCount }: Props
             method: 'POST',
             headers: {
                 'X-CSRF-TOKEN': document.querySelector<HTMLMetaElement>('meta[name="csrf-token"]')?.content ?? '',
-                'Accept': 'application/json',
+                Accept: 'application/json',
             },
         }).then(() => router.reload({ only: ['notifications', 'unreadCount'] }));
     }
@@ -68,10 +65,7 @@ export default function NotificationsIndex({ notifications, unreadCount }: Props
                         )}
                     </h1>
                     {unreadCount > 0 && (
-                        <button
-                            onClick={markAllAsRead}
-                            className="text-sm text-brand-primary hover:underline"
-                        >
+                        <button onClick={markAllAsRead} className="text-sm text-brand-primary hover:underline">
                             Mark all as read
                         </button>
                     )}
@@ -87,9 +81,7 @@ export default function NotificationsIndex({ notifications, unreadCount }: Props
                                     : 'border-l-[3px] border-l-brand-primary border-t-border-subtle border-r-border-subtle border-b-border-subtle bg-brand-soft'
                             }`}
                         >
-                            <span className="mt-0.5 text-lg">
-                                {typeIcons[n.data.type] ?? '\u{1F514}'}
-                            </span>
+                            <span className="mt-0.5 text-lg">{typeIcons[n.data.type] ?? '\u{1F514}'}</span>
                             <div className="flex-1">
                                 <p className="text-sm font-medium text-text-strong">{n.data.title}</p>
                                 <p className="text-sm text-text-muted">{n.data.body}</p>
@@ -108,9 +100,7 @@ export default function NotificationsIndex({ notifications, unreadCount }: Props
                         </div>
                     ))}
                     {notifications.length === 0 && (
-                        <p className="py-8 text-center text-base text-text-muted">
-                            No notifications.
-                        </p>
+                        <p className="py-8 text-center text-base text-text-muted">No notifications.</p>
                     )}
                 </div>
             </div>

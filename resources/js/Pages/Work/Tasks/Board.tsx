@@ -104,7 +104,7 @@ export default function TaskBoard({ project, columns: initialColumns }: Props) {
             headers: {
                 'Content-Type': 'application/json',
                 'X-CSRF-TOKEN': document.querySelector<HTMLMetaElement>('meta[name="csrf-token"]')?.content ?? '',
-                'Accept': 'application/json',
+                Accept: 'application/json',
             },
             body: JSON.stringify({ status: targetStatus }),
         }).then((res) => {

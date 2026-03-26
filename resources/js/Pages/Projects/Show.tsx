@@ -41,7 +41,12 @@ const STATUS_CONFIG: Record<string, { label: string; className: string }> = {
 };
 
 function getInitials(name: string): string {
-    return name.split(' ').map((w) => w[0]).join('').toUpperCase().slice(0, 2);
+    return name
+        .split(' ')
+        .map((w) => w[0])
+        .join('')
+        .toUpperCase()
+        .slice(0, 2);
 }
 
 export default function ProjectShow({ project }: { project: Project }) {
@@ -63,10 +68,10 @@ export default function ProjectShow({ project }: { project: Project }) {
                 <div className="mb-6 flex items-start justify-between">
                     <div>
                         <div className="flex items-center gap-3">
-                            <h1 className="text-2xl font-bold leading-tight text-text-strong">
-                                {project.name}
-                            </h1>
-                            <span className={`inline-flex items-center rounded-[10px] px-2 py-px text-xs font-semibold leading-relaxed ${status.className}`}>
+                            <h1 className="text-2xl font-bold leading-tight text-text-strong">{project.name}</h1>
+                            <span
+                                className={`inline-flex items-center rounded-[10px] px-2 py-px text-xs font-semibold leading-relaxed ${status.className}`}
+                            >
                                 {status.label}
                             </span>
                         </div>
@@ -94,13 +99,19 @@ export default function ProjectShow({ project }: { project: Project }) {
                         <p className="mt-1 font-medium text-text-strong">{project.team?.name ?? '\u2014'}</p>
                     </div>
                     <div>
-                        <span className="text-xs font-semibold uppercase tracking-wider text-text-subtle">Classification</span>
+                        <span className="text-xs font-semibold uppercase tracking-wider text-text-subtle">
+                            Classification
+                        </span>
                         <p className="mt-1 font-medium text-text-strong">{project.data_classification.toUpperCase()}</p>
                     </div>
                     <div>
                         <span className="text-xs font-semibold uppercase tracking-wider text-text-subtle">Created</span>
                         <p className="mt-1 font-medium text-text-strong">
-                            {new Date(project.created_at).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' })}
+                            {new Date(project.created_at).toLocaleDateString('en-US', {
+                                month: 'short',
+                                day: 'numeric',
+                                year: 'numeric',
+                            })}
                         </p>
                     </div>
                 </div>
@@ -112,7 +123,10 @@ export default function ProjectShow({ project }: { project: Project }) {
                     </h3>
                     <div className="flex flex-wrap gap-2">
                         {project.members.map((member) => (
-                            <div key={member.id} className="flex items-center gap-2 rounded-full bg-surface-secondary px-3 py-1">
+                            <div
+                                key={member.id}
+                                className="flex items-center gap-2 rounded-full bg-surface-secondary px-3 py-1"
+                            >
                                 <div className="flex h-5 w-5 items-center justify-center rounded-full bg-brand-primary text-[9px] font-semibold text-text-inverse">
                                     {getInitials(member.name)}
                                 </div>

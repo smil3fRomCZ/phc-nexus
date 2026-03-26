@@ -20,7 +20,7 @@ final class SearchController extends Controller
         }
 
         $user = $request->user();
-        $like = '%' . $query . '%';
+        $like = '%'.$query.'%';
 
         $projects = Project::query()
             ->where(function ($q) use ($like) {

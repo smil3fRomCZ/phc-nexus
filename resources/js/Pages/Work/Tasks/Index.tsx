@@ -1,5 +1,9 @@
 import AppLayout from '@/Layouts/AppLayout';
 import type { Breadcrumb } from '@/Layouts/AppLayout';
+import EmptyState from '@/Components/EmptyState';
+import StatusBadge from '@/Components/StatusBadge';
+import { TASK_STATUS } from '@/constants/status';
+import { getPriority } from '@/constants/priority';
 import { Link, useForm } from '@inertiajs/react';
 import { Plus } from 'lucide-react';
 import type { FormEvent } from 'react';
@@ -19,38 +23,6 @@ interface Props {
     epic?: { id: string; title: string };
     tasks: Task[];
 }
-
-const statusLabels: Record<string, string> = {
-    backlog: 'Backlog',
-    todo: 'To Do',
-    in_progress: 'In Progress',
-    in_review: 'In Review',
-    done: 'Done',
-    cancelled: 'Cancelled',
-};
-
-const statusColors: Record<string, string> = {
-    backlog: 'bg-status-neutral-subtle text-status-neutral',
-    todo: 'bg-status-neutral-subtle text-status-neutral',
-    in_progress: 'bg-status-info-subtle text-status-info',
-    in_review: 'bg-status-review-subtle text-status-review',
-    done: 'bg-status-success-subtle text-status-success',
-    cancelled: 'bg-status-neutral-subtle text-text-muted',
-};
-
-const priorityLabels: Record<string, string> = {
-    low: 'Low',
-    medium: 'Medium',
-    high: 'High',
-    urgent: 'Urgent',
-};
-
-const priorityColors: Record<string, string> = {
-    low: 'text-text-muted',
-    medium: 'text-text-default',
-    high: 'text-status-warning',
-    urgent: 'text-status-danger',
-};
 
 export default function TasksIndex({ project, epic, tasks }: Props) {
     const storeUrl = epic ? `/projects/${project.id}/epics/${epic.id}/tasks` : `/projects/${project.id}/tasks`;
@@ -125,11 +97,7 @@ export default function TasksIndex({ project, epic, tasks }: Props) {
                         className="flex items-center justify-between rounded-lg border border-border-subtle bg-surface-primary px-5 py-3 transition-colors hover:bg-brand-soft"
                     >
                         <div className="flex items-center gap-3">
-                            <span
-                                className={`inline-flex items-center rounded-[10px] px-2 py-px text-xs font-semibold leading-relaxed ${statusColors[task.status] ?? ''}`}
-                            >
-                                {statusLabels[task.status] ?? task.status}
-                            </span>
+                            <StatusBadge statusMap={TASK_STATUS} value={task.status} />
                             <Link
                                 href={`/projects/${project.id}/tasks/${task.id}`}
                                 className="text-base font-medium text-text-strong no-underline hover:text-brand-primary"
@@ -138,16 +106,14 @@ export default function TasksIndex({ project, epic, tasks }: Props) {
                             </Link>
                         </div>
                         <div className="flex items-center gap-4 text-sm">
-                            <span className={priorityColors[task.priority] ?? ''}>
-                                {priorityLabels[task.priority] ?? task.priority}
+                            <span className={getPriority(task.priority).textClass}>
+                                {getPriority(task.priority).label}
                             </span>
                             <span className="text-text-muted">{task.assignee?.name ?? 'Unassigned'}</span>
                         </div>
                     </div>
                 ))}
-                {tasks.length === 0 && (
-                    <p className="py-8 text-center text-base text-text-muted">No tasks yet. Add your first one.</p>
-                )}
+                {tasks.length === 0 && <EmptyState message="No tasks yet. Add your first one." />}
             </div>
         </AppLayout>
     );

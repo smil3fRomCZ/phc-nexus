@@ -1,3 +1,6 @@
+import { MetadataGrid, MetadataField } from '@/Components/MetadataGrid';
+import StatusBadge from '@/Components/StatusBadge';
+import { APPROVAL_STATUS } from '@/constants/status';
 import AppLayout from '@/Layouts/AppLayout';
 import type { Breadcrumb } from '@/Layouts/AppLayout';
 import { Link, router } from '@inertiajs/react';
@@ -34,20 +37,6 @@ interface Props {
     approvalRequest: ApprovalRequest;
     auth: { user: { id: string } | null };
 }
-
-const statusLabels: Record<string, string> = {
-    pending: 'Pending',
-    approved: 'Approved',
-    rejected: 'Rejected',
-    cancelled: 'Cancelled',
-};
-
-const statusColors: Record<string, string> = {
-    pending: 'bg-status-warning-subtle text-status-warning',
-    approved: 'bg-status-success-subtle text-status-success',
-    rejected: 'bg-status-danger-subtle text-status-danger',
-    cancelled: 'bg-status-neutral-subtle text-text-muted',
-};
 
 const decisionLabels: Record<string, string> = {
     approved: 'Approved',
@@ -102,53 +91,26 @@ export default function ApprovalShow({ project, approvalRequest: req, auth }: Pr
                         <h1 className="text-2xl font-bold leading-tight text-text-strong">
                             {req.description ?? 'Approval Request'}
                         </h1>
-                        <span
-                            className={`inline-flex items-center rounded-[10px] px-2 py-px text-xs font-semibold leading-relaxed ${statusColors[req.status] ?? ''}`}
-                        >
-                            {statusLabels[req.status] ?? req.status}
-                        </span>
+                        <StatusBadge statusMap={APPROVAL_STATUS} value={req.status} />
                     </div>
                 </div>
 
                 {/* Metadata */}
-                <div className="mb-6 grid grid-cols-2 gap-4 rounded-lg border border-border-subtle bg-surface-secondary p-5 text-sm md:grid-cols-3">
-                    <div>
-                        <span className="text-xs font-semibold uppercase tracking-wider text-text-subtle">
-                            Requester
-                        </span>
-                        <p className="mt-1 font-medium text-text-strong">{req.requester.name}</p>
-                    </div>
-                    <div>
-                        <span className="text-xs font-semibold uppercase tracking-wider text-text-subtle">Entity</span>
-                        <p className="mt-1 font-medium text-text-strong">
+                <div className="mb-6">
+                    <MetadataGrid columns={3}>
+                        <MetadataField label="Requester">{req.requester.name}</MetadataField>
+                        <MetadataField label="Entity">
                             <Link
                                 href={`/projects/${project.id}/tasks/${req.approvable.id}`}
                                 className="no-underline hover:text-brand-primary"
                             >
                                 {req.approvable.title}
                             </Link>
-                        </p>
-                    </div>
-                    <div>
-                        <span className="text-xs font-semibold uppercase tracking-wider text-text-subtle">Mode</span>
-                        <p className="mt-1 font-medium text-text-strong">All must approve</p>
-                    </div>
-                    {req.expires_at && (
-                        <div>
-                            <span className="text-xs font-semibold uppercase tracking-wider text-text-subtle">
-                                Expires
-                            </span>
-                            <p className="mt-1 font-medium text-text-strong">{req.expires_at}</p>
-                        </div>
-                    )}
-                    {req.decided_at && (
-                        <div>
-                            <span className="text-xs font-semibold uppercase tracking-wider text-text-subtle">
-                                Decided
-                            </span>
-                            <p className="mt-1 font-medium text-text-strong">{req.decided_at}</p>
-                        </div>
-                    )}
+                        </MetadataField>
+                        <MetadataField label="Mode">All must approve</MetadataField>
+                        {req.expires_at && <MetadataField label="Expires">{req.expires_at}</MetadataField>}
+                        {req.decided_at && <MetadataField label="Decided">{req.decided_at}</MetadataField>}
+                    </MetadataGrid>
                 </div>
 
                 {/* Votes */}

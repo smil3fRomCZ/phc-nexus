@@ -1,3 +1,6 @@
+import { MetadataGrid, MetadataField } from '@/Components/MetadataGrid';
+import StatusBadge from '@/Components/StatusBadge';
+import { EPIC_STATUS } from '@/constants/status';
 import AppLayout from '@/Layouts/AppLayout';
 import type { Breadcrumb } from '@/Layouts/AppLayout';
 import { Link } from '@inertiajs/react';
@@ -26,20 +29,6 @@ interface Props {
     epic: Epic;
 }
 
-const statusLabels: Record<string, string> = {
-    backlog: 'Backlog',
-    in_progress: 'In Progress',
-    done: 'Done',
-    cancelled: 'Cancelled',
-};
-
-const statusColors: Record<string, string> = {
-    backlog: 'bg-status-neutral-subtle text-status-neutral',
-    in_progress: 'bg-status-info-subtle text-status-info',
-    done: 'bg-status-success-subtle text-status-success',
-    cancelled: 'bg-status-neutral-subtle text-text-muted',
-};
-
 export default function EpicShow({ project, epic }: Props) {
     const breadcrumbs: Breadcrumb[] = [
         { label: 'Home', href: '/' },
@@ -49,44 +38,26 @@ export default function EpicShow({ project, epic }: Props) {
         { label: epic.title },
     ];
 
-    const status = statusColors[epic.status] ?? '';
-
     return (
         <AppLayout title={`${project.key} — ${epic.title}`} breadcrumbs={breadcrumbs}>
             <div className="mx-auto max-w-4xl">
                 <div className="mb-6">
                     <div className="flex items-center gap-3">
                         <h1 className="text-2xl font-bold leading-tight text-text-strong">{epic.title}</h1>
-                        <span
-                            className={`inline-flex items-center rounded-[10px] px-2 py-px text-xs font-semibold leading-relaxed ${status}`}
-                        >
-                            {statusLabels[epic.status] ?? epic.status}
-                        </span>
+                        <StatusBadge statusMap={EPIC_STATUS} value={epic.status} />
                     </div>
                     {epic.description && <p className="mt-2 text-base text-text-default">{epic.description}</p>}
                 </div>
 
-                <div className="mb-6 grid grid-cols-2 gap-4 rounded-lg border border-border-subtle bg-surface-secondary p-5 text-sm md:grid-cols-4">
-                    <div>
-                        <span className="text-xs font-semibold uppercase tracking-wider text-text-subtle">Status</span>
-                        <p className="mt-1 font-medium text-text-strong">{statusLabels[epic.status] ?? epic.status}</p>
-                    </div>
-                    <div>
-                        <span className="text-xs font-semibold uppercase tracking-wider text-text-subtle">Owner</span>
-                        <p className="mt-1 font-medium text-text-strong">{epic.owner?.name ?? '\u2014'}</p>
-                    </div>
-                    <div>
-                        <span className="text-xs font-semibold uppercase tracking-wider text-text-subtle">Tasks</span>
-                        <p className="mt-1 font-medium text-text-strong">{epic.tasks_count}</p>
-                    </div>
-                    <div>
-                        <span className="text-xs font-semibold uppercase tracking-wider text-text-subtle">
-                            Attachments / Comments
-                        </span>
-                        <p className="mt-1 font-medium text-text-strong">
+                <div className="mb-6">
+                    <MetadataGrid columns={4}>
+                        <MetadataField label="Status">{EPIC_STATUS[epic.status]?.label ?? epic.status}</MetadataField>
+                        <MetadataField label="Owner">{epic.owner?.name ?? '\u2014'}</MetadataField>
+                        <MetadataField label="Tasks">{epic.tasks_count}</MetadataField>
+                        <MetadataField label="Attachments / Comments">
                             {epic.attachments_count} / {epic.comments_count}
-                        </p>
-                    </div>
+                        </MetadataField>
+                    </MetadataGrid>
                 </div>
 
                 {epic.tasks.length > 0 && (

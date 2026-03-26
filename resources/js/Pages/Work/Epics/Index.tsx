@@ -1,3 +1,6 @@
+import EmptyState from '@/Components/EmptyState';
+import StatusBadge from '@/Components/StatusBadge';
+import { EPIC_STATUS } from '@/constants/status';
 import AppLayout from '@/Layouts/AppLayout';
 import type { Breadcrumb } from '@/Layouts/AppLayout';
 import { Link, useForm } from '@inertiajs/react';
@@ -17,20 +20,6 @@ interface Props {
     project: { id: string; name: string; key: string };
     epics: Epic[];
 }
-
-const statusLabels: Record<string, string> = {
-    backlog: 'Backlog',
-    in_progress: 'In Progress',
-    done: 'Done',
-    cancelled: 'Cancelled',
-};
-
-const statusColors: Record<string, string> = {
-    backlog: 'bg-status-neutral-subtle text-status-neutral',
-    in_progress: 'bg-status-info-subtle text-status-info',
-    done: 'bg-status-success-subtle text-status-success',
-    cancelled: 'bg-status-neutral-subtle text-text-muted',
-};
 
 export default function EpicsIndex({ project, epics }: Props) {
     const breadcrumbs: Breadcrumb[] = [
@@ -84,11 +73,7 @@ export default function EpicsIndex({ project, epics }: Props) {
                         className="flex items-center justify-between rounded-lg border border-border-subtle bg-surface-primary px-5 py-3 transition-colors hover:bg-brand-soft"
                     >
                         <div className="flex items-center gap-3">
-                            <span
-                                className={`inline-flex items-center rounded-[10px] px-2 py-px text-xs font-semibold leading-relaxed ${statusColors[epic.status] ?? ''}`}
-                            >
-                                {statusLabels[epic.status] ?? epic.status}
-                            </span>
+                            <StatusBadge statusMap={EPIC_STATUS} value={epic.status} />
                             <Link
                                 href={`/projects/${project.id}/epics/${epic.id}`}
                                 className="text-base font-medium text-text-strong no-underline hover:text-brand-primary"
@@ -102,9 +87,7 @@ export default function EpicsIndex({ project, epics }: Props) {
                         </div>
                     </div>
                 ))}
-                {epics.length === 0 && (
-                    <p className="py-8 text-center text-base text-text-muted">No epics yet. Add your first one.</p>
-                )}
+                {epics.length === 0 && <EmptyState message="No epics yet. Add your first one." />}
             </div>
         </AppLayout>
     );

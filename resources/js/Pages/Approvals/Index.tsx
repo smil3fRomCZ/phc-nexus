@@ -1,3 +1,6 @@
+import EmptyState from '@/Components/EmptyState';
+import StatusBadge from '@/Components/StatusBadge';
+import { APPROVAL_STATUS } from '@/constants/status';
 import AppLayout from '@/Layouts/AppLayout';
 import type { Breadcrumb } from '@/Layouts/AppLayout';
 import { Link } from '@inertiajs/react';
@@ -25,20 +28,6 @@ interface Props {
     approvalRequests: ApprovalRequest[];
 }
 
-const statusLabels: Record<string, string> = {
-    pending: 'Pending',
-    approved: 'Approved',
-    rejected: 'Rejected',
-    cancelled: 'Cancelled',
-};
-
-const statusColors: Record<string, string> = {
-    pending: 'bg-status-warning-subtle text-status-warning',
-    approved: 'bg-status-success-subtle text-status-success',
-    rejected: 'bg-status-danger-subtle text-status-danger',
-    cancelled: 'bg-status-neutral-subtle text-text-muted',
-};
-
 export default function ApprovalsIndex({ project, approvalRequests }: Props) {
     const breadcrumbs: Breadcrumb[] = [
         { label: 'Home', href: '/' },
@@ -59,11 +48,7 @@ export default function ApprovalsIndex({ project, approvalRequests }: Props) {
                         className="flex items-center justify-between rounded-lg border border-border-subtle bg-surface-primary px-5 py-3 no-underline transition-colors hover:bg-brand-soft"
                     >
                         <div className="flex items-center gap-3">
-                            <span
-                                className={`inline-flex items-center rounded-[10px] px-2 py-px text-xs font-semibold leading-relaxed ${statusColors[req.status] ?? ''}`}
-                            >
-                                {statusLabels[req.status] ?? req.status}
-                            </span>
+                            <StatusBadge statusMap={APPROVAL_STATUS} value={req.status} />
                             <span className="text-base text-text-strong">{req.description ?? 'Approval request'}</span>
                         </div>
                         <div className="flex items-center gap-4 text-sm text-text-muted">
@@ -74,9 +59,7 @@ export default function ApprovalsIndex({ project, approvalRequests }: Props) {
                         </div>
                     </Link>
                 ))}
-                {approvalRequests.length === 0 && (
-                    <p className="py-8 text-center text-base text-text-muted">No approval requests.</p>
-                )}
+                {approvalRequests.length === 0 && <EmptyState message="No approval requests." />}
             </div>
         </AppLayout>
     );

@@ -1,5 +1,7 @@
 import AppLayout from '@/Layouts/AppLayout';
 import type { Breadcrumb } from '@/Layouts/AppLayout';
+import { COLUMN_COLORS } from '@/constants/status';
+import { getPriority } from '@/constants/priority';
 import { Link, router } from '@inertiajs/react';
 import { useState, type DragEvent } from 'react';
 
@@ -22,21 +24,6 @@ interface Props {
     project: { id: string; name: string; key: string };
     columns: Column[];
 }
-
-const priorityColors: Record<string, string> = {
-    low: 'border-l-text-muted',
-    medium: 'border-l-text-default',
-    high: 'border-l-status-warning',
-    urgent: 'border-l-status-danger',
-};
-
-const columnColors: Record<string, string> = {
-    backlog: 'bg-status-neutral-subtle',
-    todo: 'bg-status-neutral-subtle',
-    in_progress: 'bg-status-info-subtle',
-    in_review: 'bg-status-review-subtle',
-    done: 'bg-status-success-subtle',
-};
 
 export default function TaskBoard({ project, columns: initialColumns }: Props) {
     const [columns, setColumns] = useState(initialColumns);
@@ -145,7 +132,9 @@ export default function TaskBoard({ project, columns: initialColumns }: Props) {
                         onDragLeave={handleDragLeave}
                         onDrop={(e) => handleDrop(e, col.status)}
                     >
-                        <div className={`rounded-t-lg px-3 py-2 ${columnColors[col.status] ?? 'bg-surface-secondary'}`}>
+                        <div
+                            className={`rounded-t-lg px-3 py-2 ${COLUMN_COLORS[col.status] ?? 'bg-surface-secondary'}`}
+                        >
                             <div className="flex items-center justify-between">
                                 <span className="text-sm font-medium text-text-strong">{col.label}</span>
                                 <span className="rounded-full bg-surface-primary px-2 py-px text-xs text-text-muted">
@@ -161,7 +150,7 @@ export default function TaskBoard({ project, columns: initialColumns }: Props) {
                                     draggable
                                     onDragStart={(e) => handleDragStart(e, task.id)}
                                     className={`cursor-grab rounded-md border border-border-subtle border-l-4 bg-surface-primary p-3 shadow-sm transition-opacity hover:shadow-md active:cursor-grabbing ${
-                                        priorityColors[task.priority] ?? ''
+                                        getPriority(task.priority).borderClass
                                     } ${dragging === task.id ? 'opacity-50' : ''}`}
                                 >
                                     <Link

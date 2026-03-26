@@ -79,12 +79,22 @@ final class TaskController extends Controller
             'reporter:id,name',
             'epic:id,title',
             'rootComments.author:id,name',
+            'rootComments.replies.author:id,name',
+            'attachments.uploader:id,name',
         ]);
         $task->loadCount(['attachments', 'comments']);
+
+        /** @var TaskStatus $status */
+        $status = $task->status;
+        $allowedTransitions = collect($status->allowedTransitions())
+            ->map(fn (TaskStatus $s) => ['value' => $s->value, 'label' => $s->label()])
+            ->values()
+            ->all();
 
         return Inertia::render('Work/Tasks/Show', [
             'project' => $project->only('id', 'name', 'key'),
             'task' => $task,
+            'allowedTransitions' => $allowedTransitions,
         ]);
     }
 

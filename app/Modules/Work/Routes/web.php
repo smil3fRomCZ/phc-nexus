@@ -3,6 +3,8 @@
 declare(strict_types=1);
 
 use App\Modules\Work\Controllers\EpicController;
+use App\Modules\Work\Controllers\TaskAttachmentController;
+use App\Modules\Work\Controllers\TaskCommentController;
 use App\Modules\Work\Controllers\TaskController;
 use Illuminate\Support\Facades\Route;
 
@@ -26,4 +28,14 @@ Route::middleware('auth')->group(function () {
     Route::put('projects/{project}/tasks/{task}', [TaskController::class, 'update'])->name('projects.tasks.update');
     Route::patch('projects/{project}/tasks/{task}/status', [TaskController::class, 'updateStatus'])->name('projects.tasks.updateStatus');
     Route::delete('projects/{project}/tasks/{task}', [TaskController::class, 'destroy'])->name('projects.tasks.destroy');
+
+    // Task comments
+    Route::post('projects/{project}/tasks/{task}/comments', [TaskCommentController::class, 'store'])->name('projects.tasks.comments.store');
+    Route::put('comments/{comment}', [TaskCommentController::class, 'update'])->name('comments.update');
+    Route::delete('comments/{comment}', [TaskCommentController::class, 'destroy'])->name('comments.destroy');
+
+    // Task attachments
+    Route::post('projects/{project}/tasks/{task}/attachments', [TaskAttachmentController::class, 'store'])->name('projects.tasks.attachments.store');
+    Route::get('attachments/{attachment}/download', [TaskAttachmentController::class, 'download'])->name('attachments.download');
+    Route::delete('attachments/{attachment}', [TaskAttachmentController::class, 'destroy'])->name('attachments.destroy');
 });

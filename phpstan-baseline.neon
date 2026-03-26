@@ -1,0 +1,133 @@
+parameters:
+	ignoreErrors:
+		-
+			message: '#^Trait App\\Models\\Concerns\\HasApprovals is used zero times and is not analysed\.$#'
+			identifier: trait.unused
+			count: 1
+			path: app/Models/Concerns/HasApprovals.php
+
+		-
+			message: '#^Call to an undefined method Illuminate\\Database\\Eloquent\\Model\:\:hasVoted\(\)\.$#'
+			identifier: method.notFound
+			count: 1
+			path: app/Modules/Approvals/Actions/CastVote.php
+
+		-
+			message: '#^Call to an undefined method Illuminate\\Database\\Eloquent\\Model\:\:notify\(\)\.$#'
+			identifier: method.notFound
+			count: 1
+			path: app/Modules/Approvals/Actions/CastVote.php
+
+		-
+			message: '#^Cannot call method isResolved\(\) on string\.$#'
+			identifier: method.nonObject
+			count: 1
+			path: app/Modules/Approvals/Actions/CastVote.php
+
+		-
+			message: '#^Method App\\Modules\\Approvals\\Actions\\CastVote\:\:execute\(\) should return App\\Modules\\Approvals\\Models\\ApprovalVote but returns Illuminate\\Database\\Eloquent\\Model\|null\.$#'
+			identifier: return.type
+			count: 1
+			path: app/Modules/Approvals/Actions/CastVote.php
+
+		-
+			message: '#^Parameter \#1 \$key of method Illuminate\\Database\\Eloquent\\Collection\<int,Illuminate\\Database\\Eloquent\\Model\>\:\:contains\(\) expects \(callable\(Illuminate\\Database\\Eloquent\\Model, int\)\: bool\)\|Illuminate\\Database\\Eloquent\\Model\|int\|string, Closure\(App\\Modules\\Approvals\\Models\\ApprovalVote\)\: false given\.$#'
+			identifier: argument.type
+			count: 1
+			path: app/Modules/Approvals/Actions/CastVote.php
+
+		-
+			message: '#^Parameter \#1 \$key of method Illuminate\\Support\\Collection\<int,Illuminate\\Database\\Eloquent\\Model\>\:\:every\(\) expects \(callable\(Illuminate\\Database\\Eloquent\\Model, int\)\: bool\)\|Illuminate\\Database\\Eloquent\\Model\|string, Closure\(App\\Modules\\Approvals\\Models\\ApprovalVote\)\: bool given\.$#'
+			identifier: argument.type
+			count: 1
+			path: app/Modules/Approvals/Actions/CastVote.php
+
+		-
+			message: '#^Parameter \#1 \$key of method Illuminate\\Support\\Collection\<int,Illuminate\\Database\\Eloquent\\Model\>\:\:every\(\) expects \(callable\(Illuminate\\Database\\Eloquent\\Model, int\)\: bool\)\|Illuminate\\Database\\Eloquent\\Model\|string, Closure\(App\\Modules\\Approvals\\Models\\ApprovalVote\)\: false given\.$#'
+			identifier: argument.type
+			count: 1
+			path: app/Modules/Approvals/Actions/CastVote.php
+
+		-
+			message: '#^Access to an undefined property Illuminate\\Database\\Eloquent\\Model\:\:\$voter\.$#'
+			identifier: property.notFound
+			count: 1
+			path: app/Modules/Approvals/Jobs/ApprovalReminderJob.php
+
+		-
+			message: '#^Access to an undefined property Illuminate\\Database\\Eloquent\\Model\:\:\$voter_id\.$#'
+			identifier: property.notFound
+			count: 1
+			path: app/Modules/Approvals/Jobs/ApprovalReminderJob.php
+
+		-
+			message: '#^Cannot call method isPast\(\) on string\.$#'
+			identifier: method.nonObject
+			count: 1
+			path: app/Modules/Approvals/Models/ApprovalRequest.php
+
+		-
+			message: '#^Call to an undefined method Illuminate\\Database\\Eloquent\\Model\:\:isPhiRestricted\(\)\.$#'
+			identifier: method.notFound
+			count: 2
+			path: app/Modules/Audit/PhiAccessGuard.php
+
+		-
+			message: '#^Method App\\Modules\\Auth\\Controllers\\GoogleAuthController\:\:redirect\(\) should return Illuminate\\Http\\RedirectResponse but returns Symfony\\Component\\HttpFoundation\\RedirectResponse\.$#'
+			identifier: return.type
+			count: 1
+			path: app/Modules/Auth/Controllers/GoogleAuthController.php
+
+		-
+			message: '#^Access to an undefined property Illuminate\\Database\\Eloquent\\Model\:\:\$name\.$#'
+			identifier: property.notFound
+			count: 1
+			path: app/Modules/Auth/Mail/InvitationMail.php
+
+		-
+			message: '#^Cannot call method format\(\) on string\.$#'
+			identifier: method.nonObject
+			count: 1
+			path: app/Modules/Auth/Mail/InvitationMail.php
+
+		-
+			message: '#^Cannot call method isPast\(\) on string\.$#'
+			identifier: method.nonObject
+			count: 1
+			path: app/Modules/Auth/Models/Invitation.php
+
+		-
+			message: '#^Access to an undefined property Illuminate\\Database\\Eloquent\\Model\:\:\$name\.$#'
+			identifier: property.notFound
+			count: 2
+			path: app/Modules/Notifications/Notifications/ApprovalRequestedNotification.php
+
+		-
+			message: '#^Cannot access property \$value on string\.$#'
+			identifier: property.nonObject
+			count: 1
+			path: app/Modules/Projects/Controllers/ProjectController.php
+
+		-
+			message: '#^Cannot call method canTransitionTo\(\) on string\.$#'
+			identifier: method.nonObject
+			count: 1
+			path: app/Modules/Work/Controllers/TaskController.php
+
+		-
+			message: '#^Cannot call method label\(\) on string\.$#'
+			identifier: method.nonObject
+			count: 1
+			path: app/Modules/Work/Controllers/TaskController.php
+
+		-
+			message: '#^Call to an undefined method Illuminate\\Database\\Eloquent\\Model\:\:hasMember\(\)\.$#'
+			identifier: method.notFound
+			count: 2
+			path: app/Modules/Work/Policies/EpicPolicy.php
+
+		-
+			message: '#^Call to an undefined method Illuminate\\Database\\Eloquent\\Model\:\:hasMember\(\)\.$#'
+			identifier: method.notFound
+			count: 2
+			path: app/Modules/Work/Policies/TaskPolicy.php

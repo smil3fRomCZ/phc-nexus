@@ -63,18 +63,30 @@ jobs:
       - name: Generate app key
         run: php artisan key:generate
 
-      # Frontend checks
+      # ── Frontend checks ──
       - name: TypeScript check
         run: npx tsc --noEmit
+
+      - name: ESLint
+        run: npm run lint
+
+      - name: Prettier check
+        run: npm run format:check
+
+      - name: Vitest (unit)
+        run: npm run test
 
       - name: Vite build
         run: npm run build
 
-      # Backend checks
+      # ── Backend checks ──
       - name: Laravel Pint (code style)
         run: ./vendor/bin/pint --test
 
-      # Backend tests
+      - name: PHPStan (static analysis)
+        run: ./vendor/bin/phpstan analyse --no-progress --memory-limit=512M
+
+      # ── Backend tests ──
       - name: Run tests
         env:
           DB_CONNECTION: pgsql

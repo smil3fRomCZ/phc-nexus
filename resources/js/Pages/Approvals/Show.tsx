@@ -71,17 +71,21 @@ export default function ApprovalShow({ project, approvalRequest: req, auth }: Pr
         { label: req.description ?? 'Approval' },
     ];
 
-    const canVote = req.status === 'pending' &&
-        req.votes.some((v) => v.voter.id === auth.user?.id && v.decision === null);
+    const canVote =
+        req.status === 'pending' && req.votes.some((v) => v.voter.id === auth.user?.id && v.decision === null);
 
     function submitVote(decision: string) {
         setSubmitting(true);
-        router.post(`/projects/${project.id}/approvals/${req.id}/vote`, {
-            decision,
-            comment,
-        }, {
-            onFinish: () => setSubmitting(false),
-        });
+        router.post(
+            `/projects/${project.id}/approvals/${req.id}/vote`,
+            {
+                decision,
+                comment,
+            },
+            {
+                onFinish: () => setSubmitting(false),
+            },
+        );
     }
 
     function cancelRequest() {
@@ -98,7 +102,9 @@ export default function ApprovalShow({ project, approvalRequest: req, auth }: Pr
                         <h1 className="text-2xl font-bold leading-tight text-text-strong">
                             {req.description ?? 'Approval Request'}
                         </h1>
-                        <span className={`inline-flex items-center rounded-[10px] px-2 py-px text-xs font-semibold leading-relaxed ${statusColors[req.status] ?? ''}`}>
+                        <span
+                            className={`inline-flex items-center rounded-[10px] px-2 py-px text-xs font-semibold leading-relaxed ${statusColors[req.status] ?? ''}`}
+                        >
                             {statusLabels[req.status] ?? req.status}
                         </span>
                     </div>
@@ -107,7 +113,9 @@ export default function ApprovalShow({ project, approvalRequest: req, auth }: Pr
                 {/* Metadata */}
                 <div className="mb-6 grid grid-cols-2 gap-4 rounded-lg border border-border-subtle bg-surface-secondary p-5 text-sm md:grid-cols-3">
                     <div>
-                        <span className="text-xs font-semibold uppercase tracking-wider text-text-subtle">Requester</span>
+                        <span className="text-xs font-semibold uppercase tracking-wider text-text-subtle">
+                            Requester
+                        </span>
                         <p className="mt-1 font-medium text-text-strong">{req.requester.name}</p>
                     </div>
                     <div>
@@ -127,30 +135,33 @@ export default function ApprovalShow({ project, approvalRequest: req, auth }: Pr
                     </div>
                     {req.expires_at && (
                         <div>
-                            <span className="text-xs font-semibold uppercase tracking-wider text-text-subtle">Expires</span>
+                            <span className="text-xs font-semibold uppercase tracking-wider text-text-subtle">
+                                Expires
+                            </span>
                             <p className="mt-1 font-medium text-text-strong">{req.expires_at}</p>
                         </div>
                     )}
                     {req.decided_at && (
                         <div>
-                            <span className="text-xs font-semibold uppercase tracking-wider text-text-subtle">Decided</span>
+                            <span className="text-xs font-semibold uppercase tracking-wider text-text-subtle">
+                                Decided
+                            </span>
                             <p className="mt-1 font-medium text-text-strong">{req.decided_at}</p>
                         </div>
                     )}
                 </div>
 
                 {/* Votes */}
-                <h3 className="mb-3 text-xs font-semibold uppercase tracking-wider text-text-subtle">
-                    Votes
-                </h3>
+                <h3 className="mb-3 text-xs font-semibold uppercase tracking-wider text-text-subtle">Votes</h3>
                 <div className="mb-6 space-y-2">
                     {req.votes.map((vote) => (
-                        <div key={vote.id} className="flex items-center justify-between rounded-md border border-border-subtle px-5 py-3">
+                        <div
+                            key={vote.id}
+                            className="flex items-center justify-between rounded-md border border-border-subtle px-5 py-3"
+                        >
                             <span className="text-sm font-medium text-text-strong">{vote.voter.name}</span>
                             <div className="flex items-center gap-3">
-                                {vote.comment && (
-                                    <span className="text-xs italic text-text-muted">{vote.comment}</span>
-                                )}
+                                {vote.comment && <span className="text-xs italic text-text-muted">{vote.comment}</span>}
                                 {vote.decision ? (
                                     <span className={`text-sm font-semibold ${decisionColors[vote.decision] ?? ''}`}>
                                         {decisionLabels[vote.decision] ?? vote.decision}
@@ -196,10 +207,7 @@ export default function ApprovalShow({ project, approvalRequest: req, auth }: Pr
                 {/* Cancel */}
                 {isRequester && req.status === 'pending' && (
                     <div className="mt-4">
-                        <button
-                            onClick={cancelRequest}
-                            className="text-sm text-status-danger hover:underline"
-                        >
+                        <button onClick={cancelRequest} className="text-sm text-status-danger hover:underline">
                             Cancel Request
                         </button>
                     </div>

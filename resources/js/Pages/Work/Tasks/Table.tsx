@@ -60,10 +60,14 @@ export default function TaskTable({ project, tasks, filters, statuses, prioritie
 
     function applySort(field: string) {
         const dir = filters.sort === field && filters.dir !== 'desc' ? 'desc' : 'asc';
-        router.get(`/projects/${project.id}/table`, { ...filters, sort: field, dir }, {
-            preserveState: true,
-            replace: true,
-        });
+        router.get(
+            `/projects/${project.id}/table`,
+            { ...filters, sort: field, dir },
+            {
+                preserveState: true,
+                replace: true,
+            },
+        );
     }
 
     function sortIndicator(field: string) {
@@ -77,7 +81,7 @@ export default function TaskTable({ project, tasks, filters, statuses, prioritie
             headers: {
                 'Content-Type': 'application/json',
                 'X-CSRF-TOKEN': document.querySelector<HTMLMetaElement>('meta[name="csrf-token"]')?.content ?? '',
-                'Accept': 'application/json',
+                Accept: 'application/json',
             },
             body: JSON.stringify({ status: newStatus }),
         }).then((res) => {
@@ -116,7 +120,9 @@ export default function TaskTable({ project, tasks, filters, statuses, prioritie
                 >
                     <option value="">All Statuses</option>
                     {statuses.map((s) => (
-                        <option key={s.value} value={s.value}>{s.label}</option>
+                        <option key={s.value} value={s.value}>
+                            {s.label}
+                        </option>
                     ))}
                 </select>
                 <select
@@ -126,7 +132,9 @@ export default function TaskTable({ project, tasks, filters, statuses, prioritie
                 >
                     <option value="">All Priorities</option>
                     {priorities.map((p) => (
-                        <option key={p.value} value={p.value}>{p.label}</option>
+                        <option key={p.value} value={p.value}>
+                            {p.label}
+                        </option>
                     ))}
                 </select>
             </div>
@@ -151,7 +159,8 @@ export default function TaskTable({ project, tasks, filters, statuses, prioritie
                                     }`}
                                     onClick={col.sortable ? () => applySort(col.field) : undefined}
                                 >
-                                    {col.label}{col.sortable ? sortIndicator(col.field) : ''}
+                                    {col.label}
+                                    {col.sortable ? sortIndicator(col.field) : ''}
                                 </th>
                             ))}
                         </tr>
@@ -174,11 +183,15 @@ export default function TaskTable({ project, tasks, filters, statuses, prioritie
                                         className={`rounded-[10px] border-0 px-2 py-px text-xs font-semibold ${statusColors[task.status] ?? ''}`}
                                     >
                                         {statuses.map((s) => (
-                                            <option key={s.value} value={s.value}>{s.label}</option>
+                                            <option key={s.value} value={s.value}>
+                                                {s.label}
+                                            </option>
                                         ))}
                                     </select>
                                 </td>
-                                <td className={`border-b border-border-subtle px-5 py-3 text-xs font-semibold ${priorityColors[task.priority] ?? ''}`}>
+                                <td
+                                    className={`border-b border-border-subtle px-5 py-3 text-xs font-semibold ${priorityColors[task.priority] ?? ''}`}
+                                >
                                     {priorities.find((p) => p.value === task.priority)?.label ?? task.priority}
                                 </td>
                                 <td className="border-b border-border-subtle px-5 py-3 text-sm text-text-muted">
@@ -186,10 +199,15 @@ export default function TaskTable({ project, tasks, filters, statuses, prioritie
                                 </td>
                                 <td className="border-b border-border-subtle px-5 py-3 text-sm text-text-muted">
                                     {task.epic ? (
-                                        <Link href={`/projects/${project.id}/epics/${task.epic.id}`} className="no-underline hover:text-brand-primary">
+                                        <Link
+                                            href={`/projects/${project.id}/epics/${task.epic.id}`}
+                                            className="no-underline hover:text-brand-primary"
+                                        >
                                             {task.epic.title}
                                         </Link>
-                                    ) : '\u2014'}
+                                    ) : (
+                                        '\u2014'
+                                    )}
                                 </td>
                                 <td className="border-b border-border-subtle px-5 py-3 text-sm text-text-muted">
                                     {task.due_date ?? '\u2014'}

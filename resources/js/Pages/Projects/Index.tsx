@@ -1,13 +1,10 @@
 import AppLayout from '@/Layouts/AppLayout';
 import type { Breadcrumb } from '@/Layouts/AppLayout';
-import { Link, router } from '@inertiajs/react';
+import { Link } from '@inertiajs/react';
 import { Plus, Search } from 'lucide-react';
 import { useState } from 'react';
 
-const BREADCRUMBS: Breadcrumb[] = [
-    { label: 'Home', href: '/' },
-    { label: 'Projects' },
-];
+const BREADCRUMBS: Breadcrumb[] = [{ label: 'Home', href: '/' }, { label: 'Projects' }];
 
 interface Project {
     id: string;
@@ -40,13 +37,7 @@ const STATUS_CONFIG: Record<string, { label: string; className: string }> = {
     archived: { label: 'Archived', className: 'bg-status-neutral-subtle text-status-neutral' },
 };
 
-const AVATAR_COLORS = [
-    'bg-brand-primary',
-    'bg-[#5243aa]',
-    'bg-[#0747a6]',
-    'bg-[#006644]',
-    'bg-[#974f0c]',
-];
+const AVATAR_COLORS = ['bg-brand-primary', 'bg-[#5243aa]', 'bg-[#0747a6]', 'bg-[#006644]', 'bg-[#974f0c]'];
 
 function getInitials(name: string): string {
     return name
@@ -81,9 +72,7 @@ export default function ProjectsIndex({ projects }: Props) {
 
     const filteredProjects = projects.data.filter((project) => {
         const matchesStatus = !statusFilter || project.status === statusFilter;
-        const matchesSearch =
-            !searchQuery ||
-            project.name.toLowerCase().includes(searchQuery.toLowerCase());
+        const matchesSearch = !searchQuery || project.name.toLowerCase().includes(searchQuery.toLowerCase());
         return matchesStatus && matchesSearch;
     });
 
@@ -149,7 +138,10 @@ export default function ProjectsIndex({ projects }: Props) {
                             <th className="border-b border-border-default bg-surface-secondary px-5 py-3 text-left text-[11px] font-semibold uppercase tracking-wider text-text-subtle">
                                 Tasks
                             </th>
-                            <th className="border-b border-border-default bg-surface-secondary px-5 py-3 text-left text-[11px] font-semibold uppercase tracking-wider text-text-subtle" style={{ minWidth: 130 }}>
+                            <th
+                                className="border-b border-border-default bg-surface-secondary px-5 py-3 text-left text-[11px] font-semibold uppercase tracking-wider text-text-subtle"
+                                style={{ minWidth: 130 }}
+                            >
                                 Progress
                             </th>
                             <th className="border-b border-border-default bg-surface-secondary px-5 py-3 text-left text-[11px] font-semibold uppercase tracking-wider text-text-subtle">
@@ -163,16 +155,10 @@ export default function ProjectsIndex({ projects }: Props) {
                                 label: project.status,
                                 className: 'bg-status-neutral-subtle text-status-neutral',
                             };
-                            const progress = getProgress(
-                                project.tasks_completed_count,
-                                project.tasks_count,
-                            );
+                            const progress = getProgress(project.tasks_completed_count, project.tasks_count);
 
                             return (
-                                <tr
-                                    key={project.id}
-                                    className="transition-colors duration-100 hover:bg-brand-soft"
-                                >
+                                <tr key={project.id} className="transition-colors duration-100 hover:bg-brand-soft">
                                     <td className="border-b border-border-subtle px-5 py-3 text-sm font-medium text-text-strong">
                                         <Link
                                             href={`/projects/${project.id}`}
@@ -196,9 +182,7 @@ export default function ProjectsIndex({ projects }: Props) {
                                                 >
                                                     {getInitials(project.owner.name)}
                                                 </div>
-                                                <span className="text-xs text-text-default">
-                                                    {project.owner.name}
-                                                </span>
+                                                <span className="text-xs text-text-default">{project.owner.name}</span>
                                             </div>
                                         ) : (
                                             <span className="text-xs text-text-muted">&mdash;</span>
@@ -212,7 +196,10 @@ export default function ProjectsIndex({ projects }: Props) {
                                     </td>
                                     <td className="border-b border-border-subtle px-5 py-3">
                                         <div className="flex items-center gap-2">
-                                            <div className="h-1.5 flex-1 overflow-hidden rounded-full bg-border-subtle" style={{ minWidth: 60 }}>
+                                            <div
+                                                className="h-1.5 flex-1 overflow-hidden rounded-full bg-border-subtle"
+                                                style={{ minWidth: 60 }}
+                                            >
                                                 <div
                                                     className="h-full rounded-full bg-brand-primary transition-[width] duration-300 ease-out"
                                                     style={{ width: `${progress}%` }}
@@ -231,10 +218,7 @@ export default function ProjectsIndex({ projects }: Props) {
                         })}
                         {filteredProjects.length === 0 && (
                             <tr>
-                                <td
-                                    colSpan={7}
-                                    className="px-5 py-8 text-center text-sm text-text-muted"
-                                >
+                                <td colSpan={7} className="px-5 py-8 text-center text-sm text-text-muted">
                                     {projects.data.length === 0
                                         ? 'No projects yet. Create your first one.'
                                         : 'No projects match your filters.'}

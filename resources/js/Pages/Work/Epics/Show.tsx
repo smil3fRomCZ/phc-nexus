@@ -56,16 +56,14 @@ export default function EpicShow({ project, epic }: Props) {
             <div className="mx-auto max-w-4xl">
                 <div className="mb-6">
                     <div className="flex items-center gap-3">
-                        <h1 className="text-2xl font-bold leading-tight text-text-strong">
-                            {epic.title}
-                        </h1>
-                        <span className={`inline-flex items-center rounded-[10px] px-2 py-px text-xs font-semibold leading-relaxed ${status}`}>
+                        <h1 className="text-2xl font-bold leading-tight text-text-strong">{epic.title}</h1>
+                        <span
+                            className={`inline-flex items-center rounded-[10px] px-2 py-px text-xs font-semibold leading-relaxed ${status}`}
+                        >
                             {statusLabels[epic.status] ?? epic.status}
                         </span>
                     </div>
-                    {epic.description && (
-                        <p className="mt-2 text-base text-text-default">{epic.description}</p>
-                    )}
+                    {epic.description && <p className="mt-2 text-base text-text-default">{epic.description}</p>}
                 </div>
 
                 <div className="mb-6 grid grid-cols-2 gap-4 rounded-lg border border-border-subtle bg-surface-secondary p-5 text-sm md:grid-cols-4">
@@ -82,19 +80,24 @@ export default function EpicShow({ project, epic }: Props) {
                         <p className="mt-1 font-medium text-text-strong">{epic.tasks_count}</p>
                     </div>
                     <div>
-                        <span className="text-xs font-semibold uppercase tracking-wider text-text-subtle">Attachments / Comments</span>
-                        <p className="mt-1 font-medium text-text-strong">{epic.attachments_count} / {epic.comments_count}</p>
+                        <span className="text-xs font-semibold uppercase tracking-wider text-text-subtle">
+                            Attachments / Comments
+                        </span>
+                        <p className="mt-1 font-medium text-text-strong">
+                            {epic.attachments_count} / {epic.comments_count}
+                        </p>
                     </div>
                 </div>
 
                 {epic.tasks.length > 0 && (
                     <div>
-                        <h3 className="mb-3 text-xs font-semibold uppercase tracking-wider text-text-subtle">
-                            Tasks
-                        </h3>
+                        <h3 className="mb-3 text-xs font-semibold uppercase tracking-wider text-text-subtle">Tasks</h3>
                         <div className="space-y-1">
                             {epic.tasks.map((task) => (
-                                <div key={task.id} className="flex items-center justify-between rounded-md border border-border-subtle px-4 py-2 text-sm transition-colors hover:bg-brand-soft">
+                                <div
+                                    key={task.id}
+                                    className="flex items-center justify-between rounded-md border border-border-subtle px-4 py-2 text-sm transition-colors hover:bg-brand-soft"
+                                >
                                     <Link
                                         href={`/projects/${project.id}/tasks/${task.id}`}
                                         className="font-medium text-text-strong no-underline hover:text-brand-primary"

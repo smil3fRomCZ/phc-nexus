@@ -32,9 +32,7 @@ export default function ProjectCreate({ statuses }: Props) {
     return (
         <AppLayout title="New Project" breadcrumbs={BREADCRUMBS}>
             <div className="mx-auto max-w-2xl">
-                <h1 className="mb-6 text-2xl font-bold leading-tight text-text-strong">
-                    New Project
-                </h1>
+                <h1 className="mb-6 text-2xl font-bold leading-tight text-text-strong">New Project</h1>
 
                 <form onSubmit={submit} className="space-y-5">
                     <Field label="Name *" error={errors.name}>
@@ -72,7 +70,9 @@ export default function ProjectCreate({ statuses }: Props) {
                             className="mt-1 rounded-md border border-border-default bg-surface-primary px-3 py-2 text-base focus:border-border-focus focus:outline-none focus:shadow-[0_0_0_2px_var(--color-brand-soft)]"
                         >
                             {statuses.map((s) => (
-                                <option key={s.value} value={s.value}>{s.label}</option>
+                                <option key={s.value} value={s.value}>
+                                    {s.label}
+                                </option>
                             ))}
                         </select>
                     </Field>

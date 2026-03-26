@@ -74,7 +74,9 @@ export default function ProjectEdit({ project, statuses }: Props) {
                             className="mt-1 rounded-md border border-border-default bg-surface-primary px-3 py-2 text-base focus:border-border-focus focus:outline-none focus:shadow-[0_0_0_2px_var(--color-brand-soft)]"
                         >
                             {statuses.map((s) => (
-                                <option key={s.value} value={s.value}>{s.label}</option>
+                                <option key={s.value} value={s.value}>
+                                    {s.label}
+                                </option>
                             ))}
                         </select>
                     </Field>

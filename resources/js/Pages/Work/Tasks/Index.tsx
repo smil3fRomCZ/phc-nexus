@@ -53,9 +53,7 @@ const priorityColors: Record<string, string> = {
 };
 
 export default function TasksIndex({ project, epic, tasks }: Props) {
-    const storeUrl = epic
-        ? `/projects/${project.id}/epics/${epic.id}/tasks`
-        : `/projects/${project.id}/tasks`;
+    const storeUrl = epic ? `/projects/${project.id}/epics/${epic.id}/tasks` : `/projects/${project.id}/tasks`;
 
     const { data, setData, post, processing, reset, errors } = useForm({
         title: '',
@@ -74,12 +72,11 @@ export default function TasksIndex({ project, epic, tasks }: Props) {
         { label: project.name, href: `/projects/${project.id}` },
         ...(epic
             ? [
-                { label: 'Epics', href: `/projects/${project.id}/epics` },
-                { label: epic.title, href: `/projects/${project.id}/epics/${epic.id}` },
-                { label: 'Tasks' },
+                  { label: 'Epics', href: `/projects/${project.id}/epics` },
+                  { label: epic.title, href: `/projects/${project.id}/epics/${epic.id}` },
+                  { label: 'Tasks' },
               ]
-            : [{ label: 'Tasks' }]
-        ),
+            : [{ label: 'Tasks' }]),
     ];
 
     return (
@@ -128,7 +125,9 @@ export default function TasksIndex({ project, epic, tasks }: Props) {
                         className="flex items-center justify-between rounded-lg border border-border-subtle bg-surface-primary px-5 py-3 transition-colors hover:bg-brand-soft"
                     >
                         <div className="flex items-center gap-3">
-                            <span className={`inline-flex items-center rounded-[10px] px-2 py-px text-xs font-semibold leading-relaxed ${statusColors[task.status] ?? ''}`}>
+                            <span
+                                className={`inline-flex items-center rounded-[10px] px-2 py-px text-xs font-semibold leading-relaxed ${statusColors[task.status] ?? ''}`}
+                            >
                                 {statusLabels[task.status] ?? task.status}
                             </span>
                             <Link
@@ -142,16 +141,12 @@ export default function TasksIndex({ project, epic, tasks }: Props) {
                             <span className={priorityColors[task.priority] ?? ''}>
                                 {priorityLabels[task.priority] ?? task.priority}
                             </span>
-                            <span className="text-text-muted">
-                                {task.assignee?.name ?? 'Unassigned'}
-                            </span>
+                            <span className="text-text-muted">{task.assignee?.name ?? 'Unassigned'}</span>
                         </div>
                     </div>
                 ))}
                 {tasks.length === 0 && (
-                    <p className="py-8 text-center text-base text-text-muted">
-                        No tasks yet. Add your first one.
-                    </p>
+                    <p className="py-8 text-center text-base text-text-muted">No tasks yet. Add your first one.</p>
                 )}
             </div>
         </AppLayout>

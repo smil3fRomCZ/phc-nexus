@@ -1,4 +1,5 @@
 import AppLayout from '@/Layouts/AppLayout';
+import type { Breadcrumb } from '@/Layouts/AppLayout';
 import { Link, router } from '@inertiajs/react';
 import { useState, type DragEvent } from 'react';
 
@@ -33,7 +34,7 @@ const columnColors: Record<string, string> = {
     backlog: 'bg-status-neutral-subtle',
     todo: 'bg-status-neutral-subtle',
     in_progress: 'bg-status-info-subtle',
-    in_review: 'bg-status-warning-subtle',
+    in_review: 'bg-status-review-subtle',
     done: 'bg-status-success-subtle',
 };
 
@@ -41,6 +42,13 @@ export default function TaskBoard({ project, columns: initialColumns }: Props) {
     const [columns, setColumns] = useState(initialColumns);
     const [dragging, setDragging] = useState<string | null>(null);
     const [dropTarget, setDropTarget] = useState<string | null>(null);
+
+    const breadcrumbs: Breadcrumb[] = [
+        { label: 'Home', href: '/' },
+        { label: 'Projects', href: '/projects' },
+        { label: project.name, href: `/projects/${project.id}` },
+        { label: 'Board' },
+    ];
 
     function handleDragStart(e: DragEvent, taskId: string) {
         e.dataTransfer.effectAllowed = 'move';
@@ -66,7 +74,6 @@ export default function TaskBoard({ project, columns: initialColumns }: Props) {
         const taskId = e.dataTransfer.getData('text/plain');
         if (!taskId) return;
 
-        // Najdi úkol a jeho zdrojový sloupec
         let sourceTask: Task | undefined;
         let sourceStatus: string | undefined;
         for (const col of columns) {
@@ -80,7 +87,6 @@ export default function TaskBoard({ project, columns: initialColumns }: Props) {
 
         if (!sourceTask || sourceStatus === targetStatus) return;
 
-        // Optimistický update
         setColumns((prev) =>
             prev.map((col) => {
                 if (col.status === sourceStatus) {
@@ -93,7 +99,6 @@ export default function TaskBoard({ project, columns: initialColumns }: Props) {
             }),
         );
 
-        // PATCH na server
         fetch(`/projects/${project.id}/tasks/${taskId}/status`, {
             method: 'PATCH',
             headers: {
@@ -104,33 +109,27 @@ export default function TaskBoard({ project, columns: initialColumns }: Props) {
             body: JSON.stringify({ status: targetStatus }),
         }).then((res) => {
             if (!res.ok) {
-                // Revert — reload dat ze serveru
                 router.reload({ only: ['columns'] });
             }
         });
     }
 
     return (
-        <AppLayout title={`${project.key} — Kanban`}>
-            <div className="mb-4 flex items-center justify-between">
-                <div className="flex items-center gap-4">
-                    <Link href={`/projects/${project.id}`} className="text-sm text-text-muted hover:text-brand-primary">
-                        &larr; {project.name}
-                    </Link>
-                    <h2 className="text-xl font-semibold text-text-strong">Kanban</h2>
-                </div>
+        <AppLayout title={`${project.key} — Board`} breadcrumbs={breadcrumbs}>
+            <div className="mb-6 flex items-center justify-between">
+                <h1 className="text-2xl font-bold leading-tight text-text-strong">Board</h1>
                 <div className="flex gap-2">
                     <Link
                         href={`/projects/${project.id}/board`}
-                        className="rounded-md bg-brand-primary px-3 py-1.5 text-sm font-medium text-text-inverse"
+                        className="rounded-md bg-brand-primary px-4 py-2 text-sm font-medium text-text-inverse no-underline"
                     >
                         Board
                     </Link>
                     <Link
                         href={`/projects/${project.id}/table`}
-                        className="rounded-md border border-border-default px-3 py-1.5 text-sm font-medium text-text-default hover:bg-surface-hover"
+                        className="rounded-md border border-border-default px-4 py-2 text-sm font-medium text-text-default no-underline transition-colors hover:bg-surface-hover"
                     >
-                        Tabulka
+                        Table
                     </Link>
                 </div>
             </div>
@@ -139,7 +138,7 @@ export default function TaskBoard({ project, columns: initialColumns }: Props) {
                 {columns.map((col) => (
                     <div
                         key={col.status}
-                        className={`flex w-72 flex-shrink-0 flex-col rounded-lg border border-border-default ${
+                        className={`flex w-72 flex-shrink-0 flex-col rounded-lg border border-border-subtle ${
                             dropTarget === col.status ? 'ring-2 ring-brand-primary' : ''
                         }`}
                         onDragOver={(e) => handleDragOver(e, col.status)}
@@ -149,7 +148,7 @@ export default function TaskBoard({ project, columns: initialColumns }: Props) {
                         <div className={`rounded-t-lg px-3 py-2 ${columnColors[col.status] ?? 'bg-surface-secondary'}`}>
                             <div className="flex items-center justify-between">
                                 <span className="text-sm font-medium text-text-strong">{col.label}</span>
-                                <span className="rounded-full bg-surface-primary px-2 py-0.5 text-xs text-text-muted">
+                                <span className="rounded-full bg-surface-primary px-2 py-px text-xs text-text-muted">
                                     {col.tasks.length}
                                 </span>
                             </div>
@@ -161,19 +160,19 @@ export default function TaskBoard({ project, columns: initialColumns }: Props) {
                                     key={task.id}
                                     draggable
                                     onDragStart={(e) => handleDragStart(e, task.id)}
-                                    className={`cursor-grab rounded-md border border-border-default border-l-4 bg-surface-primary p-3 shadow-sm transition-opacity hover:shadow-md active:cursor-grabbing ${
+                                    className={`cursor-grab rounded-md border border-border-subtle border-l-4 bg-surface-primary p-3 shadow-sm transition-opacity hover:shadow-md active:cursor-grabbing ${
                                         priorityColors[task.priority] ?? ''
                                     } ${dragging === task.id ? 'opacity-50' : ''}`}
                                 >
                                     <Link
                                         href={`/projects/${project.id}/tasks/${task.id}`}
-                                        className="text-sm font-medium text-text-strong hover:text-brand-primary"
+                                        className="text-sm font-medium text-text-strong no-underline hover:text-brand-primary"
                                     >
                                         {task.title}
                                     </Link>
                                     <div className="mt-2 flex items-center justify-between text-xs text-text-muted">
                                         {task.epic && <span>{task.epic.title}</span>}
-                                        <span>{task.assignee?.name ?? 'Nepřiřazeno'}</span>
+                                        <span>{task.assignee?.name ?? 'Unassigned'}</span>
                                     </div>
                                 </div>
                             ))}

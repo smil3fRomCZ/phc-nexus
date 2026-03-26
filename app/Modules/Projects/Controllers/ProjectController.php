@@ -19,7 +19,7 @@ final class ProjectController extends Controller
     {
         $projects = Project::query()
             ->with(['owner:id,name', 'team:id,name'])
-            ->withCount('members')
+            ->withCount(['members', 'tasks', 'tasks as tasks_completed_count' => fn ($q) => $q->where('status', 'done')])
             ->when($request->user()->system_role->value === 'team_member', function ($query) use ($request) {
                 $query->where(function ($q) use ($request) {
                     $q->where('owner_id', $request->user()->id)

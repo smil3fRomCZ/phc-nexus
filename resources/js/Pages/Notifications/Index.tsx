@@ -1,4 +1,5 @@
 import AppLayout from '@/Layouts/AppLayout';
+import type { Breadcrumb } from '@/Layouts/AppLayout';
 import { formatTime } from '@/utils/formatTime';
 import { router } from '@inertiajs/react';
 
@@ -20,6 +21,11 @@ interface Props {
     notifications: Notification[];
     unreadCount: number;
 }
+
+const BREADCRUMBS: Breadcrumb[] = [
+    { label: 'Home', href: '/' },
+    { label: 'Notifications' },
+];
 
 const typeIcons: Record<string, string> = {
     approval_requested: '\u2705',
@@ -50,23 +56,23 @@ export default function NotificationsIndex({ notifications, unreadCount }: Props
     }
 
     return (
-        <AppLayout title="Notifikace">
+        <AppLayout title="Notifications" breadcrumbs={BREADCRUMBS}>
             <div className="mx-auto max-w-3xl">
                 <div className="mb-6 flex items-center justify-between">
-                    <h2 className="text-xl font-semibold text-text-strong">
-                        Notifikace
+                    <h1 className="text-2xl font-bold leading-tight text-text-strong">
+                        Notifications
                         {unreadCount > 0 && (
-                            <span className="ml-2 inline-flex rounded-full bg-brand-primary px-2 py-0.5 text-xs text-text-inverse">
+                            <span className="ml-2 inline-flex rounded-full bg-brand-primary px-2 py-px text-xs font-semibold text-text-inverse">
                                 {unreadCount}
                             </span>
                         )}
-                    </h2>
+                    </h1>
                     {unreadCount > 0 && (
                         <button
                             onClick={markAllAsRead}
                             className="text-sm text-brand-primary hover:underline"
                         >
-                            Označit vše jako přečtené
+                            Mark all as read
                         </button>
                     )}
                 </div>
@@ -75,10 +81,10 @@ export default function NotificationsIndex({ notifications, unreadCount }: Props
                     {notifications.map((n) => (
                         <div
                             key={n.id}
-                            className={`flex items-start gap-3 rounded-lg border px-4 py-3 ${
+                            className={`flex items-start gap-3 rounded-lg border px-5 py-3 ${
                                 n.read_at
-                                    ? 'border-border-default bg-surface-primary'
-                                    : 'border-brand-primary/20 bg-brand-primary/5'
+                                    ? 'border-border-subtle bg-surface-primary'
+                                    : 'border-l-[3px] border-l-brand-primary border-t-border-subtle border-r-border-subtle border-b-border-subtle bg-brand-soft'
                             }`}
                         >
                             <span className="mt-0.5 text-lg">
@@ -93,16 +99,18 @@ export default function NotificationsIndex({ notifications, unreadCount }: Props
                                 {!n.read_at && (
                                     <button
                                         onClick={() => markAsRead(n.id)}
-                                        className="rounded px-2 py-1 text-xs text-brand-primary hover:bg-surface-hover"
+                                        className="rounded-sm px-2 py-1 text-xs text-brand-primary transition-colors hover:bg-surface-hover"
                                     >
-                                        Přečteno
+                                        Read
                                     </button>
                                 )}
                             </div>
                         </div>
                     ))}
                     {notifications.length === 0 && (
-                        <p className="py-8 text-center text-text-muted">Žádné notifikace.</p>
+                        <p className="py-8 text-center text-base text-text-muted">
+                            No notifications.
+                        </p>
                     )}
                 </div>
             </div>

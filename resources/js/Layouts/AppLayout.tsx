@@ -1,77 +1,204 @@
 import { Head, Link, router, usePage } from '@inertiajs/react';
 import type { ReactNode } from 'react';
 import type { PageProps } from '@/types';
+import {
+    LayoutDashboard,
+    FolderKanban,
+    LayoutGrid,
+    Clock,
+    CheckSquare,
+    Bell,
+    Users,
+    FileText,
+    Search,
+    LogOut,
+    ChevronRight,
+} from 'lucide-react';
+
+/* ── Types ── */
+
+export interface Breadcrumb {
+    label: string;
+    href?: string;
+}
 
 interface AppLayoutProps {
     title?: string;
+    breadcrumbs?: Breadcrumb[];
     children: ReactNode;
 }
 
-export default function AppLayout({ title, children }: AppLayoutProps) {
+/* ── Navigation config ── */
+
+const NAV_SECTIONS = [
+    {
+        label: 'Main',
+        items: [
+            { href: '/', label: 'Dashboard', icon: LayoutDashboard },
+            { href: '/projects', label: 'Projects', icon: FolderKanban },
+            { href: '#', label: 'Task Board', icon: LayoutGrid },
+            { href: '#', label: 'My Tasks', icon: Clock },
+        ],
+    },
+    {
+        label: 'Management',
+        items: [
+            { href: '#', label: 'Approvals', icon: CheckSquare },
+            { href: '/notifications', label: 'Notifications', icon: Bell },
+        ],
+    },
+    {
+        label: 'Admin',
+        items: [
+            { href: '#', label: 'Users', icon: Users },
+            { href: '#', label: 'Documents', icon: FileText },
+        ],
+    },
+];
+
+function getInitials(name: string): string {
+    return name
+        .split(' ')
+        .map((w) => w[0])
+        .join('')
+        .toUpperCase()
+        .slice(0, 2);
+}
+
+/* ── Component ── */
+
+export default function AppLayout({ title, breadcrumbs, children }: AppLayoutProps) {
     const { auth } = usePage<PageProps>().props;
+    const currentPath = typeof window !== 'undefined' ? window.location.pathname : '';
+
+    function isActive(href: string): boolean {
+        if (href === '/') return currentPath === '/';
+        return currentPath.startsWith(href);
+    }
 
     return (
         <>
             <Head title={title} />
-            <div className="flex h-screen bg-surface-primary">
-                {/* Sidebar */}
-                <aside className="flex w-60 flex-col border-r border-border-default bg-surface-secondary">
-                    <div className="flex h-14 items-center gap-2 border-b border-border-default px-4">
-                        <span className="text-lg font-semibold text-brand-primary">
-                            PHC Nexus
-                        </span>
+            <div className="flex h-screen flex-col bg-surface-canvas">
+                {/* ── Topbar ── */}
+                <header className="flex h-12 flex-shrink-0 items-center justify-between border-b border-border-default bg-surface-primary px-6">
+                    <Link
+                        href="/"
+                        className="flex items-center gap-2 font-bold text-base text-text-strong no-underline"
+                        style={{ minWidth: '14.5rem' }}
+                    >
+                        <span className="inline-block h-2 w-2 rounded-full bg-brand-primary" />
+                        PHC Nexus
+                    </Link>
+
+                    <div className="flex flex-1 justify-center px-6">
+                        <div className="relative w-full max-w-[480px]">
+                            <Search className="pointer-events-none absolute left-3 top-1/2 h-[14px] w-[14px] -translate-y-1/2 text-text-muted" />
+                            <input
+                                type="text"
+                                placeholder="Search tasks, projects, docs..."
+                                className="h-8 w-full rounded-md border border-border-default bg-surface-hover pl-[2.25rem] pr-4 text-sm text-text-default placeholder:text-text-subtle outline-none transition-colors focus:border-brand-primary focus:shadow-[0_0_0_2px_var(--color-brand-soft)]"
+                            />
+                        </div>
                     </div>
-                    <nav className="flex-1 overflow-y-auto p-3">
-                        <ul className="space-y-1">
-                            <NavItem href="/" label="Dashboard" />
-                            <NavItem href="/projects" label="Projekty" />
-                        </ul>
-                    </nav>
-                    {auth.user && (
-                        <div className="border-t border-border-default p-3">
-                            <div className="flex items-center justify-between">
-                                <div className="min-w-0">
-                                    <p className="truncate text-sm font-medium text-text-default">
-                                        {auth.user.name}
-                                    </p>
-                                    <p className="truncate text-xs text-text-muted">
-                                        {auth.user.email}
-                                    </p>
+
+                    <div className="flex items-center gap-4">
+                        <button className="relative text-text-muted transition-colors hover:text-text-strong">
+                            <Bell className="h-[18px] w-[18px]" />
+                            <span className="absolute -right-1.5 -top-1 flex h-4 w-4 items-center justify-center rounded-full bg-brand-primary text-[0.625rem] font-semibold leading-none text-text-inverse">
+                                5
+                            </span>
+                        </button>
+                        {auth.user && (
+                            <div className="flex items-center gap-2 cursor-pointer">
+                                <div className="flex h-7 w-7 items-center justify-center rounded-full bg-brand-primary text-xs font-semibold text-text-inverse">
+                                    {getInitials(auth.user.name)}
                                 </div>
+                                <span className="text-sm font-medium text-text-default">
+                                    {auth.user.name}
+                                </span>
+                            </div>
+                        )}
+                    </div>
+                </header>
+
+                <div className="flex flex-1 overflow-hidden">
+                    {/* ── Sidebar ── */}
+                    <aside className="flex w-64 flex-shrink-0 flex-col border-r border-border-default bg-surface-primary overflow-y-auto">
+                        <nav className="flex-1 py-4">
+                            {NAV_SECTIONS.map((section) => (
+                                <div key={section.label} className="mb-4">
+                                    <div className="px-6 pb-1 pt-2 text-xs font-semibold uppercase tracking-[0.05em] text-text-subtle">
+                                        {section.label}
+                                    </div>
+                                    {section.items.map((item) => {
+                                        const active = isActive(item.href);
+                                        const Icon = item.icon;
+                                        return (
+                                            <Link
+                                                key={item.href + item.label}
+                                                href={item.href}
+                                                className={`flex items-center gap-3 border-l-[3px] px-6 py-2 text-sm transition-colors ${
+                                                    active
+                                                        ? 'border-l-brand-hover bg-brand-soft font-medium text-brand-hover'
+                                                        : 'border-l-transparent text-text-default hover:bg-surface-hover'
+                                                }`}
+                                            >
+                                                <Icon
+                                                    className={`h-4 w-4 flex-shrink-0 ${
+                                                        active ? 'text-brand-hover' : 'text-text-muted'
+                                                    }`}
+                                                    strokeWidth={2}
+                                                />
+                                                {item.label}
+                                            </Link>
+                                        );
+                                    })}
+                                </div>
+                            ))}
+                        </nav>
+
+                        {auth.user && (
+                            <div className="border-t border-border-default p-3">
                                 <button
                                     onClick={() => router.post('/logout')}
-                                    className="ml-2 rounded px-2 py-1 text-xs text-text-muted hover:bg-surface-hover hover:text-text-default"
+                                    className="flex w-full items-center gap-2 rounded-sm px-3 py-2 text-sm text-text-muted transition-colors hover:bg-surface-hover hover:text-text-default"
                                 >
+                                    <LogOut className="h-4 w-4" />
                                     Odhlásit
                                 </button>
                             </div>
-                        </div>
-                    )}
-                </aside>
+                        )}
+                    </aside>
 
-                {/* Main content */}
-                <div className="flex flex-1 flex-col overflow-hidden">
-                    <header className="flex h-14 items-center border-b border-border-default px-6">
-                        <h1 className="text-lg font-medium text-text-strong">
-                            {title ?? 'PHC Nexus'}
-                        </h1>
-                    </header>
-                    <main className="flex-1 overflow-y-auto p-6">{children}</main>
+                    {/* ── Main Content ── */}
+                    <main className="flex-1 overflow-y-auto px-12 py-8">
+                        {/* Breadcrumbs */}
+                        {breadcrumbs && breadcrumbs.length > 0 && (
+                            <nav className="mb-1 flex items-center gap-1 text-sm text-text-subtle">
+                                {breadcrumbs.map((crumb, i) => (
+                                    <span key={i} className="flex items-center gap-1">
+                                        {i > 0 && (
+                                            <ChevronRight className="h-3 w-3 text-text-subtle" />
+                                        )}
+                                        {crumb.href ? (
+                                            <Link
+                                                href={crumb.href}
+                                                className="text-text-subtle no-underline transition-colors hover:text-text-muted hover:underline"
+                                            >
+                                                {crumb.label}
+                                            </Link>
+                                        ) : (
+                                            <span className="text-text-muted">{crumb.label}</span>
+                                        )}
+                                    </span>
+                                ))}
+                            </nav>
+                        )}
+                        {children}
+                    </main>
                 </div>
             </div>
         </>
-    );
-}
-
-function NavItem({ href, label }: { href: string; label: string }) {
-    return (
-        <li>
-            <Link
-                href={href}
-                className="flex items-center rounded-md px-3 py-2 text-sm text-text-default hover:bg-surface-hover"
-            >
-                {label}
-            </Link>
-        </li>
     );
 }

@@ -1,4 +1,5 @@
 import AppLayout from '@/Layouts/AppLayout';
+import type { Breadcrumb } from '@/Layouts/AppLayout';
 import { Link } from '@inertiajs/react';
 
 interface Vote {
@@ -25,55 +26,60 @@ interface Props {
 }
 
 const statusLabels: Record<string, string> = {
-    pending: 'Čeká na schválení',
-    approved: 'Schváleno',
-    rejected: 'Zamítnuto',
-    cancelled: 'Zrušeno',
+    pending: 'Pending',
+    approved: 'Approved',
+    rejected: 'Rejected',
+    cancelled: 'Cancelled',
 };
 
 const statusColors: Record<string, string> = {
     pending: 'bg-status-warning-subtle text-status-warning',
     approved: 'bg-status-success-subtle text-status-success',
     rejected: 'bg-status-danger-subtle text-status-danger',
-    cancelled: 'bg-surface-active text-text-muted',
+    cancelled: 'bg-status-neutral-subtle text-text-muted',
 };
 
 export default function ApprovalsIndex({ project, approvalRequests }: Props) {
-    return (
-        <AppLayout title={`${project.key} — Approvals`}>
-            <div className="mb-4">
-                <Link href={`/projects/${project.id}`} className="text-sm text-text-muted hover:text-brand-primary">
-                    &larr; {project.name}
-                </Link>
-            </div>
+    const breadcrumbs: Breadcrumb[] = [
+        { label: 'Home', href: '/' },
+        { label: 'Projects', href: '/projects' },
+        { label: project.name, href: `/projects/${project.id}` },
+        { label: 'Approvals' },
+    ];
 
-            <h2 className="mb-6 text-xl font-semibold text-text-strong">Approval requesty</h2>
+    return (
+        <AppLayout title={`${project.key} — Approvals`} breadcrumbs={breadcrumbs}>
+            <h1 className="mb-6 text-2xl font-bold leading-tight text-text-strong">
+                Approvals
+            </h1>
 
             <div className="space-y-2">
                 {approvalRequests.map((req) => (
                     <Link
                         key={req.id}
                         href={`/projects/${project.id}/approvals/${req.id}`}
-                        className="flex items-center justify-between rounded-lg border border-border-default bg-surface-primary px-4 py-3 hover:bg-surface-hover"
+                        className="flex items-center justify-between rounded-lg border border-border-subtle bg-surface-primary px-5 py-3 no-underline transition-colors hover:bg-brand-soft"
                     >
                         <div className="flex items-center gap-3">
-                            <span className={`inline-flex rounded-full px-2 py-0.5 text-xs font-medium ${statusColors[req.status] ?? ''}`}>
+                            <span className={`inline-flex items-center rounded-[10px] px-2 py-px text-xs font-semibold leading-relaxed ${statusColors[req.status] ?? ''}`}>
                                 {statusLabels[req.status] ?? req.status}
                             </span>
-                            <span className="text-sm text-text-strong">
+                            <span className="text-base text-text-strong">
                                 {req.description ?? 'Approval request'}
                             </span>
                         </div>
                         <div className="flex items-center gap-4 text-sm text-text-muted">
                             <span>{req.requester.name}</span>
                             <span>
-                                {req.votes.filter((v) => v.decision !== null).length}/{req.votes.length} hlasů
+                                {req.votes.filter((v) => v.decision !== null).length}/{req.votes.length} votes
                             </span>
                         </div>
                     </Link>
                 ))}
                 {approvalRequests.length === 0 && (
-                    <p className="py-8 text-center text-text-muted">Žádné approval requesty.</p>
+                    <p className="py-8 text-center text-base text-text-muted">
+                        No approval requests.
+                    </p>
                 )}
             </div>
         </AppLayout>

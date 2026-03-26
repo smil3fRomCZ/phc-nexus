@@ -1,5 +1,7 @@
 import AppLayout from '@/Layouts/AppLayout';
+import type { Breadcrumb } from '@/Layouts/AppLayout';
 import { Link, useForm } from '@inertiajs/react';
+import { Plus } from 'lucide-react';
 import type { FormEvent } from 'react';
 
 interface Task {
@@ -20,27 +22,27 @@ interface Props {
 
 const statusLabels: Record<string, string> = {
     backlog: 'Backlog',
-    todo: 'K zpracování',
-    in_progress: 'V průběhu',
-    in_review: 'V revizi',
-    done: 'Hotovo',
-    cancelled: 'Zrušeno',
+    todo: 'To Do',
+    in_progress: 'In Progress',
+    in_review: 'In Review',
+    done: 'Done',
+    cancelled: 'Cancelled',
 };
 
 const statusColors: Record<string, string> = {
     backlog: 'bg-status-neutral-subtle text-status-neutral',
     todo: 'bg-status-neutral-subtle text-status-neutral',
     in_progress: 'bg-status-info-subtle text-status-info',
-    in_review: 'bg-status-warning-subtle text-status-warning',
+    in_review: 'bg-status-review-subtle text-status-review',
     done: 'bg-status-success-subtle text-status-success',
-    cancelled: 'bg-surface-active text-text-muted',
+    cancelled: 'bg-status-neutral-subtle text-text-muted',
 };
 
 const priorityLabels: Record<string, string> = {
-    low: 'Nízká',
-    medium: 'Střední',
-    high: 'Vysoká',
-    urgent: 'Urgentní',
+    low: 'Low',
+    medium: 'Medium',
+    high: 'High',
+    urgent: 'Urgent',
 };
 
 const priorityColors: Record<string, string> = {
@@ -63,29 +65,29 @@ export default function TasksIndex({ project, epic, tasks }: Props) {
 
     function submit(e: FormEvent) {
         e.preventDefault();
-        post(storeUrl, {
-            onSuccess: () => reset(),
-        });
+        post(storeUrl, { onSuccess: () => reset() });
     }
 
-    const backUrl = epic
-        ? `/projects/${project.id}/epics/${epic.id}`
-        : `/projects/${project.id}`;
-
-    const backLabel = epic ? epic.title : project.name;
+    const breadcrumbs: Breadcrumb[] = [
+        { label: 'Home', href: '/' },
+        { label: 'Projects', href: '/projects' },
+        { label: project.name, href: `/projects/${project.id}` },
+        ...(epic
+            ? [
+                { label: 'Epics', href: `/projects/${project.id}/epics` },
+                { label: epic.title, href: `/projects/${project.id}/epics/${epic.id}` },
+                { label: 'Tasks' },
+              ]
+            : [{ label: 'Tasks' }]
+        ),
+    ];
 
     return (
-        <AppLayout title={`${project.key} — Úkoly`}>
-            <div className="mb-4">
-                <Link href={backUrl} className="text-sm text-text-muted hover:text-brand-primary">
-                    &larr; {backLabel}
-                </Link>
-            </div>
-
+        <AppLayout title={`${project.key} — Tasks`} breadcrumbs={breadcrumbs}>
             <div className="mb-6 flex items-center justify-between">
-                <h2 className="text-xl font-semibold text-text-strong">
-                    Úkoly{epic ? ` — ${epic.title}` : ''}
-                </h2>
+                <h1 className="text-2xl font-bold leading-tight text-text-strong">
+                    Tasks{epic ? ` — ${epic.title}` : ''}
+                </h1>
             </div>
 
             {/* Quick add */}
@@ -94,25 +96,26 @@ export default function TasksIndex({ project, epic, tasks }: Props) {
                     type="text"
                     value={data.title}
                     onChange={(e) => setData('title', e.target.value)}
-                    placeholder="Název nového úkolu..."
-                    className="flex-1 rounded-md border border-border-default bg-surface-primary px-3 py-2 text-sm focus:border-border-focus focus:outline-none"
+                    placeholder="New task title..."
+                    className="flex-1 rounded-md border border-border-default bg-surface-primary px-3 py-2 text-base focus:border-border-focus focus:outline-none focus:shadow-[0_0_0_2px_var(--color-brand-soft)]"
                 />
                 <select
                     value={data.priority}
                     onChange={(e) => setData('priority', e.target.value)}
                     className="rounded-md border border-border-default bg-surface-primary px-3 py-2 text-sm focus:border-border-focus focus:outline-none"
                 >
-                    <option value="low">Nízká</option>
-                    <option value="medium">Střední</option>
-                    <option value="high">Vysoká</option>
-                    <option value="urgent">Urgentní</option>
+                    <option value="low">Low</option>
+                    <option value="medium">Medium</option>
+                    <option value="high">High</option>
+                    <option value="urgent">Urgent</option>
                 </select>
                 <button
                     type="submit"
                     disabled={processing || !data.title}
-                    className="rounded-md bg-brand-primary px-4 py-2 text-sm font-medium text-text-inverse hover:bg-brand-hover disabled:opacity-50"
+                    className="inline-flex items-center gap-2 rounded-md bg-brand-primary px-4 py-2 text-sm font-medium text-text-inverse transition-colors hover:bg-brand-hover disabled:opacity-50"
                 >
-                    Přidat
+                    <Plus className="h-3.5 w-3.5" strokeWidth={2.5} />
+                    Add
                 </button>
             </form>
             {errors.title && <p className="mb-4 text-xs text-status-danger">{errors.title}</p>}
@@ -122,15 +125,15 @@ export default function TasksIndex({ project, epic, tasks }: Props) {
                 {tasks.map((task) => (
                     <div
                         key={task.id}
-                        className="flex items-center justify-between rounded-lg border border-border-default bg-surface-primary px-4 py-3 hover:bg-surface-hover"
+                        className="flex items-center justify-between rounded-lg border border-border-subtle bg-surface-primary px-5 py-3 transition-colors hover:bg-brand-soft"
                     >
                         <div className="flex items-center gap-3">
-                            <span className={`inline-flex rounded-full px-2 py-0.5 text-xs font-medium ${statusColors[task.status] ?? ''}`}>
+                            <span className={`inline-flex items-center rounded-[10px] px-2 py-px text-xs font-semibold leading-relaxed ${statusColors[task.status] ?? ''}`}>
                                 {statusLabels[task.status] ?? task.status}
                             </span>
                             <Link
                                 href={`/projects/${project.id}/tasks/${task.id}`}
-                                className="font-medium text-text-strong hover:text-brand-primary"
+                                className="text-base font-medium text-text-strong no-underline hover:text-brand-primary"
                             >
                                 {task.title}
                             </Link>
@@ -140,13 +143,15 @@ export default function TasksIndex({ project, epic, tasks }: Props) {
                                 {priorityLabels[task.priority] ?? task.priority}
                             </span>
                             <span className="text-text-muted">
-                                {task.assignee?.name ?? 'Nepřiřazeno'}
+                                {task.assignee?.name ?? 'Unassigned'}
                             </span>
                         </div>
                     </div>
                 ))}
                 {tasks.length === 0 && (
-                    <p className="py-8 text-center text-text-muted">Zatím žádné úkoly. Přidejte první.</p>
+                    <p className="py-8 text-center text-base text-text-muted">
+                        No tasks yet. Add your first one.
+                    </p>
                 )}
             </div>
         </AppLayout>

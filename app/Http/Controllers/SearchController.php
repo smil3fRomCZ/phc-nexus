@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace App\Http\Controllers;
 
+use App\Modules\Organization\Enums\SystemRole;
 use App\Modules\Projects\Models\Project;
 use App\Modules\Work\Models\Task;
 use Illuminate\Http\JsonResponse;
@@ -22,12 +23,16 @@ final class SearchController extends Controller
         $user = $request->user();
         $like = '%'.$query.'%';
 
+        /** @var SystemRole $role */
+        $role = $user->system_role;
+        $isTeamMember = $role->value === 'team_member';
+
         $projects = Project::query()
             ->where(function ($q) use ($like) {
                 $q->where('name', 'ilike', $like)
                     ->orWhere('key', 'ilike', $like);
             })
-            ->when($user->system_role->value === 'team_member', function ($q) use ($user) {
+            ->when($isTeamMember, function ($q) use ($user) {
                 $q->where(function ($sub) use ($user) {
                     $sub->where('owner_id', $user->id)
                         ->orWhereHas('members', fn ($m) => $m->where('user_id', $user->id));
@@ -39,8 +44,8 @@ final class SearchController extends Controller
         $tasks = Task::query()
             ->with('project:id,name,key')
             ->where('title', 'ilike', $like)
-            ->whereHas('project', function ($q) use ($user) {
-                $q->when($user->system_role->value === 'team_member', function ($sub) use ($user) {
+            ->whereHas('project', function ($q) use ($user, $isTeamMember) {
+                $q->when($isTeamMember, function ($sub) use ($user) {
                     $sub->where('owner_id', $user->id)
                         ->orWhereHas('members', fn ($m) => $m->where('user_id', $user->id));
                 });

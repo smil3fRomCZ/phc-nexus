@@ -2,15 +2,13 @@
 
 declare(strict_types=1);
 
+use App\Http\Controllers\DashboardController;
 use App\Models\User;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Route;
-use Inertia\Inertia;
 
 Route::middleware('auth')->group(function () {
-    Route::get('/', function () {
-        return Inertia::render('Dashboard/Index');
-    })->name('dashboard');
+    Route::get('/', DashboardController::class)->name('dashboard');
 });
 
 // E2E test login bypass — pouze v testing/local prostředí

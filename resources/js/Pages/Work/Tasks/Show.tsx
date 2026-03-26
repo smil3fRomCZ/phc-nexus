@@ -1,4 +1,5 @@
 import AppLayout from '@/Layouts/AppLayout';
+import type { Breadcrumb } from '@/Layouts/AppLayout';
 import { Link } from '@inertiajs/react';
 
 interface Task {
@@ -22,18 +23,27 @@ interface Props {
 
 const statusLabels: Record<string, string> = {
     backlog: 'Backlog',
-    todo: 'K zpracování',
-    in_progress: 'V průběhu',
-    in_review: 'V revizi',
-    done: 'Hotovo',
-    cancelled: 'Zrušeno',
+    todo: 'To Do',
+    in_progress: 'In Progress',
+    in_review: 'In Review',
+    done: 'Done',
+    cancelled: 'Cancelled',
+};
+
+const statusColors: Record<string, string> = {
+    backlog: 'bg-status-neutral-subtle text-status-neutral',
+    todo: 'bg-status-neutral-subtle text-status-neutral',
+    in_progress: 'bg-status-info-subtle text-status-info',
+    in_review: 'bg-status-review-subtle text-status-review',
+    done: 'bg-status-success-subtle text-status-success',
+    cancelled: 'bg-status-neutral-subtle text-text-muted',
 };
 
 const priorityLabels: Record<string, string> = {
-    low: 'Nízká',
-    medium: 'Střední',
-    high: 'Vysoká',
-    urgent: 'Urgentní',
+    low: 'Low',
+    medium: 'Medium',
+    high: 'High',
+    urgent: 'Urgent',
 };
 
 const priorityColors: Record<string, string> = {
@@ -44,48 +54,59 @@ const priorityColors: Record<string, string> = {
 };
 
 export default function TaskShow({ project, task }: Props) {
-    return (
-        <AppLayout title={`${project.key} — ${task.title}`}>
-            <div className="mx-auto max-w-4xl">
-                <div className="mb-4">
-                    <Link href={`/projects/${project.id}/tasks`} className="text-sm text-text-muted hover:text-brand-primary">
-                        &larr; Úkoly
-                    </Link>
-                </div>
+    const breadcrumbs: Breadcrumb[] = [
+        { label: 'Home', href: '/' },
+        { label: 'Projects', href: '/projects' },
+        { label: project.name, href: `/projects/${project.id}` },
+        { label: 'Tasks', href: `/projects/${project.id}/tasks` },
+        { label: task.title },
+    ];
 
+    const status = statusColors[task.status] ?? '';
+
+    return (
+        <AppLayout title={`${project.key} — ${task.title}`} breadcrumbs={breadcrumbs}>
+            <div className="mx-auto max-w-4xl">
                 <div className="mb-6">
-                    <h2 className="text-xl font-semibold text-text-strong">{task.title}</h2>
+                    <div className="flex items-center gap-3">
+                        <h1 className="text-2xl font-bold leading-tight text-text-strong">
+                            {task.title}
+                        </h1>
+                        <span className={`inline-flex items-center rounded-[10px] px-2 py-px text-xs font-semibold leading-relaxed ${status}`}>
+                            {statusLabels[task.status] ?? task.status}
+                        </span>
+                    </div>
                     {task.description && (
-                        <p className="mt-2 text-text-default">{task.description}</p>
+                        <p className="mt-2 text-base text-text-default">{task.description}</p>
                     )}
                 </div>
 
-                <div className="mb-6 grid grid-cols-2 gap-4 rounded-lg border border-border-default bg-surface-secondary p-4 text-sm md:grid-cols-4">
+                <div className="mb-6 grid grid-cols-2 gap-4 rounded-lg border border-border-subtle bg-surface-secondary p-5 text-sm md:grid-cols-4">
                     <div>
-                        <span className="text-text-muted">Status</span>
-                        <p className="font-medium text-text-strong">{statusLabels[task.status] ?? task.status}</p>
+                        <span className="text-xs font-semibold uppercase tracking-wider text-text-subtle">Status</span>
+                        <p className="mt-1 font-medium text-text-strong">{statusLabels[task.status] ?? task.status}</p>
                     </div>
                     <div>
-                        <span className="text-text-muted">Priorita</span>
-                        <p className={`font-medium ${priorityColors[task.priority] ?? ''}`}>
+                        <span className="text-xs font-semibold uppercase tracking-wider text-text-subtle">Priority</span>
+                        <p className={`mt-1 font-medium ${priorityColors[task.priority] ?? ''}`}>
                             {priorityLabels[task.priority] ?? task.priority}
                         </p>
                     </div>
                     <div>
-                        <span className="text-text-muted">Přiřazeno</span>
-                        <p className="font-medium text-text-strong">{task.assignee?.name ?? '—'}</p>
+                        <span className="text-xs font-semibold uppercase tracking-wider text-text-subtle">Assignee</span>
+                        <p className="mt-1 font-medium text-text-strong">{task.assignee?.name ?? '\u2014'}</p>
                     </div>
                     <div>
-                        <span className="text-text-muted">Reporter</span>
-                        <p className="font-medium text-text-strong">{task.reporter?.name ?? '—'}</p>
+                        <span className="text-xs font-semibold uppercase tracking-wider text-text-subtle">Reporter</span>
+                        <p className="mt-1 font-medium text-text-strong">{task.reporter?.name ?? '\u2014'}</p>
                     </div>
                     {task.epic && (
                         <div>
-                            <span className="text-text-muted">Epik</span>
-                            <p className="font-medium text-text-strong">
+                            <span className="text-xs font-semibold uppercase tracking-wider text-text-subtle">Epic</span>
+                            <p className="mt-1 font-medium text-text-strong">
                                 <Link
                                     href={`/projects/${project.id}/epics/${task.epic.id}`}
-                                    className="hover:text-brand-primary"
+                                    className="no-underline hover:text-brand-primary"
                                 >
                                     {task.epic.title}
                                 </Link>
@@ -94,13 +115,13 @@ export default function TaskShow({ project, task }: Props) {
                     )}
                     {task.due_date && (
                         <div>
-                            <span className="text-text-muted">Termín</span>
-                            <p className="font-medium text-text-strong">{task.due_date}</p>
+                            <span className="text-xs font-semibold uppercase tracking-wider text-text-subtle">Due Date</span>
+                            <p className="mt-1 font-medium text-text-strong">{task.due_date}</p>
                         </div>
                     )}
                     <div>
-                        <span className="text-text-muted">Příloh / Komentářů</span>
-                        <p className="font-medium text-text-strong">{task.attachments_count} / {task.comments_count}</p>
+                        <span className="text-xs font-semibold uppercase tracking-wider text-text-subtle">Attachments / Comments</span>
+                        <p className="mt-1 font-medium text-text-strong">{task.attachments_count} / {task.comments_count}</p>
                     </div>
                 </div>
             </div>

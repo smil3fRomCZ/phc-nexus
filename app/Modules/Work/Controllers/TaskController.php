@@ -84,7 +84,9 @@ final class TaskController extends Controller
         ]);
         $task->loadCount(['attachments', 'comments']);
 
-        $allowedTransitions = collect($task->status->allowedTransitions())
+        /** @var TaskStatus $status */
+        $status = $task->status;
+        $allowedTransitions = collect($status->allowedTransitions())
             ->map(fn (TaskStatus $s) => ['value' => $s->value, 'label' => $s->label()])
             ->values()
             ->all();

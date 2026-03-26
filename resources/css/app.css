@@ -75,3 +75,47 @@
     --color-status-review: #5243aa;
     --color-status-review-subtle: #eae6ff;
 }
+
+/* ==========================================================================
+   Component Tokens — semantic aliases for UI components
+   (not in @theme — these are CSS custom properties, not Tailwind utilities)
+   ========================================================================== */
+
+:root {
+    /* Shell */
+    --shell-topbar-height: 3rem;
+    --shell-sidebar-width: 16rem;
+    --shell-page-max-width: 100rem;
+    --shell-page-padding-x: 3rem;
+    --shell-page-padding-y: 2rem;
+
+    /* Focus */
+    --focus-ring: 0 0 0 3px rgba(245, 166, 35, 0.22);
+
+    /* Buttons */
+    --button-height-sm: 2rem;
+    --button-height-md: 2.25rem;
+    --button-height-lg: 2.5rem;
+    --button-radius: var(--radius-md);
+
+    /* Inputs */
+    --input-height: 2.25rem;
+    --input-radius: var(--radius-md);
+
+    /* Table */
+    --table-header-bg: var(--color-surface-secondary);
+    --table-row-hover-bg: var(--color-brand-soft);
+    --table-border: var(--color-border-subtle);
+
+    /* Cards */
+    --card-radius: var(--radius-md);
+    --card-hover-shadow: var(--shadow-md);
+
+    /* Metadata strip */
+    --meta-strip-bg: var(--color-surface-secondary);
+    --meta-strip-border: var(--color-border-subtle);
+    --meta-strip-radius: var(--radius-lg);
+
+    /* Empty state */
+    --empty-fg: var(--color-text-subtle);
+}

@@ -1,5 +1,8 @@
 import AppLayout from '@/Layouts/AppLayout';
 import type { Breadcrumb } from '@/Layouts/AppLayout';
+import EmptyState from '@/Components/EmptyState';
+import { TASK_STATUS, getStatus } from '@/constants/status';
+import { getPriority } from '@/constants/priority';
 import { Link, router } from '@inertiajs/react';
 
 interface Task {
@@ -25,22 +28,6 @@ interface Props {
     statuses: Option[];
     priorities: Option[];
 }
-
-const statusColors: Record<string, string> = {
-    backlog: 'bg-status-neutral-subtle text-status-neutral',
-    todo: 'bg-status-neutral-subtle text-status-neutral',
-    in_progress: 'bg-status-info-subtle text-status-info',
-    in_review: 'bg-status-review-subtle text-status-review',
-    done: 'bg-status-success-subtle text-status-success',
-    cancelled: 'bg-status-neutral-subtle text-text-muted',
-};
-
-const priorityColors: Record<string, string> = {
-    low: 'text-text-muted',
-    medium: 'text-text-default',
-    high: 'text-status-warning',
-    urgent: 'text-status-danger',
-};
 
 export default function TaskTable({ project, tasks, filters, statuses, priorities }: Props) {
     const breadcrumbs: Breadcrumb[] = [
@@ -180,7 +167,7 @@ export default function TaskTable({ project, tasks, filters, statuses, prioritie
                                     <select
                                         value={task.status}
                                         onChange={(e) => handleStatusChange(task.id, e.target.value)}
-                                        className={`rounded-[10px] border-0 px-2 py-px text-xs font-semibold ${statusColors[task.status] ?? ''}`}
+                                        className={`rounded-[10px] border-0 px-2 py-px text-xs font-semibold ${getStatus(TASK_STATUS, task.status).className}`}
                                     >
                                         {statuses.map((s) => (
                                             <option key={s.value} value={s.value}>
@@ -190,9 +177,9 @@ export default function TaskTable({ project, tasks, filters, statuses, prioritie
                                     </select>
                                 </td>
                                 <td
-                                    className={`border-b border-border-subtle px-5 py-3 text-xs font-semibold ${priorityColors[task.priority] ?? ''}`}
+                                    className={`border-b border-border-subtle px-5 py-3 text-xs font-semibold ${getPriority(task.priority).textClass}`}
                                 >
-                                    {priorities.find((p) => p.value === task.priority)?.label ?? task.priority}
+                                    {getPriority(task.priority).label}
                                 </td>
                                 <td className="border-b border-border-subtle px-5 py-3 text-sm text-text-muted">
                                     {task.assignee?.name ?? '\u2014'}
@@ -214,13 +201,7 @@ export default function TaskTable({ project, tasks, filters, statuses, prioritie
                                 </td>
                             </tr>
                         ))}
-                        {tasks.length === 0 && (
-                            <tr>
-                                <td colSpan={6} className="px-5 py-8 text-center text-base text-text-muted">
-                                    No tasks match your filters.
-                                </td>
-                            </tr>
-                        )}
+                        {tasks.length === 0 && <EmptyState message="No tasks match your filters." colSpan={6} />}
                     </tbody>
                 </table>
             </div>

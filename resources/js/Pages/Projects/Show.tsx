@@ -1,5 +1,9 @@
 import AppLayout from '@/Layouts/AppLayout';
 import type { Breadcrumb } from '@/Layouts/AppLayout';
+import Avatar from '@/Components/Avatar';
+import StatusBadge from '@/Components/StatusBadge';
+import { MetadataGrid, MetadataField } from '@/Components/MetadataGrid';
+import { PROJECT_STATUS } from '@/constants/status';
 import { Link } from '@inertiajs/react';
 
 interface Comment {
@@ -29,37 +33,12 @@ interface Project {
     created_at: string;
 }
 
-const STATUS_CONFIG: Record<string, { label: string; className: string }> = {
-    draft: { label: 'Draft', className: 'bg-status-neutral-subtle text-status-neutral' },
-    active: { label: 'Active', className: 'bg-status-success-subtle text-status-success' },
-    planning: { label: 'Planning', className: 'bg-status-info-subtle text-status-info' },
-    on_hold: { label: 'On Hold', className: 'bg-status-warning-subtle text-status-warning' },
-    in_review: { label: 'In Review', className: 'bg-status-review-subtle text-status-review' },
-    completed: { label: 'Completed', className: 'bg-status-success-subtle text-status-success' },
-    cancelled: { label: 'Cancelled', className: 'bg-status-danger-subtle text-status-danger' },
-    archived: { label: 'Archived', className: 'bg-status-neutral-subtle text-status-neutral' },
-};
-
-function getInitials(name: string): string {
-    return name
-        .split(' ')
-        .map((w) => w[0])
-        .join('')
-        .toUpperCase()
-        .slice(0, 2);
-}
-
 export default function ProjectShow({ project }: { project: Project }) {
     const breadcrumbs: Breadcrumb[] = [
         { label: 'Home', href: '/' },
         { label: 'Projects', href: '/projects' },
         { label: project.name },
     ];
-
-    const status = STATUS_CONFIG[project.status] ?? {
-        label: project.status,
-        className: 'bg-status-neutral-subtle text-status-neutral',
-    };
 
     return (
         <AppLayout title={project.name} breadcrumbs={breadcrumbs}>
@@ -69,11 +48,7 @@ export default function ProjectShow({ project }: { project: Project }) {
                     <div>
                         <div className="flex items-center gap-3">
                             <h1 className="text-2xl font-bold leading-tight text-text-strong">{project.name}</h1>
-                            <span
-                                className={`inline-flex items-center rounded-[10px] px-2 py-px text-xs font-semibold leading-relaxed ${status.className}`}
-                            >
-                                {status.label}
-                            </span>
+                            <StatusBadge statusMap={PROJECT_STATUS} value={project.status} />
                         </div>
                         <span className="text-sm font-mono text-text-muted">{project.key}</span>
                         {project.description && (
@@ -89,31 +64,21 @@ export default function ProjectShow({ project }: { project: Project }) {
                 </div>
 
                 {/* Metadata */}
-                <div className="mb-6 grid grid-cols-2 gap-4 rounded-lg border border-border-subtle bg-surface-secondary p-5 text-sm md:grid-cols-4">
-                    <div>
-                        <span className="text-xs font-semibold uppercase tracking-wider text-text-subtle">Owner</span>
-                        <p className="mt-1 font-medium text-text-strong">{project.owner.name}</p>
-                    </div>
-                    <div>
-                        <span className="text-xs font-semibold uppercase tracking-wider text-text-subtle">Team</span>
-                        <p className="mt-1 font-medium text-text-strong">{project.team?.name ?? '\u2014'}</p>
-                    </div>
-                    <div>
-                        <span className="text-xs font-semibold uppercase tracking-wider text-text-subtle">
-                            Classification
-                        </span>
-                        <p className="mt-1 font-medium text-text-strong">{project.data_classification.toUpperCase()}</p>
-                    </div>
-                    <div>
-                        <span className="text-xs font-semibold uppercase tracking-wider text-text-subtle">Created</span>
-                        <p className="mt-1 font-medium text-text-strong">
+                <div className="mb-6">
+                    <MetadataGrid>
+                        <MetadataField label="Owner">{project.owner.name}</MetadataField>
+                        <MetadataField label="Team">{project.team?.name ?? '\u2014'}</MetadataField>
+                        <MetadataField label="Classification">
+                            {project.data_classification.toUpperCase()}
+                        </MetadataField>
+                        <MetadataField label="Created">
                             {new Date(project.created_at).toLocaleDateString('en-US', {
                                 month: 'short',
                                 day: 'numeric',
                                 year: 'numeric',
                             })}
-                        </p>
-                    </div>
+                        </MetadataField>
+                    </MetadataGrid>
                 </div>
 
                 {/* Members */}
@@ -127,9 +92,7 @@ export default function ProjectShow({ project }: { project: Project }) {
                                 key={member.id}
                                 className="flex items-center gap-2 rounded-full bg-surface-secondary px-3 py-1"
                             >
-                                <div className="flex h-5 w-5 items-center justify-center rounded-full bg-brand-primary text-[9px] font-semibold text-text-inverse">
-                                    {getInitials(member.name)}
-                                </div>
+                                <Avatar name={member.name} />
                                 <span className="text-sm text-text-default">{member.name}</span>
                             </div>
                         ))}

@@ -1,3 +1,4 @@
+import EmptyState from '@/Components/EmptyState';
 import AppLayout from '@/Layouts/AppLayout';
 import type { Breadcrumb } from '@/Layouts/AppLayout';
 import { formatTime } from '@/utils/formatTime';
@@ -99,9 +100,7 @@ export default function NotificationsIndex({ notifications, unreadCount }: Props
                             </div>
                         </div>
                     ))}
-                    {notifications.length === 0 && (
-                        <p className="py-8 text-center text-base text-text-muted">No notifications.</p>
-                    )}
+                    {notifications.length === 0 && <EmptyState message="No notifications." />}
                 </div>
             </div>
         </AppLayout>

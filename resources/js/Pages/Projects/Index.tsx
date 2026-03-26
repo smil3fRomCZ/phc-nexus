@@ -1,5 +1,9 @@
 import AppLayout from '@/Layouts/AppLayout';
 import type { Breadcrumb } from '@/Layouts/AppLayout';
+import Avatar from '@/Components/Avatar';
+import EmptyState from '@/Components/EmptyState';
+import StatusBadge from '@/Components/StatusBadge';
+import { PROJECT_STATUS } from '@/constants/status';
 import { Link } from '@inertiajs/react';
 import { Plus, Search } from 'lucide-react';
 import { useState } from 'react';
@@ -24,36 +28,6 @@ interface Props {
         data: Project[];
         links: Array<{ url: string | null; label: string; active: boolean }>;
     };
-}
-
-const STATUS_CONFIG: Record<string, { label: string; className: string }> = {
-    draft: { label: 'Draft', className: 'bg-status-neutral-subtle text-status-neutral' },
-    active: { label: 'Active', className: 'bg-status-success-subtle text-status-success' },
-    planning: { label: 'Planning', className: 'bg-status-info-subtle text-status-info' },
-    on_hold: { label: 'On Hold', className: 'bg-status-warning-subtle text-status-warning' },
-    in_review: { label: 'In Review', className: 'bg-status-review-subtle text-status-review' },
-    completed: { label: 'Completed', className: 'bg-status-success-subtle text-status-success' },
-    cancelled: { label: 'Cancelled', className: 'bg-status-danger-subtle text-status-danger' },
-    archived: { label: 'Archived', className: 'bg-status-neutral-subtle text-status-neutral' },
-};
-
-const AVATAR_COLORS = ['bg-brand-primary', 'bg-[#5243aa]', 'bg-[#0747a6]', 'bg-[#006644]', 'bg-[#974f0c]'];
-
-function getInitials(name: string): string {
-    return name
-        .split(' ')
-        .map((w) => w[0])
-        .join('')
-        .toUpperCase()
-        .slice(0, 2);
-}
-
-function getAvatarColor(name: string): string {
-    let hash = 0;
-    for (let i = 0; i < name.length; i++) {
-        hash = name.charCodeAt(i) + ((hash << 5) - hash);
-    }
-    return AVATAR_COLORS[Math.abs(hash) % AVATAR_COLORS.length];
 }
 
 function getProgress(completed: number, total: number): number {
@@ -151,10 +125,6 @@ export default function ProjectsIndex({ projects }: Props) {
                     </thead>
                     <tbody>
                         {filteredProjects.map((project) => {
-                            const status = STATUS_CONFIG[project.status] ?? {
-                                label: project.status,
-                                className: 'bg-status-neutral-subtle text-status-neutral',
-                            };
                             const progress = getProgress(project.tasks_completed_count, project.tasks_count);
 
                             return (
@@ -168,20 +138,12 @@ export default function ProjectsIndex({ projects }: Props) {
                                         </Link>
                                     </td>
                                     <td className="border-b border-border-subtle px-5 py-3">
-                                        <span
-                                            className={`inline-flex items-center rounded-[10px] px-2 py-px text-[11px] font-semibold leading-relaxed ${status.className}`}
-                                        >
-                                            {status.label}
-                                        </span>
+                                        <StatusBadge statusMap={PROJECT_STATUS} value={project.status} />
                                     </td>
                                     <td className="border-b border-border-subtle px-5 py-3">
                                         {project.owner ? (
                                             <div className="flex items-center gap-2">
-                                                <div
-                                                    className={`flex h-6 w-6 flex-shrink-0 items-center justify-center rounded-full text-[9px] font-semibold text-text-inverse ${getAvatarColor(project.owner.name)}`}
-                                                >
-                                                    {getInitials(project.owner.name)}
-                                                </div>
+                                                <Avatar name={project.owner.name} />
                                                 <span className="text-xs text-text-default">{project.owner.name}</span>
                                             </div>
                                         ) : (
@@ -217,13 +179,14 @@ export default function ProjectsIndex({ projects }: Props) {
                             );
                         })}
                         {filteredProjects.length === 0 && (
-                            <tr>
-                                <td colSpan={7} className="px-5 py-8 text-center text-sm text-text-muted">
-                                    {projects.data.length === 0
+                            <EmptyState
+                                colSpan={7}
+                                message={
+                                    projects.data.length === 0
                                         ? 'No projects yet. Create your first one.'
-                                        : 'No projects match your filters.'}
-                                </td>
-                            </tr>
+                                        : 'No projects match your filters.'
+                                }
+                            />
                         )}
                     </tbody>
                 </table>

@@ -10,7 +10,6 @@ use App\Modules\Comments\Actions\EditComment;
 use App\Modules\Comments\Models\Comment;
 use App\Modules\Projects\Models\Project;
 use App\Modules\Work\Models\Task;
-use Illuminate\Http\JsonResponse;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Gate;

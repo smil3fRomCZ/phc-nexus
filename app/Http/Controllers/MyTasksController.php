@@ -35,7 +35,8 @@ final class MyTasksController extends Controller
             ->orderByRaw('CASE WHEN due_date IS NOT NULL AND due_date < NOW() THEN 0 ELSE 1 END')
             ->orderBy('due_date')
             ->orderBy('created_at', 'desc')
-            ->get();
+            ->paginate(20)
+            ->withQueryString();
 
         return Inertia::render('MyTasks/Index', [
             'tasks' => $tasks,

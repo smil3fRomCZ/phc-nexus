@@ -17,9 +17,9 @@ final class NotificationController extends Controller
         $notifications = $request->user()
             ->notifications()
             ->latest()
-            ->limit(50)
-            ->get()
-            ->map(fn ($n) => [
+            ->paginate(30)
+            ->withQueryString()
+            ->through(fn ($n) => [
                 'id' => $n->id,
                 'data' => $n->data,
                 'read_at' => $n->read_at?->toISOString(),

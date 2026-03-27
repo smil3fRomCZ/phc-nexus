@@ -2,6 +2,8 @@ import AppLayout from '@/Layouts/AppLayout';
 import type { Breadcrumb } from '@/Layouts/AppLayout';
 import StatusBadge from '@/Components/StatusBadge';
 import EmptyState from '@/Components/EmptyState';
+import Pagination from '@/Components/Pagination';
+import type { PaginationLink } from '@/Components/Pagination';
 import { TASK_STATUS } from '@/constants/status';
 import { getPriority } from '@/constants/priority';
 import { Link, router } from '@inertiajs/react';
@@ -21,8 +23,13 @@ interface SelectOption {
     label: string;
 }
 
+interface Paginated<T> {
+    data: T[];
+    links: PaginationLink[];
+}
+
 interface Props {
-    tasks: Task[];
+    tasks: Paginated<Task>;
     filters: { status?: string; priority?: string };
     statuses: SelectOption[];
     priorities: SelectOption[];
@@ -98,7 +105,7 @@ export default function MyTasksIndex({ tasks, filters, statuses, priorities }: P
                         </tr>
                     </thead>
                     <tbody>
-                        {tasks.map((task) => {
+                        {tasks.data.map((task) => {
                             const due = formatDueDate(task.due_date);
                             const priority = getPriority(task.priority);
                             return (
@@ -148,10 +155,12 @@ export default function MyTasksIndex({ tasks, filters, statuses, priorities }: P
                                 </tr>
                             );
                         })}
-                        {tasks.length === 0 && <EmptyState colSpan={6} message="No tasks assigned to you." />}
+                        {tasks.data.length === 0 && <EmptyState colSpan={6} message="No tasks assigned to you." />}
                     </tbody>
                 </table>
             </div>
+
+            <Pagination links={tasks.links} />
         </AppLayout>
     );
 }

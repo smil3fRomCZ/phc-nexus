@@ -1,6 +1,8 @@
 import AppLayout from '@/Layouts/AppLayout';
 import type { Breadcrumb } from '@/Layouts/AppLayout';
 import EmptyState from '@/Components/EmptyState';
+import Pagination from '@/Components/Pagination';
+import type { PaginationLink } from '@/Components/Pagination';
 import { router } from '@inertiajs/react';
 
 interface AuditEntry {
@@ -27,7 +29,7 @@ interface Actor {
 }
 
 interface Props {
-    entries: AuditEntry[];
+    entries: { data: AuditEntry[]; links: PaginationLink[] };
     filters: { action?: string; entity_type?: string; actor_id?: string };
     actions: SelectOption[];
     entityTypes: SelectOption[];
@@ -121,7 +123,7 @@ export default function AuditLogIndex({ entries, filters, actions, entityTypes, 
                         </tr>
                     </thead>
                     <tbody>
-                        {entries.map((entry) => (
+                        {entries.data.map((entry) => (
                             <tr key={entry.id} className="transition-colors hover:bg-brand-soft">
                                 <td className="border-b border-border-subtle px-5 py-3 text-xs text-text-muted whitespace-nowrap">
                                     {formatTime(entry.created_at)}
@@ -149,10 +151,12 @@ export default function AuditLogIndex({ entries, filters, actions, entityTypes, 
                                 </td>
                             </tr>
                         ))}
-                        {entries.length === 0 && <EmptyState colSpan={5} message="No audit entries found." />}
+                        {entries.data.length === 0 && <EmptyState colSpan={5} message="No audit entries found." />}
                     </tbody>
                 </table>
             </div>
+
+            <Pagination links={entries.links} />
         </AppLayout>
     );
 }

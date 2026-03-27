@@ -4,6 +4,7 @@ import EmptyState from '@/Components/EmptyState';
 import { TASK_STATUS, getStatus } from '@/constants/status';
 import { getPriority } from '@/constants/priority';
 import { Link, router } from '@inertiajs/react';
+import { useState } from 'react';
 
 interface Task {
     id: string;
@@ -30,6 +31,36 @@ interface Props {
 }
 
 export default function TaskTable({ project, tasks, filters, statuses, priorities }: Props) {
+    const [selected, setSelected] = useState<string[]>([]);
+    const [bulkStatus, setBulkStatus] = useState('');
+
+    function toggleSelect(id: string) {
+        setSelected((prev) => (prev.includes(id) ? prev.filter((s) => s !== id) : [...prev, id]));
+    }
+
+    function toggleAll() {
+        setSelected(selected.length === tasks.length ? [] : tasks.map((t) => t.id));
+    }
+
+    function handleBulkStatus() {
+        if (!bulkStatus || selected.length === 0) return;
+        fetch(`/projects/${project.id}/tasks/bulk-status`, {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+                'X-CSRF-TOKEN': document.querySelector<HTMLMetaElement>('meta[name="csrf-token"]')?.content ?? '',
+                Accept: 'application/json',
+            },
+            body: JSON.stringify({ task_ids: selected, status: bulkStatus }),
+        }).then((res) => {
+            if (res.ok) {
+                setSelected([]);
+                setBulkStatus('');
+                router.reload({ only: ['tasks'] });
+            }
+        });
+    }
+
     const breadcrumbs: Breadcrumb[] = [
         { label: 'Home', href: '/' },
         { label: 'Projects', href: '/projects' },
@@ -126,11 +157,48 @@ export default function TaskTable({ project, tasks, filters, statuses, prioritie
                 </select>
             </div>
 
+            {/* Bulk Actions */}
+            {selected.length > 0 && (
+                <div className="mb-4 flex items-center gap-3 rounded-lg border border-brand-primary/30 bg-brand-soft px-4 py-2">
+                    <span className="text-sm font-medium text-text-strong">{selected.length} selected</span>
+                    <select
+                        value={bulkStatus}
+                        onChange={(e) => setBulkStatus(e.target.value)}
+                        className="rounded-md border border-border-default bg-surface-primary px-3 py-1 text-sm"
+                    >
+                        <option value="">Change status to...</option>
+                        {statuses.map((s) => (
+                            <option key={s.value} value={s.value}>
+                                {s.label}
+                            </option>
+                        ))}
+                    </select>
+                    <button
+                        onClick={handleBulkStatus}
+                        disabled={!bulkStatus}
+                        className="rounded-md bg-brand-primary px-3 py-1 text-sm font-medium text-text-inverse transition-colors hover:bg-brand-hover disabled:opacity-50"
+                    >
+                        Apply
+                    </button>
+                    <button onClick={() => setSelected([])} className="text-sm text-text-muted hover:text-text-default">
+                        Clear
+                    </button>
+                </div>
+            )}
+
             {/* Table */}
             <div className="overflow-x-auto rounded-lg border border-border-subtle bg-surface-primary">
                 <table className="w-full border-collapse">
                     <thead>
                         <tr>
+                            <th className="w-10 border-b border-border-default bg-surface-secondary px-3 py-3">
+                                <input
+                                    type="checkbox"
+                                    checked={selected.length === tasks.length && tasks.length > 0}
+                                    onChange={toggleAll}
+                                    className="rounded border-border-default"
+                                />
+                            </th>
                             {[
                                 { field: 'title', label: 'Title', sortable: true },
                                 { field: 'status', label: 'Status', sortable: true },
@@ -154,7 +222,18 @@ export default function TaskTable({ project, tasks, filters, statuses, prioritie
                     </thead>
                     <tbody>
                         {tasks.map((task) => (
-                            <tr key={task.id} className="transition-colors hover:bg-brand-soft">
+                            <tr
+                                key={task.id}
+                                className={`transition-colors ${selected.includes(task.id) ? 'bg-brand-soft' : 'hover:bg-brand-soft'}`}
+                            >
+                                <td className="border-b border-border-subtle px-3 py-3">
+                                    <input
+                                        type="checkbox"
+                                        checked={selected.includes(task.id)}
+                                        onChange={() => toggleSelect(task.id)}
+                                        className="rounded border-border-default"
+                                    />
+                                </td>
                                 <td className="border-b border-border-subtle px-5 py-3 text-base">
                                     <Link
                                         href={`/projects/${project.id}/tasks/${task.id}`}
@@ -201,7 +280,7 @@ export default function TaskTable({ project, tasks, filters, statuses, prioritie
                                 </td>
                             </tr>
                         ))}
-                        {tasks.length === 0 && <EmptyState message="No tasks match your filters." colSpan={6} />}
+                        {tasks.length === 0 && <EmptyState message="No tasks match your filters." colSpan={7} />}
                     </tbody>
                 </table>
             </div>

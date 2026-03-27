@@ -247,6 +247,25 @@ final class TaskController extends Controller
         return response()->json(['success' => true]);
     }
 
+    public function bulkUpdateStatus(Request $request, Project $project): JsonResponse
+    {
+        Gate::authorize('view', $project);
+
+        $validated = $request->validate([
+            'task_ids' => ['required', 'array', 'min:1'],
+            'task_ids.*' => ['uuid'],
+            'status' => ['required', 'string', 'in:'.implode(',', array_column(TaskStatus::cases(), 'value'))],
+        ]);
+
+        $newStatus = TaskStatus::from($validated['status']);
+
+        Task::where('project_id', $project->id)
+            ->whereIn('id', $validated['task_ids'])
+            ->update(['status' => $newStatus]);
+
+        return response()->json(['success' => true, 'count' => count($validated['task_ids'])]);
+    }
+
     public function destroy(Project $project, Task $task): RedirectResponse
     {
         Gate::authorize('delete', $task);

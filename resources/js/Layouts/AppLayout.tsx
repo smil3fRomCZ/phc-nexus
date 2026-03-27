@@ -6,6 +6,7 @@ import {
     LayoutDashboard,
     FolderKanban,
     Clock,
+    CalendarDays,
     CheckSquare,
     Bell,
     Users,
@@ -41,6 +42,7 @@ const NAV_SECTIONS = [
             { href: '/', label: 'Dashboard', icon: LayoutDashboard },
             { href: '/projects', label: 'Projects', icon: FolderKanban },
             { href: '/my-tasks', label: 'My Tasks', icon: Clock },
+            { href: '/calendar', label: 'Calendar', icon: CalendarDays },
         ],
     },
     {

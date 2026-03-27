@@ -142,7 +142,11 @@ export default function TaskShow({ project, task, allowedTransitions, members, s
                                 </button>
                                 <button
                                     onClick={() => {
-                                        if (confirm('Are you sure you want to delete this task? This action cannot be undone.')) {
+                                        if (
+                                            confirm(
+                                                'Are you sure you want to delete this task? This action cannot be undone.',
+                                            )
+                                        ) {
                                             router.delete(`/projects/${project.id}/tasks/${task.id}`);
                                         }
                                     }}
@@ -376,7 +380,9 @@ function TaskEditDialog({
                                 className="mt-1 w-full rounded-md border border-border-default bg-surface-primary px-3 py-2 text-sm focus:border-border-focus focus:outline-none focus:shadow-[0_0_0_2px_var(--color-brand-soft)]"
                             >
                                 {statuses.map((s) => (
-                                    <option key={s.value} value={s.value}>{s.label}</option>
+                                    <option key={s.value} value={s.value}>
+                                        {s.label}
+                                    </option>
                                 ))}
                             </select>
                         </EditField>
@@ -388,7 +394,9 @@ function TaskEditDialog({
                                 className="mt-1 w-full rounded-md border border-border-default bg-surface-primary px-3 py-2 text-sm focus:border-border-focus focus:outline-none focus:shadow-[0_0_0_2px_var(--color-brand-soft)]"
                             >
                                 {priorities.map((p) => (
-                                    <option key={p.value} value={p.value}>{p.label}</option>
+                                    <option key={p.value} value={p.value}>
+                                        {p.label}
+                                    </option>
                                 ))}
                             </select>
                         </EditField>
@@ -403,7 +411,9 @@ function TaskEditDialog({
                             >
                                 <option value="">Unassigned</option>
                                 {members.map((m) => (
-                                    <option key={m.id} value={m.id}>{m.name}</option>
+                                    <option key={m.id} value={m.id}>
+                                        {m.name}
+                                    </option>
                                 ))}
                             </select>
                         </EditField>
@@ -416,7 +426,9 @@ function TaskEditDialog({
                             >
                                 <option value="">—</option>
                                 {members.map((m) => (
-                                    <option key={m.id} value={m.id}>{m.name}</option>
+                                    <option key={m.id} value={m.id}>
+                                        {m.name}
+                                    </option>
                                 ))}
                             </select>
                         </EditField>
@@ -489,9 +501,7 @@ function RequestApprovalDialog({
     function toggleApprover(id: string) {
         setData(
             'approver_ids',
-            data.approver_ids.includes(id)
-                ? data.approver_ids.filter((a) => a !== id)
-                : [...data.approver_ids, id],
+            data.approver_ids.includes(id) ? data.approver_ids.filter((a) => a !== id) : [...data.approver_ids, id],
         );
     }
 

@@ -65,7 +65,11 @@ export default function ProjectShow({ project }: { project: Project }) {
                         </Link>
                         <button
                             onClick={() => {
-                                if (confirm('Are you sure you want to delete this project? This action cannot be undone.')) {
+                                if (
+                                    confirm(
+                                        'Are you sure you want to delete this project? This action cannot be undone.',
+                                    )
+                                ) {
                                     router.delete(`/projects/${project.id}`);
                                 }
                             }}

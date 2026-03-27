@@ -71,7 +71,11 @@ export default function EpicShow({ project, epic, members, statuses }: Props) {
                             </button>
                             <button
                                 onClick={() => {
-                                    if (confirm('Are you sure you want to delete this epic? This action cannot be undone.')) {
+                                    if (
+                                        confirm(
+                                            'Are you sure you want to delete this epic? This action cannot be undone.',
+                                        )
+                                    ) {
                                         router.delete(`/projects/${project.id}/epics/${epic.id}`);
                                     }
                                 }}
@@ -200,7 +204,9 @@ function EpicEditDialog({
                                 className="mt-1 w-full rounded-md border border-border-default bg-surface-primary px-3 py-2 text-sm focus:border-border-focus focus:outline-none focus:shadow-[0_0_0_2px_var(--color-brand-soft)]"
                             >
                                 {statuses.map((s) => (
-                                    <option key={s.value} value={s.value}>{s.label}</option>
+                                    <option key={s.value} value={s.value}>
+                                        {s.label}
+                                    </option>
                                 ))}
                             </select>
                             {errors.status && <p className="mt-1 text-xs text-status-danger">{errors.status}</p>}
@@ -215,7 +221,9 @@ function EpicEditDialog({
                             >
                                 <option value="">—</option>
                                 {members.map((m) => (
-                                    <option key={m.id} value={m.id}>{m.name}</option>
+                                    <option key={m.id} value={m.id}>
+                                        {m.name}
+                                    </option>
                                 ))}
                             </select>
                             {errors.owner_id && <p className="mt-1 text-xs text-status-danger">{errors.owner_id}</p>}

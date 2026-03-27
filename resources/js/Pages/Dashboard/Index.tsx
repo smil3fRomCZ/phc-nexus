@@ -25,6 +25,7 @@ interface ApprovalRequest {
     status: string;
     requester: { id: string; name: string };
     created_at: string;
+    project_id: string | null;
 }
 
 interface Props {
@@ -181,12 +182,14 @@ export default function DashboardIndex({ stats, myTasks, pendingApprovals }: Pro
                                 Requested by {approval.requester.name} &middot; {timeAgo(approval.created_at)}
                             </div>
                             <div className="flex gap-2">
-                                <Link
-                                    href={`/projects/${approval.id}`}
-                                    className="inline-flex items-center rounded-md bg-brand-primary px-3 py-1 text-xs font-medium text-text-inverse no-underline transition-colors hover:bg-brand-hover"
-                                >
-                                    Review
-                                </Link>
+                                {approval.project_id && (
+                                    <Link
+                                        href={`/projects/${approval.project_id}/approvals/${approval.id}`}
+                                        className="inline-flex items-center rounded-md bg-brand-primary px-3 py-1 text-xs font-medium text-text-inverse no-underline transition-colors hover:bg-brand-hover"
+                                    >
+                                        Review
+                                    </Link>
+                                )}
                             </div>
                         </div>
                     ))}

@@ -5,7 +5,7 @@ import StatusBadge from '@/Components/StatusBadge';
 import { TASK_STATUS } from '@/constants/status';
 import { getPriority } from '@/constants/priority';
 import { Link, router, useForm, usePage } from '@inertiajs/react';
-import { Paperclip, Send, Download, Trash2, MessageSquare, Upload } from 'lucide-react';
+import { Paperclip, Send, Download, Trash2, MessageSquare, Upload, Pencil, X, ShieldCheck } from 'lucide-react';
 import type { PageProps } from '@/types';
 import { useState, type FormEvent } from 'react';
 
@@ -46,10 +46,23 @@ interface Task {
     updated_at: string;
 }
 
+interface Member {
+    id: string;
+    name: string;
+}
+
+interface SelectOption {
+    value: string;
+    label: string;
+}
+
 interface Props {
     project: { id: string; name: string; key: string };
     task: Task;
-    allowedTransitions: Array<{ value: string; label: string }>;
+    allowedTransitions: SelectOption[];
+    members: Member[];
+    statuses: SelectOption[];
+    priorities: SelectOption[];
 }
 
 function formatDate(dateStr: string): string {
@@ -73,8 +86,10 @@ function formatFileSize(bytes: number): string {
     return `${(bytes / 1048576).toFixed(1)} MB`;
 }
 
-export default function TaskShow({ project, task, allowedTransitions }: Props) {
+export default function TaskShow({ project, task, allowedTransitions, members, statuses, priorities }: Props) {
     const { auth } = usePage<PageProps>().props;
+    const [editing, setEditing] = useState(false);
+    const [requestingApproval, setRequestingApproval] = useState(false);
 
     const breadcrumbs: Breadcrumb[] = [
         { label: 'Home', href: '/' },
@@ -110,11 +125,61 @@ export default function TaskShow({ project, task, allowedTransitions }: Props) {
                         <div className="flex items-center gap-3">
                             <h1 className="text-2xl font-bold leading-tight text-text-strong">{task.title}</h1>
                             <StatusBadge statusMap={TASK_STATUS} value={task.status} />
+                            <div className="ml-auto flex gap-2">
+                                <button
+                                    onClick={() => setRequestingApproval(true)}
+                                    className="rounded-md border border-border-default px-3 py-1.5 text-xs font-medium text-text-muted transition-colors hover:bg-surface-hover hover:text-text-default"
+                                >
+                                    <ShieldCheck className="mr-1 inline-block h-3 w-3" />
+                                    Request Approval
+                                </button>
+                                <button
+                                    onClick={() => setEditing(true)}
+                                    className="rounded-md border border-border-default px-3 py-1.5 text-xs font-medium text-text-muted transition-colors hover:bg-surface-hover hover:text-text-default"
+                                >
+                                    <Pencil className="mr-1 inline-block h-3 w-3" />
+                                    Edit
+                                </button>
+                                <button
+                                    onClick={() => {
+                                        if (
+                                            confirm(
+                                                'Are you sure you want to delete this task? This action cannot be undone.',
+                                            )
+                                        ) {
+                                            router.delete(`/projects/${project.id}/tasks/${task.id}`);
+                                        }
+                                    }}
+                                    className="rounded-md border border-status-danger/30 px-3 py-1.5 text-xs font-medium text-status-danger transition-colors hover:bg-status-danger-subtle"
+                                >
+                                    <Trash2 className="h-3 w-3" />
+                                </button>
+                            </div>
                         </div>
                         {task.description && (
                             <p className="mt-3 text-base leading-relaxed text-text-default">{task.description}</p>
                         )}
                     </div>
+
+                    {editing && (
+                        <TaskEditDialog
+                            project={project}
+                            task={task}
+                            members={members}
+                            statuses={statuses}
+                            priorities={priorities}
+                            onClose={() => setEditing(false)}
+                        />
+                    )}
+
+                    {requestingApproval && (
+                        <RequestApprovalDialog
+                            projectId={project.id}
+                            taskId={task.id}
+                            members={members}
+                            onClose={() => setRequestingApproval(false)}
+                        />
+                    )}
 
                     {/* Metadata strip */}
                     <div className="mb-6 flex gap-6 rounded-lg border border-border-subtle bg-surface-secondary px-5 py-3 text-xs text-text-muted">
@@ -243,6 +308,282 @@ export default function TaskShow({ project, task, allowedTransitions }: Props) {
                 </div>
             </div>
         </AppLayout>
+    );
+}
+
+function TaskEditDialog({
+    project,
+    task,
+    members,
+    statuses,
+    priorities,
+    onClose,
+}: {
+    project: { id: string };
+    task: Task;
+    members: Member[];
+    statuses: SelectOption[];
+    priorities: SelectOption[];
+    onClose: () => void;
+}) {
+    const { data, setData, put, processing, errors } = useForm({
+        title: task.title,
+        description: task.description ?? '',
+        status: task.status,
+        priority: task.priority,
+        assignee_id: task.assignee?.id ?? '',
+        reporter_id: task.reporter?.id ?? '',
+        due_date: task.due_date ?? '',
+    });
+
+    function submit(e: FormEvent) {
+        e.preventDefault();
+        put(`/projects/${project.id}/tasks/${task.id}`, {
+            onSuccess: () => onClose(),
+        });
+    }
+
+    return (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50">
+            <div className="w-full max-w-lg rounded-lg border border-border-subtle bg-surface-primary p-6 shadow-xl">
+                <div className="mb-4 flex items-center justify-between">
+                    <h2 className="text-lg font-semibold text-text-strong">Edit Task</h2>
+                    <button onClick={onClose} className="rounded p-1 text-text-muted hover:bg-surface-hover">
+                        <X className="h-4 w-4" />
+                    </button>
+                </div>
+
+                <form onSubmit={submit} className="space-y-4">
+                    <EditField label="Title *" error={errors.title}>
+                        <input
+                            type="text"
+                            value={data.title}
+                            onChange={(e) => setData('title', e.target.value)}
+                            className="mt-1 w-full rounded-md border border-border-default bg-surface-primary px-3 py-2 text-sm focus:border-border-focus focus:outline-none focus:shadow-[0_0_0_2px_var(--color-brand-soft)]"
+                        />
+                    </EditField>
+
+                    <EditField label="Description" error={errors.description}>
+                        <textarea
+                            value={data.description}
+                            onChange={(e) => setData('description', e.target.value)}
+                            rows={3}
+                            className="mt-1 w-full rounded-md border border-border-default bg-surface-primary px-3 py-2 text-sm focus:border-border-focus focus:outline-none focus:shadow-[0_0_0_2px_var(--color-brand-soft)]"
+                        />
+                    </EditField>
+
+                    <div className="grid grid-cols-2 gap-4">
+                        <EditField label="Status" error={errors.status}>
+                            <select
+                                value={data.status}
+                                onChange={(e) => setData('status', e.target.value)}
+                                className="mt-1 w-full rounded-md border border-border-default bg-surface-primary px-3 py-2 text-sm focus:border-border-focus focus:outline-none focus:shadow-[0_0_0_2px_var(--color-brand-soft)]"
+                            >
+                                {statuses.map((s) => (
+                                    <option key={s.value} value={s.value}>
+                                        {s.label}
+                                    </option>
+                                ))}
+                            </select>
+                        </EditField>
+
+                        <EditField label="Priority" error={errors.priority}>
+                            <select
+                                value={data.priority}
+                                onChange={(e) => setData('priority', e.target.value)}
+                                className="mt-1 w-full rounded-md border border-border-default bg-surface-primary px-3 py-2 text-sm focus:border-border-focus focus:outline-none focus:shadow-[0_0_0_2px_var(--color-brand-soft)]"
+                            >
+                                {priorities.map((p) => (
+                                    <option key={p.value} value={p.value}>
+                                        {p.label}
+                                    </option>
+                                ))}
+                            </select>
+                        </EditField>
+                    </div>
+
+                    <div className="grid grid-cols-2 gap-4">
+                        <EditField label="Assignee" error={errors.assignee_id}>
+                            <select
+                                value={data.assignee_id}
+                                onChange={(e) => setData('assignee_id', e.target.value)}
+                                className="mt-1 w-full rounded-md border border-border-default bg-surface-primary px-3 py-2 text-sm focus:border-border-focus focus:outline-none focus:shadow-[0_0_0_2px_var(--color-brand-soft)]"
+                            >
+                                <option value="">Unassigned</option>
+                                {members.map((m) => (
+                                    <option key={m.id} value={m.id}>
+                                        {m.name}
+                                    </option>
+                                ))}
+                            </select>
+                        </EditField>
+
+                        <EditField label="Reporter" error={errors.reporter_id}>
+                            <select
+                                value={data.reporter_id}
+                                onChange={(e) => setData('reporter_id', e.target.value)}
+                                className="mt-1 w-full rounded-md border border-border-default bg-surface-primary px-3 py-2 text-sm focus:border-border-focus focus:outline-none focus:shadow-[0_0_0_2px_var(--color-brand-soft)]"
+                            >
+                                <option value="">—</option>
+                                {members.map((m) => (
+                                    <option key={m.id} value={m.id}>
+                                        {m.name}
+                                    </option>
+                                ))}
+                            </select>
+                        </EditField>
+                    </div>
+
+                    <EditField label="Due Date" error={errors.due_date}>
+                        <input
+                            type="date"
+                            value={data.due_date}
+                            onChange={(e) => setData('due_date', e.target.value)}
+                            className="mt-1 w-full rounded-md border border-border-default bg-surface-primary px-3 py-2 text-sm focus:border-border-focus focus:outline-none focus:shadow-[0_0_0_2px_var(--color-brand-soft)]"
+                        />
+                    </EditField>
+
+                    <div className="flex justify-end gap-3 pt-2">
+                        <button
+                            type="button"
+                            onClick={onClose}
+                            className="rounded-md border border-border-default px-4 py-2 text-sm font-medium text-text-muted transition-colors hover:bg-surface-hover"
+                        >
+                            Cancel
+                        </button>
+                        <button
+                            type="submit"
+                            disabled={processing}
+                            className="rounded-md bg-brand-primary px-4 py-2 text-sm font-medium text-text-inverse transition-colors hover:bg-brand-hover disabled:opacity-50"
+                        >
+                            Save Changes
+                        </button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    );
+}
+
+function EditField({ label, error, children }: { label: string; error?: string; children: React.ReactNode }) {
+    return (
+        <div>
+            <label className="block text-xs font-medium text-text-default">{label}</label>
+            {children}
+            {error && <p className="mt-1 text-xs text-status-danger">{error}</p>}
+        </div>
+    );
+}
+
+function RequestApprovalDialog({
+    projectId,
+    taskId,
+    members,
+    onClose,
+}: {
+    projectId: string;
+    taskId: string;
+    members: Member[];
+    onClose: () => void;
+}) {
+    const { data, setData, post, processing, errors } = useForm<{
+        task_id: string;
+        approver_ids: string[];
+        description: string;
+        expires_at: string;
+    }>({
+        task_id: taskId,
+        approver_ids: [],
+        description: '',
+        expires_at: '',
+    });
+
+    function toggleApprover(id: string) {
+        setData(
+            'approver_ids',
+            data.approver_ids.includes(id) ? data.approver_ids.filter((a) => a !== id) : [...data.approver_ids, id],
+        );
+    }
+
+    function submit(e: FormEvent) {
+        e.preventDefault();
+        post(`/projects/${projectId}/approvals`, {
+            onSuccess: () => onClose(),
+        });
+    }
+
+    return (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50">
+            <div className="w-full max-w-lg rounded-lg border border-border-subtle bg-surface-primary p-6 shadow-xl">
+                <div className="mb-4 flex items-center justify-between">
+                    <h2 className="text-lg font-semibold text-text-strong">Request Approval</h2>
+                    <button onClick={onClose} className="rounded p-1 text-text-muted hover:bg-surface-hover">
+                        <X className="h-4 w-4" />
+                    </button>
+                </div>
+
+                <form onSubmit={submit} className="space-y-4">
+                    <EditField label="Description" error={errors.description}>
+                        <textarea
+                            value={data.description}
+                            onChange={(e) => setData('description', e.target.value)}
+                            rows={2}
+                            placeholder="What needs to be approved?"
+                            className="mt-1 w-full rounded-md border border-border-default bg-surface-primary px-3 py-2 text-sm focus:border-border-focus focus:outline-none focus:shadow-[0_0_0_2px_var(--color-brand-soft)]"
+                        />
+                    </EditField>
+
+                    <div>
+                        <label className="block text-xs font-medium text-text-default">Approvers *</label>
+                        {errors.approver_ids && (
+                            <p className="mt-1 text-xs text-status-danger">{errors.approver_ids}</p>
+                        )}
+                        <div className="mt-2 max-h-48 space-y-1 overflow-y-auto rounded-md border border-border-default p-2">
+                            {members.map((m) => (
+                                <label
+                                    key={m.id}
+                                    className="flex cursor-pointer items-center gap-2 rounded px-2 py-1.5 text-sm hover:bg-surface-hover"
+                                >
+                                    <input
+                                        type="checkbox"
+                                        checked={data.approver_ids.includes(m.id)}
+                                        onChange={() => toggleApprover(m.id)}
+                                        className="rounded border-border-default"
+                                    />
+                                    <span className="text-text-default">{m.name}</span>
+                                </label>
+                            ))}
+                        </div>
+                    </div>
+
+                    <EditField label="Expires at" error={errors.expires_at}>
+                        <input
+                            type="datetime-local"
+                            value={data.expires_at}
+                            onChange={(e) => setData('expires_at', e.target.value)}
+                            className="mt-1 w-full rounded-md border border-border-default bg-surface-primary px-3 py-2 text-sm focus:border-border-focus focus:outline-none focus:shadow-[0_0_0_2px_var(--color-brand-soft)]"
+                        />
+                    </EditField>
+
+                    <div className="flex justify-end gap-3 pt-2">
+                        <button
+                            type="button"
+                            onClick={onClose}
+                            className="rounded-md border border-border-default px-4 py-2 text-sm font-medium text-text-muted transition-colors hover:bg-surface-hover"
+                        >
+                            Cancel
+                        </button>
+                        <button
+                            type="submit"
+                            disabled={processing || data.approver_ids.length === 0}
+                            className="rounded-md bg-brand-primary px-4 py-2 text-sm font-medium text-text-inverse transition-colors hover:bg-brand-hover disabled:opacity-50"
+                        >
+                            Submit Request
+                        </button>
+                    </div>
+                </form>
+            </div>
+        </div>
     );
 }
 

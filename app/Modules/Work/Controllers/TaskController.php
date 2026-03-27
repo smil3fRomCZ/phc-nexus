@@ -5,6 +5,8 @@ declare(strict_types=1);
 namespace App\Modules\Work\Controllers;
 
 use App\Http\Controllers\Controller;
+use App\Modules\Notifications\Notifications\TaskAssignedNotification;
+use App\Modules\Notifications\Notifications\TaskStatusChangedNotification;
 use App\Modules\Projects\Models\Project;
 use App\Modules\Work\Enums\TaskPriority;
 use App\Modules\Work\Enums\TaskStatus;
@@ -91,10 +93,26 @@ final class TaskController extends Controller
             ->values()
             ->all();
 
+        $members = $project->members()
+            ->select('users.id', 'users.name')
+            ->get()
+            ->when($project->owner_id, fn ($col) => $col->push($project->owner()->select('id', 'name')->first()))
+            ->unique('id')
+            ->values();
+
+        $statuses = collect(TaskStatus::cases())
+            ->map(fn (TaskStatus $s) => ['value' => $s->value, 'label' => $s->label()]);
+
+        $priorities = collect(TaskPriority::cases())
+            ->map(fn (TaskPriority $p) => ['value' => $p->value, 'label' => $p->label()]);
+
         return Inertia::render('Work/Tasks/Show', [
             'project' => $project->only('id', 'name', 'key'),
             'task' => $task,
             'allowedTransitions' => $allowedTransitions,
+            'members' => $members,
+            'statuses' => $statuses,
+            'priorities' => $priorities,
         ]);
     }
 
@@ -112,7 +130,24 @@ final class TaskController extends Controller
             'due_date' => ['nullable', 'date'],
         ]);
 
+        $oldAssigneeId = $task->assignee_id;
+        /** @var TaskStatus $oldStatus */
+        $oldStatus = $task->status;
+
         $task->update($validated);
+
+        if (($validated['assignee_id'] ?? null) !== null
+            && $validated['assignee_id'] !== $oldAssigneeId
+            && $task->assignee !== null
+        ) {
+            $task->assignee->notify(new TaskAssignedNotification($task, $request->user()));
+        }
+
+        /** @var TaskStatus $newStatus */
+        $newStatus = $task->status;
+        if ($oldStatus !== $newStatus && $task->assignee !== null) {
+            $task->assignee->notify(new TaskStatusChangedNotification($task, $oldStatus, $newStatus));
+        }
 
         return back()->with('success', 'Úkol aktualizován.');
     }
@@ -200,7 +235,14 @@ final class TaskController extends Controller
             ]);
         }
 
+        /** @var TaskStatus $oldStatus */
+        $oldStatus = $task->status;
         $task->update(['status' => $newStatus]);
+
+        $task->load('assignee');
+        if ($task->assignee !== null) {
+            $task->assignee->notify(new TaskStatusChangedNotification($task, $oldStatus, $newStatus));
+        }
 
         return response()->json(['success' => true]);
     }

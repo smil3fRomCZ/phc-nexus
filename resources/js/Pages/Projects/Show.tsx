@@ -4,7 +4,8 @@ import Avatar from '@/Components/Avatar';
 import StatusBadge from '@/Components/StatusBadge';
 import { MetadataGrid, MetadataField } from '@/Components/MetadataGrid';
 import { PROJECT_STATUS } from '@/constants/status';
-import { Link } from '@inertiajs/react';
+import { Link, router } from '@inertiajs/react';
+import { Trash2 } from 'lucide-react';
 
 interface Comment {
     id: string;
@@ -55,12 +56,28 @@ export default function ProjectShow({ project }: { project: Project }) {
                             <p className="mt-2 text-base text-text-default">{project.description}</p>
                         )}
                     </div>
-                    <Link
-                        href={`/projects/${project.id}/edit`}
-                        className="rounded-md border border-border-default px-5 py-2 text-sm font-medium text-text-default no-underline transition-colors hover:bg-surface-hover"
-                    >
-                        Edit
-                    </Link>
+                    <div className="flex gap-2">
+                        <Link
+                            href={`/projects/${project.id}/edit`}
+                            className="rounded-md border border-border-default px-5 py-2 text-sm font-medium text-text-default no-underline transition-colors hover:bg-surface-hover"
+                        >
+                            Edit
+                        </Link>
+                        <button
+                            onClick={() => {
+                                if (
+                                    confirm(
+                                        'Are you sure you want to delete this project? This action cannot be undone.',
+                                    )
+                                ) {
+                                    router.delete(`/projects/${project.id}`);
+                                }
+                            }}
+                            className="rounded-md border border-status-danger/30 px-3 py-2 text-sm font-medium text-status-danger transition-colors hover:bg-status-danger-subtle"
+                        >
+                            <Trash2 className="h-4 w-4" />
+                        </button>
+                    </div>
                 </div>
 
                 {/* Metadata */}

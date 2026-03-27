@@ -8,6 +8,7 @@ use App\Modules\Work\Controllers\EpicController;
 use App\Modules\Work\Controllers\TaskAttachmentController;
 use App\Modules\Work\Controllers\TaskCommentController;
 use App\Modules\Work\Controllers\TaskController;
+use App\Modules\Work\Controllers\TaskDependencyController;
 use Illuminate\Support\Facades\Route;
 
 Route::middleware('auth')->group(function () {
@@ -35,6 +36,10 @@ Route::middleware('auth')->group(function () {
     Route::patch('projects/{project}/tasks/{task}/status', [TaskController::class, 'updateStatus'])->name('projects.tasks.updateStatus');
     Route::post('projects/{project}/tasks/bulk-status', [TaskController::class, 'bulkUpdateStatus'])->name('projects.tasks.bulkUpdateStatus');
     Route::delete('projects/{project}/tasks/{task}', [TaskController::class, 'destroy'])->name('projects.tasks.destroy');
+
+    // Task dependencies
+    Route::post('projects/{project}/tasks/{task}/dependencies', [TaskDependencyController::class, 'store'])->name('projects.tasks.dependencies.store');
+    Route::delete('projects/{project}/tasks/{task}/dependencies/{blocker}', [TaskDependencyController::class, 'destroy'])->name('projects.tasks.dependencies.destroy');
 
     // Task comments
     Route::post('projects/{project}/tasks/{task}/comments', [TaskCommentController::class, 'store'])->name('projects.tasks.comments.store');

@@ -63,6 +63,8 @@ interface Task {
     attachments: Attachment[];
     blockers: DependencyTask[];
     blocking: DependencyTask[];
+    recurrence_rule: string | null;
+    recurrence_next_at: string | null;
     attachments_count: number;
     comments_count: number;
     created_at: string;
@@ -93,6 +95,7 @@ interface Props {
     priorities: SelectOption[];
     activity: ActivityEntry[];
     projectTasks: ProjectTask[];
+    recurrenceRules: SelectOption[];
 }
 
 function formatDate(dateStr: string): string {
@@ -125,6 +128,7 @@ export default function TaskShow({
     priorities,
     activity,
     projectTasks,
+    recurrenceRules,
 }: Props) {
     const { auth } = usePage<PageProps>().props;
     const [editing, setEditing] = useState(false);
@@ -371,6 +375,44 @@ export default function TaskShow({
                             onChange={(e) => inlineUpdate({ due_date: e.target.value || null })}
                             className="w-full rounded border border-transparent bg-transparent px-0 py-0.5 text-sm transition-colors hover:border-border-default focus:border-border-focus focus:outline-none"
                         />
+                    </SidebarSection>
+
+                    <SidebarSection label="Recurrence">
+                        <select
+                            value={task.recurrence_rule ?? ''}
+                            onChange={(e) => {
+                                fetch(`/projects/${project.id}/tasks/${task.id}/recurrence`, {
+                                    method: 'PATCH',
+                                    headers: {
+                                        'Content-Type': 'application/json',
+                                        'X-CSRF-TOKEN':
+                                            document.querySelector<HTMLMetaElement>('meta[name="csrf-token"]')
+                                                ?.content ?? '',
+                                        Accept: 'application/json',
+                                    },
+                                    body: JSON.stringify({ recurrence_rule: e.target.value || null }),
+                                }).then((res) => {
+                                    if (res.ok) router.reload();
+                                });
+                            }}
+                            className="w-full rounded border border-transparent bg-transparent px-0 py-0.5 text-sm transition-colors hover:border-border-default focus:border-border-focus focus:outline-none"
+                        >
+                            <option value="">No recurrence</option>
+                            {recurrenceRules.map((r) => (
+                                <option key={r.value} value={r.value}>
+                                    {r.label}
+                                </option>
+                            ))}
+                        </select>
+                        {task.recurrence_next_at && (
+                            <p className="mt-1 text-xs text-text-muted">
+                                Next:{' '}
+                                {new Date(task.recurrence_next_at).toLocaleDateString('cs-CZ', {
+                                    day: 'numeric',
+                                    month: 'short',
+                                })}
+                            </p>
+                        )}
                     </SidebarSection>
 
                     <SidebarSection label="Dependencies">

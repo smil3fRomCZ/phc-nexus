@@ -35,6 +35,7 @@ Route::middleware('auth')->group(function () {
     Route::put('projects/{project}/tasks/{task}', [TaskController::class, 'update'])->name('projects.tasks.update');
     Route::patch('projects/{project}/tasks/{task}/status', [TaskController::class, 'updateStatus'])->name('projects.tasks.updateStatus');
     Route::post('projects/{project}/tasks/bulk-status', [TaskController::class, 'bulkUpdateStatus'])->name('projects.tasks.bulkUpdateStatus');
+    Route::patch('projects/{project}/tasks/{task}/recurrence', [TaskController::class, 'setRecurrence'])->name('projects.tasks.setRecurrence');
     Route::delete('projects/{project}/tasks/{task}', [TaskController::class, 'destroy'])->name('projects.tasks.destroy');
 
     // Task dependencies

@@ -101,6 +101,23 @@ export default function TaskShow({ project, task, allowedTransitions, members, s
 
     const priority = getPriority(task.priority);
 
+    function inlineUpdate(fields: Record<string, unknown>) {
+        router.put(
+            `/projects/${project.id}/tasks/${task.id}`,
+            {
+                title: task.title,
+                description: task.description ?? '',
+                status: task.status,
+                priority: task.priority,
+                assignee_id: task.assignee?.id ?? '',
+                reporter_id: task.reporter?.id ?? '',
+                due_date: task.due_date ?? '',
+                ...fields,
+            },
+            { preserveScroll: true },
+        );
+    }
+
     function handleStatusChange(newStatus: string) {
         fetch(`/projects/${project.id}/tasks/${task.id}/status`, {
             method: 'PATCH',
@@ -242,18 +259,32 @@ export default function TaskShow({ project, task, allowedTransitions, members, s
                     </SidebarSection>
 
                     <SidebarSection label="Priority">
-                        <span className={`text-sm font-medium ${priority.textClass}`}>{priority.label}</span>
+                        <select
+                            value={task.priority}
+                            onChange={(e) => inlineUpdate({ priority: e.target.value })}
+                            className="w-full rounded border border-transparent bg-transparent px-0 py-0.5 text-sm font-medium transition-colors hover:border-border-default focus:border-border-focus focus:outline-none"
+                        >
+                            {priorities.map((p) => (
+                                <option key={p.value} value={p.value}>
+                                    {p.label}
+                                </option>
+                            ))}
+                        </select>
                     </SidebarSection>
 
                     <SidebarSection label="Assignee">
-                        {task.assignee ? (
-                            <div className="flex items-center gap-2">
-                                <Avatar name={task.assignee.name} />
-                                <span className="text-sm text-text-default">{task.assignee.name}</span>
-                            </div>
-                        ) : (
-                            <span className="text-sm text-text-muted">Unassigned</span>
-                        )}
+                        <select
+                            value={task.assignee?.id ?? ''}
+                            onChange={(e) => inlineUpdate({ assignee_id: e.target.value || null })}
+                            className="w-full rounded border border-transparent bg-transparent px-0 py-0.5 text-sm transition-colors hover:border-border-default focus:border-border-focus focus:outline-none"
+                        >
+                            <option value="">Unassigned</option>
+                            {members.map((m) => (
+                                <option key={m.id} value={m.id}>
+                                    {m.name}
+                                </option>
+                            ))}
+                        </select>
                     </SidebarSection>
 
                     <SidebarSection label="Reporter">
@@ -287,15 +318,14 @@ export default function TaskShow({ project, task, allowedTransitions, members, s
                         </SidebarSection>
                     )}
 
-                    {task.due_date && (
-                        <SidebarSection label="Due Date">
-                            <span
-                                className={`text-sm font-medium ${new Date(task.due_date) < new Date() ? 'text-status-danger' : 'text-text-default'}`}
-                            >
-                                {formatDate(task.due_date)}
-                            </span>
-                        </SidebarSection>
-                    )}
+                    <SidebarSection label="Due Date">
+                        <input
+                            type="date"
+                            value={task.due_date ?? ''}
+                            onChange={(e) => inlineUpdate({ due_date: e.target.value || null })}
+                            className="w-full rounded border border-transparent bg-transparent px-0 py-0.5 text-sm transition-colors hover:border-border-default focus:border-border-focus focus:outline-none"
+                        />
+                    </SidebarSection>
 
                     <SidebarSection label={`Attachments (${task.attachments_count})`}>
                         <AttachmentList

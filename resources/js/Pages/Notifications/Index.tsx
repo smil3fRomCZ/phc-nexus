@@ -1,4 +1,6 @@
 import EmptyState from '@/Components/EmptyState';
+import Pagination from '@/Components/Pagination';
+import type { PaginationLink } from '@/Components/Pagination';
 import AppLayout from '@/Layouts/AppLayout';
 import type { Breadcrumb } from '@/Layouts/AppLayout';
 import { formatTime } from '@/utils/formatTime';
@@ -19,7 +21,7 @@ interface Notification {
 }
 
 interface Props {
-    notifications: Notification[];
+    notifications: { data: Notification[]; links: PaginationLink[] };
     unreadCount: number;
 }
 
@@ -87,7 +89,7 @@ export default function NotificationsIndex({ notifications, unreadCount }: Props
                 </div>
 
                 <div className="space-y-1">
-                    {notifications.map((n) => {
+                    {notifications.data.map((n) => {
                         const href = getNotificationHref(n.data);
                         const cardClass = `flex items-start gap-3 rounded-lg border px-5 py-3 ${
                             n.read_at
@@ -133,8 +135,10 @@ export default function NotificationsIndex({ notifications, unreadCount }: Props
                             </div>
                         );
                     })}
-                    {notifications.length === 0 && <EmptyState message="No notifications." />}
+                    {notifications.data.length === 0 && <EmptyState message="No notifications." />}
                 </div>
+
+                <Pagination links={notifications.links} />
             </div>
         </AppLayout>
     );

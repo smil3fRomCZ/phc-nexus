@@ -1,6 +1,7 @@
 import { Head, Link, router, usePage } from '@inertiajs/react';
-import type { ReactNode } from 'react';
+import { useState, type ReactNode } from 'react';
 import type { PageProps } from '@/types';
+import Toast from '@/Components/Toast';
 import {
     LayoutDashboard,
     FolderKanban,
@@ -13,6 +14,8 @@ import {
     ShieldAlert,
     LogOut,
     ChevronRight,
+    Menu,
+    X,
 } from 'lucide-react';
 import GlobalSearch from '@/Components/GlobalSearch';
 
@@ -72,6 +75,7 @@ function getInitials(name: string): string {
 export default function AppLayout({ title, breadcrumbs, children }: AppLayoutProps) {
     const { auth } = usePage<PageProps>().props;
     const currentPath = typeof window !== 'undefined' ? window.location.pathname : '';
+    const [sidebarOpen, setSidebarOpen] = useState(false);
 
     function isActive(href: string): boolean {
         if (href === '/') return currentPath === '/';
@@ -81,19 +85,31 @@ export default function AppLayout({ title, breadcrumbs, children }: AppLayoutPro
     return (
         <>
             <Head title={title} />
+            <Toast />
+            <div
+                id="nav-progress"
+                className="fixed left-0 top-0 z-[200] h-0.5 w-full animate-pulse bg-brand-primary opacity-0 transition-opacity"
+            />
             <div className="flex h-screen flex-col bg-surface-canvas">
                 {/* ── Topbar ── */}
-                <header className="flex h-12 flex-shrink-0 items-center justify-between border-b border-border-default bg-surface-primary px-6">
-                    <Link
-                        href="/"
-                        className="flex items-center gap-2 font-bold text-base text-text-strong no-underline"
-                        style={{ minWidth: '14.5rem' }}
-                    >
-                        <span className="inline-block h-2 w-2 rounded-full bg-brand-primary" />
-                        PHC Nexus
-                    </Link>
+                <header className="flex h-12 flex-shrink-0 items-center justify-between border-b border-border-default bg-surface-primary px-4 md:px-6">
+                    <div className="flex items-center gap-3">
+                        <button
+                            onClick={() => setSidebarOpen(!sidebarOpen)}
+                            className="rounded p-1 text-text-muted hover:bg-surface-hover md:hidden"
+                        >
+                            {sidebarOpen ? <X className="h-5 w-5" /> : <Menu className="h-5 w-5" />}
+                        </button>
+                        <Link
+                            href="/"
+                            className="flex items-center gap-2 font-bold text-base text-text-strong no-underline"
+                        >
+                            <span className="inline-block h-2 w-2 rounded-full bg-brand-primary" />
+                            <span className="hidden sm:inline">PHC Nexus</span>
+                        </Link>
+                    </div>
 
-                    <div className="flex flex-1 justify-center px-6">
+                    <div className="hidden flex-1 justify-center px-6 md:flex">
                         <GlobalSearch />
                     </div>
 
@@ -116,8 +132,20 @@ export default function AppLayout({ title, breadcrumbs, children }: AppLayoutPro
                 </header>
 
                 <div className="flex flex-1 overflow-hidden">
+                    {/* ── Mobile overlay ── */}
+                    {sidebarOpen && (
+                        <div
+                            className="fixed inset-0 z-30 bg-black/50 md:hidden"
+                            onClick={() => setSidebarOpen(false)}
+                        />
+                    )}
+
                     {/* ── Sidebar ── */}
-                    <aside className="flex w-64 flex-shrink-0 flex-col border-r border-border-default bg-surface-primary overflow-y-auto">
+                    <aside
+                        className={`fixed inset-y-0 left-0 z-40 flex w-64 flex-shrink-0 flex-col border-r border-border-default bg-surface-primary overflow-y-auto pt-12 transition-transform md:static md:z-auto md:pt-0 md:translate-x-0 ${
+                            sidebarOpen ? 'translate-x-0' : '-translate-x-full'
+                        }`}
+                    >
                         <nav className="flex-1 py-4">
                             {NAV_SECTIONS.map((section) => (
                                 <div key={section.label} className="mb-4">
@@ -131,6 +159,7 @@ export default function AppLayout({ title, breadcrumbs, children }: AppLayoutPro
                                             <Link
                                                 key={item.href + item.label}
                                                 href={item.href}
+                                                onClick={() => setSidebarOpen(false)}
                                                 className={`flex items-center gap-3 border-l-[3px] px-6 py-2 text-sm transition-colors ${
                                                     active
                                                         ? 'border-l-brand-hover bg-brand-soft font-medium text-brand-hover'
@@ -165,7 +194,7 @@ export default function AppLayout({ title, breadcrumbs, children }: AppLayoutPro
                     </aside>
 
                     {/* ── Main Content ── */}
-                    <main className="flex-1 overflow-y-auto px-12 py-8">
+                    <main className="flex-1 overflow-y-auto px-4 py-6 md:px-12 md:py-8">
                         {/* Breadcrumbs */}
                         {breadcrumbs && breadcrumbs.length > 0 && (
                             <nav className="mb-1 flex items-center gap-1 text-sm text-text-subtle">

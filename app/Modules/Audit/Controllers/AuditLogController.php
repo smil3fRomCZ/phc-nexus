@@ -36,8 +36,8 @@ final class AuditLogController extends Controller
 
         $entries = $query
             ->latest('created_at')
-            ->limit(100)
-            ->get();
+            ->paginate(50)
+            ->withQueryString();
 
         $actions = collect(AuditAction::cases())
             ->map(fn (AuditAction $a) => ['value' => $a->value, 'label' => $a->label()]);

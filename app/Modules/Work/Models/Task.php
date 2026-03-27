@@ -11,6 +11,7 @@ use App\Models\Concerns\HasPhiClassification;
 use App\Models\Concerns\HasUuidV7;
 use App\Models\User;
 use App\Modules\Projects\Models\Project;
+use App\Modules\Work\Enums\RecurrenceRule;
 use App\Modules\Work\Enums\TaskPriority;
 use App\Modules\Work\Enums\TaskStatus;
 use Database\Factories\TaskFactory;
@@ -37,6 +38,9 @@ class Task extends Model
         'reporter_id',
         'sort_order',
         'due_date',
+        'recurrence_rule',
+        'recurrence_next_at',
+        'recurrence_source_id',
     ];
 
     protected function casts(): array
@@ -45,6 +49,8 @@ class Task extends Model
             'status' => TaskStatus::class,
             'priority' => TaskPriority::class,
             'due_date' => 'date',
+            'recurrence_rule' => RecurrenceRule::class,
+            'recurrence_next_at' => 'date',
         ];
     }
 

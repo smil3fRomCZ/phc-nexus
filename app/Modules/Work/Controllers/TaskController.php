@@ -8,6 +8,7 @@ use App\Http\Controllers\Controller;
 use App\Modules\Notifications\Notifications\TaskAssignedNotification;
 use App\Modules\Notifications\Notifications\TaskStatusChangedNotification;
 use App\Modules\Projects\Models\Project;
+use App\Modules\Work\Enums\RecurrenceRule;
 use App\Modules\Work\Enums\TaskPriority;
 use App\Modules\Work\Enums\TaskStatus;
 use App\Modules\Work\Models\Epic;
@@ -119,6 +120,9 @@ final class TaskController extends Controller
             ->orderBy('title')
             ->get(['id', 'title']);
 
+        $recurrenceRules = collect(RecurrenceRule::cases())
+            ->map(fn (RecurrenceRule $r) => ['value' => $r->value, 'label' => $r->label()]);
+
         return Inertia::render('Work/Tasks/Show', [
             'project' => $project->only('id', 'name', 'key'),
             'task' => $task,
@@ -128,7 +132,28 @@ final class TaskController extends Controller
             'priorities' => $priorities,
             'activity' => $activity,
             'projectTasks' => $projectTasks,
+            'recurrenceRules' => $recurrenceRules,
         ]);
+    }
+
+    public function setRecurrence(Request $request, Project $project, Task $task): JsonResponse
+    {
+        Gate::authorize('update', $task);
+
+        $validated = $request->validate([
+            'recurrence_rule' => ['nullable', 'string', 'in:'.implode(',', array_column(RecurrenceRule::cases(), 'value'))],
+        ]);
+
+        $rule = $validated['recurrence_rule'] ?? null;
+
+        $task->update([
+            'recurrence_rule' => $rule,
+            'recurrence_next_at' => $rule
+                ? RecurrenceRule::from($rule)->nextDate($task->due_date ?? now())->format('Y-m-d')
+                : null,
+        ]);
+
+        return response()->json(['success' => true]);
     }
 
     public function update(Request $request, Project $project, Task $task): RedirectResponse

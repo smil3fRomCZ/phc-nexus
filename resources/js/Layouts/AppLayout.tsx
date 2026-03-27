@@ -13,6 +13,7 @@ import {
     Building2,
     ScrollText,
     ShieldAlert,
+    BarChart3,
     LogOut,
     ChevronRight,
     Menu,
@@ -59,6 +60,7 @@ const NAV_SECTIONS = [
             { href: '/admin/organization', label: 'Organization', icon: Building2 },
             { href: '/admin/audit-log', label: 'Audit Log', icon: ScrollText },
             { href: '/admin/phi-report', label: 'PHI Report', icon: ShieldAlert },
+            { href: '/admin/approval-analytics', label: 'Approvals', icon: BarChart3 },
         ],
     },
 ];

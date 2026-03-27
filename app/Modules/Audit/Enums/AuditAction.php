@@ -36,4 +36,9 @@ enum AuditAction: string
     // PHI
     case PhiAccessed = 'phi_accessed';
     case PhiClassificationChanged = 'phi_classification_changed';
+
+    public function label(): string
+    {
+        return str_replace('_', ' ', ucfirst($this->value));
+    }
 }

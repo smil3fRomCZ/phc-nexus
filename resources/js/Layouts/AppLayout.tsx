@@ -8,7 +8,9 @@ import {
     CheckSquare,
     Bell,
     Users,
-    FileText,
+    Building2,
+    ScrollText,
+    ShieldAlert,
     LogOut,
     ChevronRight,
 } from 'lucide-react';
@@ -48,8 +50,10 @@ const NAV_SECTIONS = [
     {
         label: 'Admin',
         items: [
-            { href: '#', label: 'Users', icon: Users },
-            { href: '#', label: 'Documents', icon: FileText },
+            { href: '/admin/users', label: 'Users', icon: Users },
+            { href: '/admin/organization', label: 'Organization', icon: Building2 },
+            { href: '/admin/audit-log', label: 'Audit Log', icon: ScrollText },
+            { href: '/admin/phi-report', label: 'PHI Report', icon: ShieldAlert },
         ],
     },
 ];

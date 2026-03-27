@@ -1,35 +1,45 @@
 # PHC Nexus
 
-Interní produktivitní platforma pro Pears Health Care (50-200 uživatelů). Nahrazuje Jira, Asana a Confluence — spojuje projektové řízení, správu úkolů, schvalovací procesy a knowledge base v jednom systému.
+Interní produktivitní platforma pro **Pears Health Care**. Nahrazuje Jira, Asana a Confluence — spojuje projektové řízení, správu úkolů, schvalovací procesy a týmovou organizaci v jednom systému.
 
-## Aktuální stav
+Navrženo pro 50–200 uživatelů. Invite-only přístup přes Google SSO.
 
-**Milestone 5 — Hardening & Release** (**DONE**) · 165 backend + 15 E2E testů · [detailní stav](docs/status.md)
+## Co PHC Nexus umí
 
-### Co už funguje
+### Projektové řízení
+- **Projekty** — CRUD, členství, projektové klíče, export do CSV/Excel/HTML/Markdown
+- **Epiky a úkoly** — hierarchie, přiřazení, priority, due dates, popis
+- **Kanban board** — drag & drop sloupce podle statusu
+- **Tabulkový view** — řazení, filtrování, inline změna statusu, bulk operace
+- **Task dependencies** — blocker/blocked by vazby mezi úkoly
+- **Recurring tasks** — denní, týdenní, dvoutýdenní, měsíční opakování
+- **Calendar** — měsíční pohled úkolů podle due date
 
-- **Projekty** — CRUD s Inertia pages (index, create, show, edit), projektové klíče, membership, soft deletes
-- **Epiky** — CRUD v rámci projektu, quick-add formulář, EpicPolicy, Inertia pages
-- **Úkoly** — CRUD (v epiku i bez), TaskStatus (6 stavů), TaskPriority (4 úrovně), quick-add, assignee/reporter, TaskPolicy, Inertia pages
-- **Kanban board** — drag&drop sloupce podle statusu, optimistický update, validace stavových přechodů
-- **Tabulkový view** — řazení, filtrování (status, priorita), inline změna statusu
-- **Stavové přechody** — hardcoded allowed transitions na TaskStatus i EpicStatus, PATCH endpoint pro rychlou změnu
-- **Approval flow** — polymorfní approval requesty, režim all approve / any reject, hlasování, cancel, expirace, reminder job, audit, 2 Inertia pages
-- **Notifikace** — in-app (DB-backed) + email, 4 typy (approval requested, vote cast, task assigned, task status changed), mark as read, unread count endpoint, Inertia page
-- **Autentizace** — Google SSO login, invite-only onboarding (pozvánka emailem, expirace 72h)
-- **Organizační model** — oddělení (divisions) → týmy → uživatelé + tribes (cross-team skupiny)
-- **5 systémových rolí** — Executive, Project Manager, Team Member, Service Desk Agent, Reader
-- **Authorization matrix** — policies per role na Division, Team, User, Project; PHI access guard
-- **PHI klasifikace** — PHI/Non-PHI/Unknown na entitách, access guard (Reader = no PHI), export guard
-- **Audit trail** — append-only log, automatické sledování create/update/delete přes Auditable trait
-- **Přílohy** — polymorfní attachments na jakémkoli modelu, upload/download s PHI guardem a auditem
-- **Komentáře** — polymorfní threaded komentáře, editace s časovým razítkem, soft deletes, audit
-- **Infrastruktura** — 8 Docker kontejnerů (app, worker/Horizon, scheduler, Caddy, PostgreSQL 17, 2× Redis, Mailpit)
-- **CI/CD** — GitHub Actions pipeline (Pint + testy + Vite build)
+### Schvalovací procesy
+- **Approval flow** — request → hlasování → schválení/zamítnutí
+- **Režim all approve / any reject** — flexibilní schvalovací pravidla
+- **Approval analytics** — statistiky, historie, průměrný čas schválení
 
-### MVP kompletní
+### Spolupráce
+- **Komentáře** — threaded diskuze na projektech, epicích a úkolech
+- **Přílohy** — upload/download s PHI guardem a auditem
+- **Notifikace** — in-app + email, deep links na relevantní stránky
+- **Toast zprávy** — okamžitá zpětná vazba po akcích
 
-Všech 5 milestones dokončeno. Aplikace je připravena k nasazení na VPS.
+### Administrace & compliance
+- **User management** — seznam, role, status, vyhledávání, pozvánky
+- **Organizační struktura** — oddělení → týmy → uživatelé
+- **Audit log** — kompletní trail všech akcí, filtrování
+- **PHI access report** — kdo přistupoval k chráněným zdravotním údajům
+- **PHI klasifikace** — PHI/Non-PHI/Unknown na entitách, export guard
+
+### UX
+- **Globální vyhledávání** — Cmd+K přes projekty a úkoly
+- **My Tasks** — globální přehled přiřazených úkolů s filtry
+- **Responsive layout** — mobilní sidebar, responsive tabulky
+- **Activity timeline** — vizualizace historie změn na úkolech
+- **Inline editace** — assignee, priorita, due date přímo v sidebaru
+- **Pagination** — na všech seznamech
 
 ## Quick Start
 
@@ -49,53 +59,69 @@ npm run build
 | Horizon (queue dashboard) | https://localhost/horizon |
 | Mailpit (email testing) | http://localhost:8025 |
 
-## Tech Stack
+## Autentizace
+
+Google SSO (invite-only). Nové uživatele zvou Executive nebo Project Manager z admin sekce. Pozvánka platí 72 hodin.
+
+**5 systémových rolí:** Executive · Project Manager · Team Member · Service Desk Agent · Reader
+
+---
+
+## Technický popis
+
+### Tech Stack
 
 | Vrstva | Technologie |
 |--------|-------------|
 | Backend | Laravel 13 (PHP 8.4), Inertia.js v2 |
-| Frontend | React 19, TypeScript, Tailwind CSS 4, Vite 6+ |
+| Frontend | React 19, TypeScript, Tailwind CSS 4, shadcn/ui, Vite 6 |
 | DB | PostgreSQL 17 (UUIDv7 PK, JSONB) |
 | Cache/Queues | Redis dual (cache allkeys-lru + data noeviction), Horizon |
-| Infra | Docker Compose, Caddy (TLS), PHP-FPM |
-| CI | GitHub Actions |
+| Auth | Laravel Socialite (Google SSO) |
+| Infra | Docker Compose (8 kontejnerů), Caddy (reverse proxy + TLS), PHP-FPM |
+| CI | GitHub Actions (Pint + PHPStan + ESLint + Prettier + testy + Vite build) |
 
-## Architektura
+### Architektura
+
+Modulární monolit s 9 doménovými moduly:
 
 ```
 app/Modules/
   Auth/           — Google SSO, invite flow, login/logout
-  Organization/   — Division, Team, Tribe modely, SystemRole/UserStatus enumy
-  Audit/          — AuditEntry, AuditService, Auditable trait, PHI klasifikace
-  Projects/       — (M2 — rozpracované)
-  Work/           — Epic + Task modely, CRUD, enumy, policies
-  Approvals/      — ApprovalRequest, ApprovalVote, CastVote action, policies
-  Notifications/  — 4 notification třídy (DB + email), controller, Inertia page
-  Files/          — (M2 — rozpracované)
+  Organization/   — Division, Team, Tribe, User management
+  Projects/       — Projekty CRUD, membership, export
+  Work/           — Epiky, úkoly, kanban, tabulka, dependencies, recurrence
+  Approvals/      — Approval requesty, hlasování, analytics
+  Notifications/  — In-app (DB) + email notifikace
+  Audit/          — Append-only audit trail, PHI klasifikace a access guard
+  Comments/       — Polymorfní threaded komentáře
+  Files/          — Polymorfní přílohy, upload/download, PHI guard
 ```
 
-## Dokumentace
+### Infrastruktura (Docker)
+
+| Kontejner | Image | Účel |
+|-----------|-------|------|
+| app | PHP 8.4-FPM Alpine | Hlavní aplikace |
+| worker | Horizon | Queue processing |
+| scheduler | Laravel Scheduler | Cron úlohy (recurring tasks) |
+| caddy | Caddy 2 Alpine | Reverse proxy, TLS |
+| postgres | PostgreSQL 17 Alpine | Databáze |
+| redis-cache | Redis 7 Alpine | Cache (allkeys-lru) |
+| redis-data | Redis 7 Alpine | Sessions + queues (noeviction) |
+| mailpit | Mailpit | Email testing (dev) |
+
+### Dokumentace
 
 | Dokument | Obsah |
 |----------|-------|
-| [`docs/status.md`](docs/status.md) | Aktuální stav implementace (živý dokument) |
-| [`docs/implementation-plan.md`](docs/implementation-plan.md) | Milestony a delivery plán |
+| [`docs/status.md`](docs/status.md) | Aktuální stav implementace |
 | [`docs/dev-workflow.md`](docs/dev-workflow.md) | Průvodce lokálním vývojem |
-| [`docs/tech-stack-analysis.md`](docs/tech-stack-analysis.md) | Tech rozhodnutí |
-| [`docs/business-logic-summary.md`](docs/business-logic-summary.md) | Business logika |
 | [`docs/architecture/phi-scope-matrix.md`](docs/architecture/phi-scope-matrix.md) | PHI access pravidla |
 | [`docs/design/`](docs/design/) | Design systém, tokeny, page patterns |
-| [`docs/runbooks/deploy.md`](docs/runbooks/deploy.md) | Deploy na VPS (krok za krokem) |
-| [`docs/runbooks/backup-restore.md`](docs/runbooks/backup-restore.md) | Záloha a obnova DB, souborů, Redis |
-| [`docs/runbooks/monitoring.md`](docs/runbooks/monitoring.md) | Monitoring checklist a eskalace |
+| [`docs/runbooks/`](docs/runbooks/) | Deploy, backup, monitoring |
 | [`CLAUDE.md`](CLAUDE.md) | Instrukce pro Claude Code agenty |
-
-## MVP Scope
-
-**In:** Projekty, Epiky/Úkoly, Kanban + Tabulka, Approvals, Notifikace, Audit, Komentáře, Přílohy, Google SSO, PHI klasifikace
-
-**Out:** OKR, Service Desk, Knowledge Base, Rule Engine, AI, Externí uživatelé
 
 ## License
 
-MIT - Jan Melicherik 2026
+MIT — Jan Melicherik 2026

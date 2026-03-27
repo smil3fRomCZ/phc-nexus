@@ -9,7 +9,7 @@ import AttachmentsSection from '@/Components/AttachmentsSection';
 import type { Attachment } from '@/Components/AttachmentsSection';
 import { PROJECT_STATUS } from '@/constants/status';
 import { Link, router } from '@inertiajs/react';
-import { Trash2 } from 'lucide-react';
+import { Trash2, FileDown } from 'lucide-react';
 
 interface Project {
     id: string;
@@ -138,6 +138,20 @@ export default function ProjectShow({ project }: { project: Project }) {
                     >
                         Approvals
                     </Link>
+                    <a
+                        href={`/projects/${project.id}/export/tasks`}
+                        className="flex items-center gap-1.5 rounded-md border border-border-default px-4 py-2 text-sm font-medium text-text-default no-underline transition-colors hover:bg-surface-hover"
+                    >
+                        <FileDown className="h-3.5 w-3.5" />
+                        Export Tasks
+                    </a>
+                    <a
+                        href={`/projects/${project.id}/export/summary`}
+                        className="flex items-center gap-1.5 rounded-md border border-border-default px-4 py-2 text-sm font-medium text-text-default no-underline transition-colors hover:bg-surface-hover"
+                    >
+                        <FileDown className="h-3.5 w-3.5" />
+                        Export Summary
+                    </a>
                 </div>
 
                 {/* Dates */}

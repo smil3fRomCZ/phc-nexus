@@ -9,7 +9,8 @@ import AttachmentsSection from '@/Components/AttachmentsSection';
 import type { Attachment } from '@/Components/AttachmentsSection';
 import { PROJECT_STATUS } from '@/constants/status';
 import { Link, router } from '@inertiajs/react';
-import { Trash2, FileDown } from 'lucide-react';
+import { Trash2, FileDown, ChevronDown } from 'lucide-react';
+import { useState, useRef, useEffect } from 'react';
 
 interface Project {
     id: string;
@@ -138,20 +139,7 @@ export default function ProjectShow({ project }: { project: Project }) {
                     >
                         Approvals
                     </Link>
-                    <a
-                        href={`/projects/${project.id}/export/tasks`}
-                        className="flex items-center gap-1.5 rounded-md border border-border-default px-4 py-2 text-sm font-medium text-text-default no-underline transition-colors hover:bg-surface-hover"
-                    >
-                        <FileDown className="h-3.5 w-3.5" />
-                        Export Tasks
-                    </a>
-                    <a
-                        href={`/projects/${project.id}/export/summary`}
-                        className="flex items-center gap-1.5 rounded-md border border-border-default px-4 py-2 text-sm font-medium text-text-default no-underline transition-colors hover:bg-surface-hover"
-                    >
-                        <FileDown className="h-3.5 w-3.5" />
-                        Export Summary
-                    </a>
+                    <ExportDropdown projectId={project.id} />
                 </div>
 
                 {/* Dates */}
@@ -180,5 +168,63 @@ export default function ProjectShow({ project }: { project: Project }) {
                 </div>
             </div>
         </AppLayout>
+    );
+}
+
+const EXPORT_FORMATS = [
+    { value: 'csv', label: 'CSV', ext: 'csv' },
+    { value: 'excel', label: 'Excel', ext: 'xls' },
+    { value: 'html', label: 'HTML', ext: 'html' },
+    { value: 'md', label: 'Markdown', ext: 'md' },
+];
+
+function ExportDropdown({ projectId }: { projectId: string }) {
+    const [open, setOpen] = useState(false);
+    const ref = useRef<HTMLDivElement>(null);
+
+    useEffect(() => {
+        function handleClick(e: MouseEvent) {
+            if (ref.current && !ref.current.contains(e.target as Node)) setOpen(false);
+        }
+        document.addEventListener('mousedown', handleClick);
+        return () => document.removeEventListener('mousedown', handleClick);
+    }, []);
+
+    return (
+        <div ref={ref} className="relative">
+            <button
+                onClick={() => setOpen(!open)}
+                className="flex items-center gap-1.5 rounded-md border border-border-default px-4 py-2 text-sm font-medium text-text-default transition-colors hover:bg-surface-hover"
+            >
+                <FileDown className="h-3.5 w-3.5" />
+                Export
+                <ChevronDown className="h-3 w-3" />
+            </button>
+
+            {open && (
+                <div className="absolute right-0 z-20 mt-1 w-48 rounded-lg border border-border-subtle bg-surface-primary py-1 shadow-lg">
+                    <div className="px-3 py-1.5 text-xs font-semibold uppercase text-text-subtle">Tasks</div>
+                    {EXPORT_FORMATS.map((f) => (
+                        <a
+                            key={`tasks-${f.value}`}
+                            href={`/projects/${projectId}/export/tasks?format=${f.value}`}
+                            onClick={() => setOpen(false)}
+                            className="block px-3 py-1.5 text-sm text-text-default no-underline hover:bg-surface-hover"
+                        >
+                            {f.label}
+                        </a>
+                    ))}
+                    <div className="my-1 border-t border-border-subtle" />
+                    <div className="px-3 py-1.5 text-xs font-semibold uppercase text-text-subtle">Summary</div>
+                    <a
+                        href={`/projects/${projectId}/export/summary`}
+                        onClick={() => setOpen(false)}
+                        className="block px-3 py-1.5 text-sm text-text-default no-underline hover:bg-surface-hover"
+                    >
+                        CSV
+                    </a>
+                </div>
+            )}
+        </div>
     );
 }

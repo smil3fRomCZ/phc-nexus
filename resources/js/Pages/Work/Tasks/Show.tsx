@@ -3,7 +3,6 @@ import type { Breadcrumb } from '@/Layouts/AppLayout';
 import Avatar from '@/Components/Avatar';
 import StatusBadge from '@/Components/StatusBadge';
 import { TASK_STATUS } from '@/constants/status';
-import { getPriority } from '@/constants/priority';
 import { Link, router, useForm, usePage } from '@inertiajs/react';
 import { Paperclip, Send, Download, Trash2, MessageSquare, Upload, Pencil, X, ShieldCheck } from 'lucide-react';
 import type { PageProps } from '@/types';
@@ -98,8 +97,6 @@ export default function TaskShow({ project, task, allowedTransitions, members, s
         { label: 'Tasks', href: `/projects/${project.id}/tasks` },
         { label: task.title },
     ];
-
-    const priority = getPriority(task.priority);
 
     function inlineUpdate(fields: Record<string, unknown>) {
         router.put(

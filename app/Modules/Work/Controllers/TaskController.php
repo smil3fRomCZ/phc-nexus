@@ -106,6 +106,12 @@ final class TaskController extends Controller
         $priorities = collect(TaskPriority::cases())
             ->map(fn (TaskPriority $p) => ['value' => $p->value, 'label' => $p->label()]);
 
+        $activity = $task->auditEntries()
+            ->with('actor:id,name')
+            ->latest('created_at')
+            ->limit(50)
+            ->get(['id', 'action', 'actor_id', 'old_values', 'new_values', 'created_at']);
+
         return Inertia::render('Work/Tasks/Show', [
             'project' => $project->only('id', 'name', 'key'),
             'task' => $task,
@@ -113,6 +119,7 @@ final class TaskController extends Controller
             'members' => $members,
             'statuses' => $statuses,
             'priorities' => $priorities,
+            'activity' => $activity,
         ]);
     }
 

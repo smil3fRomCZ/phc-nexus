@@ -2,9 +2,11 @@ import AppLayout from '@/Layouts/AppLayout';
 import type { Breadcrumb } from '@/Layouts/AppLayout';
 import Avatar from '@/Components/Avatar';
 import StatusBadge from '@/Components/StatusBadge';
+import ActivityTimeline from '@/Components/ActivityTimeline';
+import type { ActivityEntry } from '@/Components/ActivityTimeline';
 import { TASK_STATUS } from '@/constants/status';
 import { Link, router, useForm, usePage } from '@inertiajs/react';
-import { Paperclip, Send, Download, Trash2, MessageSquare, Upload, Pencil, X, ShieldCheck } from 'lucide-react';
+import { Paperclip, Send, Download, Trash2, MessageSquare, Upload, Pencil, X, ShieldCheck, Clock } from 'lucide-react';
 import type { PageProps } from '@/types';
 import { useState, type FormEvent } from 'react';
 
@@ -62,6 +64,7 @@ interface Props {
     members: Member[];
     statuses: SelectOption[];
     priorities: SelectOption[];
+    activity: ActivityEntry[];
 }
 
 function formatDate(dateStr: string): string {
@@ -85,7 +88,15 @@ function formatFileSize(bytes: number): string {
     return `${(bytes / 1048576).toFixed(1)} MB`;
 }
 
-export default function TaskShow({ project, task, allowedTransitions, members, statuses, priorities }: Props) {
+export default function TaskShow({
+    project,
+    task,
+    allowedTransitions,
+    members,
+    statuses,
+    priorities,
+    activity,
+}: Props) {
     const { auth } = usePage<PageProps>().props;
     const [editing, setEditing] = useState(false);
     const [requestingApproval, setRequestingApproval] = useState(false);
@@ -233,6 +244,15 @@ export default function TaskShow({ project, task, allowedTransitions, members, s
                         </div>
 
                         <CommentForm projectId={project.id} taskId={task.id} />
+                    </div>
+
+                    {/* Activity Timeline */}
+                    <div>
+                        <h2 className="mb-4 flex items-center gap-2 text-lg font-semibold text-text-strong">
+                            <Clock className="h-4 w-4" />
+                            Activity
+                        </h2>
+                        <ActivityTimeline entries={activity} />
                     </div>
                 </div>
 

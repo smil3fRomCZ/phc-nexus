@@ -8,6 +8,7 @@ use App\Http\Controllers\Controller;
 use App\Modules\Audit\AuditService;
 use App\Modules\Audit\Enums\AuditAction;
 use App\Modules\Audit\PhiAccessGuard;
+use App\Modules\Projects\Export\TaskExporter;
 use App\Modules\Projects\Models\Project;
 use App\Modules\Work\Models\Task;
 use Illuminate\Http\Request;
@@ -22,7 +23,10 @@ final class ProjectExportController extends Controller
 
         abort_unless($phiGuard->canExport($request->user(), $project), 403, 'Export PHI dat není povolen.');
 
-        $audit->log(AuditAction::Exported, $project, ['type' => 'tasks_csv']);
+        $format = $request->input('format', 'csv');
+        abort_unless(in_array($format, ['csv', 'excel', 'html', 'md'], true), 422, 'Nepodporovaný formát.');
+
+        $audit->log(AuditAction::Exported, $project, ['type' => "tasks_{$format}"]);
 
         $tasks = Task::query()
             ->where('project_id', $project->id)
@@ -31,32 +35,21 @@ final class ProjectExportController extends Controller
             ->orderBy('created_at')
             ->get();
 
-        $filename = "{$project->key}_tasks_".now()->format('Y-m-d').'.csv';
+        $date = now()->format('Y-m-d');
+        $ext = match ($format) {
+            'excel' => 'xls',
+            'md' => 'md',
+            'html' => 'html',
+            default => 'csv',
+        };
+        $filename = "{$project->key}_tasks_{$date}.{$ext}";
 
-        return response()->streamDownload(function () use ($tasks) {
-            $out = fopen('php://output', 'w');
-            assert($out !== false);
-
-            fputcsv($out, ['Title', 'Status', 'Priority', 'Assignee', 'Reporter', 'Epic', 'Due Date', 'Created']);
-
-            foreach ($tasks as $task) {
-                /** @var Task $task */
-                fputcsv($out, [
-                    $task->title,
-                    is_object($task->status) ? $task->status->value : (string) $task->status,
-                    is_object($task->priority) ? $task->priority->value : (string) $task->priority,
-                    $task->assignee->name ?? '',
-                    $task->reporter->name ?? '',
-                    $task->epic->title ?? '',
-                    $task->due_date instanceof \DateTimeInterface ? $task->due_date->format('Y-m-d') : '',
-                    $task->created_at->format('Y-m-d H:i'),
-                ]);
-            }
-
-            fclose($out);
-        }, $filename, [
-            'Content-Type' => 'text/csv',
-        ]);
+        return match ($format) {
+            'excel' => TaskExporter::excel($tasks, $filename),
+            'html' => TaskExporter::html($tasks, $project->name, $filename),
+            'md' => TaskExporter::markdown($tasks, $project->name, $filename),
+            default => TaskExporter::csv($tasks, $filename),
+        };
     }
 
     public function project(Request $request, Project $project, PhiAccessGuard $phiGuard, AuditService $audit): StreamedResponse

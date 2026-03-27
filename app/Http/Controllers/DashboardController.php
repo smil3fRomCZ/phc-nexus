@@ -27,14 +27,30 @@ final class DashboardController extends Controller
             ->get(['id', 'title', 'status', 'priority', 'due_date', 'project_id']);
 
         $pendingApprovals = ApprovalRequest::query()
-            ->with(['requester:id,name'])
+            ->with(['requester:id,name', 'approvable'])
             ->where('status', 'pending')
             ->whereHas('votes', function ($q) use ($user) {
                 $q->where('voter_id', $user->id)->whereNull('decision');
             })
             ->latest()
             ->limit(6)
-            ->get(['id', 'description', 'status', 'requester_id', 'created_at']);
+            ->get(['id', 'description', 'status', 'requester_id', 'approvable_type', 'approvable_id', 'created_at'])
+            ->map(function (ApprovalRequest $approval) {
+                $projectId = match (true) {
+                    $approval->approvable instanceof Task => $approval->approvable->project_id,
+                    $approval->approvable instanceof Project => $approval->approvable->id,
+                    default => null,
+                };
+
+                return [
+                    'id' => $approval->id,
+                    'description' => $approval->description,
+                    'status' => $approval->status,
+                    'requester' => $approval->requester,
+                    'created_at' => $approval->created_at,
+                    'project_id' => $projectId,
+                ];
+            });
 
         $stats = [
             'active_tasks' => Task::where('assignee_id', $user->id)

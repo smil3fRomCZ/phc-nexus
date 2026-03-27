@@ -58,9 +58,21 @@ final class EpicController extends Controller
         ]);
         $epic->loadCount(['attachments', 'comments']);
 
+        $members = $project->members()
+            ->select('users.id', 'users.name')
+            ->get()
+            ->when($project->owner_id, fn ($col) => $col->push($project->owner()->select('id', 'name')->first()))
+            ->unique('id')
+            ->values();
+
+        $statuses = collect(EpicStatus::cases())
+            ->map(fn (EpicStatus $s) => ['value' => $s->value, 'label' => $s->label()]);
+
         return Inertia::render('Work/Epics/Show', [
             'project' => $project->only('id', 'name', 'key'),
             'epic' => $epic,
+            'members' => $members,
+            'statuses' => $statuses,
         ]);
     }
 

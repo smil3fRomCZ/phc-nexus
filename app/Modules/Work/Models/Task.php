@@ -62,6 +62,7 @@ class Task extends Model
         return $this->belongsTo(Epic::class);
     }
 
+    /** @return BelongsTo<User, $this> */
     public function assignee(): BelongsTo
     {
         return $this->belongsTo(User::class, 'assignee_id');

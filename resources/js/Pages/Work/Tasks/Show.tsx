@@ -6,7 +6,20 @@ import ActivityTimeline from '@/Components/ActivityTimeline';
 import type { ActivityEntry } from '@/Components/ActivityTimeline';
 import { TASK_STATUS } from '@/constants/status';
 import { Link, router, useForm, usePage } from '@inertiajs/react';
-import { Paperclip, Send, Download, Trash2, MessageSquare, Upload, Pencil, X, ShieldCheck, Clock } from 'lucide-react';
+import {
+    Paperclip,
+    Send,
+    Download,
+    Trash2,
+    MessageSquare,
+    Upload,
+    Pencil,
+    X,
+    ShieldCheck,
+    Clock,
+    Link2,
+    Plus,
+} from 'lucide-react';
 import type { PageProps } from '@/types';
 import { useState, type FormEvent } from 'react';
 
@@ -28,6 +41,13 @@ interface Attachment {
     created_at: string;
 }
 
+interface DependencyTask {
+    id: string;
+    title: string;
+    status: string;
+    project_id: string;
+}
+
 interface Task {
     id: string;
     title: string;
@@ -41,6 +61,8 @@ interface Task {
     data_classification: string;
     root_comments: Comment[];
     attachments: Attachment[];
+    blockers: DependencyTask[];
+    blocking: DependencyTask[];
     attachments_count: number;
     comments_count: number;
     created_at: string;
@@ -57,6 +79,11 @@ interface SelectOption {
     label: string;
 }
 
+interface ProjectTask {
+    id: string;
+    title: string;
+}
+
 interface Props {
     project: { id: string; name: string; key: string };
     task: Task;
@@ -65,6 +92,7 @@ interface Props {
     statuses: SelectOption[];
     priorities: SelectOption[];
     activity: ActivityEntry[];
+    projectTasks: ProjectTask[];
 }
 
 function formatDate(dateStr: string): string {
@@ -96,6 +124,7 @@ export default function TaskShow({
     statuses,
     priorities,
     activity,
+    projectTasks,
 }: Props) {
     const { auth } = usePage<PageProps>().props;
     const [editing, setEditing] = useState(false);
@@ -342,6 +371,10 @@ export default function TaskShow({
                             onChange={(e) => inlineUpdate({ due_date: e.target.value || null })}
                             className="w-full rounded border border-transparent bg-transparent px-0 py-0.5 text-sm transition-colors hover:border-border-default focus:border-border-focus focus:outline-none"
                         />
+                    </SidebarSection>
+
+                    <SidebarSection label="Dependencies">
+                        <DependenciesPanel project={project} task={task} projectTasks={projectTasks} />
                     </SidebarSection>
 
                     <SidebarSection label={`Attachments (${task.attachments_count})`}>
@@ -630,6 +663,130 @@ function RequestApprovalDialog({
                     </div>
                 </form>
             </div>
+        </div>
+    );
+}
+
+function DependenciesPanel({
+    project,
+    task,
+    projectTasks,
+}: {
+    project: { id: string };
+    task: Task;
+    projectTasks: ProjectTask[];
+}) {
+    const [adding, setAdding] = useState(false);
+    const [selectedId, setSelectedId] = useState('');
+
+    const csrfToken = document.querySelector<HTMLMetaElement>('meta[name="csrf-token"]')?.content ?? '';
+
+    function addBlocker() {
+        if (!selectedId) return;
+        fetch(`/projects/${project.id}/tasks/${task.id}/dependencies`, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json', 'X-CSRF-TOKEN': csrfToken, Accept: 'application/json' },
+            body: JSON.stringify({ blocker_id: selectedId }),
+        }).then((res) => {
+            if (res.ok) {
+                setAdding(false);
+                setSelectedId('');
+                router.reload();
+            }
+        });
+    }
+
+    function removeBlocker(blockerId: string) {
+        fetch(`/projects/${project.id}/tasks/${task.id}/dependencies/${blockerId}`, {
+            method: 'DELETE',
+            headers: { 'X-CSRF-TOKEN': csrfToken, Accept: 'application/json' },
+        }).then((res) => {
+            if (res.ok) router.reload();
+        });
+    }
+
+    const existingIds = new Set([...task.blockers.map((b) => b.id), ...task.blocking.map((b) => b.id), task.id]);
+    const available = projectTasks.filter((t) => !existingIds.has(t.id));
+
+    return (
+        <div className="space-y-2">
+            {task.blockers.length > 0 && (
+                <div>
+                    <div className="mb-1 text-xs text-text-subtle">Blocked by</div>
+                    {task.blockers.map((b) => (
+                        <div key={b.id} className="flex items-center gap-1.5 py-0.5">
+                            <Link2 className="h-3 w-3 flex-shrink-0 text-status-danger" />
+                            <Link
+                                href={`/projects/${b.project_id}/tasks/${b.id}`}
+                                className="truncate text-xs text-text-default no-underline hover:text-brand-primary"
+                            >
+                                {b.title}
+                            </Link>
+                            <button
+                                onClick={() => removeBlocker(b.id)}
+                                className="ml-auto rounded p-0.5 text-text-subtle hover:bg-status-danger-subtle hover:text-status-danger"
+                            >
+                                <X className="h-3 w-3" />
+                            </button>
+                        </div>
+                    ))}
+                </div>
+            )}
+
+            {task.blocking.length > 0 && (
+                <div>
+                    <div className="mb-1 text-xs text-text-subtle">Blocks</div>
+                    {task.blocking.map((b) => (
+                        <div key={b.id} className="flex items-center gap-1.5 py-0.5">
+                            <Link2 className="h-3 w-3 flex-shrink-0 text-status-warning" />
+                            <Link
+                                href={`/projects/${b.project_id}/tasks/${b.id}`}
+                                className="truncate text-xs text-text-default no-underline hover:text-brand-primary"
+                            >
+                                {b.title}
+                            </Link>
+                        </div>
+                    ))}
+                </div>
+            )}
+
+            {adding ? (
+                <div className="flex gap-1">
+                    <select
+                        value={selectedId}
+                        onChange={(e) => setSelectedId(e.target.value)}
+                        className="flex-1 rounded border border-border-default bg-surface-primary px-2 py-1 text-xs focus:border-border-focus focus:outline-none"
+                    >
+                        <option value="">Select blocker...</option>
+                        {available.map((t) => (
+                            <option key={t.id} value={t.id}>
+                                {t.title}
+                            </option>
+                        ))}
+                    </select>
+                    <button
+                        onClick={addBlocker}
+                        disabled={!selectedId}
+                        className="rounded bg-brand-primary px-2 py-1 text-xs text-text-inverse disabled:opacity-50"
+                    >
+                        Add
+                    </button>
+                    <button
+                        onClick={() => setAdding(false)}
+                        className="rounded px-1 py-1 text-xs text-text-muted hover:bg-surface-hover"
+                    >
+                        <X className="h-3 w-3" />
+                    </button>
+                </div>
+            ) : (
+                <button
+                    onClick={() => setAdding(true)}
+                    className="flex items-center gap-1 text-xs text-text-muted hover:text-brand-primary"
+                >
+                    <Plus className="h-3 w-3" />
+                    Add blocker
+                </button>
+            )}
         </div>
     );
 }

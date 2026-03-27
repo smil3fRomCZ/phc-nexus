@@ -83,6 +83,8 @@ final class TaskController extends Controller
             'rootComments.author:id,name',
             'rootComments.replies.author:id,name',
             'attachments.uploader:id,name',
+            'blockers:id,title,status,project_id',
+            'blocking:id,title,status,project_id',
         ]);
         $task->loadCount(['attachments', 'comments']);
 
@@ -112,6 +114,11 @@ final class TaskController extends Controller
             ->limit(50)
             ->get(['id', 'action', 'actor_id', 'old_values', 'new_values', 'created_at']);
 
+        $projectTasks = $project->tasks()
+            ->where('id', '!=', $task->id)
+            ->orderBy('title')
+            ->get(['id', 'title']);
+
         return Inertia::render('Work/Tasks/Show', [
             'project' => $project->only('id', 'name', 'key'),
             'task' => $task,
@@ -120,6 +127,7 @@ final class TaskController extends Controller
             'statuses' => $statuses,
             'priorities' => $priorities,
             'activity' => $activity,
+            'projectTasks' => $projectTasks,
         ]);
     }
 

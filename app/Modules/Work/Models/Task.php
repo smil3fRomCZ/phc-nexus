@@ -17,6 +17,7 @@ use Database\Factories\TaskFactory;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
+use Illuminate\Database\Eloquent\Relations\BelongsToMany;
 use Illuminate\Database\Eloquent\SoftDeletes;
 
 class Task extends Model
@@ -71,5 +72,19 @@ class Task extends Model
     public function reporter(): BelongsTo
     {
         return $this->belongsTo(User::class, 'reporter_id');
+    }
+
+    /** Tasks that block this task. */
+    public function blockers(): BelongsToMany
+    {
+        return $this->belongsToMany(self::class, 'task_dependencies', 'blocked_id', 'blocker_id')
+            ->withTimestamps();
+    }
+
+    /** Tasks that this task blocks. */
+    public function blocking(): BelongsToMany
+    {
+        return $this->belongsToMany(self::class, 'task_dependencies', 'blocker_id', 'blocked_id')
+            ->withTimestamps();
     }
 }

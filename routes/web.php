@@ -2,6 +2,7 @@
 
 declare(strict_types=1);
 
+use App\Http\Controllers\ApprovalAnalyticsController;
 use App\Http\Controllers\CalendarController;
 use App\Http\Controllers\DashboardController;
 use App\Http\Controllers\GlobalApprovalsController;
@@ -17,6 +18,7 @@ Route::middleware('auth')->group(function () {
     Route::get('/my-tasks', MyTasksController::class)->name('my-tasks');
     Route::get('/approvals', GlobalApprovalsController::class)->name('approvals.global');
     Route::get('/calendar', CalendarController::class)->name('calendar');
+    Route::get('/admin/approval-analytics', ApprovalAnalyticsController::class)->name('admin.approval-analytics');
 });
 
 // E2E test login bypass — pouze v testing/local prostředí

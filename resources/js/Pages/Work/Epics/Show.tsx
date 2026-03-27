@@ -1,4 +1,8 @@
 import { MetadataGrid, MetadataField } from '@/Components/MetadataGrid';
+import CommentsSection from '@/Components/CommentsSection';
+import type { Comment } from '@/Components/CommentsSection';
+import AttachmentsSection from '@/Components/AttachmentsSection';
+import type { Attachment } from '@/Components/AttachmentsSection';
 import StatusBadge from '@/Components/StatusBadge';
 import { EPIC_STATUS } from '@/constants/status';
 import AppLayout from '@/Layouts/AppLayout';
@@ -22,6 +26,8 @@ interface Epic {
     owner: { id: string; name: string } | null;
     tasks: Task[];
     tasks_count: number;
+    root_comments: Comment[];
+    attachments: Attachment[];
     attachments_count: number;
     comments_count: number;
 }
@@ -130,6 +136,23 @@ export default function EpicShow({ project, epic, members, statuses }: Props) {
                         </div>
                     </div>
                 )}
+
+                {/* Attachments */}
+                <div className="mt-6">
+                    <AttachmentsSection
+                        attachments={epic.attachments}
+                        uploadUrl={`/projects/${project.id}/epics/${epic.id}/attachments`}
+                    />
+                </div>
+
+                {/* Comments */}
+                <div className="mt-6">
+                    <CommentsSection
+                        comments={epic.root_comments}
+                        commentsCount={epic.comments_count}
+                        postUrl={`/projects/${project.id}/epics/${epic.id}/comments`}
+                    />
+                </div>
             </div>
         </AppLayout>
     );

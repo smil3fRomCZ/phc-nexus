@@ -4,7 +4,6 @@ import type { PageProps } from '@/types';
 import {
     LayoutDashboard,
     FolderKanban,
-    LayoutGrid,
     Clock,
     CheckSquare,
     Bell,
@@ -36,14 +35,13 @@ const NAV_SECTIONS = [
         items: [
             { href: '/', label: 'Dashboard', icon: LayoutDashboard },
             { href: '/projects', label: 'Projects', icon: FolderKanban },
-            { href: '#', label: 'Task Board', icon: LayoutGrid },
-            { href: '#', label: 'My Tasks', icon: Clock },
+            { href: '/my-tasks', label: 'My Tasks', icon: Clock },
         ],
     },
     {
         label: 'Management',
         items: [
-            { href: '#', label: 'Approvals', icon: CheckSquare },
+            { href: '/approvals', label: 'Approvals', icon: CheckSquare },
             { href: '/notifications', label: 'Notifications', icon: Bell },
         ],
     },

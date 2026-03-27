@@ -82,6 +82,7 @@ final class ProjectController extends Controller
             'members:id,name,email',
             'rootComments.author:id,name',
             'rootComments.replies.author:id,name',
+            'attachments.uploader:id,name',
         ]);
         $project->loadCount(['attachments', 'comments']);
 

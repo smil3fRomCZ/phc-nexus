@@ -2,7 +2,7 @@ import EmptyState from '@/Components/EmptyState';
 import AppLayout from '@/Layouts/AppLayout';
 import type { Breadcrumb } from '@/Layouts/AppLayout';
 import { formatTime } from '@/utils/formatTime';
-import { router } from '@inertiajs/react';
+import { router, Link } from '@inertiajs/react';
 
 interface NotificationData {
     title: string;
@@ -31,6 +31,20 @@ const typeIcons: Record<string, string> = {
     task_assigned: '\u{1F4CB}',
     task_status_changed: '\u{1F504}',
 };
+
+function getNotificationHref(data: NotificationData): string | null {
+    const projectId = data.project_id as string | undefined;
+    const taskId = data.task_id as string | undefined;
+    const approvalRequestId = data.approval_request_id as string | undefined;
+
+    if (taskId && projectId) {
+        return `/projects/${projectId}/tasks/${taskId}`;
+    }
+    if (approvalRequestId && projectId) {
+        return `/projects/${projectId}/approvals/${approvalRequestId}`;
+    }
+    return null;
+}
 
 export default function NotificationsIndex({ notifications, unreadCount }: Props) {
     function markAsRead(id: string) {
@@ -73,33 +87,52 @@ export default function NotificationsIndex({ notifications, unreadCount }: Props
                 </div>
 
                 <div className="space-y-1">
-                    {notifications.map((n) => (
-                        <div
-                            key={n.id}
-                            className={`flex items-start gap-3 rounded-lg border px-5 py-3 ${
-                                n.read_at
-                                    ? 'border-border-subtle bg-surface-primary'
-                                    : 'border-l-[3px] border-l-brand-primary border-t-border-subtle border-r-border-subtle border-b-border-subtle bg-brand-soft'
-                            }`}
-                        >
-                            <span className="mt-0.5 text-lg">{typeIcons[n.data.type] ?? '\u{1F514}'}</span>
-                            <div className="flex-1">
-                                <p className="text-sm font-medium text-text-strong">{n.data.title}</p>
-                                <p className="text-sm text-text-muted">{n.data.body}</p>
+                    {notifications.map((n) => {
+                        const href = getNotificationHref(n.data);
+                        const cardClass = `flex items-start gap-3 rounded-lg border px-5 py-3 ${
+                            n.read_at
+                                ? 'border-border-subtle bg-surface-primary'
+                                : 'border-l-[3px] border-l-brand-primary border-t-border-subtle border-r-border-subtle border-b-border-subtle bg-brand-soft'
+                        }`;
+
+                        const content = (
+                            <>
+                                <span className="mt-0.5 text-lg">{typeIcons[n.data.type] ?? '\u{1F514}'}</span>
+                                <div className="flex-1">
+                                    <p className="text-sm font-medium text-text-strong">{n.data.title}</p>
+                                    <p className="text-sm text-text-muted">{n.data.body}</p>
+                                </div>
+                                <div className="flex items-center gap-2">
+                                    <span className="text-xs text-text-muted">{formatTime(n.created_at)}</span>
+                                    {!n.read_at && (
+                                        <button
+                                            onClick={(e) => {
+                                                e.preventDefault();
+                                                markAsRead(n.id);
+                                            }}
+                                            className="rounded-sm px-2 py-1 text-xs text-brand-primary transition-colors hover:bg-surface-hover"
+                                        >
+                                            Read
+                                        </button>
+                                    )}
+                                </div>
+                            </>
+                        );
+
+                        return href ? (
+                            <Link
+                                key={n.id}
+                                href={href}
+                                className={`${cardClass} no-underline transition-shadow hover:shadow-md`}
+                            >
+                                {content}
+                            </Link>
+                        ) : (
+                            <div key={n.id} className={cardClass}>
+                                {content}
                             </div>
-                            <div className="flex items-center gap-2">
-                                <span className="text-xs text-text-muted">{formatTime(n.created_at)}</span>
-                                {!n.read_at && (
-                                    <button
-                                        onClick={() => markAsRead(n.id)}
-                                        className="rounded-sm px-2 py-1 text-xs text-brand-primary transition-colors hover:bg-surface-hover"
-                                    >
-                                        Read
-                                    </button>
-                                )}
-                            </div>
-                        </div>
-                    ))}
+                        );
+                    })}
                     {notifications.length === 0 && <EmptyState message="No notifications." />}
                 </div>
             </div>

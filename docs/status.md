@@ -2,7 +2,7 @@
 
 Živý dokument mapující co je **reálně implementováno** vs. plánováno. Aktualizuje se po každém milestone a významné změně.
 
-> Poslední aktualizace: 2026-03-25
+> Poslední aktualizace: 2026-03-27
 
 ---
 
@@ -16,6 +16,52 @@
 | 3 | Work Core | **DONE** | Epiky, úkoly, kanban board, tabulka, stavové přechody |
 | 4 | Approvals & Notifications | **DONE** | Approval flow, in-app + email notifikace |
 | 5 | Hardening & Release | **DONE** | Seed data, runbooky, E2E testy (Playwright) |
+| MVP2 | Production Polish | **DONE** | 5 iterací — broken flows, globální pohledy, admin, UX polish, advanced features |
+
+---
+
+## MVP2 — Production Polish (DONE)
+
+> 11 PR (#28–#38), 2026-03-27
+
+### Iterace 1 — Fix broken + CRUD (#28)
+- Fix dashboard approval Review linky (správný URL s project_id)
+- Full task edit dialog (title, description, status, priority, assignee, reporter, due date)
+- Epic edit dialog (title, description, status, owner)
+- Delete tlačítka na project, task, epic s potvrzením
+- Create approval UI dialog na task detail
+- TaskAssigned + TaskStatusChanged notifikace se triggerují
+
+### Iterace 2 — Globální pohledy + sidebar (#29)
+- My Tasks stránka (`/my-tasks`) s filtrováním
+- Global Approvals stránka (`/approvals`)
+- Comments + attachments na Projects a Epics (routes, controllery, sdílené komponenty)
+- Sidebar: opraveny linky My Tasks, Approvals
+- Notification deep links (klik → task/approval)
+
+### Iterace 3 — Admin & Organization (#30)
+- User management (`/admin/users`) — seznam, search, role/status filtry
+- Invite user dialog (email, role)
+- Organization structure view (`/admin/organization`) — divisions → teams → users
+- Audit log viewer (`/admin/audit-log`) — filtrování podle akce/entity/uživatele
+- PHI access report (`/admin/phi-report`) — filtrování podle uživatele a datumu
+- Sidebar: admin sekce s 4 linky
+
+### Iterace 4 — UX Polish (#31)
+- Toast notifikace (flash.success/error)
+- Inline editace v task sidebaru (assignee, priority, due date)
+- Pagination na MyTasks, Notifications, Audit Log
+- Bulk status change na task table (multi-select + hromadná změna)
+- Globální navigation progress bar
+- Responsive layout (mobilní sidebar toggle, responsive padding)
+
+### Iterace 5 — Advanced Features (#32–#38)
+- Activity timeline na task detail (audit log vizualizace)
+- CSV/Excel/HTML/Markdown export pro projekty a úkoly
+- Calendar view (`/calendar`) — měsíční pohled úkolů podle due date
+- Approval analytics (`/admin/approval-analytics`) — statistiky, historie, avg resolution time
+- Task dependencies (blocker/blocked by) — pivot tabulka, sidebar UI
+- Recurring tasks — recurrence rule, scheduler command, inline nastavení
 
 ---
 
@@ -82,15 +128,15 @@
 
 | Modul | Status | Implementováno |
 |-------|--------|---------------|
-| Auth | **Aktivní** | Google SSO (redirect + callback), login stránka, logout, HandleInertiaRequests middleware |
-| Organization | **Aktivní** | Division, Team, Tribe modely + migrace, SystemRole + UserStatus enumy, User rozšířen o role/status/team |
-| Projects | **Aktivní** | Project model (PHI, auditable, comments, attachments), CRUD controller, ProjectPolicy, membership, 4 Inertia pages, ProjectFactory |
-| Work | **Aktivní** | Epic CRUD, Task CRUD, kanban board (drag&drop), tabulkový view (filtry/řazení), stavové přechody (hardcoded), TaskStatus (6) + TaskPriority (4) + EpicStatus (4), 6 Inertia pages, PATCH status endpoint |
-| Approvals | **Aktivní** | ApprovalRequest + ApprovalVote modely (polymorfní), RequestApproval + CastVote actions, režim all approve / any reject, ApprovalPolicy, ApprovalController, reminder job, 3 enumy, 2 Inertia pages, HasApprovals trait |
-| Notifications | **Aktivní** | 4 notification třídy (ApprovalRequested, VoteCast, TaskAssigned, TaskStatusChanged), DB + email kanály, NotificationController (index, markAsRead, markAllAsRead, unreadCount), Inertia page |
-| Audit | **Aktivní** | PhiClassification, HasPhiClassification, PhiAccessGuard, AuditEntry model, AuditService, Auditable trait |
-| Comments | **Aktivní** | Comment model (polymorfní, threaded), AddComment/EditComment actions, HasComments trait, soft deletes, audited |
-| Files | **Aktivní** | Attachment model (polymorfní), UploadAttachment/DownloadAttachment actions, HasAttachments trait, PHI download guard |
+| Auth | **Aktivní** | Google SSO, login/logout, invite flow (72h expirace), HandleInertiaRequests middleware |
+| Organization | **Aktivní** | Division, Team, Tribe modely, SystemRole + UserStatus enumy, User management stránka, invite UI, org structure view |
+| Projects | **Aktivní** | Project CRUD, membership, comments, attachments, CSV/Excel/HTML/MD export, ProjectPolicy |
+| Work | **Aktivní** | Epic CRUD + edit dialog, Task CRUD + full edit dialog, kanban board (drag&drop), tabulkový view (bulk status change), stavové přechody, task dependencies (blocker/blocked by), recurring tasks, calendar view, activity timeline, inline editace |
+| Approvals | **Aktivní** | Approval request/vote flow, create approval UI, global approvals stránka, approval analytics (statistiky, avg resolution), cancel, expirace |
+| Notifications | **Aktivní** | 4 notification třídy, DB + email kanály, deep links, toast zprávy, TaskAssigned/TaskStatusChanged triggery |
+| Audit | **Aktivní** | AuditEntry (append-only), AuditService, Auditable trait, PHI klasifikace/guard, audit log viewer, PHI access report |
+| Comments | **Aktivní** | Polymorfní threaded komentáře na tasks, projects, epics, sdílená CommentsSection komponenta |
+| Files | **Aktivní** | Polymorfní přílohy na tasks, projects, epics, sdílená AttachmentsSection komponenta, PHI download guard |
 
 ---
 
@@ -142,3 +188,4 @@
 | 2026-03-25 | M5 | Seed data: DemoSeeder s realistickou strukturou — 2 divize, 4 týmy, tribe, 8 uživatelů (exec/PM/dev/QA/infra/support/reader), 3 projekty (aktivní/draft/PHI), 5 epiků, 15 úkolů, approval request, komentáře |
 | 2026-03-25 | M5 | Runbooky: deploy (VPS setup, build, update, rollback), backup/restore (PostgreSQL, Redis, file storage, disaster recovery, retence), monitoring (kontejnery, Horizon, DB, Redis, disk, logy, eskalace) |
 | 2026-03-25 | M5 | E2E testy: Playwright setup (Chromium), 15 scénářů — smoke (health, login, redirect, 404), auth (redirect, login page), authenticated (dashboard, projekty, kanban board, tabulka, approvals, notifikace, logout), E2E login bypass route |
+| 2026-03-27 | MVP2 | Iterace 1–5: fix broken flows, CRUD dokončení, globální pohledy (My Tasks, Approvals, Calendar), admin sekce (users, org, audit log, PHI report, approval analytics), UX polish (toast, inline edit, pagination, bulk ops, responsive), advanced features (activity timeline, export 4 formáty, dependencies, recurring tasks) — 11 PR (#28–#38) |

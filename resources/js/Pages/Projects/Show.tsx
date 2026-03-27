@@ -3,18 +3,13 @@ import type { Breadcrumb } from '@/Layouts/AppLayout';
 import Avatar from '@/Components/Avatar';
 import StatusBadge from '@/Components/StatusBadge';
 import { MetadataGrid, MetadataField } from '@/Components/MetadataGrid';
+import CommentsSection from '@/Components/CommentsSection';
+import type { Comment } from '@/Components/CommentsSection';
+import AttachmentsSection from '@/Components/AttachmentsSection';
+import type { Attachment } from '@/Components/AttachmentsSection';
 import { PROJECT_STATUS } from '@/constants/status';
 import { Link, router } from '@inertiajs/react';
 import { Trash2 } from 'lucide-react';
-
-interface Comment {
-    id: string;
-    body: string;
-    author: { id: string; name: string };
-    created_at: string;
-    edited_at: string | null;
-    replies: Comment[];
-}
 
 interface Project {
     id: string;
@@ -27,6 +22,7 @@ interface Project {
     team: { id: string; name: string } | null;
     members: Array<{ id: string; name: string; email: string }>;
     root_comments: Comment[];
+    attachments: Attachment[];
     attachments_count: number;
     comments_count: number;
     start_date: string | null;
@@ -144,12 +140,29 @@ export default function ProjectShow({ project }: { project: Project }) {
                     </Link>
                 </div>
 
-                {/* Stats */}
-                <div className="mt-6 flex gap-4 text-sm text-text-muted">
-                    <span>{project.comments_count} comments</span>
-                    <span>{project.attachments_count} attachments</span>
-                    {project.start_date && <span>Start: {project.start_date}</span>}
-                    {project.target_date && <span>Target: {project.target_date}</span>}
+                {/* Dates */}
+                {(project.start_date || project.target_date) && (
+                    <div className="mt-6 flex gap-4 text-sm text-text-muted">
+                        {project.start_date && <span>Start: {project.start_date}</span>}
+                        {project.target_date && <span>Target: {project.target_date}</span>}
+                    </div>
+                )}
+
+                {/* Attachments */}
+                <div className="mt-6">
+                    <AttachmentsSection
+                        attachments={project.attachments}
+                        uploadUrl={`/projects/${project.id}/attachments`}
+                    />
+                </div>
+
+                {/* Comments */}
+                <div className="mt-6">
+                    <CommentsSection
+                        comments={project.root_comments}
+                        commentsCount={project.comments_count}
+                        postUrl={`/projects/${project.id}/comments`}
+                    />
                 </div>
             </div>
         </AppLayout>

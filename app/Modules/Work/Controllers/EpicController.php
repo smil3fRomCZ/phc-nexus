@@ -55,6 +55,8 @@ final class EpicController extends Controller
         $epic->load([
             'owner:id,name',
             'rootComments.author:id,name',
+            'rootComments.replies.author:id,name',
+            'attachments.uploader:id,name',
         ]);
         $epic->loadCount(['attachments', 'comments']);
 

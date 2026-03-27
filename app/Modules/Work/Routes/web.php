@@ -2,6 +2,8 @@
 
 declare(strict_types=1);
 
+use App\Modules\Work\Controllers\EpicAttachmentController;
+use App\Modules\Work\Controllers\EpicCommentController;
 use App\Modules\Work\Controllers\EpicController;
 use App\Modules\Work\Controllers\TaskAttachmentController;
 use App\Modules\Work\Controllers\TaskCommentController;
@@ -10,6 +12,10 @@ use Illuminate\Support\Facades\Route;
 
 Route::middleware('auth')->group(function () {
     Route::resource('projects.epics', EpicController::class)->except(['create', 'edit']);
+
+    // Epic comments & attachments
+    Route::post('projects/{project}/epics/{epic}/comments', [EpicCommentController::class, 'store'])->name('projects.epics.comments.store');
+    Route::post('projects/{project}/epics/{epic}/attachments', [EpicAttachmentController::class, 'store'])->name('projects.epics.attachments.store');
 
     // Úkoly v rámci projektu (bez epiku)
     Route::get('projects/{project}/tasks', [TaskController::class, 'index'])->name('projects.tasks.index');

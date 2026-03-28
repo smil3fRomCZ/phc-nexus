@@ -117,10 +117,12 @@ app/Modules/
 
 ### Production Deployment
 
-Cílová platforma: **FORPSI Standard VPS** (4 vCPU, 8 GB RAM, 80 GB NVMe, ~295 Kč/měs).
+Běží na **FORPSI Standard VPS** (4 vCPU, 8 GB RAM, 80 GB NVMe, ~295 Kč/měs).
 
+- **Live:** http://194-182-78-7.nip.io (testovací, bez TLS)
 - Automatický deploy přes GitHub Actions po merge do master
-- Caddy auto-TLS (Let's Encrypt), security headers (HSTS, CSP)
+- Caddy reverse proxy se security headers (HSTS po nastavení domény)
+- Google SSO autentizace
 - Průvodce: [`docs/runbooks/forpsi-setup.md`](docs/runbooks/forpsi-setup.md)
 
 ### Dokumentace

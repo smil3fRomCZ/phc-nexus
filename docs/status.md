@@ -22,6 +22,7 @@
 | MVP3-I2b | Notification Bell | **DONE** | Funkční zvoneček s polling 60s, Inertia shared prop, reálný unread count |
 | MVP3-I3a | Docker Vite HMR | **DONE** | Separátní vite kontejner, Caddy WebSocket proxy, dokumentace |
 | MVP3-I3b | PgSQL Tests + Tokens | **DONE** | PostgreSQL test connection (opt-in), design-tokens.md v1.0 |
+| MVP4-I1 | Production Caddy + Security | **DONE** | Caddyfile.prod, security headers, Redis hesla, vite vyřazení z prod |
 
 ---
 
@@ -255,3 +256,4 @@
 | 2026-03-28 | MVP3-I2b | Funkční notifikační zvoneček — useNotificationCount hook (polling 60s), Inertia shared prop, reálný unread count v AppLayout, badge skrytý při 0, 5 Vitest testů |
 | 2026-03-28 | MVP3-I3a | Docker Vite HMR — separátní `vite` kontejner (node:22-alpine), Caddy proxy na vite:5173 s WebSocket, .env.example + dev-workflow.md dokumentace |
 | 2026-03-28 | MVP3-I3b | PostgreSQL test connection (phpunit.pgsql.xml, init-test-db.sql, composer test:pgsql), design-tokens.md aktualizován na v1.0 (form states, skeleton, transition tokeny) |
+| 2026-03-28 | MVP4-I1 | Production Caddyfile.prod (php_fastcgi, HSTS, security headers, domain env var), vite vyřazení z prod compose, Redis hesla v produkci, deploy.md oprava |

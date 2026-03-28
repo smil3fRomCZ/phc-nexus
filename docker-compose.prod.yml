@@ -15,6 +15,9 @@ services:
     restart: unless-stopped
 
   caddy:
+    depends_on:
+      app:
+        condition: service_started
     volumes:
       - ./docker/caddy/Caddyfile.prod:/etc/caddy/Caddyfile:ro
       - caddy-data:/data
@@ -25,9 +28,11 @@ services:
     restart: unless-stopped
 
   redis-cache:
+    command: redis-server --maxmemory 128mb --maxmemory-policy allkeys-lru --requirepass ${REDIS_CACHE_PASSWORD:-}
     restart: unless-stopped
 
   redis-data:
+    command: redis-server --maxmemory 128mb --maxmemory-policy noeviction --appendonly yes --requirepass ${REDIS_DATA_PASSWORD:-}
     restart: unless-stopped
 
   mailpit:

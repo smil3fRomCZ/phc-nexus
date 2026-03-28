@@ -84,7 +84,15 @@ final class ProjectController extends Controller
             'rootComments.replies.author:id,name',
             'attachments.uploader:id,name',
         ]);
-        $project->loadCount(['attachments', 'comments']);
+        $project->loadCount([
+            'attachments',
+            'comments',
+            'tasks',
+            'tasks as tasks_completed_count' => fn ($q) => $q->where('status', 'done'),
+            'tasks as tasks_overdue_count' => fn ($q) => $q->whereNotIn('status', ['done', 'cancelled'])->whereNotNull('due_date')->where('due_date', '<', now()),
+            'epics',
+            'members',
+        ]);
 
         return Inertia::render('Projects/Show', [
             'project' => $project,

@@ -1,5 +1,6 @@
 import EmptyState from '@/Components/EmptyState';
 import Pagination from '@/Components/Pagination';
+import { Bell } from 'lucide-react';
 import type { PaginationLink } from '@/Components/Pagination';
 import AppLayout from '@/Layouts/AppLayout';
 import type { Breadcrumb } from '@/Layouts/AppLayout';
@@ -135,7 +136,7 @@ export default function NotificationsIndex({ notifications, unreadCount }: Props
                             </div>
                         );
                     })}
-                    {notifications.data.length === 0 && <EmptyState message="No notifications." />}
+                    {notifications.data.length === 0 && <EmptyState icon={Bell} message="No notifications." />}
                 </div>
 
                 <Pagination links={notifications.links} />

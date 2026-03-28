@@ -5,7 +5,7 @@ import StatusBadge from '@/Components/StatusBadge';
 import { TASK_STATUS } from '@/constants/status';
 import { getPriority } from '@/constants/priority';
 import { Link, useForm } from '@inertiajs/react';
-import { Plus } from 'lucide-react';
+import { Plus, ClipboardList } from 'lucide-react';
 import type { FormEvent } from 'react';
 
 interface Task {
@@ -113,7 +113,7 @@ export default function TasksIndex({ project, epic, tasks }: Props) {
                         </div>
                     </div>
                 ))}
-                {tasks.length === 0 && <EmptyState message="No tasks yet. Add your first one." />}
+                {tasks.length === 0 && <EmptyState icon={ClipboardList} message="No tasks yet. Add your first one." />}
             </div>
         </AppLayout>
     );

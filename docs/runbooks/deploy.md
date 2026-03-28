@@ -71,23 +71,16 @@ GOOGLE_REDIRECT_URI=https://nexus.pearshealthcare.cz/auth/google/callback
 
 ## 3. Produkční Caddyfile
 
-Vytvořit/upravit `docker/caddy/Caddyfile.prod`:
+Soubor `docker/caddy/Caddyfile.prod` je součástí repozitáře. Doména je konfigurovatelná přes env var `DOMAIN` (default: `nexus.pearshealthcare.cz`).
 
-```caddyfile
-nexus.pearshealthcare.cz {
-    reverse_proxy app:9000
-    encode gzip
-
-    header {
-        X-Frame-Options DENY
-        X-Content-Type-Options nosniff
-        Referrer-Policy strict-origin-when-cross-origin
-        Strict-Transport-Security "max-age=63072000; includeSubDomains"
-    }
-}
+Pro změnu domény stačí nastavit v `.env`:
+```env
+DOMAIN=moje-domena.cz
 ```
 
-Caddy automaticky zajistí TLS přes Let's Encrypt.
+Caddy automaticky zajistí TLS přes Let's Encrypt. Používá `php_fastcgi` (FastCGI protokol pro PHP-FPM), ne `reverse_proxy`.
+
+> **Pozor:** DNS A záznam musí směřovat na IP serveru **před** prvním startem — Caddy potřebuje ověřit doménu pro Let's Encrypt.
 
 ---
 

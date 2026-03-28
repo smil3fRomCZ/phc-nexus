@@ -1,0 +1,35 @@
+{
+	# Auto-TLS via Let's Encrypt
+	# Caddy automaticky získá a obnoví certifikáty
+}
+
+{$DOMAIN:nexus.pearshealthcare.cz} {
+	# Statické soubory (Vite built assets, favicon, robots.txt)
+	root * /var/www/html/public
+	file_server
+
+	# PHP-FPM (FastCGI protokol, NE reverse_proxy)
+	php_fastcgi app:9000 {
+		root /var/www/html/public
+	}
+
+	# Komprese
+	encode gzip zstd
+
+	# Security headers
+	header {
+		Strict-Transport-Security "max-age=63072000; includeSubDomains; preload"
+		X-Content-Type-Options nosniff
+		X-Frame-Options DENY
+		Referrer-Policy strict-origin-when-cross-origin
+		Permissions-Policy "camera=(), microphone=(), geolocation=()"
+		X-Permitted-Cross-Domain-Policies none
+		-Server
+	}
+
+	# Request logging
+	log {
+		output stdout
+		format json
+	}
+}

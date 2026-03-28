@@ -90,7 +90,6 @@ services:
       - ./public:/var/www/html/public:ro
     depends_on:
       - app
-      - vite
     networks:
       - app-network
 

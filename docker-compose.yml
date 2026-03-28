@@ -58,6 +58,24 @@ services:
       - app-network
 
   # ==========================================================================
+  # Vite dev server (HMR)
+  # ==========================================================================
+  vite:
+    image: node:22-alpine
+    working_dir: /var/www/html
+    command: npm run dev
+    volumes:
+      - .:/var/www/html
+      - vite-node-modules:/var/www/html/node_modules
+    ports:
+      - "5173:5173"
+    environment:
+      - VITE_HMR_HOST=localhost
+      - VITE_HMR_CLIENT_PORT=5173
+    networks:
+      - app-network
+
+  # ==========================================================================
   # Caddy (reverse proxy + TLS)
   # ==========================================================================
   caddy:
@@ -72,6 +90,7 @@ services:
       - ./public:/var/www/html/public:ro
     depends_on:
       - app
+      - vite
     networks:
       - app-network
 
@@ -146,6 +165,7 @@ volumes:
   redis-data:
   caddy-data:
   caddy-config:
+  vite-node-modules:
 
 networks:
   app-network:

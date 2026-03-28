@@ -62,9 +62,15 @@ Po startu:
                           │  (schedule:run loop)   │
                           └───────────────────────┘
 
+┌──────────────────────┐
+│        vite           │
+│   (Vite dev server)   │
+│   HMR :5173           │
+└──────────────────────┘
+
 ┌──────────────────────┐  ┌──────────┐  ┌──────────┐
 │      postgres         │  │redis-cache│  │redis-data│
-│   PostgreSQL 18       │  │allkeys-lru│  │noeviction│
+│   PostgreSQL 17       │  │allkeys-lru│  │noeviction│
 │      :5432            │  │   :6379   │  │   :6380  │
 └──────────────────────┘  └──────────┘  └──────────┘
 ```
@@ -106,20 +112,26 @@ docker compose exec app ./vendor/bin/pint --test   # dry-run
 ### Frontend
 
 ```bash
-# Dev server (Vite HMR)
-docker compose exec app npm run dev
+# Vite HMR — běží automaticky v kontejneru `vite`
+# Logy Vite dev serveru:
+docker compose logs -f vite
 
-# Production build
-docker compose exec app npm run build
+# Pokud potřebuješ reinstall node_modules v kontejneru:
+docker compose exec vite npm install
+
+# Production build (mimo Docker)
+npm run build
 
 # Testy
-docker compose exec app npx vitest run
-docker compose exec app npx vitest run --reporter=verbose
+npx vitest run
+npx vitest run --reporter=verbose
 
 # Lint & typecheck
-docker compose exec app npx eslint .
-docker compose exec app npx tsc --noEmit
+npx eslint .
+npx tsc --noEmit
 ```
+
+> **Vite HMR v Dockeru:** Kontejner `vite` automaticky spouští `npm run dev` na portu 5173. Caddy proxyuje Vite requesty (`/@vite/*`, `/@id/*` atd.) na `vite:5173` včetně WebSocket pro HMR. Při změně `.tsx`/`.css` souborů se stránka automaticky aktualizuje bez reloadu.
 
 ### Logy & debugging
 
@@ -220,7 +232,7 @@ local                    staging                  production
 |---------|--------|
 | Kontejner nenaběhne | `docker compose logs <service>`, ověřit `.env`, volné porty |
 | Migrace selhává | Ověřit že `postgres` container je healthy: `docker compose ps` |
-| Vite HMR nefunguje | Ověřit že Vite dev server běží, zkontrolovat Caddy proxy |
+| Vite HMR nefunguje | `docker compose logs vite`, ověřit port 5173, `docker compose restart vite` |
 | Queue nezpracovává | Zkontrolovat worker logy, ověřit `redis-data` je up |
 | Testy padají na DB | `docker compose exec app php artisan migrate:fresh --env=testing` |
 | Pomalý build | Ověřit `.dockerignore`, zvážit OrbStack místo Docker Desktop |

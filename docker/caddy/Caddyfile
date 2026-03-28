@@ -8,9 +8,16 @@ localhost {
 	root * /var/www/html/public
 	file_server
 
-	# Vite dev server proxy (HMR)
+	# Vite dev server proxy (HMR + WebSocket)
 	@vite path /@@vite/* /@id/* /@fs/* /node_modules/*
-	reverse_proxy @vite app:5173
+	reverse_proxy @vite vite:5173
+
+	# Vite HMR WebSocket
+	@viteWs {
+		path /@@vite/client
+		header Connection *Upgrade*
+	}
+	reverse_proxy @viteWs vite:5173
 
 	# PHP-FPM for everything else
 	php_fastcgi app:9000 {

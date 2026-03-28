@@ -20,6 +20,7 @@
 | MVP3-I1 | Project Dashboard + Empty States | **DONE** | Project metriky (tasks/epics/members count), rozšířená EmptyState komponenta (ikony, CTA) |
 | MVP3-I2a | Loading + Validation | **DONE** | Skeleton/Spinner komponenty, loading stavy na formulářích, frontend validace, CSS tokeny |
 | MVP3-I2b | Notification Bell | **DONE** | Funkční zvoneček s polling 60s, Inertia shared prop, reálný unread count |
+| MVP3-I3a | Docker Vite HMR | **DONE** | Separátní vite kontejner, Caddy WebSocket proxy, dokumentace |
 
 ---
 
@@ -203,6 +204,7 @@
 | Kontejner | Image | Port | Status |
 |-----------|-------|------|--------|
 | app | phc-nexus-app (PHP 8.4-FPM) | 9000 (internal) | Running |
+| vite | node:22-alpine | 5173 | Running (HMR) |
 | caddy | caddy:2-alpine | 80, 443 | Running |
 | scheduler | phc-nexus-scheduler | — | Running |
 | worker | phc-nexus-worker | — | Running (Horizon) |
@@ -216,7 +218,7 @@
 ## Známé limitace a technický dluh
 
 1. ~~**Worker nefunguje**~~ — Vyřešeno: Horizon nainstalován, worker běží. Dashboard na `/horizon`.
-2. **Vite HMR v Dockeru** — Aktuálně je třeba `npm run build` lokálně. Vite dev server proxy přes Caddy je připraven, ale nebyl end-to-end ověřen.
+2. ~~**Vite HMR v Dockeru**~~ — Vyřešeno: separátní `vite` kontejner (node:22-alpine), Caddy proxy na `vite:5173` včetně WebSocket.
 3. **Testy běží na SQLite in-memory** — phpunit.xml používá SQLite, ne PostgreSQL. Pro MVP feature testy to stačí, pro database-specific testy (JSONB, FTS) bude potřeba PostgreSQL test connection.
 4. ~~**Žádné seed data**~~ — Vyřešeno: DemoSeeder s realistickou org strukturou, uživateli, projekty, epiky, úkoly, approvals a komentáři.
 5. **Design tokeny částečně** — v CSS jsou brand, text, surface, border, status tokeny. Chybí component-level tokeny (shell dimensions, button variants atd.).
@@ -250,3 +252,4 @@
 | 2026-03-28 | MVP3-I1 | Project dashboard metriky (tasks count, completed, overdue, epics, members) na project detail, rozšířená EmptyState komponenta (icon, action CTA, compact), ikony na 5 stránkách (Dashboard, Notifications, Tasks, Epics), 6 Vitest testů + 2 PHP feature testy |
 | 2026-03-28 | MVP3-I2a | Skeleton + Spinner komponenty, loading stavy na formulářích (Create/Edit/Comments), frontend validace (validate.ts + Project Create), CSS tokeny (form states, skeleton, transitions), 12 Vitest testů |
 | 2026-03-28 | MVP3-I2b | Funkční notifikační zvoneček — useNotificationCount hook (polling 60s), Inertia shared prop, reálný unread count v AppLayout, badge skrytý při 0, 5 Vitest testů |
+| 2026-03-28 | MVP3-I3a | Docker Vite HMR — separátní `vite` kontejner (node:22-alpine), Caddy proxy na vite:5173 s WebSocket, .env.example + dev-workflow.md dokumentace |

@@ -6,6 +6,7 @@ services:
     volumes:
       - ./.env:/var/www/html/.env
       - app-storage:/var/www/html/storage
+      - app-public:/var/www/html/public
     restart: unless-stopped
 
   worker:
@@ -26,6 +27,7 @@ services:
         condition: service_started
     volumes:
       - ./docker/caddy/Caddyfile.prod:/etc/caddy/Caddyfile:ro
+      - app-public:/var/www/html/public:ro
       - caddy-data:/data
       - caddy-config:/config
     restart: unless-stopped
@@ -47,3 +49,4 @@ services:
 
 volumes:
   app-storage:
+  app-public:

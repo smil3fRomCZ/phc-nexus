@@ -4,19 +4,19 @@
 services:
   app:
     volumes:
-      - ./.env:/var/www/html/.env:ro
+      - ./.env:/var/www/html/.env
       - app-storage:/var/www/html/storage
     restart: unless-stopped
 
   worker:
     volumes:
-      - ./.env:/var/www/html/.env:ro
+      - ./.env:/var/www/html/.env
       - app-storage:/var/www/html/storage
     restart: unless-stopped
 
   scheduler:
     volumes:
-      - ./.env:/var/www/html/.env:ro
+      - ./.env:/var/www/html/.env
       - app-storage:/var/www/html/storage
     restart: unless-stopped
 

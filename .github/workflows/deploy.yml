@@ -1,0 +1,65 @@
+name: Deploy
+
+on:
+  # Automaticky po merge do master (po úspěšném CI)
+  push:
+    branches: [master]
+  # Manuální spuštění z GitHub UI
+  workflow_dispatch:
+
+# Zajistí že běží pouze jeden deploy najednou
+concurrency:
+  group: production-deploy
+  cancel-in-progress: false
+
+jobs:
+  # Počká na úspěšný CI — nespouští deploy pokud testy padají
+  ci-check:
+    uses: ./.github/workflows/ci.yml
+
+  deploy:
+    needs: ci-check
+    runs-on: ubuntu-latest
+    environment: production
+
+    steps:
+      - name: Deploy na VPS přes SSH
+        uses: appleboy/ssh-action@v1
+        with:
+          host: ${{ secrets.VPS_HOST }}
+          username: ${{ secrets.VPS_USER }}
+          key: ${{ secrets.VPS_SSH_KEY }}
+          script: |
+            set -e
+            cd /opt/phc-nexus
+
+            echo "=== Pulling latest code ==="
+            git pull origin master
+
+            echo "=== Building containers ==="
+            docker compose -f docker-compose.yml -f docker-compose.prod.yml build
+
+            echo "=== Starting services ==="
+            docker compose -f docker-compose.yml -f docker-compose.prod.yml up -d
+
+            echo "=== Running migrations ==="
+            docker compose exec -T app php artisan migrate --force
+
+            echo "=== Clearing caches ==="
+            docker compose exec -T app php artisan config:cache
+            docker compose exec -T app php artisan route:cache
+            docker compose exec -T app php artisan view:cache
+
+            echo "=== Restarting Horizon ==="
+            docker compose exec -T app php artisan horizon:terminate
+
+            echo "=== Waiting for app to start ==="
+            sleep 5
+
+            echo "=== Health check ==="
+            curl -sf --max-time 10 https://${{ secrets.DOMAIN }}/up || {
+              echo "Health check failed!"
+              exit 1
+            }
+
+            echo "=== Deploy successful ==="

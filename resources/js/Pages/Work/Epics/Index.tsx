@@ -4,7 +4,7 @@ import { EPIC_STATUS } from '@/constants/status';
 import AppLayout from '@/Layouts/AppLayout';
 import type { Breadcrumb } from '@/Layouts/AppLayout';
 import { Link, useForm } from '@inertiajs/react';
-import { Plus } from 'lucide-react';
+import { Plus, Layers } from 'lucide-react';
 import type { FormEvent } from 'react';
 
 interface Epic {
@@ -87,7 +87,7 @@ export default function EpicsIndex({ project, epics }: Props) {
                         </div>
                     </div>
                 ))}
-                {epics.length === 0 && <EmptyState message="No epics yet. Add your first one." />}
+                {epics.length === 0 && <EmptyState icon={Layers} message="No epics yet. Add your first one." />}
             </div>
         </AppLayout>
     );

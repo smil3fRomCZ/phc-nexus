@@ -9,7 +9,7 @@ import AttachmentsSection from '@/Components/AttachmentsSection';
 import type { Attachment } from '@/Components/AttachmentsSection';
 import { PROJECT_STATUS } from '@/constants/status';
 import { Link, router } from '@inertiajs/react';
-import { Trash2, FileDown, ChevronDown } from 'lucide-react';
+import { Trash2, FileDown, ChevronDown, CheckCircle2, AlertCircle, Layers, Users } from 'lucide-react';
 import { useState, useRef, useEffect } from 'react';
 
 interface Project {
@@ -26,6 +26,11 @@ interface Project {
     attachments: Attachment[];
     attachments_count: number;
     comments_count: number;
+    tasks_count: number;
+    tasks_completed_count: number;
+    tasks_overdue_count: number;
+    epics_count: number;
+    members_count: number;
     start_date: string | null;
     target_date: string | null;
     created_at: string;
@@ -94,6 +99,9 @@ export default function ProjectShow({ project }: { project: Project }) {
                         </MetadataField>
                     </MetadataGrid>
                 </div>
+
+                {/* Metrics */}
+                <ProjectMetrics project={project} />
 
                 {/* Members */}
                 <div className="mb-6">
@@ -168,6 +176,59 @@ export default function ProjectShow({ project }: { project: Project }) {
                 </div>
             </div>
         </AppLayout>
+    );
+}
+
+function ProjectMetrics({ project }: { project: Project }) {
+    const progress =
+        project.tasks_count > 0 ? Math.round((project.tasks_completed_count / project.tasks_count) * 100) : 0;
+
+    const tiles = [
+        {
+            label: 'Tasks',
+            value: `${project.tasks_completed_count}/${project.tasks_count}`,
+            icon: CheckCircle2,
+            color: 'info' as const,
+            progress,
+        },
+        { label: 'Overdue', value: project.tasks_overdue_count, icon: AlertCircle, color: 'danger' as const },
+        { label: 'Epics', value: project.epics_count, icon: Layers, color: 'neutral' as const },
+        { label: 'Members', value: project.members_count, icon: Users, color: 'neutral' as const },
+    ];
+
+    const colors: Record<string, { bg: string; text: string }> = {
+        info: { bg: 'bg-status-info-subtle', text: 'text-status-info' },
+        danger: { bg: 'bg-status-danger-subtle', text: 'text-status-danger' },
+        neutral: { bg: 'bg-status-neutral-subtle', text: 'text-status-neutral' },
+    };
+
+    return (
+        <div className="mb-6 grid grid-cols-4 gap-4">
+            {tiles.map((tile) => {
+                const c = colors[tile.color];
+                const Icon = tile.icon;
+                return (
+                    <div
+                        key={tile.label}
+                        className="flex flex-col gap-1 rounded-lg border border-border-subtle bg-surface-primary p-4 transition-shadow hover:shadow-md"
+                    >
+                        <div className={`mb-1 flex h-7 w-7 items-center justify-center rounded-md ${c.bg}`}>
+                            <Icon className={`h-3.5 w-3.5 ${c.text}`} strokeWidth={2} />
+                        </div>
+                        <span className="text-xs font-medium text-text-muted">{tile.label}</span>
+                        <span className="text-xl font-bold text-text-strong">{tile.value}</span>
+                        {tile.progress !== undefined && (
+                            <div className="mt-1 h-1.5 w-full overflow-hidden rounded-full bg-surface-secondary">
+                                <div
+                                    className="h-full rounded-full bg-status-info transition-all"
+                                    style={{ width: `${tile.progress}%` }}
+                                />
+                            </div>
+                        )}
+                    </div>
+                );
+            })}
+        </div>
     );
 }
 

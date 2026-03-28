@@ -34,6 +34,8 @@ Navrženo pro 50–200 uživatelů. Invite-only přístup přes Google SSO.
 - **PHI klasifikace** — PHI/Non-PHI/Unknown na entitách, export guard
 
 ### UX
+- **Project dashboard** — metriky na detailu projektu (tasks/completed/overdue, epics, members)
+- **Empty states** — ikony a CTA na prázdných stránkách
 - **Globální vyhledávání** — Cmd+K přes projekty a úkoly
 - **My Tasks** — globální přehled přiřazených úkolů s filtry
 - **Responsive layout** — mobilní sidebar, responsive tabulky

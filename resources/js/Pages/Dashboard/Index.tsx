@@ -195,8 +195,8 @@ export default function DashboardIndex({ stats, myTasks, pendingApprovals }: Pro
                     ))}
                 </div>
             ) : (
-                <div className="rounded-lg border border-border-subtle bg-surface-primary p-8 text-center text-sm text-text-muted">
-                    No pending approvals.
+                <div className="rounded-lg border border-border-subtle bg-surface-primary">
+                    <EmptyState icon={CheckSquare} message="No pending approvals." />
                 </div>
             )}
         </AppLayout>

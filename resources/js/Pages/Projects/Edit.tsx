@@ -1,5 +1,6 @@
 import AppLayout from '@/Layouts/AppLayout';
 import type { Breadcrumb } from '@/Layouts/AppLayout';
+import Spinner from '@/Components/Spinner';
 import { useForm } from '@inertiajs/react';
 import type { FormEvent } from 'react';
 
@@ -104,8 +105,9 @@ export default function ProjectEdit({ project, statuses }: Props) {
                         <button
                             type="submit"
                             disabled={processing}
-                            className="rounded-md bg-brand-primary px-6 py-2 text-sm font-medium text-text-inverse transition-colors hover:bg-brand-hover disabled:opacity-50"
+                            className="inline-flex items-center gap-2 rounded-md bg-brand-primary px-6 py-2 text-sm font-medium text-text-inverse transition-colors hover:bg-brand-hover disabled:opacity-50"
                         >
+                            {processing && <Spinner size="sm" />}
                             Save Changes
                         </button>
                     </div>

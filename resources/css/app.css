@@ -118,4 +118,19 @@
 
     /* Empty state */
     --empty-fg: var(--color-text-subtle);
+
+    /* Form field states */
+    --input-border-error: var(--color-status-danger);
+    --input-bg-disabled: var(--color-surface-secondary);
+    --input-fg-disabled: var(--color-text-subtle);
+    --input-border-disabled: var(--color-border-subtle);
+
+    /* Skeleton */
+    --skeleton-bg: var(--color-surface-active);
+    --skeleton-radius: var(--radius-md);
+
+    /* Transitions */
+    --transition-fast: 150ms ease;
+    --transition-normal: 200ms ease;
+    --transition-slow: 300ms ease;
 }

@@ -1,4 +1,5 @@
 import Avatar from '@/Components/Avatar';
+import Spinner from '@/Components/Spinner';
 import { router, useForm, usePage } from '@inertiajs/react';
 import { MessageSquare, Send } from 'lucide-react';
 import type { PageProps } from '@/types';
@@ -151,7 +152,7 @@ function CommentForm({ postUrl, parentId, onDone }: { postUrl: string; parentId?
                 disabled={processing || !data.body.trim()}
                 className="self-end rounded-md bg-brand-primary px-4 py-2 text-sm font-medium text-text-inverse transition-colors hover:bg-brand-hover disabled:opacity-50"
             >
-                <Send className="h-4 w-4" />
+                {processing ? <Spinner size="sm" /> : <Send className="h-4 w-4" />}
             </button>
         </form>
     );

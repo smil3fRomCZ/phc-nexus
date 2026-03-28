@@ -36,6 +36,8 @@ Navrženo pro 50–200 uživatelů. Invite-only přístup přes Google SSO.
 ### UX
 - **Project dashboard** — metriky na detailu projektu (tasks/completed/overdue, epics, members)
 - **Empty states** — ikony a CTA na prázdných stránkách
+- **Loading stavy** — spinner v submit buttonech, skeleton loader komponenta
+- **Frontend validace** — client-side validace na formulářích (blur + submit)
 - **Globální vyhledávání** — Cmd+K přes projekty a úkoly
 - **My Tasks** — globální přehled přiřazených úkolů s filtry
 - **Responsive layout** — mobilní sidebar, responsive tabulky

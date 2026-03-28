@@ -3,6 +3,7 @@ import '../css/app.css';
 
 import { createInertiaApp, router } from '@inertiajs/react';
 import { createRoot } from 'react-dom/client';
+import ErrorBoundary from '@/Components/ErrorBoundary';
 
 // Global navigation progress bar
 let progressTimeout: ReturnType<typeof setTimeout>;
@@ -25,6 +26,10 @@ createInertiaApp({
         return pages[`./Pages/${name}.tsx`];
     },
     setup({ el, App, props }) {
-        createRoot(el).render(<App {...props} />);
+        createRoot(el).render(
+            <ErrorBoundary>
+                <App {...props} />
+            </ErrorBoundary>,
+        );
     },
 });

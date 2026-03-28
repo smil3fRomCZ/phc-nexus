@@ -3,22 +3,22 @@
 
 services:
   app:
-    volumes: []
+    volumes: !reset []
     restart: unless-stopped
 
   worker:
-    volumes: []
+    volumes: !reset []
     restart: unless-stopped
 
   scheduler:
-    volumes: []
+    volumes: !reset []
     restart: unless-stopped
 
   caddy:
-    depends_on:
+    depends_on: !reset
       app:
         condition: service_started
-    volumes:
+    volumes: !reset
       - ./docker/caddy/Caddyfile.prod:/etc/caddy/Caddyfile:ro
       - caddy-data:/data
       - caddy-config:/config

@@ -16,7 +16,7 @@ RUN composer dump-autoload --optimize
 FROM node:22-alpine AS frontend-build
 WORKDIR /build
 COPY package.json package-lock.json* ./
-RUN npm ci
+RUN npm ci --legacy-peer-deps
 COPY . .
 RUN npm run build
 

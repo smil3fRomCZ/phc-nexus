@@ -19,6 +19,7 @@
 | MVP2 | Production Polish | **DONE** | 5 iterací — broken flows, globální pohledy, admin, UX polish, advanced features |
 | MVP3-I1 | Project Dashboard + Empty States | **DONE** | Project metriky (tasks/epics/members count), rozšířená EmptyState komponenta (ikony, CTA) |
 | MVP3-I2a | Loading + Validation | **DONE** | Skeleton/Spinner komponenty, loading stavy na formulářích, frontend validace, CSS tokeny |
+| MVP3-I2b | Notification Bell | **DONE** | Funkční zvoneček s polling 60s, Inertia shared prop, reálný unread count |
 
 ---
 
@@ -106,6 +107,19 @@
 - Form field states: `--input-border-error`, `--input-bg-disabled`, `--input-fg-disabled`, `--input-border-disabled`
 - Skeleton: `--skeleton-bg`, `--skeleton-radius`
 - Transitions: `--transition-fast/normal/slow`
+
+---
+
+## MVP3 — Iterace 2b: Notification Bell (DONE)
+
+> 2026-03-28
+
+### Funkční notifikační zvoneček
+- `useNotificationCount` hook — polling 60s na `GET /notifications/unread-count`
+- Inertia shared prop `notificationCount` v `HandleInertiaRequests` — initial count bez flashe "0"
+- AppLayout: reálný unread count, badge skrytý při 0, `99+` cap, onClick navigace na `/notifications`
+- `aria-label` pro accessibility
+- 5 Vitest testů (initial count, polling, error handling, cleanup)
 
 ---
 
@@ -235,3 +249,4 @@
 | 2026-03-27 | MVP2 | Iterace 1–5: fix broken flows, CRUD dokončení, globální pohledy (My Tasks, Approvals, Calendar), admin sekce (users, org, audit log, PHI report, approval analytics), UX polish (toast, inline edit, pagination, bulk ops, responsive), advanced features (activity timeline, export 4 formáty, dependencies, recurring tasks) — 11 PR (#28–#38) |
 | 2026-03-28 | MVP3-I1 | Project dashboard metriky (tasks count, completed, overdue, epics, members) na project detail, rozšířená EmptyState komponenta (icon, action CTA, compact), ikony na 5 stránkách (Dashboard, Notifications, Tasks, Epics), 6 Vitest testů + 2 PHP feature testy |
 | 2026-03-28 | MVP3-I2a | Skeleton + Spinner komponenty, loading stavy na formulářích (Create/Edit/Comments), frontend validace (validate.ts + Project Create), CSS tokeny (form states, skeleton, transitions), 12 Vitest testů |
+| 2026-03-28 | MVP3-I2b | Funkční notifikační zvoneček — useNotificationCount hook (polling 60s), Inertia shared prop, reálný unread count v AppLayout, badge skrytý při 0, 5 Vitest testů |

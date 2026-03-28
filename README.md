@@ -23,7 +23,7 @@ Navrženo pro 50–200 uživatelů. Invite-only přístup přes Google SSO.
 ### Spolupráce
 - **Komentáře** — threaded diskuze na projektech, epicích a úkolech
 - **Přílohy** — upload/download s PHI guardem a auditem
-- **Notifikace** — in-app + email, deep links na relevantní stránky
+- **Notifikace** — in-app + email, deep links, živý unread count v notifikačním zvonečku
 - **Toast zprávy** — okamžitá zpětná vazba po akcích
 
 ### Administrace & compliance

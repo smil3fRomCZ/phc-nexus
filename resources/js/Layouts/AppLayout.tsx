@@ -20,6 +20,7 @@ import {
     X,
 } from 'lucide-react';
 import GlobalSearch from '@/Components/GlobalSearch';
+import useNotificationCount from '@/hooks/useNotificationCount';
 
 /* ── Types ── */
 
@@ -77,7 +78,8 @@ function getInitials(name: string): string {
 /* ── Component ── */
 
 export default function AppLayout({ title, breadcrumbs, children }: AppLayoutProps) {
-    const { auth } = usePage<PageProps>().props;
+    const { auth, notificationCount: initialCount } = usePage<PageProps>().props;
+    const notificationCount = useNotificationCount(initialCount);
     const currentPath = typeof window !== 'undefined' ? window.location.pathname : '';
     const [sidebarOpen, setSidebarOpen] = useState(false);
 
@@ -118,11 +120,17 @@ export default function AppLayout({ title, breadcrumbs, children }: AppLayoutPro
                     </div>
 
                     <div className="flex items-center gap-4">
-                        <button className="relative text-text-muted transition-colors hover:text-text-strong">
+                        <button
+                            onClick={() => router.visit('/notifications')}
+                            className="relative text-text-muted transition-colors hover:text-text-strong"
+                            aria-label={`Notifications${notificationCount > 0 ? ` (${notificationCount} unread)` : ''}`}
+                        >
                             <Bell className="h-[18px] w-[18px]" />
-                            <span className="absolute -right-1.5 -top-1 flex h-4 w-4 items-center justify-center rounded-full bg-brand-primary text-[0.625rem] font-semibold leading-none text-text-inverse">
-                                5
-                            </span>
+                            {notificationCount > 0 && (
+                                <span className="absolute -right-1.5 -top-1 flex h-4 w-4 items-center justify-center rounded-full bg-brand-primary text-[0.625rem] font-semibold leading-none text-text-inverse">
+                                    {notificationCount > 99 ? '99+' : notificationCount}
+                                </span>
+                            )}
                         </button>
                         {auth.user && (
                             <div className="flex items-center gap-2 cursor-pointer">

@@ -14,4 +14,5 @@ export interface PageProps {
         success?: string;
         error?: string;
     };
+    notificationCount: number;
 }

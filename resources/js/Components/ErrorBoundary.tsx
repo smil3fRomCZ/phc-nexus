@@ -42,12 +42,9 @@ export default class ErrorBoundary extends Component<Props, State> {
             <div className="flex min-h-screen items-center justify-center bg-surface-canvas px-4">
                 <div className="max-w-md text-center">
                     <div className="mb-4 text-4xl font-bold text-text-subtle">Chyba</div>
-                    <h1 className="mb-2 text-xl font-semibold text-text-strong">
-                        Něco se pokazilo
-                    </h1>
+                    <h1 className="mb-2 text-xl font-semibold text-text-strong">Něco se pokazilo</h1>
                     <p className="mb-6 text-sm text-text-muted">
-                        Na stránce došlo k neočekávané chybě. Zkuste to znovu nebo se vraťte na
-                        hlavní stránku.
+                        Na stránce došlo k neočekávané chybě. Zkuste to znovu nebo se vraťte na hlavní stránku.
                     </p>
                     {import.meta.env.DEV && this.state.error && (
                         <pre className="mb-6 max-h-40 overflow-auto rounded-md border border-border-subtle bg-surface-secondary p-3 text-left text-xs text-status-danger">

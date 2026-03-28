@@ -55,10 +55,10 @@ RUN addgroup -g 1000 -S appuser && \
 
 WORKDIR /var/www/html
 
-# Copy application
+# Copy application code first, then overlay built artifacts
+COPY . .
 COPY --from=composer-build /build/vendor ./vendor
 COPY --from=frontend-build /build/public/build ./public/build
-COPY . .
 
 # Set permissions
 RUN chown -R appuser:appuser storage bootstrap/cache && \

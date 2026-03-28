@@ -60,6 +60,9 @@ COPY . .
 COPY --from=composer-build /build/vendor ./vendor
 COPY --from=frontend-build /build/public/build ./public/build
 
+# Regenerate package discovery (exclude dev providers like Pail)
+RUN php artisan package:discover --ansi 2>/dev/null || true
+
 # Set permissions
 RUN chown -R appuser:appuser storage bootstrap/cache && \
     chmod -R 775 storage bootstrap/cache

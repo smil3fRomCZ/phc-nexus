@@ -1,7 +1,7 @@
 # PHC Nexus Design Tokens
 
-Status: Draft v0.1
-Date: 2026-03-24
+Status: Active v1.0
+Date: 2026-03-28
 Owners: Frontend Lead, Tech Lead
 
 ## Purpose
@@ -329,6 +329,36 @@ Používat tři vrstvy:
 }
 ```
 
+### Form Field States
+
+```css
+:root {
+  --input-border-error: var(--color-status-danger-fg);
+  --input-bg-disabled: var(--color-surface-panel-subtle);
+  --input-fg-disabled: var(--color-text-subtle);
+  --input-border-disabled: var(--color-border-subtle);
+}
+```
+
+### Skeleton
+
+```css
+:root {
+  --skeleton-bg: var(--color-surface-panel-muted);
+  --skeleton-radius: var(--radius-md);
+}
+```
+
+### Transitions
+
+```css
+:root {
+  --transition-fast: 150ms ease;
+  --transition-normal: 200ms ease;
+  --transition-slow: 300ms ease;
+}
+```
+
 ## Tailwind Mapping
 
 Tailwind konfigurace má být navázaná na CSS variables, ne na samostatné hardcoded palety.
@@ -377,24 +407,21 @@ Nepovolovat:
 
 ## MVP Token Checklist
 
-Před implementací core UI musí být v kódu dostupné:
+Všechny tokeny jsou implementovány v `resources/css/app.css`:
 
-- brand tokens
-- text tokens
-- surface tokens
-- border tokens
-- status tokens
-- spacing scale
-- radius scale
-- button tokens
-- input tokens
-- table tokens
-- card tokens
-
-## Next Step
-
-Po zavedení tokenů do kódu navazuje:
-
-- [design-system.md](/C:/Users/janme/Documents/Projekty/Claude/phc-nexus/docs/design-system.md)
-- `docs/page-patterns.md`
-- první sada implementovaných base komponent
+- [x] brand tokens
+- [x] text tokens
+- [x] surface tokens
+- [x] border tokens
+- [x] status tokens
+- [x] spacing scale (Tailwind default)
+- [x] radius scale
+- [x] button tokens
+- [x] input tokens + form field states (error, disabled)
+- [x] table tokens
+- [x] card tokens
+- [x] empty state tokens
+- [x] skeleton tokens
+- [x] transition tokens
+- [x] shell tokens (topbar, sidebar, page)
+- [x] focus ring

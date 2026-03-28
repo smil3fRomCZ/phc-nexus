@@ -21,6 +21,7 @@
 | MVP3-I2a | Loading + Validation | **DONE** | Skeleton/Spinner komponenty, loading stavy na formulářích, frontend validace, CSS tokeny |
 | MVP3-I2b | Notification Bell | **DONE** | Funkční zvoneček s polling 60s, Inertia shared prop, reálný unread count |
 | MVP3-I3a | Docker Vite HMR | **DONE** | Separátní vite kontejner, Caddy WebSocket proxy, dokumentace |
+| MVP3-I3b | PgSQL Tests + Tokens | **DONE** | PostgreSQL test connection (opt-in), design-tokens.md v1.0 |
 
 ---
 
@@ -219,9 +220,9 @@
 
 1. ~~**Worker nefunguje**~~ — Vyřešeno: Horizon nainstalován, worker běží. Dashboard na `/horizon`.
 2. ~~**Vite HMR v Dockeru**~~ — Vyřešeno: separátní `vite` kontejner (node:22-alpine), Caddy proxy na `vite:5173` včetně WebSocket.
-3. **Testy běží na SQLite in-memory** — phpunit.xml používá SQLite, ne PostgreSQL. Pro MVP feature testy to stačí, pro database-specific testy (JSONB, FTS) bude potřeba PostgreSQL test connection.
+3. ~~**Testy běží na SQLite in-memory**~~ — Vyřešeno: `phpunit.pgsql.xml` pro opt-in PostgreSQL testy (`composer test:pgsql`). SQLite zůstává default pro rychlý feedback.
 4. ~~**Žádné seed data**~~ — Vyřešeno: DemoSeeder s realistickou org strukturou, uživateli, projekty, epiky, úkoly, approvals a komentáři.
-5. **Design tokeny částečně** — v CSS jsou brand, text, surface, border, status tokeny. Chybí component-level tokeny (shell dimensions, button variants atd.).
+5. ~~**Design tokeny částečně**~~ — Vyřešeno: kompletní token set včetně form states, skeleton, transitions. `docs/design/design-tokens.md` v1.0.
 
 ---
 
@@ -253,3 +254,4 @@
 | 2026-03-28 | MVP3-I2a | Skeleton + Spinner komponenty, loading stavy na formulářích (Create/Edit/Comments), frontend validace (validate.ts + Project Create), CSS tokeny (form states, skeleton, transitions), 12 Vitest testů |
 | 2026-03-28 | MVP3-I2b | Funkční notifikační zvoneček — useNotificationCount hook (polling 60s), Inertia shared prop, reálný unread count v AppLayout, badge skrytý při 0, 5 Vitest testů |
 | 2026-03-28 | MVP3-I3a | Docker Vite HMR — separátní `vite` kontejner (node:22-alpine), Caddy proxy na vite:5173 s WebSocket, .env.example + dev-workflow.md dokumentace |
+| 2026-03-28 | MVP3-I3b | PostgreSQL test connection (phpunit.pgsql.xml, init-test-db.sql, composer test:pgsql), design-tokens.md aktualizován na v1.0 (form states, skeleton, transition tokeny) |

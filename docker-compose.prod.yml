@@ -1,30 +1,30 @@
-# Production overrides — no volume mounts, built assets in image
+# Production overrides — minimal volume mounts, built assets in image
 # Usage: docker compose -f docker-compose.yml -f docker-compose.prod.yml up -d
 
 services:
   app:
-    volumes: !reset
+    volumes:
       - ./.env:/var/www/html/.env:ro
-      - ./storage:/var/www/html/storage
+      - app-storage:/var/www/html/storage
     restart: unless-stopped
 
   worker:
-    volumes: !reset
+    volumes:
       - ./.env:/var/www/html/.env:ro
-      - ./storage:/var/www/html/storage
+      - app-storage:/var/www/html/storage
     restart: unless-stopped
 
   scheduler:
-    volumes: !reset
+    volumes:
       - ./.env:/var/www/html/.env:ro
-      - ./storage:/var/www/html/storage
+      - app-storage:/var/www/html/storage
     restart: unless-stopped
 
   caddy:
-    depends_on: !reset
+    depends_on:
       app:
         condition: service_started
-    volumes: !reset
+    volumes:
       - ./docker/caddy/Caddyfile.prod:/etc/caddy/Caddyfile:ro
       - caddy-data:/data
       - caddy-config:/config
@@ -44,3 +44,6 @@ services:
   mailpit:
     profiles:
       - debug
+
+volumes:
+  app-storage:

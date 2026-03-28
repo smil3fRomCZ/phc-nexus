@@ -50,7 +50,7 @@ vite.config.js.timestamp-*
 vite.config.ts.timestamp-*
 
 # Docker
-docker-compose.override.yml
+# docker-compose.override.yml — tracked, dev volumes pro lokální vývoj
 
 # Database (dev)
 database/database.sqlite

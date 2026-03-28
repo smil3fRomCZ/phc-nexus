@@ -1,0 +1,18 @@
+# Dev overrides — automaticky se načítá při `docker compose up`
+# V produkci se nepoužívá (explicitně se zadává -f docker-compose.prod.yml)
+
+services:
+  app:
+    volumes:
+      - .:/var/www/html
+      - ./docker/php/php.dev.ini:/usr/local/etc/php/conf.d/app.ini:ro
+
+  worker:
+    volumes:
+      - .:/var/www/html
+      - ./docker/php/php.dev.ini:/usr/local/etc/php/conf.d/app.ini:ro
+
+  scheduler:
+    volumes:
+      - .:/var/www/html
+      - ./docker/php/php.dev.ini:/usr/local/etc/php/conf.d/app.ini:ro

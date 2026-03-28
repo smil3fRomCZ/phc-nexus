@@ -7,10 +7,6 @@ services:
       context: .
       dockerfile: Dockerfile
       target: production
-    volumes:
-      - .:/var/www/html
-      - ./docker/php/php.dev.ini:/usr/local/etc/php/conf.d/app.ini:ro
-    # Laravel reads .env from volume mount — no env_file needed in dev
     depends_on:
       postgres:
         condition: service_healthy
@@ -30,10 +26,6 @@ services:
       dockerfile: Dockerfile
       target: production
     command: php artisan horizon
-    volumes:
-      - .:/var/www/html
-      - ./docker/php/php.dev.ini:/usr/local/etc/php/conf.d/app.ini:ro
-    # Laravel reads .env from volume mount — no env_file needed in dev
     depends_on:
       - app
     networks:
@@ -48,10 +40,6 @@ services:
       dockerfile: Dockerfile
       target: production
     command: sh -c "while true; do php artisan schedule:run --verbose --no-interaction; sleep 60; done"
-    volumes:
-      - .:/var/www/html
-      - ./docker/php/php.dev.ini:/usr/local/etc/php/conf.d/app.ini:ro
-    # Laravel reads .env from volume mount — no env_file needed in dev
     depends_on:
       - app
     networks:

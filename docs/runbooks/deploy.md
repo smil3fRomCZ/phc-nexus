@@ -129,7 +129,37 @@ docker compose logs --tail=50 app
 
 ---
 
-## 6. Update (následné deploye)
+## 6. Automatický deploy (GitHub Actions CD)
+
+Po merge PR do `master` se automaticky spustí deploy workflow (`.github/workflows/deploy.yml`):
+
+1. CI validace (testy, lint, build)
+2. SSH na VPS → git pull → docker build → up -d
+3. Migrace + cache clear + Horizon restart
+4. Health check (`/up`)
+
+### Potřebné GitHub Secrets
+
+Nastavit v **Settings → Secrets and variables → Actions**:
+
+| Secret | Popis | Příklad |
+|--------|-------|---------|
+| `VPS_HOST` | IP adresa nebo hostname serveru | `123.45.67.89` |
+| `VPS_USER` | SSH uživatel | `deploy` |
+| `VPS_SSH_KEY` | Privátní SSH klíč (Ed25519) | obsah `~/.ssh/id_ed25519` |
+| `DOMAIN` | Produkční doména | `nexus.pearshealthcare.cz` |
+
+### Manuální spuštění
+
+Deploy lze spustit i manuálně z GitHub UI: **Actions → Deploy → Run workflow**.
+
+### Fallback (manuální deploy)
+
+Pokud CD nefunguje, použij manuální postup níže.
+
+---
+
+## 7. Manuální update (fallback)
 
 ```bash
 cd /opt/phc-nexus
@@ -157,7 +187,7 @@ docker compose exec app php artisan horizon:terminate
 
 ---
 
-## 7. Rollback
+## 8. Rollback
 
 ```bash
 # Vrátit na předchozí verzi

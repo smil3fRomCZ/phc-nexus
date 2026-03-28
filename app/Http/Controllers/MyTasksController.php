@@ -32,7 +32,7 @@ final class MyTasksController extends Controller
         }
 
         $tasks = $query
-            ->orderByRaw('CASE WHEN due_date IS NOT NULL AND due_date < NOW() THEN 0 ELSE 1 END')
+            ->orderByRaw('CASE WHEN due_date IS NOT NULL AND due_date < ? THEN 0 ELSE 1 END', [now()])
             ->orderBy('due_date')
             ->orderBy('created_at', 'desc')
             ->paginate(20)

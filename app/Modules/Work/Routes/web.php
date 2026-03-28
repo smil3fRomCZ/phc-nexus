@@ -11,7 +11,7 @@ use App\Modules\Work\Controllers\TaskController;
 use App\Modules\Work\Controllers\TaskDependencyController;
 use Illuminate\Support\Facades\Route;
 
-Route::middleware('auth')->group(function () {
+Route::middleware('auth')->scopeBindings()->group(function () {
     Route::resource('projects.epics', EpicController::class)->except(['create', 'edit']);
 
     // Epic comments & attachments

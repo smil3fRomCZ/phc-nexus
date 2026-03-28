@@ -24,6 +24,7 @@
 | MVP3-I3b | PgSQL Tests + Tokens | **DONE** | PostgreSQL test connection (opt-in), design-tokens.md v1.0 |
 | MVP4-I1 | Production Caddy + Security | **DONE** | Caddyfile.prod, security headers, Redis hesla, vite vyřazení z prod |
 | MVP4-I2 | CD Pipeline | **DONE** | GitHub Actions deploy.yml (SSH), health check, deploy.md CD sekce |
+| MVP4-I3 | FORPSI Setup Guide | **DONE** | forpsi-setup.md, .env.production.example, finální dokumentace |
 
 ---
 
@@ -259,3 +260,4 @@
 | 2026-03-28 | MVP3-I3b | PostgreSQL test connection (phpunit.pgsql.xml, init-test-db.sql, composer test:pgsql), design-tokens.md aktualizován na v1.0 (form states, skeleton, transition tokeny) |
 | 2026-03-28 | MVP4-I1 | Production Caddyfile.prod (php_fastcgi, HSTS, security headers, domain env var), vite vyřazení z prod compose, Redis hesla v produkci, deploy.md oprava |
 | 2026-03-28 | MVP4-I2 | GitHub Actions CD pipeline (SSH deploy, health check, concurrency lock), deploy.md sekce o CD + GitHub Secrets |
+| 2026-03-28 | MVP4-I3 | FORPSI setup guide (12 kroků od objednávky po zálohy), .env.production.example, finální MVP4 dokumentace |

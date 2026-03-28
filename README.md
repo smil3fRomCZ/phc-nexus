@@ -115,15 +115,25 @@ app/Modules/
 | redis-data | Redis 7 Alpine | Sessions + queues (noeviction) |
 | mailpit | Mailpit | Email testing (dev) |
 
+### Production Deployment
+
+Cílová platforma: **FORPSI Standard VPS** (4 vCPU, 8 GB RAM, 80 GB NVMe, ~295 Kč/měs).
+
+- Automatický deploy přes GitHub Actions po merge do master
+- Caddy auto-TLS (Let's Encrypt), security headers (HSTS, CSP)
+- Průvodce: [`docs/runbooks/forpsi-setup.md`](docs/runbooks/forpsi-setup.md)
+
 ### Dokumentace
 
 | Dokument | Obsah |
 |----------|-------|
 | [`docs/status.md`](docs/status.md) | Aktuální stav implementace |
 | [`docs/dev-workflow.md`](docs/dev-workflow.md) | Průvodce lokálním vývojem |
+| [`docs/runbooks/forpsi-setup.md`](docs/runbooks/forpsi-setup.md) | FORPSI VPS setup (12 kroků) |
+| [`docs/runbooks/deploy.md`](docs/runbooks/deploy.md) | Deploy, CD pipeline, rollback |
+| [`docs/runbooks/backup-restore.md`](docs/runbooks/backup-restore.md) | Zálohy a obnova |
 | [`docs/architecture/phi-scope-matrix.md`](docs/architecture/phi-scope-matrix.md) | PHI access pravidla |
 | [`docs/design/`](docs/design/) | Design systém, tokeny, page patterns |
-| [`docs/runbooks/`](docs/runbooks/) | Deploy, backup, monitoring |
 | [`CLAUDE.md`](CLAUDE.md) | Instrukce pro Claude Code agenty |
 
 ## License

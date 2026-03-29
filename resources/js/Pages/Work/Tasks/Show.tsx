@@ -200,11 +200,7 @@ export default function TaskShow({
                                 </button>
                                 <button
                                     onClick={() => {
-                                        if (
-                                            confirm(
-                                                'Opravdu chcete smazat tento úkol? Tuto akci nelze vrátit.',
-                                            )
-                                        ) {
+                                        if (confirm('Opravdu chcete smazat tento úkol? Tuto akci nelze vrátit.')) {
                                             router.delete(`/projects/${project.id}/tasks/${task.id}`);
                                         }
                                     }}

@@ -28,7 +28,11 @@ interface Props {
     history: HistoryItem[];
 }
 
-const BREADCRUMBS: Breadcrumb[] = [{ label: 'Domů', href: '/' }, { label: 'Administrace' }, { label: 'Analytika schvalování' }];
+const BREADCRUMBS: Breadcrumb[] = [
+    { label: 'Domů', href: '/' },
+    { label: 'Administrace' },
+    { label: 'Analytika schvalování' },
+];
 
 const STATUS_CONFIG: Record<string, { color: string; bg: string }> = {
     pending: { color: 'text-status-warning', bg: 'bg-status-warning-subtle' },

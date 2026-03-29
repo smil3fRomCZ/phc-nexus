@@ -49,7 +49,9 @@ export default function ApprovalsIndex({ project, approvalRequests }: Props) {
                     >
                         <div className="flex items-center gap-3">
                             <StatusBadge statusMap={APPROVAL_STATUS} value={req.status} />
-                            <span className="text-base text-text-strong">{req.description ?? 'Žádost o schválení'}</span>
+                            <span className="text-base text-text-strong">
+                                {req.description ?? 'Žádost o schválení'}
+                            </span>
                         </div>
                         <div className="flex items-center gap-4 text-sm text-text-muted">
                             <span>{req.requester.name}</span>

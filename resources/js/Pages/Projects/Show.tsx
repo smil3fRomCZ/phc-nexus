@@ -67,11 +67,7 @@ export default function ProjectShow({ project }: { project: Project }) {
                         </Link>
                         <button
                             onClick={() => {
-                                if (
-                                    confirm(
-                                        'Opravdu chcete smazat tento projekt? Tuto akci nelze vrátit.',
-                                    )
-                                ) {
+                                if (confirm('Opravdu chcete smazat tento projekt? Tuto akci nelze vrátit.')) {
                                     router.delete(`/projects/${project.id}`);
                                 }
                             }}
@@ -87,9 +83,7 @@ export default function ProjectShow({ project }: { project: Project }) {
                     <MetadataGrid>
                         <MetadataField label="Vlastník">{project.owner.name}</MetadataField>
                         <MetadataField label="Tým">{project.team?.name ?? '\u2014'}</MetadataField>
-                        <MetadataField label="Klasifikace">
-                            {project.data_classification.toUpperCase()}
-                        </MetadataField>
+                        <MetadataField label="Klasifikace">{project.data_classification.toUpperCase()}</MetadataField>
                         <MetadataField label="Vytvořeno">
                             {new Date(project.created_at).toLocaleDateString('cs-CZ', {
                                 day: 'numeric',
@@ -153,8 +147,12 @@ export default function ProjectShow({ project }: { project: Project }) {
                 {/* Dates */}
                 {(project.start_date || project.target_date) && (
                     <div className="mt-6 flex gap-4 text-sm text-text-muted">
-                        {project.start_date && <span>Zahájení: {new Date(project.start_date).toLocaleDateString('cs-CZ')}</span>}
-                        {project.target_date && <span>Cíl: {new Date(project.target_date).toLocaleDateString('cs-CZ')}</span>}
+                        {project.start_date && (
+                            <span>Zahájení: {new Date(project.start_date).toLocaleDateString('cs-CZ')}</span>
+                        )}
+                        {project.target_date && (
+                            <span>Cíl: {new Date(project.target_date).toLocaleDateString('cs-CZ')}</span>
+                        )}
                     </div>
                 )}
 

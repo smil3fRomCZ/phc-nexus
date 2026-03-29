@@ -30,7 +30,10 @@ function generateKey(name: string, existingKeys: string[]): string {
 
     if (words.length >= 3) {
         // 3+ slov: první písmeno z každého z prvních 3 slov
-        base = words.slice(0, 3).map((w) => w[0]).join('');
+        base = words
+            .slice(0, 3)
+            .map((w) => w[0])
+            .join('');
     } else if (words.length === 2) {
         // 2 slova: první písmeno z prvního + první dvě z druhého
         base = words[0][0] + words[1].slice(0, 2);

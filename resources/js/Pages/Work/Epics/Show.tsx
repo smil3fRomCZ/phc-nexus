@@ -78,11 +78,7 @@ export default function EpicShow({ project, epic, members, statuses }: Props) {
                             </button>
                             <button
                                 onClick={() => {
-                                    if (
-                                        confirm(
-                                            'Opravdu chcete smazat tento epik? Tuto akci nelze vrátit.',
-                                        )
-                                    ) {
+                                    if (confirm('Opravdu chcete smazat tento epik? Tuto akci nelze vrátit.')) {
                                         router.delete(`/projects/${project.id}/epics/${epic.id}`);
                                     }
                                 }}
@@ -118,7 +114,9 @@ export default function EpicShow({ project, epic, members, statuses }: Props) {
 
                 <div>
                     <div className="mb-3 flex items-center justify-between">
-                        <h3 className="text-xs font-semibold uppercase tracking-wider text-text-subtle">Úkoly ({epic.tasks_count})</h3>
+                        <h3 className="text-xs font-semibold uppercase tracking-wider text-text-subtle">
+                            Úkoly ({epic.tasks_count})
+                        </h3>
                         <Link
                             href={`/projects/${project.id}/epics/${epic.id}/tasks`}
                             className="text-xs text-text-muted no-underline hover:text-brand-primary"

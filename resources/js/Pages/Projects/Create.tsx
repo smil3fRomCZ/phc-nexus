@@ -58,7 +58,13 @@ function generateKey(name: string, existingKeys: string[]): string {
     return base;
 }
 
-export default function ProjectCreate({ existingKeys, classifications }: Props) {
+const DEFAULT_CLASSIFICATIONS = [
+    { value: 'non_phi', label: 'Non-PHI' },
+    { value: 'phi', label: 'PHI' },
+    { value: 'unknown', label: 'Unknown' },
+];
+
+export default function ProjectCreate({ existingKeys, classifications = DEFAULT_CLASSIFICATIONS }: Props) {
     const { data, setData, post, processing, errors } = useForm({
         name: '',
         key: '',

@@ -23,8 +23,8 @@ cd phc-nexus
 # 2. Environment
 cp .env.example .env
 
-# 3. Start
-docker compose up -d
+# 3. Start (dev mode — s hot reload a dev volumes)
+docker compose -f docker-compose.yml -f docker-compose.dev.yml up -d
 
 # 4. První setup (migrace + seed)
 docker compose exec app php artisan migrate --seed

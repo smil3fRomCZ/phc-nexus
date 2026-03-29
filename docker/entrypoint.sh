@@ -1,10 +1,11 @@
 #!/bin/sh
 set -e
 
-# Sync built public assets to the shared volume.
-# The app-public named volume is shared with Caddy so it can serve
-# static files (CSS/JS/images) directly. We copy on every container
-# start to ensure the volume always reflects the current image build.
-cp -a /var/www/html/public-build/. /var/www/html/public/
+# Sync built public assets into the shared named volume.
+# Uses -rf to overwrite existing files without preserving ownership
+# (volume may be owned by root, container runs as appuser).
+rm -rf /var/www/html/public/*
+cp -r /var/www/html/public-build/. /var/www/html/public/
 
-exec "$@"
+# Drop privileges and run the main process as appuser
+exec su-exec appuser "$@"

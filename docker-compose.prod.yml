@@ -1,8 +1,10 @@
 # Production overrides — minimal volume mounts, built assets in image
+# Caddy je sdílený (docker-compose.caddy.yml) — obsluhuje produkci i staging
 # Usage: docker compose -f docker-compose.yml -f docker-compose.prod.yml up -d
 
 services:
   app:
+    container_name: prod-app
     volumes:
       - ./.env:/var/www/html/.env
       - app-storage:/var/www/html/storage
@@ -22,15 +24,8 @@ services:
     restart: unless-stopped
 
   caddy:
-    depends_on:
-      app:
-        condition: service_started
-    volumes:
-      - ./docker/caddy/Caddyfile.prod:/etc/caddy/Caddyfile:ro
-      - app-public:/var/www/html/public:ro
-      - caddy-data:/data
-      - caddy-config:/config
-    restart: unless-stopped
+    profiles:
+      - disabled
 
   postgres:
     restart: unless-stopped

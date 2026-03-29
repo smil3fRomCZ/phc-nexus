@@ -6,24 +6,37 @@ on:
     branches: [master]
   # Manuální spuštění z GitHub UI
   workflow_dispatch:
+    inputs:
+      target:
+        description: 'Cíl deploye'
+        required: true
+        default: 'staging'
+        type: choice
+        options:
+          - staging
+          - production
+          - both
 
 # Zajistí že běží pouze jeden deploy najednou
 concurrency:
-  group: production-deploy
+  group: deploy
   cancel-in-progress: false
 
 jobs:
-  # Počká na úspěšný CI — nespouští deploy pokud testy padají
+  # ==========================================================================
+  # CI check — nespouští deploy pokud testy padají
+  # ==========================================================================
   ci-check:
     uses: ./.github/workflows/ci.yml
 
-  deploy:
+  # ==========================================================================
+  # Build — jeden image pro obě prostředí
+  # ==========================================================================
+  build-image:
     needs: ci-check
     runs-on: ubuntu-latest
-    environment: production
-
     steps:
-      - name: Deploy na VPS přes SSH
+      - name: Build Docker image na VPS
         uses: appleboy/ssh-action@v1
         with:
           host: ${{ secrets.VPS_HOST }}
@@ -36,10 +49,83 @@ jobs:
             echo "=== Pulling latest code ==="
             git pull origin master
 
-            echo "=== Building containers ==="
-            docker compose -f docker-compose.yml -f docker-compose.prod.yml build
+            echo "=== Building image ==="
+            docker build -t phc-nexus:latest --target production .
 
-            echo "=== Starting services ==="
+            echo "=== Syncing staging repo ==="
+            cd /opt/phc-nexus-staging
+            git pull origin master
+
+            echo "=== Build complete ==="
+
+  # ==========================================================================
+  # Deploy Staging — automaticky po každém push na master
+  # ==========================================================================
+  deploy-staging:
+    needs: build-image
+    runs-on: ubuntu-latest
+    if: >
+      github.event_name == 'push' ||
+      github.event.inputs.target == 'staging' ||
+      github.event.inputs.target == 'both'
+
+    steps:
+      - name: Deploy staging
+        uses: appleboy/ssh-action@v1
+        with:
+          host: ${{ secrets.VPS_HOST }}
+          username: ${{ secrets.VPS_USER }}
+          key: ${{ secrets.VPS_SSH_KEY }}
+          script: |
+            set -e
+            cd /opt/phc-nexus-staging
+
+            echo "=== Starting staging services ==="
+            COMPOSE_PROJECT_NAME=phc-nexus-staging \
+              docker compose -f docker-compose.staging.yml up -d
+
+            echo "=== Running migrations ==="
+            COMPOSE_PROJECT_NAME=phc-nexus-staging \
+              docker compose -f docker-compose.staging.yml exec -T app \
+              php artisan migrate --force
+
+            echo "=== Caching config ==="
+            COMPOSE_PROJECT_NAME=phc-nexus-staging \
+              docker compose -f docker-compose.staging.yml exec -T app \
+              php artisan config:cache
+
+            echo "=== Reloading shared Caddy ==="
+            cd /opt/phc-nexus-shared
+            docker compose -f docker-compose.caddy.yml exec -T caddy \
+              caddy reload --config /etc/caddy/Caddyfile || true
+
+            echo "=== Staging deploy complete ==="
+
+  # ==========================================================================
+  # Deploy Production — vyžaduje manuální approve v GitHub UI
+  # ==========================================================================
+  deploy-production:
+    needs: build-image
+    runs-on: ubuntu-latest
+    environment: production
+
+    if: >
+      github.event_name == 'push' ||
+      github.event.inputs.target == 'production' ||
+      github.event.inputs.target == 'both'
+
+    steps:
+      - name: Deploy production
+        uses: appleboy/ssh-action@v1
+        with:
+          host: ${{ secrets.VPS_HOST }}
+          username: ${{ secrets.VPS_USER }}
+          key: ${{ secrets.VPS_SSH_KEY }}
+          script: |
+            set -e
+            cd /opt/phc-nexus
+
+            echo "=== Starting production services ==="
             docker compose -f docker-compose.yml -f docker-compose.prod.yml up -d
 
             echo "=== Running migrations ==="
@@ -53,7 +139,6 @@ jobs:
             echo "=== Restarting Horizon ==="
             docker compose exec -T app php artisan horizon:terminate
 
-            echo "=== Waiting for app to start ==="
             sleep 5
 
             echo "=== Health check ==="
@@ -62,4 +147,4 @@ jobs:
               exit 1
             }
 
-            echo "=== Deploy successful ==="
+            echo "=== Production deploy complete ==="

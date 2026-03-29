@@ -1,0 +1,113 @@
+# Staging environment — lightweight, single Redis, worker/scheduler optional
+# Usage: COMPOSE_PROJECT_NAME=phc-nexus-staging docker compose -f docker-compose.staging.yml up -d
+# S worker/scheduler: COMPOSE_PROJECT_NAME=phc-nexus-staging docker compose -f docker-compose.staging.yml --profile full up -d
+
+services:
+  # ==========================================================================
+  # Application (PHP-FPM) — lehčí FPM pool (max 5 children)
+  # ==========================================================================
+  app:
+    image: phc-nexus:latest
+    container_name: staging-app
+    volumes:
+      - ./.env.staging:/var/www/html/.env:ro
+      - app-storage:/var/www/html/storage
+      - app-public:/var/www/html/public
+      - ./docker/php/php-fpm.staging.conf:/usr/local/etc/php-fpm.d/zz-app.conf:ro
+    depends_on:
+      postgres:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+    restart: unless-stopped
+    networks:
+      - app-network
+
+  # ==========================================================================
+  # Queue Worker (Horizon) — volitelný, jen pro testování front
+  # ==========================================================================
+  worker:
+    image: phc-nexus:latest
+    command: php artisan horizon
+    volumes:
+      - ./.env.staging:/var/www/html/.env:ro
+      - app-storage:/var/www/html/storage
+    depends_on:
+      - app
+    profiles:
+      - full
+    restart: unless-stopped
+    networks:
+      - app-network
+
+  # ==========================================================================
+  # Scheduler — volitelný, jen pro testování cronů
+  # ==========================================================================
+  scheduler:
+    image: phc-nexus:latest
+    command: sh -c "while true; do php artisan schedule:run --verbose --no-interaction; sleep 60; done"
+    volumes:
+      - ./.env.staging:/var/www/html/.env:ro
+      - app-storage:/var/www/html/storage
+    depends_on:
+      - app
+    profiles:
+      - full
+    restart: unless-stopped
+    networks:
+      - app-network
+
+  # ==========================================================================
+  # PostgreSQL 17 — staging databáze
+  # ==========================================================================
+  postgres:
+    image: postgres:17-alpine
+    environment:
+      POSTGRES_DB: phc_nexus_staging
+      POSTGRES_USER: phc_nexus_staging
+      POSTGRES_PASSWORD: ${DB_PASSWORD:-staging_secret}
+    volumes:
+      - postgres-data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U phc_nexus_staging"]
+      interval: 5s
+      timeout: 5s
+      retries: 5
+    restart: unless-stopped
+    networks:
+      - app-network
+
+  # ==========================================================================
+  # Redis — jeden kontejner pro cache i data (DB 0 = cache, DB 1 = data)
+  # ==========================================================================
+  redis:
+    image: redis:7-alpine
+    command: redis-server --maxmemory 64mb --maxmemory-policy allkeys-lru --requirepass ${REDIS_PASSWORD:-staging_redis}
+    healthcheck:
+      test: ["CMD", "redis-cli", "-a", "${REDIS_PASSWORD:-staging_redis}", "ping"]
+      interval: 5s
+      timeout: 5s
+      retries: 5
+    restart: unless-stopped
+    networks:
+      - app-network
+
+  # ==========================================================================
+  # Mailpit — zachytí všechny emaily ze stagingu
+  # ==========================================================================
+  mailpit:
+    image: axllent/mailpit:latest
+    ports:
+      - "8026:8025"
+    restart: unless-stopped
+    networks:
+      - app-network
+
+volumes:
+  app-storage:
+  app-public:
+  postgres-data:
+
+networks:
+  app-network:
+    driver: bridge

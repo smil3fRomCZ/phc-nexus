@@ -116,18 +116,19 @@ app/Modules/
 | mailpit | Mailpit | Email testing (dev) |
 
 **Dev:** `docker compose -f docker-compose.yml -f docker-compose.dev.yml up -d` (bind mounts, Vite HMR)
+**Staging:** `COMPOSE_PROJECT_NAME=phc-nexus-staging docker compose -f docker-compose.staging.yml up -d` (lehčí FPM, 1× Redis)
 **Produkce:** `docker compose -f docker-compose.yml -f docker-compose.prod.yml up -d` (named volumes, Let's Encrypt)
 
 ### Production Deployment
 
 Běží na **FORPSI Standard VPS** (4 vCPU, 8 GB RAM, 80 GB NVMe, ~295 Kč/měs).
 
-- **Live:** https://phc-nexus.eu
-- Automatický deploy přes GitHub Actions po merge do master
-- Caddy reverse proxy s auto-TLS (Let's Encrypt) a security headers (HSTS)
-- Sdílený `app-public` named volume — entrypoint sync zajišťuje aktuální CSS/JS assets
-- Google SSO autentizace
-- Průvodce: [`docs/runbooks/forpsi-setup.md`](docs/runbooks/forpsi-setup.md)
+- **Produkce:** https://phc-nexus.eu
+- **Staging:** https://dev.phc-nexus.eu (basic auth chráněný)
+- Deploy workflow: push na master → CI → build image → **staging auto** → **produkce po approve**
+- Sdílený Caddy obsluhuje obě domény s auto-TLS (Let's Encrypt)
+- DB sync skript: jednosměrná kopie produkčních dat do stagingu s PHI anonymizací
+- Průvodce: [`docs/runbooks/forpsi-setup.md`](docs/runbooks/forpsi-setup.md), [`docs/staging-setup.md`](docs/staging-setup.md)
 
 ### Dokumentace
 
@@ -136,6 +137,7 @@ Běží na **FORPSI Standard VPS** (4 vCPU, 8 GB RAM, 80 GB NVMe, ~295 Kč/měs)
 | [`docs/status.md`](docs/status.md) | Aktuální stav implementace |
 | [`docs/dev-workflow.md`](docs/dev-workflow.md) | Průvodce lokálním vývojem |
 | [`docs/runbooks/forpsi-setup.md`](docs/runbooks/forpsi-setup.md) | FORPSI VPS setup (12 kroků) |
+| [`docs/staging-setup.md`](docs/staging-setup.md) | Staging prostředí — jednorázový setup |
 | [`docs/runbooks/deploy.md`](docs/runbooks/deploy.md) | Deploy, CD pipeline, rollback |
 | [`docs/runbooks/backup-restore.md`](docs/runbooks/backup-restore.md) | Zálohy a obnova |
 | [`docs/architecture/phi-scope-matrix.md`](docs/architecture/phi-scope-matrix.md) | PHI access pravidla |

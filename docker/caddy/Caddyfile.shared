@@ -1,0 +1,74 @@
+{
+	# Auto-TLS via Let's Encrypt pro obě domény
+}
+
+# =============================================================================
+# Produkce — phc-nexus.eu
+# =============================================================================
+{$DOMAIN:phc-nexus.eu} {
+	# Statické soubory (Vite built assets, favicon, robots.txt)
+	root * /var/www/html/public
+	file_server
+
+	# PHP-FPM (FastCGI protokol)
+	php_fastcgi prod-app:9000 {
+		root /var/www/html/public
+	}
+
+	# Komprese
+	encode gzip zstd
+
+	# Security headers
+	header {
+		Strict-Transport-Security "max-age=63072000; includeSubDomains; preload"
+		X-Content-Type-Options nosniff
+		X-Frame-Options DENY
+		Referrer-Policy strict-origin-when-cross-origin
+		Permissions-Policy "camera=(), microphone=(), geolocation=()"
+		X-Permitted-Cross-Domain-Policies none
+		-Server
+	}
+
+	# Request logging
+	log {
+		output stdout
+		format json
+	}
+}
+
+# =============================================================================
+# Staging — dev.phc-nexus.eu
+# =============================================================================
+dev.{$DOMAIN:phc-nexus.eu} {
+	# Basic auth ochrana — zamezí neautorizovanému přístupu
+	basicauth {
+		{$STAGING_AUTH_USER:staging} {$STAGING_AUTH_HASH}
+	}
+
+	# Statické soubory
+	root * /var/www/html/public-staging
+	file_server
+
+	# PHP-FPM (staging app kontejner)
+	php_fastcgi staging-app:9000 {
+		root /var/www/html/public
+	}
+
+	# Komprese
+	encode gzip zstd
+
+	# Security headers (bez HSTS — staging)
+	header {
+		X-Content-Type-Options nosniff
+		X-Frame-Options DENY
+		Referrer-Policy strict-origin-when-cross-origin
+		X-Robots-Tag "noindex, nofollow"
+		-Server
+	}
+
+	# Request logging
+	log {
+		output stdout
+		format json
+	}
+}

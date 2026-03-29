@@ -26,6 +26,7 @@
 | MVP4-I2 | CD Pipeline | **DONE** | GitHub Actions deploy.yml (SSH), health check, deploy.md CD sekce |
 | MVP4-I3 | FORPSI Setup Guide | **DONE** | forpsi-setup.md, .env.production.example, finální dokumentace |
 | MVP4 | Production Deploy | **DONE** | FORPSI Standard VPS, Docker prod fixes, Google SSO, live na https://phc-nexus.eu |
+| — | Staging Environment | **DONE** | Staging na dev.phc-nexus.eu, sdílený Caddy, DB sync s anonymizací, deploy workflow (staging auto + prod approve) |
 
 ---
 
@@ -268,3 +269,4 @@
 | 2026-03-28 | MVP4 | Production deploy na FORPSI Standard VPS — Docker prod fixes (volumes, package discovery, public assets sharing), Google SSO live, aplikace běží na http://194-182-78-7.nip.io |
 | 2026-03-29 | MVP4 | Změna produkční domény na phc-nexus.eu, DNS nastaveno na FORPSI, aktualizace Caddyfile.prod, .env šablon a runbooků |
 | 2026-03-29 | MVP4 | Docker production fix: sdílený `app-public` named volume (app↔Caddy), entrypoint sync skript, PHP-FPM root master (privilege drop přes pool config), sjednocení češtiny v UI, fallback classifications prop |
+| 2026-03-29 | Staging | Staging prostředí na stejném VPS (dev.phc-nexus.eu) — docker-compose.staging.yml, sdílený Caddy (Caddyfile.shared), lehčí FPM pool (5 children), jeden Redis, DB sync skript s PHI anonymizací, deploy workflow přepracován na 3 joby (build → staging auto → prod approve) |

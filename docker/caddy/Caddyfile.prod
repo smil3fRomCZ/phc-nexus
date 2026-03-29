@@ -3,7 +3,7 @@
 	# Caddy automaticky získá a obnoví certifikáty
 }
 
-{$DOMAIN:nexus.pearshealthcare.cz} {
+{$DOMAIN:phc-nexus.eu} {
 	# Statické soubory (Vite built assets, favicon, robots.txt)
 	root * /var/www/html/public
 	file_server

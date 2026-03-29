@@ -25,7 +25,7 @@
 | MVP4-I1 | Production Caddy + Security | **DONE** | Caddyfile.prod, security headers, Redis hesla, vite vyřazení z prod |
 | MVP4-I2 | CD Pipeline | **DONE** | GitHub Actions deploy.yml (SSH), health check, deploy.md CD sekce |
 | MVP4-I3 | FORPSI Setup Guide | **DONE** | forpsi-setup.md, .env.production.example, finální dokumentace |
-| MVP4 | Production Deploy | **DONE** | FORPSI Standard VPS, Docker prod fixes, Google SSO, live na http://194-182-78-7.nip.io |
+| MVP4 | Production Deploy | **DONE** | FORPSI Standard VPS, Docker prod fixes, Google SSO, live na https://phc-nexus.eu |
 
 ---
 
@@ -263,3 +263,4 @@
 | 2026-03-28 | MVP4-I2 | GitHub Actions CD pipeline (SSH deploy, health check, concurrency lock), deploy.md sekce o CD + GitHub Secrets |
 | 2026-03-28 | MVP4-I3 | FORPSI setup guide (12 kroků od objednávky po zálohy), .env.production.example, finální MVP4 dokumentace |
 | 2026-03-28 | MVP4 | Production deploy na FORPSI Standard VPS — Docker prod fixes (volumes, package discovery, public assets sharing), Google SSO live, aplikace běží na http://194-182-78-7.nip.io |
+| 2026-03-29 | MVP4 | Změna produkční domény na phc-nexus.eu, DNS nastaveno na FORPSI, aktualizace Caddyfile.prod, .env šablon a runbooků |

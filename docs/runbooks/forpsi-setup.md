@@ -104,7 +104,7 @@ Povinné změny:
 | Proměnná | Co nastavit |
 |----------|-------------|
 | `APP_KEY` | Vygeneruje se v kroku 8 |
-| `APP_URL` | `https://nexus.pearshealthcare.cz` |
+| `APP_URL` | `https://phc-nexus.eu` |
 | `DB_PASSWORD` | Silné heslo (32+ znaků) |
 | `REDIS_CACHE_PASSWORD` | Silné heslo |
 | `REDIS_DATA_PASSWORD` | Silné heslo |
@@ -113,7 +113,7 @@ Povinné změny:
 | `MAIL_HOST` | SMTP server (SendGrid, O365, vlastní) |
 | `MAIL_USERNAME` | SMTP uživatel |
 | `MAIL_PASSWORD` | SMTP heslo |
-| `DOMAIN` | `nexus.pearshealthcare.cz` |
+| `DOMAIN` | `phc-nexus.eu` |
 
 ---
 
@@ -123,7 +123,7 @@ Povinné změny:
 2. Vytvořit projekt nebo vybrat existující
 3. APIs & Services → Credentials → Create OAuth 2.0 Client ID
 4. Application type: **Web application**
-5. Authorized redirect URIs: `https://nexus.pearshealthcare.cz/auth/google/callback`
+5. Authorized redirect URIs: `https://phc-nexus.eu/auth/google/callback`
 6. Zkopírovat Client ID a Client Secret do `.env`
 
 ---
@@ -133,12 +133,12 @@ Povinné změny:
 Přidat A záznam u registrátora domény:
 
 ```
-nexus.pearshealthcare.cz.  A  <IP_ADRESA>
+phc-nexus.eu.  A  <IP_ADRESA>
 ```
 
 > **Důležité:** DNS musí být nastaveno **před** prvním startem — Caddy potřebuje ověřit doménu pro Let's Encrypt certifikát.
 
-Ověření: `dig nexus.pearshealthcare.cz +short` → musí vrátit IP adresu serveru.
+Ověření: `dig phc-nexus.eu +short` → musí vrátit IP adresu serveru.
 
 ---
 
@@ -181,19 +181,19 @@ docker compose ps
 # Očekáváno: 7 kontejnerů (app, worker, scheduler, caddy, postgres, redis-cache, redis-data)
 
 # Health check
-curl -sf https://nexus.pearshealthcare.cz/up && echo " OK"
+curl -sf https://phc-nexus.eu/up && echo " OK"
 
 # Horizon
 docker compose exec app php artisan horizon:status
 
 # Certifikát (TLS)
-echo | openssl s_client -connect nexus.pearshealthcare.cz:443 2>/dev/null | head -5
+echo | openssl s_client -connect phc-nexus.eu:443 2>/dev/null | head -5
 
 # Logy bez chyb
 docker compose logs --tail=20 app
 ```
 
-Otevřít v prohlížeči: **https://nexus.pearshealthcare.cz** → login přes Google SSO.
+Otevřít v prohlížeči: **https://phc-nexus.eu** → login přes Google SSO.
 
 ---
 
@@ -209,7 +209,7 @@ Pro automatický deploy po merge do master:
 | `VPS_HOST` | IP adresa serveru |
 | `VPS_USER` | `deploy` |
 | `VPS_SSH_KEY` | Obsah `~/.ssh/github_deploy` (privátní klíč) |
-| `DOMAIN` | `nexus.pearshealthcare.cz` |
+| `DOMAIN` | `phc-nexus.eu` |
 
 3. V **Settings → Environments** vytvořit environment `production`
 

@@ -51,7 +51,7 @@ Navrženo pro 50–200 uživatelů. Invite-only přístup přes Google SSO.
 git clone git@github.com:smil3fRomCZ/phc-nexus.git
 cd phc-nexus
 cp .env.example .env
-docker compose up -d
+docker compose -f docker-compose.yml -f docker-compose.dev.yml up -d
 docker compose exec app php artisan key:generate
 docker compose exec app php artisan migrate --seed
 npm run build

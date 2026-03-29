@@ -1,5 +1,5 @@
-# Dev overrides — automaticky se načítá při `docker compose up`
-# V produkci se nepoužívá (explicitně se zadává -f docker-compose.prod.yml)
+# Dev overrides — NENAČÍTÁ se automaticky, nutno zadat explicitně:
+# docker compose -f docker-compose.yml -f docker-compose.dev.yml up
 
 services:
   app:

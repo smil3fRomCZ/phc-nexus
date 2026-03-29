@@ -55,7 +55,7 @@ Každý modul obsahuje: `Models/`, `Actions/` (use-cases), `Controllers/`, `Poli
 
 ## Docker Development
 
-- `docker compose up` spustí vše — žádné lokální PHP/Node instalace
+- `docker compose -f docker-compose.yml -f docker-compose.dev.yml up` spustí dev prostředí — žádné lokální PHP/Node instalace
 - Kontejnery: `app` (PHP-FPM), `worker`, `scheduler`, `postgres`, `redis-cache`, `redis-data`, `caddy`
 - Jeden Dockerfile, jeden image, více runtime rolí (CMD override)
 - Stejný image pro local / staging / production

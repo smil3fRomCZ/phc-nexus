@@ -5,6 +5,7 @@ services:
   app:
     volumes:
       - .:/var/www/html
+      - ./public:/var/www/html/public
       - ./docker/php/php.dev.ini:/usr/local/etc/php/conf.d/app.ini:ro
 
   worker:

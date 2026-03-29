@@ -7,6 +7,8 @@ services:
       context: .
       dockerfile: Dockerfile
       target: production
+    volumes:
+      - app-public:/var/www/html/public
     depends_on:
       postgres:
         condition: service_healthy
@@ -75,7 +77,7 @@ services:
       - ./docker/caddy/Caddyfile:/etc/caddy/Caddyfile:ro
       - caddy-data:/data
       - caddy-config:/config
-      - ./public:/var/www/html/public:ro
+      - app-public:/var/www/html/public:ro
     depends_on:
       - app
     networks:
@@ -149,6 +151,7 @@ services:
       - app-network
 
 volumes:
+  app-public:
   postgres-data:
   redis-data:
   caddy-data:

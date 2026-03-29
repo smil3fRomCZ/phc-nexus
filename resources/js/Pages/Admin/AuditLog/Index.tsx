@@ -36,7 +36,7 @@ interface Props {
     actors: Actor[];
 }
 
-const BREADCRUMBS: Breadcrumb[] = [{ label: 'Home', href: '/' }, { label: 'Admin' }, { label: 'Audit Log' }];
+const BREADCRUMBS: Breadcrumb[] = [{ label: 'Domů', href: '/' }, { label: 'Administrace' }, { label: 'Audit log' }];
 
 function formatTime(dateStr: string): string {
     return new Date(dateStr).toLocaleString('cs-CZ', {
@@ -64,8 +64,8 @@ export default function AuditLogIndex({ entries, filters, actions, entityTypes, 
     }
 
     return (
-        <AppLayout title="Audit Log" breadcrumbs={BREADCRUMBS}>
-            <h1 className="mb-6 text-2xl font-bold leading-tight text-text-strong">Audit Log</h1>
+        <AppLayout title="Audit log" breadcrumbs={BREADCRUMBS}>
+            <h1 className="mb-6 text-2xl font-bold leading-tight text-text-strong">Audit log</h1>
 
             {/* Filters */}
             <div className="mb-6 flex gap-3">
@@ -74,7 +74,7 @@ export default function AuditLogIndex({ entries, filters, actions, entityTypes, 
                     onChange={(e) => applyFilter('action', e.target.value)}
                     className="rounded-md border border-border-default bg-surface-primary px-3 py-1.5 text-sm focus:border-border-focus focus:outline-none"
                 >
-                    <option value="">All actions</option>
+                    <option value="">Všechny akce</option>
                     {actions.map((a) => (
                         <option key={a.value} value={a.value}>
                             {a.label}
@@ -86,7 +86,7 @@ export default function AuditLogIndex({ entries, filters, actions, entityTypes, 
                     onChange={(e) => applyFilter('entity_type', e.target.value)}
                     className="rounded-md border border-border-default bg-surface-primary px-3 py-1.5 text-sm focus:border-border-focus focus:outline-none"
                 >
-                    <option value="">All entities</option>
+                    <option value="">Všechny entity</option>
                     {entityTypes.map((e) => (
                         <option key={e.value} value={e.value}>
                             {e.label}
@@ -98,7 +98,7 @@ export default function AuditLogIndex({ entries, filters, actions, entityTypes, 
                     onChange={(e) => applyFilter('actor_id', e.target.value)}
                     className="rounded-md border border-border-default bg-surface-primary px-3 py-1.5 text-sm focus:border-border-focus focus:outline-none"
                 >
-                    <option value="">All users</option>
+                    <option value="">Všichni uživatelé</option>
                     {actors.map((a) => (
                         <option key={a.id} value={a.id}>
                             {a.name}
@@ -112,7 +112,7 @@ export default function AuditLogIndex({ entries, filters, actions, entityTypes, 
                 <table className="w-full border-collapse">
                     <thead>
                         <tr>
-                            {['Time', 'User', 'Action', 'Entity', 'Details'].map((h) => (
+                            {['Čas', 'Uživatel', 'Akce', 'Entita', 'Detail'].map((h) => (
                                 <th
                                     key={h}
                                     className="border-b border-border-default bg-surface-secondary px-5 py-3 text-left text-xs font-semibold uppercase tracking-wider text-text-subtle"
@@ -129,7 +129,7 @@ export default function AuditLogIndex({ entries, filters, actions, entityTypes, 
                                     {formatTime(entry.created_at)}
                                 </td>
                                 <td className="border-b border-border-subtle px-5 py-3 text-sm text-text-default">
-                                    {entry.actor?.name ?? 'System'}
+                                    {entry.actor?.name ?? 'Systém'}
                                 </td>
                                 <td className="border-b border-border-subtle px-5 py-3">
                                     <span className="inline-flex rounded-[10px] bg-status-info-subtle px-2 py-px text-xs font-semibold text-status-info">
@@ -151,7 +151,7 @@ export default function AuditLogIndex({ entries, filters, actions, entityTypes, 
                                 </td>
                             </tr>
                         ))}
-                        {entries.data.length === 0 && <EmptyState colSpan={5} message="No audit entries found." />}
+                        {entries.data.length === 0 && <EmptyState colSpan={5} message="Žádné záznamy v auditu." />}
                     </tbody>
                 </table>
             </div>

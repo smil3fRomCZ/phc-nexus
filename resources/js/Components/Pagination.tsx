@@ -19,8 +19,8 @@ export default function Pagination({ links }: Props) {
                 const label = link.label
                     .replace('&laquo;', '\u00AB')
                     .replace('&raquo;', '\u00BB')
-                    .replace('Previous', '\u00AB Prev')
-                    .replace('Next', 'Next \u00BB');
+                    .replace('Previous', '\u00AB Předchozí')
+                    .replace('Next', 'Další \u00BB');
 
                 if (!link.url) {
                     return (

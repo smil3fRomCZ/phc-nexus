@@ -31,14 +31,14 @@ interface Props {
     divisions: Division[];
 }
 
-const BREADCRUMBS: Breadcrumb[] = [{ label: 'Home', href: '/' }, { label: 'Admin' }, { label: 'Organization' }];
+const BREADCRUMBS: Breadcrumb[] = [{ label: 'Domů', href: '/' }, { label: 'Administrace' }, { label: 'Organizace' }];
 
 export default function OrganizationIndex({ divisions }: Props) {
     return (
-        <AppLayout title="Organization" breadcrumbs={BREADCRUMBS}>
-            <h1 className="mb-6 text-2xl font-bold leading-tight text-text-strong">Organization Structure</h1>
+        <AppLayout title="Organizace" breadcrumbs={BREADCRUMBS}>
+            <h1 className="mb-6 text-2xl font-bold leading-tight text-text-strong">Organizační struktura</h1>
 
-            {divisions.length === 0 && <EmptyState message="No divisions configured." />}
+            {divisions.length === 0 && <EmptyState message="Žádné divize nastaveny." />}
 
             <div className="space-y-6">
                 {divisions.map((division) => (
@@ -52,7 +52,7 @@ export default function OrganizationIndex({ divisions }: Props) {
                                 )}
                             </div>
                             <span className="ml-auto rounded-full bg-status-neutral-subtle px-2 py-px text-xs font-medium text-text-muted">
-                                {division.teams.length} teams
+                                {division.teams.length} týmů
                             </span>
                         </div>
 
@@ -69,7 +69,7 @@ export default function OrganizationIndex({ divisions }: Props) {
                                             </span>
                                         )}
                                         <span className="ml-auto text-xs text-text-muted">
-                                            {team.members.length} members
+                                            {team.members.length} členů
                                         </span>
                                     </div>
                                     {team.members.length > 0 ? (
@@ -85,12 +85,12 @@ export default function OrganizationIndex({ divisions }: Props) {
                                             ))}
                                         </div>
                                     ) : (
-                                        <p className="pl-6 text-xs text-text-muted">No members</p>
+                                        <p className="pl-6 text-xs text-text-muted">Žádní členové</p>
                                     )}
                                 </div>
                             ))}
                             {division.teams.length === 0 && (
-                                <p className="px-5 py-4 text-sm text-text-muted">No teams in this division.</p>
+                                <p className="px-5 py-4 text-sm text-text-muted">Žádné týmy v této divizi.</p>
                             )}
                         </div>
                     </div>

@@ -26,7 +26,7 @@ interface Props {
     approvals: Approval[];
 }
 
-const BREADCRUMBS: Breadcrumb[] = [{ label: 'Home', href: '/' }, { label: 'Approvals' }];
+const BREADCRUMBS: Breadcrumb[] = [{ label: 'Domů', href: '/' }, { label: 'Schvalování' }];
 
 function timeAgo(dateStr: string): string {
     const diff = Date.now() - new Date(dateStr).getTime();
@@ -39,9 +39,9 @@ function timeAgo(dateStr: string): string {
 
 export default function GlobalApprovals({ approvals }: Props) {
     return (
-        <AppLayout title="Approvals" breadcrumbs={BREADCRUMBS}>
+        <AppLayout title="Schvalování" breadcrumbs={BREADCRUMBS}>
             <div className="mx-auto max-w-4xl">
-                <h1 className="mb-6 text-2xl font-bold leading-tight text-text-strong">Pending Approvals</h1>
+                <h1 className="mb-6 text-2xl font-bold leading-tight text-text-strong">Čekající schválení</h1>
 
                 {approvals.length > 0 ? (
                     <div className="space-y-3">
@@ -52,19 +52,19 @@ export default function GlobalApprovals({ approvals }: Props) {
                             >
                                 <div className="flex-1">
                                     <p className="text-sm font-semibold text-text-strong">
-                                        {approval.approvable_title ?? approval.description ?? 'Approval request'}
+                                        {approval.approvable_title ?? approval.description ?? 'Žádost o schválení'}
                                     </p>
                                     {approval.description && approval.approvable_title && (
                                         <p className="mt-0.5 text-sm text-text-muted">{approval.description}</p>
                                     )}
                                     <div className="mt-1 flex gap-3 text-xs text-text-muted">
-                                        <span>Requested by {approval.requester.name}</span>
+                                        <span>Vyžádal/a {approval.requester.name}</span>
                                         <span>&middot;</span>
                                         <span>{timeAgo(approval.created_at)}</span>
                                         <span>&middot;</span>
                                         <span>
                                             {approval.votes.filter((v) => v.decision !== null).length}/
-                                            {approval.votes.length} voted
+                                            {approval.votes.length} hlasoval/a
                                         </span>
                                     </div>
                                 </div>
@@ -73,14 +73,14 @@ export default function GlobalApprovals({ approvals }: Props) {
                                         href={`/projects/${approval.project_id}/approvals/${approval.id}`}
                                         className="ml-4 rounded-md bg-brand-primary px-4 py-1.5 text-xs font-medium text-text-inverse no-underline transition-colors hover:bg-brand-hover"
                                     >
-                                        Review
+                                        Posoudit
                                     </Link>
                                 )}
                             </div>
                         ))}
                     </div>
                 ) : (
-                    <EmptyState message="No pending approvals." />
+                    <EmptyState message="Žádná čekající schválení." />
                 )}
             </div>
         </AppLayout>

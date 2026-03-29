@@ -26,7 +26,7 @@ interface Props {
     actors: Actor[];
 }
 
-const BREADCRUMBS: Breadcrumb[] = [{ label: 'Home', href: '/' }, { label: 'Admin' }, { label: 'PHI Access Report' }];
+const BREADCRUMBS: Breadcrumb[] = [{ label: 'Domů', href: '/' }, { label: 'Administrace' }, { label: 'PHI report' }];
 
 function formatTime(dateStr: string): string {
     return new Date(dateStr).toLocaleString('cs-CZ', {
@@ -54,10 +54,10 @@ export default function PhiReportIndex({ entries, filters, actors }: Props) {
     }
 
     return (
-        <AppLayout title="PHI Access Report" breadcrumbs={BREADCRUMBS}>
+        <AppLayout title="PHI report" breadcrumbs={BREADCRUMBS}>
             <div className="mb-6 flex items-center gap-3">
                 <ShieldAlert className="h-6 w-6 text-status-warning" />
-                <h1 className="text-2xl font-bold leading-tight text-text-strong">PHI Access Report</h1>
+                <h1 className="text-2xl font-bold leading-tight text-text-strong">PHI report</h1>
             </div>
 
             {/* Filters */}
@@ -67,7 +67,7 @@ export default function PhiReportIndex({ entries, filters, actors }: Props) {
                     onChange={(e) => applyFilter('actor_id', e.target.value)}
                     className="rounded-md border border-border-default bg-surface-primary px-3 py-1.5 text-sm focus:border-border-focus focus:outline-none"
                 >
-                    <option value="">All users</option>
+                    <option value="">Všichni uživatelé</option>
                     {actors.map((a) => (
                         <option key={a.id} value={a.id}>
                             {a.name}
@@ -93,7 +93,7 @@ export default function PhiReportIndex({ entries, filters, actors }: Props) {
                 <table className="w-full border-collapse">
                     <thead>
                         <tr>
-                            {['Time', 'User', 'Entity', 'IP Address'].map((h) => (
+                            {['Čas', 'Uživatel', 'Entita', 'IP adresa'].map((h) => (
                                 <th
                                     key={h}
                                     className="border-b border-border-default bg-surface-secondary px-5 py-3 text-left text-xs font-semibold uppercase tracking-wider text-text-subtle"
@@ -110,7 +110,7 @@ export default function PhiReportIndex({ entries, filters, actors }: Props) {
                                     {formatTime(entry.created_at)}
                                 </td>
                                 <td className="border-b border-border-subtle px-5 py-3 text-sm font-medium text-text-strong">
-                                    {entry.actor?.name ?? 'System'}
+                                    {entry.actor?.name ?? 'Systém'}
                                 </td>
                                 <td className="border-b border-border-subtle px-5 py-3 text-sm text-text-muted">
                                     {entityLabel(entry.entity_type)}
@@ -123,7 +123,7 @@ export default function PhiReportIndex({ entries, filters, actors }: Props) {
                                 </td>
                             </tr>
                         ))}
-                        {entries.length === 0 && <EmptyState colSpan={4} message="No PHI access records found." />}
+                        {entries.length === 0 && <EmptyState colSpan={4} message="Žádné záznamy o přístupu k PHI." />}
                     </tbody>
                 </table>
             </div>

@@ -23,10 +23,10 @@ interface Props {
 
 export default function EpicsIndex({ project, epics }: Props) {
     const breadcrumbs: Breadcrumb[] = [
-        { label: 'Home', href: '/' },
-        { label: 'Projects', href: '/projects' },
+        { label: 'Domů', href: '/' },
+        { label: 'Projekty', href: '/projects' },
         { label: project.name, href: `/projects/${project.id}` },
-        { label: 'Epics' },
+        { label: 'Epiky' },
     ];
 
     const { data, setData, post, processing, reset, errors } = useForm({
@@ -42,7 +42,7 @@ export default function EpicsIndex({ project, epics }: Props) {
     return (
         <AppLayout title={`${project.key} — Epics`} breadcrumbs={breadcrumbs}>
             <div className="mb-6 flex items-center justify-between">
-                <h1 className="text-2xl font-bold leading-tight text-text-strong">Epics</h1>
+                <h1 className="text-2xl font-bold leading-tight text-text-strong">Epiky</h1>
             </div>
 
             {/* Quick add */}
@@ -51,7 +51,7 @@ export default function EpicsIndex({ project, epics }: Props) {
                     type="text"
                     value={data.title}
                     onChange={(e) => setData('title', e.target.value)}
-                    placeholder="New epic title..."
+                    placeholder="Název nového epiku..."
                     className="flex-1 rounded-md border border-border-default bg-surface-primary px-3 py-2 text-base focus:border-border-focus focus:outline-none focus:shadow-[0_0_0_2px_var(--color-brand-soft)]"
                 />
                 <button
@@ -60,7 +60,7 @@ export default function EpicsIndex({ project, epics }: Props) {
                     className="inline-flex items-center gap-2 rounded-md bg-brand-primary px-4 py-2 text-sm font-medium text-text-inverse transition-colors hover:bg-brand-hover disabled:opacity-50"
                 >
                     <Plus className="h-3.5 w-3.5" strokeWidth={2.5} />
-                    Add
+                    Přidat
                 </button>
             </form>
             {errors.title && <p className="mb-4 text-xs text-status-danger">{errors.title}</p>}
@@ -83,11 +83,11 @@ export default function EpicsIndex({ project, epics }: Props) {
                         </div>
                         <div className="flex items-center gap-4 text-sm text-text-muted">
                             {epic.owner && <span>{epic.owner.name}</span>}
-                            <span>{epic.tasks_count} tasks</span>
+                            <span>{epic.tasks_count} úkolů</span>
                         </div>
                     </div>
                 ))}
-                {epics.length === 0 && <EmptyState icon={Layers} message="No epics yet. Add your first one." />}
+                {epics.length === 0 && <EmptyState icon={Layers} message="Zatím žádné epiky. Přidejte první." />}
             </div>
         </AppLayout>
     );

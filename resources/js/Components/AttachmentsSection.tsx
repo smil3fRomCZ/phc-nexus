@@ -50,7 +50,7 @@ export default function AttachmentsSection({
     }
 
     function handleDelete(attachmentId: string) {
-        if (confirm('Delete this attachment?')) {
+        if (confirm('Smazat tuto přílohu?')) {
             router.delete(`/attachments/${attachmentId}`);
         }
     }
@@ -58,7 +58,7 @@ export default function AttachmentsSection({
     return (
         <div>
             <h3 className="mb-3 text-xs font-semibold uppercase tracking-wider text-text-subtle">
-                Attachments ({attachments.length})
+                Přílohy ({attachments.length})
             </h3>
             <div className="space-y-2">
                 {attachments.map((att) => (
@@ -90,7 +90,7 @@ export default function AttachmentsSection({
 
                 <label className="flex cursor-pointer items-center gap-2 rounded border border-dashed border-border-default px-3 py-2 text-xs text-text-muted transition-colors hover:border-brand-primary hover:text-brand-primary">
                     <Upload className="h-3 w-3" />
-                    {uploading ? 'Uploading...' : 'Upload file'}
+                    {uploading ? 'Nahrávání...' : 'Nahrát soubor'}
                     <input type="file" className="hidden" onChange={handleUpload} disabled={uploading} />
                 </label>
             </div>

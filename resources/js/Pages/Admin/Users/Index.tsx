@@ -27,7 +27,7 @@ interface Props {
     statuses: SelectOption[];
 }
 
-const BREADCRUMBS: Breadcrumb[] = [{ label: 'Home', href: '/' }, { label: 'Admin' }, { label: 'Users' }];
+const BREADCRUMBS: Breadcrumb[] = [{ label: 'Domů', href: '/' }, { label: 'Administrace' }, { label: 'Uživatelé' }];
 
 const STATUS_COLORS: Record<string, string> = {
     active: 'bg-status-info-subtle text-status-info',
@@ -55,15 +55,15 @@ export default function UsersIndex({ users, filters, roles, statuses }: Props) {
     }
 
     return (
-        <AppLayout title="Users" breadcrumbs={BREADCRUMBS}>
+        <AppLayout title="Uživatelé" breadcrumbs={BREADCRUMBS}>
             <div className="mb-6 flex items-center justify-between">
-                <h1 className="text-2xl font-bold leading-tight text-text-strong">Users</h1>
+                <h1 className="text-2xl font-bold leading-tight text-text-strong">Uživatelé</h1>
                 <button
                     onClick={() => setInviting(true)}
                     className="flex items-center gap-2 rounded-md bg-brand-primary px-4 py-2 text-sm font-medium text-text-inverse transition-colors hover:bg-brand-hover"
                 >
                     <UserPlus className="h-4 w-4" />
-                    Invite User
+                    Pozvat uživatele
                 </button>
             </div>
 
@@ -76,14 +76,14 @@ export default function UsersIndex({ users, filters, roles, statuses }: Props) {
                         type="text"
                         value={search}
                         onChange={(e) => setSearch(e.target.value)}
-                        placeholder="Search name or email..."
+                        placeholder="Hledat jméno nebo email..."
                         className="w-64 rounded-md border border-border-default bg-surface-primary px-3 py-1.5 text-sm focus:border-border-focus focus:outline-none"
                     />
                     <button
                         type="submit"
                         className="rounded-md bg-brand-primary px-3 py-1.5 text-sm font-medium text-text-inverse transition-colors hover:bg-brand-hover"
                     >
-                        Search
+                        Hledat
                     </button>
                 </form>
                 <select
@@ -91,7 +91,7 @@ export default function UsersIndex({ users, filters, roles, statuses }: Props) {
                     onChange={(e) => applyFilter('role', e.target.value)}
                     className="rounded-md border border-border-default bg-surface-primary px-3 py-1.5 text-sm focus:border-border-focus focus:outline-none"
                 >
-                    <option value="">All roles</option>
+                    <option value="">Všechny role</option>
                     {roles.map((r) => (
                         <option key={r.value} value={r.value}>
                             {r.label}
@@ -103,7 +103,7 @@ export default function UsersIndex({ users, filters, roles, statuses }: Props) {
                     onChange={(e) => applyFilter('status', e.target.value)}
                     className="rounded-md border border-border-default bg-surface-primary px-3 py-1.5 text-sm focus:border-border-focus focus:outline-none"
                 >
-                    <option value="">All statuses</option>
+                    <option value="">Všechny stavy</option>
                     {statuses.map((s) => (
                         <option key={s.value} value={s.value}>
                             {s.label}
@@ -117,7 +117,7 @@ export default function UsersIndex({ users, filters, roles, statuses }: Props) {
                 <table className="w-full border-collapse">
                     <thead>
                         <tr>
-                            {['Name', 'Email', 'Role', 'Team', 'Status'].map((h) => (
+                            {['Jméno', 'Email', 'Role', 'Tým', 'Stav'].map((h) => (
                                 <th
                                     key={h}
                                     className="border-b border-border-default bg-surface-secondary px-5 py-3 text-left text-xs font-semibold uppercase tracking-wider text-text-subtle"
@@ -151,7 +151,7 @@ export default function UsersIndex({ users, filters, roles, statuses }: Props) {
                                 </td>
                             </tr>
                         ))}
-                        {users.length === 0 && <EmptyState colSpan={5} message="No users found." />}
+                        {users.length === 0 && <EmptyState colSpan={5} message="Žádní uživatelé nenalezeni." />}
                     </tbody>
                 </table>
             </div>
@@ -175,7 +175,7 @@ function InviteDialog({ roles, onClose }: { roles: SelectOption[]; onClose: () =
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50">
             <div className="w-full max-w-md rounded-lg border border-border-subtle bg-surface-primary p-6 shadow-xl">
                 <div className="mb-4 flex items-center justify-between">
-                    <h2 className="text-lg font-semibold text-text-strong">Invite User</h2>
+                    <h2 className="text-lg font-semibold text-text-strong">Pozvat uživatele</h2>
                     <button onClick={onClose} className="rounded p-1 text-text-muted hover:bg-surface-hover">
                         <X className="h-4 w-4" />
                     </button>
@@ -216,14 +216,14 @@ function InviteDialog({ roles, onClose }: { roles: SelectOption[]; onClose: () =
                             onClick={onClose}
                             className="rounded-md border border-border-default px-4 py-2 text-sm font-medium text-text-muted transition-colors hover:bg-surface-hover"
                         >
-                            Cancel
+                            Zrušit
                         </button>
                         <button
                             type="submit"
                             disabled={processing}
                             className="rounded-md bg-brand-primary px-4 py-2 text-sm font-medium text-text-inverse transition-colors hover:bg-brand-hover disabled:opacity-50"
                         >
-                            Send Invitation
+                            Odeslat pozvánku
                         </button>
                     </div>
                 </form>

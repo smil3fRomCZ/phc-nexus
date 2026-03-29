@@ -39,29 +39,29 @@ interface AppLayoutProps {
 
 const NAV_SECTIONS = [
     {
-        label: 'Main',
+        label: 'Hlavní',
         items: [
             { href: '/', label: 'Dashboard', icon: LayoutDashboard },
-            { href: '/projects', label: 'Projects', icon: FolderKanban },
-            { href: '/my-tasks', label: 'My Tasks', icon: Clock },
-            { href: '/calendar', label: 'Calendar', icon: CalendarDays },
+            { href: '/projects', label: 'Projekty', icon: FolderKanban },
+            { href: '/my-tasks', label: 'Moje úkoly', icon: Clock },
+            { href: '/calendar', label: 'Kalendář', icon: CalendarDays },
         ],
     },
     {
-        label: 'Management',
+        label: 'Správa',
         items: [
-            { href: '/approvals', label: 'Approvals', icon: CheckSquare },
-            { href: '/notifications', label: 'Notifications', icon: Bell },
+            { href: '/approvals', label: 'Schvalování', icon: CheckSquare },
+            { href: '/notifications', label: 'Notifikace', icon: Bell },
         ],
     },
     {
-        label: 'Admin',
+        label: 'Administrace',
         items: [
-            { href: '/admin/users', label: 'Users', icon: Users },
-            { href: '/admin/organization', label: 'Organization', icon: Building2 },
-            { href: '/admin/audit-log', label: 'Audit Log', icon: ScrollText },
-            { href: '/admin/phi-report', label: 'PHI Report', icon: ShieldAlert },
-            { href: '/admin/approval-analytics', label: 'Approvals', icon: BarChart3 },
+            { href: '/admin/users', label: 'Uživatelé', icon: Users },
+            { href: '/admin/organization', label: 'Organizace', icon: Building2 },
+            { href: '/admin/audit-log', label: 'Audit log', icon: ScrollText },
+            { href: '/admin/phi-report', label: 'PHI report', icon: ShieldAlert },
+            { href: '/admin/approval-analytics', label: 'Analytika schvalování', icon: BarChart3 },
         ],
     },
 ];

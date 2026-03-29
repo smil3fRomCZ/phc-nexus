@@ -8,7 +8,7 @@ import { Link, usePage } from '@inertiajs/react';
 import { Clock, CheckSquare, AlertCircle, FolderKanban } from 'lucide-react';
 import type { PageProps } from '@/types';
 
-const BREADCRUMBS: Breadcrumb[] = [{ label: 'Home' }];
+const BREADCRUMBS: Breadcrumb[] = [{ label: 'Domů' }];
 
 interface Task {
     id: string;
@@ -40,10 +40,10 @@ interface Props {
 }
 
 const STAT_TILES = [
-    { key: 'active_tasks', label: 'Active Tasks', icon: Clock, color: 'info' },
-    { key: 'pending_approvals', label: 'Pending Approvals', icon: CheckSquare, color: 'warning' },
-    { key: 'overdue', label: 'Overdue', icon: AlertCircle, color: 'danger' },
-    { key: 'my_projects', label: 'My Projects', icon: FolderKanban, color: 'neutral' },
+    { key: 'active_tasks', label: 'Aktivní úkoly', icon: Clock, color: 'info' },
+    { key: 'pending_approvals', label: 'Čeká na schválení', icon: CheckSquare, color: 'warning' },
+    { key: 'overdue', label: 'Po termínu', icon: AlertCircle, color: 'danger' },
+    { key: 'my_projects', label: 'Moje projekty', icon: FolderKanban, color: 'neutral' },
 ] as const;
 
 const TILE_COLORS: Record<string, { bg: string; text: string }> = {
@@ -59,17 +59,17 @@ function formatDueDate(dateStr: string | null): { text: string; overdue: boolean
     const now = new Date();
     now.setHours(0, 0, 0, 0);
     const overdue = date < now;
-    const text = date.toLocaleDateString('en-US', { month: 'short', day: 'numeric' });
-    return { text: overdue ? `${text} — OVERDUE` : text, overdue };
+    const text = date.toLocaleDateString('cs-CZ');
+    return { text: overdue ? `${text} — PO TERMÍNU` : text, overdue };
 }
 
 function timeAgo(dateStr: string): string {
     const diff = Date.now() - new Date(dateStr).getTime();
     const hours = Math.floor(diff / 3600000);
-    if (hours < 1) return 'just now';
-    if (hours < 24) return `${hours}h ago`;
+    if (hours < 1) return 'právě teď';
+    if (hours < 24) return `před ${hours}h`;
     const days = Math.floor(hours / 24);
-    return `${days}d ago`;
+    return `před ${days}d`;
 }
 
 export default function DashboardIndex({ stats, myTasks, pendingApprovals }: Props) {
@@ -81,7 +81,7 @@ export default function DashboardIndex({ stats, myTasks, pendingApprovals }: Pro
             {/* Page Header */}
             <div className="mb-8">
                 <h1 className="text-2xl font-bold leading-tight text-text-strong">Dashboard</h1>
-                <p className="mt-1 text-base text-text-muted">Welcome back, {firstName}</p>
+                <p className="mt-1 text-base text-text-muted">Vítejte zpět, {firstName}</p>
             </div>
 
             {/* Stat Tiles */}
@@ -107,12 +107,12 @@ export default function DashboardIndex({ stats, myTasks, pendingApprovals }: Pro
             </div>
 
             {/* My Work Table */}
-            <h2 className="mb-4 text-lg font-semibold text-text-strong">My Work</h2>
+            <h2 className="mb-4 text-lg font-semibold text-text-strong">Moje práce</h2>
             <div className="mb-8 overflow-hidden rounded-lg border border-border-subtle bg-surface-primary">
                 <table className="w-full border-collapse">
                     <thead>
                         <tr>
-                            {['Task', 'Project', 'Status', 'Priority', 'Due Date'].map((header) => (
+                            {['Úkol', 'Projekt', 'Stav', 'Priorita', 'Termín'].map((header) => (
                                 <th
                                     key={header}
                                     className="border-b border-border-default bg-surface-secondary px-5 py-3 text-left text-xs font-semibold uppercase tracking-wider text-text-subtle"
@@ -161,13 +161,13 @@ export default function DashboardIndex({ stats, myTasks, pendingApprovals }: Pro
                                 </tr>
                             );
                         })}
-                        {myTasks.length === 0 && <EmptyState colSpan={5} message="No active tasks assigned to you." />}
+                        {myTasks.length === 0 && <EmptyState colSpan={5} message="Nemáte žádné aktivní úkoly." />}
                     </tbody>
                 </table>
             </div>
 
             {/* Pending Approvals */}
-            <h2 className="mb-4 text-lg font-semibold text-text-strong">Pending Approvals</h2>
+            <h2 className="mb-4 text-lg font-semibold text-text-strong">Čekající schválení</h2>
             {pendingApprovals.length > 0 ? (
                 <div className="grid grid-cols-3 gap-5">
                     {pendingApprovals.map((approval) => (
@@ -176,10 +176,10 @@ export default function DashboardIndex({ stats, myTasks, pendingApprovals }: Pro
                             className="flex flex-col gap-3 rounded-lg border border-border-subtle bg-surface-primary p-5 transition-shadow hover:shadow-md"
                         >
                             <div className="text-sm font-semibold text-text-strong">
-                                {approval.description ?? 'Approval request'}
+                                {approval.description ?? 'Žádost o schválení'}
                             </div>
                             <div className="text-xs text-text-muted">
-                                Requested by {approval.requester.name} &middot; {timeAgo(approval.created_at)}
+                                Vyžádal/a {approval.requester.name} &middot; {timeAgo(approval.created_at)}
                             </div>
                             <div className="flex gap-2">
                                 {approval.project_id && (
@@ -187,7 +187,7 @@ export default function DashboardIndex({ stats, myTasks, pendingApprovals }: Pro
                                         href={`/projects/${approval.project_id}/approvals/${approval.id}`}
                                         className="inline-flex items-center rounded-md bg-brand-primary px-3 py-1 text-xs font-medium text-text-inverse no-underline transition-colors hover:bg-brand-hover"
                                     >
-                                        Review
+                                        Posoudit
                                     </Link>
                                 )}
                             </div>
@@ -196,7 +196,7 @@ export default function DashboardIndex({ stats, myTasks, pendingApprovals }: Pro
                 </div>
             ) : (
                 <div className="rounded-lg border border-border-subtle bg-surface-primary">
-                    <EmptyState icon={CheckSquare} message="No pending approvals." />
+                    <EmptyState icon={CheckSquare} message="Žádná čekající schválení." />
                 </div>
             )}
         </AppLayout>

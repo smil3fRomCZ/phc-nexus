@@ -38,8 +38,8 @@ interface Project {
 
 export default function ProjectShow({ project }: { project: Project }) {
     const breadcrumbs: Breadcrumb[] = [
-        { label: 'Home', href: '/' },
-        { label: 'Projects', href: '/projects' },
+        { label: 'Domů', href: '/' },
+        { label: 'Projekty', href: '/projects' },
         { label: project.name },
     ];
 
@@ -63,13 +63,13 @@ export default function ProjectShow({ project }: { project: Project }) {
                             href={`/projects/${project.id}/edit`}
                             className="rounded-md border border-border-default px-5 py-2 text-sm font-medium text-text-default no-underline transition-colors hover:bg-surface-hover"
                         >
-                            Edit
+                            Upravit
                         </Link>
                         <button
                             onClick={() => {
                                 if (
                                     confirm(
-                                        'Are you sure you want to delete this project? This action cannot be undone.',
+                                        'Opravdu chcete smazat tento projekt? Tuto akci nelze vrátit.',
                                     )
                                 ) {
                                     router.delete(`/projects/${project.id}`);
@@ -85,15 +85,15 @@ export default function ProjectShow({ project }: { project: Project }) {
                 {/* Metadata */}
                 <div className="mb-6">
                     <MetadataGrid>
-                        <MetadataField label="Owner">{project.owner.name}</MetadataField>
-                        <MetadataField label="Team">{project.team?.name ?? '\u2014'}</MetadataField>
-                        <MetadataField label="Classification">
+                        <MetadataField label="Vlastník">{project.owner.name}</MetadataField>
+                        <MetadataField label="Tým">{project.team?.name ?? '\u2014'}</MetadataField>
+                        <MetadataField label="Klasifikace">
                             {project.data_classification.toUpperCase()}
                         </MetadataField>
-                        <MetadataField label="Created">
-                            {new Date(project.created_at).toLocaleDateString('en-US', {
-                                month: 'short',
+                        <MetadataField label="Vytvořeno">
+                            {new Date(project.created_at).toLocaleDateString('cs-CZ', {
                                 day: 'numeric',
+                                month: 'numeric',
                                 year: 'numeric',
                             })}
                         </MetadataField>
@@ -106,7 +106,7 @@ export default function ProjectShow({ project }: { project: Project }) {
                 {/* Members */}
                 <div className="mb-6">
                     <h3 className="mb-3 text-xs font-semibold uppercase tracking-wider text-text-subtle">
-                        Members ({project.members.length})
+                        Členové ({project.members.length})
                     </h3>
                     <div className="flex flex-wrap gap-2">
                         {project.members.map((member) => (
@@ -133,19 +133,19 @@ export default function ProjectShow({ project }: { project: Project }) {
                         href={`/projects/${project.id}/table`}
                         className="rounded-md border border-border-default px-4 py-2 text-sm font-medium text-text-default no-underline transition-colors hover:bg-surface-hover"
                     >
-                        Table
+                        Tabulka
                     </Link>
                     <Link
                         href={`/projects/${project.id}/epics`}
                         className="rounded-md border border-border-default px-4 py-2 text-sm font-medium text-text-default no-underline transition-colors hover:bg-surface-hover"
                     >
-                        Epics
+                        Epiky
                     </Link>
                     <Link
                         href={`/projects/${project.id}/approvals`}
                         className="rounded-md border border-border-default px-4 py-2 text-sm font-medium text-text-default no-underline transition-colors hover:bg-surface-hover"
                     >
-                        Approvals
+                        Schvalování
                     </Link>
                     <ExportDropdown projectId={project.id} />
                 </div>
@@ -153,8 +153,8 @@ export default function ProjectShow({ project }: { project: Project }) {
                 {/* Dates */}
                 {(project.start_date || project.target_date) && (
                     <div className="mt-6 flex gap-4 text-sm text-text-muted">
-                        {project.start_date && <span>Start: {project.start_date}</span>}
-                        {project.target_date && <span>Target: {project.target_date}</span>}
+                        {project.start_date && <span>Zahájení: {new Date(project.start_date).toLocaleDateString('cs-CZ')}</span>}
+                        {project.target_date && <span>Cíl: {new Date(project.target_date).toLocaleDateString('cs-CZ')}</span>}
                     </div>
                 )}
 
@@ -185,15 +185,15 @@ function ProjectMetrics({ project }: { project: Project }) {
 
     const tiles = [
         {
-            label: 'Tasks',
+            label: 'Úkoly',
             value: `${project.tasks_completed_count}/${project.tasks_count}`,
             icon: CheckCircle2,
             color: 'info' as const,
             progress,
         },
-        { label: 'Overdue', value: project.tasks_overdue_count, icon: AlertCircle, color: 'danger' as const },
-        { label: 'Epics', value: project.epics_count, icon: Layers, color: 'neutral' as const },
-        { label: 'Members', value: project.members_count, icon: Users, color: 'neutral' as const },
+        { label: 'Po termínu', value: project.tasks_overdue_count, icon: AlertCircle, color: 'danger' as const },
+        { label: 'Epiky', value: project.epics_count, icon: Layers, color: 'neutral' as const },
+        { label: 'Členové', value: project.members_count, icon: Users, color: 'neutral' as const },
     ];
 
     const colors: Record<string, { bg: string; text: string }> = {
@@ -264,7 +264,7 @@ function ExportDropdown({ projectId }: { projectId: string }) {
 
             {open && (
                 <div className="absolute right-0 z-20 mt-1 w-48 rounded-lg border border-border-subtle bg-surface-primary py-1 shadow-lg">
-                    <div className="px-3 py-1.5 text-xs font-semibold uppercase text-text-subtle">Tasks</div>
+                    <div className="px-3 py-1.5 text-xs font-semibold uppercase text-text-subtle">Úkoly</div>
                     {EXPORT_FORMATS.map((f) => (
                         <a
                             key={`tasks-${f.value}`}
@@ -276,7 +276,7 @@ function ExportDropdown({ projectId }: { projectId: string }) {
                         </a>
                     ))}
                     <div className="my-1 border-t border-border-subtle" />
-                    <div className="px-3 py-1.5 text-xs font-semibold uppercase text-text-subtle">Summary</div>
+                    <div className="px-3 py-1.5 text-xs font-semibold uppercase text-text-subtle">Souhrn</div>
                     <a
                         href={`/projects/${projectId}/export/summary`}
                         onClick={() => setOpen(false)}

@@ -40,7 +40,7 @@ export default function CommentsSection({
         <div className="mb-8">
             <h2 className="mb-4 flex items-center gap-2 text-lg font-semibold text-text-strong">
                 <MessageSquare className="h-4 w-4" />
-                Comments
+                Komentáře
                 <span className="rounded-full bg-status-neutral-subtle px-2 py-px text-xs font-medium text-text-muted">
                     {commentsCount}
                 </span>
@@ -72,7 +72,7 @@ function CommentItem({
     const isOwner = comment.author.id === currentUserId;
 
     function handleDelete() {
-        if (confirm('Delete this comment?')) {
+        if (confirm('Smazat tento komentář?')) {
             router.delete(`/comments/${comment.id}`);
         }
     }
@@ -85,7 +85,7 @@ function CommentItem({
                         <Avatar name={comment.author.name} />
                         <span className="text-sm font-medium text-text-strong">{comment.author.name}</span>
                         <span className="text-xs text-text-muted">{timeAgo(comment.created_at)}</span>
-                        {comment.edited_at && <span className="text-xs italic text-text-subtle">(edited)</span>}
+                        {comment.edited_at && <span className="text-xs italic text-text-subtle">(upraveno)</span>}
                     </div>
                     <div className="flex gap-1">
                         {!isReply && (
@@ -93,7 +93,7 @@ function CommentItem({
                                 onClick={() => setShowReply(!showReply)}
                                 className="rounded px-2 py-0.5 text-xs text-text-muted hover:bg-surface-hover hover:text-text-default"
                             >
-                                Reply
+                                Odpovědět
                             </button>
                         )}
                         {isOwner && (
@@ -101,7 +101,7 @@ function CommentItem({
                                 onClick={handleDelete}
                                 className="rounded px-2 py-0.5 text-xs text-text-muted hover:bg-status-danger-subtle hover:text-status-danger"
                             >
-                                Delete
+                                Smazat
                             </button>
                         )}
                     </div>
@@ -143,7 +143,7 @@ function CommentForm({ postUrl, parentId, onDone }: { postUrl: string; parentId?
             <textarea
                 value={data.body}
                 onChange={(e) => setData('body', e.target.value)}
-                placeholder={parentId ? 'Write a reply...' : 'Add a comment...'}
+                placeholder={parentId ? 'Napsat odpověď...' : 'Přidat komentář...'}
                 rows={parentId ? 2 : 3}
                 className="flex-1 rounded-md border border-border-default bg-surface-primary px-3 py-2 text-sm focus:border-border-focus focus:outline-none focus:shadow-[0_0_0_2px_var(--color-brand-soft)]"
             />

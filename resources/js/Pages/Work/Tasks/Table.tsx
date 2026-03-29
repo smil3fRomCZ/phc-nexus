@@ -62,10 +62,10 @@ export default function TaskTable({ project, tasks, filters, statuses, prioritie
     }
 
     const breadcrumbs: Breadcrumb[] = [
-        { label: 'Home', href: '/' },
-        { label: 'Projects', href: '/projects' },
+        { label: 'Domů', href: '/' },
+        { label: 'Projekty', href: '/projects' },
         { label: project.name, href: `/projects/${project.id}` },
-        { label: 'Table' },
+        { label: 'Tabulka' },
     ];
 
     function applyFilter(key: string, value: string) {
@@ -110,9 +110,9 @@ export default function TaskTable({ project, tasks, filters, statuses, prioritie
     }
 
     return (
-        <AppLayout title={`${project.key} — Table`} breadcrumbs={breadcrumbs}>
+        <AppLayout title={`${project.key} — Tabulka`} breadcrumbs={breadcrumbs}>
             <div className="mb-6 flex items-center justify-between">
-                <h1 className="text-2xl font-bold leading-tight text-text-strong">Table</h1>
+                <h1 className="text-2xl font-bold leading-tight text-text-strong">Tabulka</h1>
                 <div className="flex gap-2">
                     <Link
                         href={`/projects/${project.id}/board`}
@@ -124,7 +124,7 @@ export default function TaskTable({ project, tasks, filters, statuses, prioritie
                         href={`/projects/${project.id}/table`}
                         className="rounded-md bg-brand-primary px-4 py-2 text-sm font-medium text-text-inverse no-underline"
                     >
-                        Table
+                        Tabulka
                     </Link>
                 </div>
             </div>
@@ -136,7 +136,7 @@ export default function TaskTable({ project, tasks, filters, statuses, prioritie
                     onChange={(e) => applyFilter('status', e.target.value)}
                     className="h-8 rounded-md border border-border-default bg-surface-primary px-3 text-sm focus:border-brand-primary focus:outline-none focus:shadow-[0_0_0_2px_var(--color-brand-soft)]"
                 >
-                    <option value="">All Statuses</option>
+                    <option value="">Všechny stavy</option>
                     {statuses.map((s) => (
                         <option key={s.value} value={s.value}>
                             {s.label}
@@ -148,7 +148,7 @@ export default function TaskTable({ project, tasks, filters, statuses, prioritie
                     onChange={(e) => applyFilter('priority', e.target.value)}
                     className="h-8 rounded-md border border-border-default bg-surface-primary px-3 text-sm focus:border-brand-primary focus:outline-none focus:shadow-[0_0_0_2px_var(--color-brand-soft)]"
                 >
-                    <option value="">All Priorities</option>
+                    <option value="">Všechny priority</option>
                     {priorities.map((p) => (
                         <option key={p.value} value={p.value}>
                             {p.label}
@@ -160,13 +160,13 @@ export default function TaskTable({ project, tasks, filters, statuses, prioritie
             {/* Bulk Actions */}
             {selected.length > 0 && (
                 <div className="mb-4 flex items-center gap-3 rounded-lg border border-brand-primary/30 bg-brand-soft px-4 py-2">
-                    <span className="text-sm font-medium text-text-strong">{selected.length} selected</span>
+                    <span className="text-sm font-medium text-text-strong">{selected.length} vybráno</span>
                     <select
                         value={bulkStatus}
                         onChange={(e) => setBulkStatus(e.target.value)}
                         className="rounded-md border border-border-default bg-surface-primary px-3 py-1 text-sm"
                     >
-                        <option value="">Change status to...</option>
+                        <option value="">Změnit stav na...</option>
                         {statuses.map((s) => (
                             <option key={s.value} value={s.value}>
                                 {s.label}
@@ -178,10 +178,10 @@ export default function TaskTable({ project, tasks, filters, statuses, prioritie
                         disabled={!bulkStatus}
                         className="rounded-md bg-brand-primary px-3 py-1 text-sm font-medium text-text-inverse transition-colors hover:bg-brand-hover disabled:opacity-50"
                     >
-                        Apply
+                        Použít
                     </button>
                     <button onClick={() => setSelected([])} className="text-sm text-text-muted hover:text-text-default">
-                        Clear
+                        Zrušit
                     </button>
                 </div>
             )}
@@ -200,12 +200,12 @@ export default function TaskTable({ project, tasks, filters, statuses, prioritie
                                 />
                             </th>
                             {[
-                                { field: 'title', label: 'Title', sortable: true },
-                                { field: 'status', label: 'Status', sortable: true },
-                                { field: 'priority', label: 'Priority', sortable: true },
-                                { field: 'assignee', label: 'Assignee', sortable: false },
-                                { field: 'epic', label: 'Epic', sortable: false },
-                                { field: 'due_date', label: 'Due Date', sortable: true },
+                                { field: 'title', label: 'Název', sortable: true },
+                                { field: 'status', label: 'Stav', sortable: true },
+                                { field: 'priority', label: 'Priorita', sortable: true },
+                                { field: 'assignee', label: 'Řešitel', sortable: false },
+                                { field: 'epic', label: 'Epik', sortable: false },
+                                { field: 'due_date', label: 'Termín', sortable: true },
                             ].map((col) => (
                                 <th
                                     key={col.field}
@@ -280,7 +280,7 @@ export default function TaskTable({ project, tasks, filters, statuses, prioritie
                                 </td>
                             </tr>
                         ))}
-                        {tasks.length === 0 && <EmptyState message="No tasks match your filters." colSpan={7} />}
+                        {tasks.length === 0 && <EmptyState message="Žádné úkoly neodpovídají filtrům." colSpan={7} />}
                     </tbody>
                 </table>
             </div>

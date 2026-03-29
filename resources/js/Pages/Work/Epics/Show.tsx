@@ -7,8 +7,9 @@ import StatusBadge from '@/Components/StatusBadge';
 import { EPIC_STATUS } from '@/constants/status';
 import AppLayout from '@/Layouts/AppLayout';
 import type { Breadcrumb } from '@/Layouts/AppLayout';
+import { TASK_STATUS } from '@/constants/status';
 import { Link, router, useForm } from '@inertiajs/react';
-import { Pencil, Trash2, X } from 'lucide-react';
+import { Pencil, Trash2, X, Plus } from 'lucide-react';
 import { useState, type FormEvent } from 'react';
 
 interface Task {
@@ -53,10 +54,10 @@ export default function EpicShow({ project, epic, members, statuses }: Props) {
     const [editing, setEditing] = useState(false);
 
     const breadcrumbs: Breadcrumb[] = [
-        { label: 'Home', href: '/' },
-        { label: 'Projects', href: '/projects' },
+        { label: 'Domů', href: '/' },
+        { label: 'Projekty', href: '/projects' },
         { label: project.name, href: `/projects/${project.id}` },
-        { label: 'Epics', href: `/projects/${project.id}/epics` },
+        { label: 'Epiky', href: `/projects/${project.id}/epics` },
         { label: epic.title },
     ];
 
@@ -73,13 +74,13 @@ export default function EpicShow({ project, epic, members, statuses }: Props) {
                                 className="rounded-md border border-border-default px-3 py-1.5 text-xs font-medium text-text-muted transition-colors hover:bg-surface-hover hover:text-text-default"
                             >
                                 <Pencil className="mr-1 inline-block h-3 w-3" />
-                                Edit
+                                Upravit
                             </button>
                             <button
                                 onClick={() => {
                                     if (
                                         confirm(
-                                            'Are you sure you want to delete this epic? This action cannot be undone.',
+                                            'Opravdu chcete smazat tento epik? Tuto akci nelze vrátit.',
                                         )
                                     ) {
                                         router.delete(`/projects/${project.id}/epics/${epic.id}`);
@@ -106,36 +107,54 @@ export default function EpicShow({ project, epic, members, statuses }: Props) {
 
                 <div className="mb-6">
                     <MetadataGrid columns={4}>
-                        <MetadataField label="Status">{EPIC_STATUS[epic.status]?.label ?? epic.status}</MetadataField>
-                        <MetadataField label="Owner">{epic.owner?.name ?? '\u2014'}</MetadataField>
-                        <MetadataField label="Tasks">{epic.tasks_count}</MetadataField>
-                        <MetadataField label="Attachments / Comments">
+                        <MetadataField label="Stav">{EPIC_STATUS[epic.status]?.label ?? epic.status}</MetadataField>
+                        <MetadataField label="Vlastník">{epic.owner?.name ?? '\u2014'}</MetadataField>
+                        <MetadataField label="Úkoly">{epic.tasks_count}</MetadataField>
+                        <MetadataField label="Přílohy / Komentáře">
                             {epic.attachments_count} / {epic.comments_count}
                         </MetadataField>
                     </MetadataGrid>
                 </div>
 
-                {epic.tasks.length > 0 && (
-                    <div>
-                        <h3 className="mb-3 text-xs font-semibold uppercase tracking-wider text-text-subtle">Tasks</h3>
-                        <div className="space-y-1">
+                <div>
+                    <div className="mb-3 flex items-center justify-between">
+                        <h3 className="text-xs font-semibold uppercase tracking-wider text-text-subtle">Úkoly ({epic.tasks_count})</h3>
+                        <Link
+                            href={`/projects/${project.id}/epics/${epic.id}/tasks`}
+                            className="text-xs text-text-muted no-underline hover:text-brand-primary"
+                        >
+                            Zobrazit vše
+                        </Link>
+                    </div>
+
+                    <QuickAddTask projectId={project.id} epicId={epic.id} />
+
+                    {epic.tasks.length > 0 && (
+                        <div className="mt-2 space-y-1">
                             {epic.tasks.map((task) => (
                                 <div
                                     key={task.id}
                                     className="flex items-center justify-between rounded-md border border-border-subtle px-4 py-2 text-sm transition-colors hover:bg-brand-soft"
                                 >
-                                    <Link
-                                        href={`/projects/${project.id}/tasks/${task.id}`}
-                                        className="font-medium text-text-strong no-underline hover:text-brand-primary"
-                                    >
-                                        {task.title}
-                                    </Link>
-                                    <span className="text-text-muted">{task.assignee?.name ?? 'Unassigned'}</span>
+                                    <div className="flex items-center gap-2">
+                                        <StatusBadge statusMap={TASK_STATUS} value={task.status} />
+                                        <Link
+                                            href={`/projects/${project.id}/tasks/${task.id}`}
+                                            className="font-medium text-text-strong no-underline hover:text-brand-primary"
+                                        >
+                                            {task.title}
+                                        </Link>
+                                    </div>
+                                    <span className="text-text-muted">{task.assignee?.name ?? 'Nepřiřazeno'}</span>
                                 </div>
                             ))}
                         </div>
-                    </div>
-                )}
+                    )}
+
+                    {epic.tasks.length === 0 && (
+                        <p className="mt-2 text-sm text-text-muted">Zatím žádné úkoly. Přidejte první výše.</p>
+                    )}
+                </div>
 
                 {/* Attachments */}
                 <div className="mt-6">
@@ -155,6 +174,43 @@ export default function EpicShow({ project, epic, members, statuses }: Props) {
                 </div>
             </div>
         </AppLayout>
+    );
+}
+
+function QuickAddTask({ projectId, epicId }: { projectId: string; epicId: string }) {
+    const { data, setData, post, processing, reset } = useForm({
+        title: '',
+        status: 'backlog',
+        priority: 'medium',
+    });
+
+    function submit(e: FormEvent) {
+        e.preventDefault();
+        if (!data.title.trim()) return;
+        post(`/projects/${projectId}/epics/${epicId}/tasks`, {
+            onSuccess: () => reset(),
+            preserveScroll: true,
+        });
+    }
+
+    return (
+        <form onSubmit={submit} className="flex items-center gap-2">
+            <Plus className="h-4 w-4 flex-shrink-0 text-text-muted" />
+            <input
+                type="text"
+                value={data.title}
+                onChange={(e) => setData('title', e.target.value)}
+                placeholder="Název nového úkolu..."
+                className="flex-1 rounded-md border border-border-default bg-surface-primary px-3 py-1.5 text-sm placeholder:text-text-subtle focus:border-border-focus focus:outline-none focus:shadow-[0_0_0_2px_var(--color-brand-soft)]"
+            />
+            <button
+                type="submit"
+                disabled={processing || !data.title.trim()}
+                className="rounded-md bg-brand-primary px-3 py-1.5 text-xs font-medium text-text-inverse transition-colors hover:bg-brand-hover disabled:opacity-50"
+            >
+                Přidat
+            </button>
+        </form>
     );
 }
 
@@ -189,7 +245,7 @@ function EpicEditDialog({
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50">
             <div className="w-full max-w-lg rounded-lg border border-border-subtle bg-surface-primary p-6 shadow-xl">
                 <div className="mb-4 flex items-center justify-between">
-                    <h2 className="text-lg font-semibold text-text-strong">Edit Epic</h2>
+                    <h2 className="text-lg font-semibold text-text-strong">Upravit epik</h2>
                     <button onClick={onClose} className="rounded p-1 text-text-muted hover:bg-surface-hover">
                         <X className="h-4 w-4" />
                     </button>
@@ -197,7 +253,7 @@ function EpicEditDialog({
 
                 <form onSubmit={submit} className="space-y-4">
                     <div>
-                        <label className="block text-xs font-medium text-text-default">Title *</label>
+                        <label className="block text-xs font-medium text-text-default">Název *</label>
                         <input
                             type="text"
                             value={data.title}
@@ -208,7 +264,7 @@ function EpicEditDialog({
                     </div>
 
                     <div>
-                        <label className="block text-xs font-medium text-text-default">Description</label>
+                        <label className="block text-xs font-medium text-text-default">Popis</label>
                         <textarea
                             value={data.description}
                             onChange={(e) => setData('description', e.target.value)}
@@ -220,7 +276,7 @@ function EpicEditDialog({
 
                     <div className="grid grid-cols-2 gap-4">
                         <div>
-                            <label className="block text-xs font-medium text-text-default">Status</label>
+                            <label className="block text-xs font-medium text-text-default">Stav</label>
                             <select
                                 value={data.status}
                                 onChange={(e) => setData('status', e.target.value)}
@@ -236,7 +292,7 @@ function EpicEditDialog({
                         </div>
 
                         <div>
-                            <label className="block text-xs font-medium text-text-default">Owner</label>
+                            <label className="block text-xs font-medium text-text-default">Vlastník</label>
                             <select
                                 value={data.owner_id}
                                 onChange={(e) => setData('owner_id', e.target.value)}
@@ -259,14 +315,14 @@ function EpicEditDialog({
                             onClick={onClose}
                             className="rounded-md border border-border-default px-4 py-2 text-sm font-medium text-text-muted transition-colors hover:bg-surface-hover"
                         >
-                            Cancel
+                            Zrušit
                         </button>
                         <button
                             type="submit"
                             disabled={processing}
                             className="rounded-md bg-brand-primary px-4 py-2 text-sm font-medium text-text-inverse transition-colors hover:bg-brand-hover disabled:opacity-50"
                         >
-                            Save Changes
+                            Uložit změny
                         </button>
                     </div>
                 </form>

@@ -30,15 +30,15 @@ interface Props {
 
 export default function ApprovalsIndex({ project, approvalRequests }: Props) {
     const breadcrumbs: Breadcrumb[] = [
-        { label: 'Home', href: '/' },
-        { label: 'Projects', href: '/projects' },
+        { label: 'Domů', href: '/' },
+        { label: 'Projekty', href: '/projects' },
         { label: project.name, href: `/projects/${project.id}` },
-        { label: 'Approvals' },
+        { label: 'Schvalování' },
     ];
 
     return (
-        <AppLayout title={`${project.key} — Approvals`} breadcrumbs={breadcrumbs}>
-            <h1 className="mb-6 text-2xl font-bold leading-tight text-text-strong">Approvals</h1>
+        <AppLayout title={`${project.key} — Schvalování`} breadcrumbs={breadcrumbs}>
+            <h1 className="mb-6 text-2xl font-bold leading-tight text-text-strong">Schvalování</h1>
 
             <div className="space-y-2">
                 {approvalRequests.map((req) => (
@@ -49,17 +49,17 @@ export default function ApprovalsIndex({ project, approvalRequests }: Props) {
                     >
                         <div className="flex items-center gap-3">
                             <StatusBadge statusMap={APPROVAL_STATUS} value={req.status} />
-                            <span className="text-base text-text-strong">{req.description ?? 'Approval request'}</span>
+                            <span className="text-base text-text-strong">{req.description ?? 'Žádost o schválení'}</span>
                         </div>
                         <div className="flex items-center gap-4 text-sm text-text-muted">
                             <span>{req.requester.name}</span>
                             <span>
-                                {req.votes.filter((v) => v.decision !== null).length}/{req.votes.length} votes
+                                {req.votes.filter((v) => v.decision !== null).length}/{req.votes.length} hlasů
                             </span>
                         </div>
                     </Link>
                 ))}
-                {approvalRequests.length === 0 && <EmptyState message="No approval requests." />}
+                {approvalRequests.length === 0 && <EmptyState message="Žádné žádosti o schválení." />}
             </div>
         </AppLayout>
     );

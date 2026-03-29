@@ -99,18 +99,18 @@ interface Props {
 }
 
 function formatDate(dateStr: string): string {
-    return new Date(dateStr).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' });
+    return new Date(dateStr).toLocaleDateString('cs-CZ', { month: 'short', day: 'numeric', year: 'numeric' });
 }
 
 function timeAgo(dateStr: string): string {
     const diff = Date.now() - new Date(dateStr).getTime();
     const mins = Math.floor(diff / 60000);
-    if (mins < 1) return 'just now';
-    if (mins < 60) return `${mins}m ago`;
+    if (mins < 1) return 'právě teď';
+    if (mins < 60) return `před ${mins} min`;
     const hours = Math.floor(mins / 60);
-    if (hours < 24) return `${hours}h ago`;
+    if (hours < 24) return `před ${hours} h`;
     const days = Math.floor(hours / 24);
-    return `${days}d ago`;
+    return `před ${days} d`;
 }
 
 function formatFileSize(bytes: number): string {
@@ -135,10 +135,10 @@ export default function TaskShow({
     const [requestingApproval, setRequestingApproval] = useState(false);
 
     const breadcrumbs: Breadcrumb[] = [
-        { label: 'Home', href: '/' },
-        { label: 'Projects', href: '/projects' },
+        { label: 'Domů', href: '/' },
+        { label: 'Projekty', href: '/projects' },
         { label: project.name, href: `/projects/${project.id}` },
-        { label: 'Tasks', href: `/projects/${project.id}/tasks` },
+        { label: 'Úkoly', href: `/projects/${project.id}/tasks` },
         { label: task.title },
     ];
 
@@ -189,20 +189,20 @@ export default function TaskShow({
                                     className="rounded-md border border-border-default px-3 py-1.5 text-xs font-medium text-text-muted transition-colors hover:bg-surface-hover hover:text-text-default"
                                 >
                                     <ShieldCheck className="mr-1 inline-block h-3 w-3" />
-                                    Request Approval
+                                    Žádost o schválení
                                 </button>
                                 <button
                                     onClick={() => setEditing(true)}
                                     className="rounded-md border border-border-default px-3 py-1.5 text-xs font-medium text-text-muted transition-colors hover:bg-surface-hover hover:text-text-default"
                                 >
                                     <Pencil className="mr-1 inline-block h-3 w-3" />
-                                    Edit
+                                    Upravit
                                 </button>
                                 <button
                                     onClick={() => {
                                         if (
                                             confirm(
-                                                'Are you sure you want to delete this task? This action cannot be undone.',
+                                                'Opravdu chcete smazat tento úkol? Tuto akci nelze vrátit.',
                                             )
                                         ) {
                                             router.delete(`/projects/${project.id}/tasks/${task.id}`);
@@ -242,10 +242,10 @@ export default function TaskShow({
                     {/* Metadata strip */}
                     <div className="mb-6 flex gap-6 rounded-lg border border-border-subtle bg-surface-secondary px-5 py-3 text-xs text-text-muted">
                         <span>
-                            Created <strong className="text-text-default">{formatDate(task.created_at)}</strong>
+                            Vytvořeno <strong className="text-text-default">{formatDate(task.created_at)}</strong>
                         </span>
                         <span>
-                            Updated <strong className="text-text-default">{formatDate(task.updated_at)}</strong>
+                            Aktualizováno <strong className="text-text-default">{formatDate(task.updated_at)}</strong>
                         </span>
                         {task.data_classification === 'phi' && (
                             <span className="rounded bg-status-warning-subtle px-1.5 py-0.5 text-xs font-bold tracking-wide text-status-warning">
@@ -258,7 +258,7 @@ export default function TaskShow({
                     <div className="mb-8">
                         <h2 className="mb-4 flex items-center gap-2 text-lg font-semibold text-text-strong">
                             <MessageSquare className="h-4 w-4" />
-                            Comments
+                            Komentáře
                             <span className="rounded-full bg-status-neutral-subtle px-2 py-px text-xs font-medium text-text-muted">
                                 {task.comments_count}
                             </span>
@@ -283,7 +283,7 @@ export default function TaskShow({
                     <div>
                         <h2 className="mb-4 flex items-center gap-2 text-lg font-semibold text-text-strong">
                             <Clock className="h-4 w-4" />
-                            Activity
+                            Aktivita
                         </h2>
                         <ActivityTimeline entries={activity} />
                     </div>
@@ -291,7 +291,7 @@ export default function TaskShow({
 
                 {/* ── Right Sidebar ── */}
                 <div className="w-72 flex-shrink-0 space-y-5">
-                    <SidebarSection label="Status">
+                    <SidebarSection label="Stav">
                         <StatusBadge statusMap={TASK_STATUS} value={task.status} />
                         {allowedTransitions.length > 0 && (
                             <div className="mt-2 flex flex-wrap gap-1">
@@ -308,7 +308,7 @@ export default function TaskShow({
                         )}
                     </SidebarSection>
 
-                    <SidebarSection label="Priority">
+                    <SidebarSection label="Priorita">
                         <select
                             value={task.priority}
                             onChange={(e) => inlineUpdate({ priority: e.target.value })}
@@ -322,13 +322,13 @@ export default function TaskShow({
                         </select>
                     </SidebarSection>
 
-                    <SidebarSection label="Assignee">
+                    <SidebarSection label="Řešitel">
                         <select
                             value={task.assignee?.id ?? ''}
                             onChange={(e) => inlineUpdate({ assignee_id: e.target.value || null })}
                             className="w-full rounded border border-transparent bg-transparent px-0 py-0.5 text-sm transition-colors hover:border-border-default focus:border-border-focus focus:outline-none"
                         >
-                            <option value="">Unassigned</option>
+                            <option value="">Nepřiřazeno</option>
                             {members.map((m) => (
                                 <option key={m.id} value={m.id}>
                                     {m.name}
@@ -337,7 +337,7 @@ export default function TaskShow({
                         </select>
                     </SidebarSection>
 
-                    <SidebarSection label="Reporter">
+                    <SidebarSection label="Zadavatel">
                         {task.reporter ? (
                             <div className="flex items-center gap-2">
                                 <Avatar name={task.reporter.name} />
@@ -348,7 +348,7 @@ export default function TaskShow({
                         )}
                     </SidebarSection>
 
-                    <SidebarSection label="Project">
+                    <SidebarSection label="Projekt">
                         <Link
                             href={`/projects/${project.id}`}
                             className="text-sm text-brand-primary no-underline hover:underline"
@@ -358,7 +358,7 @@ export default function TaskShow({
                     </SidebarSection>
 
                     {task.epic && (
-                        <SidebarSection label="Epic">
+                        <SidebarSection label="Epik">
                             <Link
                                 href={`/projects/${project.id}/epics/${task.epic.id}`}
                                 className="text-sm text-brand-primary no-underline hover:underline"
@@ -368,7 +368,7 @@ export default function TaskShow({
                         </SidebarSection>
                     )}
 
-                    <SidebarSection label="Due Date">
+                    <SidebarSection label="Termín">
                         <input
                             type="date"
                             value={task.due_date ?? ''}
@@ -377,7 +377,7 @@ export default function TaskShow({
                         />
                     </SidebarSection>
 
-                    <SidebarSection label="Recurrence">
+                    <SidebarSection label="Opakování">
                         <select
                             value={task.recurrence_rule ?? ''}
                             onChange={(e) => {
@@ -397,7 +397,7 @@ export default function TaskShow({
                             }}
                             className="w-full rounded border border-transparent bg-transparent px-0 py-0.5 text-sm transition-colors hover:border-border-default focus:border-border-focus focus:outline-none"
                         >
-                            <option value="">No recurrence</option>
+                            <option value="">Bez opakování</option>
                             {recurrenceRules.map((r) => (
                                 <option key={r.value} value={r.value}>
                                     {r.label}
@@ -415,11 +415,11 @@ export default function TaskShow({
                         )}
                     </SidebarSection>
 
-                    <SidebarSection label="Dependencies">
+                    <SidebarSection label="Závislosti">
                         <DependenciesPanel project={project} task={task} projectTasks={projectTasks} />
                     </SidebarSection>
 
-                    <SidebarSection label={`Attachments (${task.attachments_count})`}>
+                    <SidebarSection label={`Přílohy (${task.attachments_count})`}>
                         <AttachmentList
                             attachments={task.attachments}
                             projectId={project.id}
@@ -469,14 +469,14 @@ function TaskEditDialog({
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50">
             <div className="w-full max-w-lg rounded-lg border border-border-subtle bg-surface-primary p-6 shadow-xl">
                 <div className="mb-4 flex items-center justify-between">
-                    <h2 className="text-lg font-semibold text-text-strong">Edit Task</h2>
+                    <h2 className="text-lg font-semibold text-text-strong">Upravit úkol</h2>
                     <button onClick={onClose} className="rounded p-1 text-text-muted hover:bg-surface-hover">
                         <X className="h-4 w-4" />
                     </button>
                 </div>
 
                 <form onSubmit={submit} className="space-y-4">
-                    <EditField label="Title *" error={errors.title}>
+                    <EditField label="Název *" error={errors.title}>
                         <input
                             type="text"
                             value={data.title}
@@ -485,7 +485,7 @@ function TaskEditDialog({
                         />
                     </EditField>
 
-                    <EditField label="Description" error={errors.description}>
+                    <EditField label="Popis" error={errors.description}>
                         <textarea
                             value={data.description}
                             onChange={(e) => setData('description', e.target.value)}
@@ -495,7 +495,7 @@ function TaskEditDialog({
                     </EditField>
 
                     <div className="grid grid-cols-2 gap-4">
-                        <EditField label="Status" error={errors.status}>
+                        <EditField label="Stav" error={errors.status}>
                             <select
                                 value={data.status}
                                 onChange={(e) => setData('status', e.target.value)}
@@ -509,7 +509,7 @@ function TaskEditDialog({
                             </select>
                         </EditField>
 
-                        <EditField label="Priority" error={errors.priority}>
+                        <EditField label="Priorita" error={errors.priority}>
                             <select
                                 value={data.priority}
                                 onChange={(e) => setData('priority', e.target.value)}
@@ -525,13 +525,13 @@ function TaskEditDialog({
                     </div>
 
                     <div className="grid grid-cols-2 gap-4">
-                        <EditField label="Assignee" error={errors.assignee_id}>
+                        <EditField label="Řešitel" error={errors.assignee_id}>
                             <select
                                 value={data.assignee_id}
                                 onChange={(e) => setData('assignee_id', e.target.value)}
                                 className="mt-1 w-full rounded-md border border-border-default bg-surface-primary px-3 py-2 text-sm focus:border-border-focus focus:outline-none focus:shadow-[0_0_0_2px_var(--color-brand-soft)]"
                             >
-                                <option value="">Unassigned</option>
+                                <option value="">Nepřiřazeno</option>
                                 {members.map((m) => (
                                     <option key={m.id} value={m.id}>
                                         {m.name}
@@ -540,7 +540,7 @@ function TaskEditDialog({
                             </select>
                         </EditField>
 
-                        <EditField label="Reporter" error={errors.reporter_id}>
+                        <EditField label="Zadavatel" error={errors.reporter_id}>
                             <select
                                 value={data.reporter_id}
                                 onChange={(e) => setData('reporter_id', e.target.value)}
@@ -556,7 +556,7 @@ function TaskEditDialog({
                         </EditField>
                     </div>
 
-                    <EditField label="Due Date" error={errors.due_date}>
+                    <EditField label="Termín" error={errors.due_date}>
                         <input
                             type="date"
                             value={data.due_date}
@@ -571,14 +571,14 @@ function TaskEditDialog({
                             onClick={onClose}
                             className="rounded-md border border-border-default px-4 py-2 text-sm font-medium text-text-muted transition-colors hover:bg-surface-hover"
                         >
-                            Cancel
+                            Zrušit
                         </button>
                         <button
                             type="submit"
                             disabled={processing}
                             className="rounded-md bg-brand-primary px-4 py-2 text-sm font-medium text-text-inverse transition-colors hover:bg-brand-hover disabled:opacity-50"
                         >
-                            Save Changes
+                            Uložit změny
                         </button>
                     </div>
                 </form>
@@ -638,25 +638,25 @@ function RequestApprovalDialog({
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50">
             <div className="w-full max-w-lg rounded-lg border border-border-subtle bg-surface-primary p-6 shadow-xl">
                 <div className="mb-4 flex items-center justify-between">
-                    <h2 className="text-lg font-semibold text-text-strong">Request Approval</h2>
+                    <h2 className="text-lg font-semibold text-text-strong">Žádost o schválení</h2>
                     <button onClick={onClose} className="rounded p-1 text-text-muted hover:bg-surface-hover">
                         <X className="h-4 w-4" />
                     </button>
                 </div>
 
                 <form onSubmit={submit} className="space-y-4">
-                    <EditField label="Description" error={errors.description}>
+                    <EditField label="Popis" error={errors.description}>
                         <textarea
                             value={data.description}
                             onChange={(e) => setData('description', e.target.value)}
                             rows={2}
-                            placeholder="What needs to be approved?"
+                            placeholder="Co potřebuje schválení?"
                             className="mt-1 w-full rounded-md border border-border-default bg-surface-primary px-3 py-2 text-sm focus:border-border-focus focus:outline-none focus:shadow-[0_0_0_2px_var(--color-brand-soft)]"
                         />
                     </EditField>
 
                     <div>
-                        <label className="block text-xs font-medium text-text-default">Approvers *</label>
+                        <label className="block text-xs font-medium text-text-default">Schvalovatelé *</label>
                         {errors.approver_ids && (
                             <p className="mt-1 text-xs text-status-danger">{errors.approver_ids}</p>
                         )}
@@ -678,7 +678,7 @@ function RequestApprovalDialog({
                         </div>
                     </div>
 
-                    <EditField label="Expires at" error={errors.expires_at}>
+                    <EditField label="Platnost do" error={errors.expires_at}>
                         <input
                             type="datetime-local"
                             value={data.expires_at}
@@ -693,14 +693,14 @@ function RequestApprovalDialog({
                             onClick={onClose}
                             className="rounded-md border border-border-default px-4 py-2 text-sm font-medium text-text-muted transition-colors hover:bg-surface-hover"
                         >
-                            Cancel
+                            Zrušit
                         </button>
                         <button
                             type="submit"
                             disabled={processing || data.approver_ids.length === 0}
                             className="rounded-md bg-brand-primary px-4 py-2 text-sm font-medium text-text-inverse transition-colors hover:bg-brand-hover disabled:opacity-50"
                         >
-                            Submit Request
+                            Odeslat žádost
                         </button>
                     </div>
                 </form>
@@ -754,7 +754,7 @@ function DependenciesPanel({
         <div className="space-y-2">
             {task.blockers.length > 0 && (
                 <div>
-                    <div className="mb-1 text-xs text-text-subtle">Blocked by</div>
+                    <div className="mb-1 text-xs text-text-subtle">Blokováno</div>
                     {task.blockers.map((b) => (
                         <div key={b.id} className="flex items-center gap-1.5 py-0.5">
                             <Link2 className="h-3 w-3 flex-shrink-0 text-status-danger" />
@@ -777,7 +777,7 @@ function DependenciesPanel({
 
             {task.blocking.length > 0 && (
                 <div>
-                    <div className="mb-1 text-xs text-text-subtle">Blocks</div>
+                    <div className="mb-1 text-xs text-text-subtle">Blokuje</div>
                     {task.blocking.map((b) => (
                         <div key={b.id} className="flex items-center gap-1.5 py-0.5">
                             <Link2 className="h-3 w-3 flex-shrink-0 text-status-warning" />
@@ -799,7 +799,7 @@ function DependenciesPanel({
                         onChange={(e) => setSelectedId(e.target.value)}
                         className="flex-1 rounded border border-border-default bg-surface-primary px-2 py-1 text-xs focus:border-border-focus focus:outline-none"
                     >
-                        <option value="">Select blocker...</option>
+                        <option value="">Vyberte blokaci...</option>
                         {available.map((t) => (
                             <option key={t.id} value={t.id}>
                                 {t.title}
@@ -811,7 +811,7 @@ function DependenciesPanel({
                         disabled={!selectedId}
                         className="rounded bg-brand-primary px-2 py-1 text-xs text-text-inverse disabled:opacity-50"
                     >
-                        Add
+                        Přidat
                     </button>
                     <button
                         onClick={() => setAdding(false)}
@@ -826,7 +826,7 @@ function DependenciesPanel({
                     className="flex items-center gap-1 text-xs text-text-muted hover:text-brand-primary"
                 >
                     <Plus className="h-3 w-3" />
-                    Add blocker
+                    Přidat blokaci
                 </button>
             )}
         </div>
@@ -859,7 +859,7 @@ function CommentItem({
     const isOwner = comment.author.id === currentUserId;
 
     function handleDelete() {
-        if (confirm('Delete this comment?')) {
+        if (confirm('Smazat tento komentář?')) {
             router.delete(`/comments/${comment.id}`);
         }
     }
@@ -872,7 +872,7 @@ function CommentItem({
                         <Avatar name={comment.author.name} />
                         <span className="text-sm font-medium text-text-strong">{comment.author.name}</span>
                         <span className="text-xs text-text-muted">{timeAgo(comment.created_at)}</span>
-                        {comment.edited_at && <span className="text-xs italic text-text-subtle">(edited)</span>}
+                        {comment.edited_at && <span className="text-xs italic text-text-subtle">(upraveno)</span>}
                     </div>
                     <div className="flex gap-1">
                         {!isReply && (
@@ -880,7 +880,7 @@ function CommentItem({
                                 onClick={() => setShowReply(!showReply)}
                                 className="rounded px-2 py-0.5 text-xs text-text-muted hover:bg-surface-hover hover:text-text-default"
                             >
-                                Reply
+                                Odpovědět
                             </button>
                         )}
                         {isOwner && (
@@ -888,7 +888,7 @@ function CommentItem({
                                 onClick={handleDelete}
                                 className="rounded px-2 py-0.5 text-xs text-text-muted hover:bg-status-danger-subtle hover:text-status-danger"
                             >
-                                Delete
+                                Smazat
                             </button>
                         )}
                     </div>
@@ -952,7 +952,7 @@ function CommentForm({
             <textarea
                 value={data.body}
                 onChange={(e) => setData('body', e.target.value)}
-                placeholder={parentId ? 'Write a reply...' : 'Add a comment...'}
+                placeholder={parentId ? 'Napsat odpověď...' : 'Přidat komentář...'}
                 rows={parentId ? 2 : 3}
                 className="flex-1 rounded-md border border-border-default bg-surface-primary px-3 py-2 text-sm focus:border-border-focus focus:outline-none focus:shadow-[0_0_0_2px_var(--color-brand-soft)]"
             />
@@ -1002,7 +1002,7 @@ function AttachmentList({
     }
 
     function handleDelete(attachmentId: string) {
-        if (confirm('Delete this attachment?')) {
+        if (confirm('Smazat tuto přílohu?')) {
             router.delete(`/attachments/${attachmentId}`);
         }
     }
@@ -1038,7 +1038,7 @@ function AttachmentList({
 
             <label className="flex cursor-pointer items-center gap-2 rounded border border-dashed border-border-default px-3 py-2 text-xs text-text-muted transition-colors hover:border-brand-primary hover:text-brand-primary">
                 <Upload className="h-3 w-3" />
-                {uploading ? 'Uploading...' : 'Upload file'}
+                {uploading ? 'Nahrávání...' : 'Nahrát soubor'}
                 <input type="file" className="hidden" onChange={handleUpload} disabled={uploading} />
             </label>
         </div>

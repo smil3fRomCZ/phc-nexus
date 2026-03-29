@@ -35,7 +35,7 @@ interface Props {
     priorities: SelectOption[];
 }
 
-const BREADCRUMBS: Breadcrumb[] = [{ label: 'Home', href: '/' }, { label: 'My Tasks' }];
+const BREADCRUMBS: Breadcrumb[] = [{ label: 'Domů', href: '/' }, { label: 'Moje úkoly' }];
 
 function formatDueDate(dateStr: string | null): { text: string; overdue: boolean } {
     if (!dateStr) return { text: '\u2014', overdue: false };
@@ -43,8 +43,8 @@ function formatDueDate(dateStr: string | null): { text: string; overdue: boolean
     const now = new Date();
     now.setHours(0, 0, 0, 0);
     const overdue = date < now;
-    const text = date.toLocaleDateString('en-US', { month: 'short', day: 'numeric' });
-    return { text: overdue ? `${text} — OVERDUE` : text, overdue };
+    const text = date.toLocaleDateString('cs-CZ');
+    return { text: overdue ? `${text} — PO TERMÍNU` : text, overdue };
 }
 
 export default function MyTasksIndex({ tasks, filters, statuses, priorities }: Props) {
@@ -59,16 +59,16 @@ export default function MyTasksIndex({ tasks, filters, statuses, priorities }: P
     }
 
     return (
-        <AppLayout title="My Tasks" breadcrumbs={BREADCRUMBS}>
+        <AppLayout title="Moje úkoly" breadcrumbs={BREADCRUMBS}>
             <div className="mb-6 flex items-center justify-between">
-                <h1 className="text-2xl font-bold leading-tight text-text-strong">My Tasks</h1>
+                <h1 className="text-2xl font-bold leading-tight text-text-strong">Moje úkoly</h1>
                 <div className="flex gap-3">
                     <select
                         value={filters.status ?? ''}
                         onChange={(e) => applyFilter('status', e.target.value)}
                         className="rounded-md border border-border-default bg-surface-primary px-3 py-1.5 text-sm focus:border-border-focus focus:outline-none"
                     >
-                        <option value="">All statuses</option>
+                        <option value="">Všechny stavy</option>
                         {statuses.map((s) => (
                             <option key={s.value} value={s.value}>
                                 {s.label}
@@ -80,7 +80,7 @@ export default function MyTasksIndex({ tasks, filters, statuses, priorities }: P
                         onChange={(e) => applyFilter('priority', e.target.value)}
                         className="rounded-md border border-border-default bg-surface-primary px-3 py-1.5 text-sm focus:border-border-focus focus:outline-none"
                     >
-                        <option value="">All priorities</option>
+                        <option value="">Všechny priority</option>
                         {priorities.map((p) => (
                             <option key={p.value} value={p.value}>
                                 {p.label}
@@ -94,7 +94,7 @@ export default function MyTasksIndex({ tasks, filters, statuses, priorities }: P
                 <table className="w-full border-collapse">
                     <thead>
                         <tr>
-                            {['Task', 'Project', 'Epic', 'Status', 'Priority', 'Due Date'].map((header) => (
+                            {['Úkol', 'Projekt', 'Epik', 'Stav', 'Priorita', 'Termín'].map((header) => (
                                 <th
                                     key={header}
                                     className="border-b border-border-default bg-surface-secondary px-5 py-3 text-left text-xs font-semibold uppercase tracking-wider text-text-subtle"
@@ -155,7 +155,7 @@ export default function MyTasksIndex({ tasks, filters, statuses, priorities }: P
                                 </tr>
                             );
                         })}
-                        {tasks.data.length === 0 && <EmptyState colSpan={6} message="No tasks assigned to you." />}
+                        {tasks.data.length === 0 && <EmptyState colSpan={6} message="Nemáte přiřazené žádné úkoly." />}
                     </tbody>
                 </table>
             </div>

@@ -25,6 +25,7 @@ FROM php:8.4-fpm-alpine AS production
 
 # Install system dependencies
 RUN apk add --no-cache \
+    su-exec \
     postgresql-dev \
     icu-dev \
     libzip-dev \
@@ -73,8 +74,6 @@ COPY docker/entrypoint.sh /entrypoint.sh
 # Set permissions
 RUN chown -R appuser:appuser storage bootstrap/cache && \
     chmod -R 775 storage bootstrap/cache
-
-USER appuser
 
 EXPOSE 9000
 

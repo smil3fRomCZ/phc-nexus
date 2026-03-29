@@ -60,8 +60,15 @@ COPY . .
 COPY --from=composer-build /build/vendor ./vendor
 COPY --from=frontend-build /build/public/build ./public/build
 
+# Keep a pristine copy of public/ so the entrypoint can sync it
+# into the shared named volume on every container start.
+RUN cp -a public public-build
+
 # Regenerate package discovery (exclude dev providers like Pail)
 RUN php artisan package:discover --ansi 2>/dev/null || true
+
+# Entrypoint syncs public assets into the shared volume
+COPY docker/entrypoint.sh /entrypoint.sh
 
 # Set permissions
 RUN chown -R appuser:appuser storage bootstrap/cache && \
@@ -71,4 +78,5 @@ USER appuser
 
 EXPOSE 9000
 
+ENTRYPOINT ["/entrypoint.sh"]
 CMD ["php-fpm"]

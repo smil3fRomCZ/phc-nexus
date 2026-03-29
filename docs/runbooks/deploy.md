@@ -43,7 +43,7 @@ Upravit `.env` — minimálně:
 APP_NAME="PHC Nexus"
 APP_ENV=production
 APP_DEBUG=false
-APP_URL=https://nexus.pearshealthcare.cz
+APP_URL=https://phc-nexus.eu
 
 DB_CONNECTION=pgsql
 DB_HOST=postgres
@@ -60,18 +60,18 @@ MAIL_HOST=<smtp-server>
 MAIL_PORT=587
 MAIL_USERNAME=<smtp-user>
 MAIL_PASSWORD=<smtp-password>
-MAIL_FROM_ADDRESS=nexus@pearshealthcare.cz
+MAIL_FROM_ADDRESS=nexus@phc-nexus.eu
 
 GOOGLE_CLIENT_ID=<google-oauth-client-id>
 GOOGLE_CLIENT_SECRET=<google-oauth-client-secret>
-GOOGLE_REDIRECT_URI=https://nexus.pearshealthcare.cz/auth/google/callback
+GOOGLE_REDIRECT_URI=https://phc-nexus.eu/auth/google/callback
 ```
 
 ---
 
 ## 3. Produkční Caddyfile
 
-Soubor `docker/caddy/Caddyfile.prod` je součástí repozitáře. Doména je konfigurovatelná přes env var `DOMAIN` (default: `nexus.pearshealthcare.cz`).
+Soubor `docker/caddy/Caddyfile.prod` je součástí repozitáře. Doména je konfigurovatelná přes env var `DOMAIN` (default: `phc-nexus.eu`).
 
 Pro změnu domény stačí nastavit v `.env`:
 ```env
@@ -112,7 +112,7 @@ docker compose exec app php artisan key:generate --force
 docker compose ps
 
 # Aplikace odpovídá
-curl -s -o /dev/null -w "%{http_code}" https://nexus.pearshealthcare.cz/up
+curl -s -o /dev/null -w "%{http_code}" https://phc-nexus.eu/up
 
 # Migrace proběhly
 docker compose exec app php artisan migrate:status
@@ -147,7 +147,7 @@ Nastavit v **Settings → Secrets and variables → Actions**:
 | `VPS_HOST` | IP adresa nebo hostname serveru | `123.45.67.89` |
 | `VPS_USER` | SSH uživatel | `deploy` |
 | `VPS_SSH_KEY` | Privátní SSH klíč (Ed25519) | obsah `~/.ssh/id_ed25519` |
-| `DOMAIN` | Produkční doména | `nexus.pearshealthcare.cz` |
+| `DOMAIN` | Produkční doména | `phc-nexus.eu` |
 
 ### Manuální spuštění
 

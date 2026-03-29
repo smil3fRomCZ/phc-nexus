@@ -119,9 +119,9 @@ app/Modules/
 
 Běží na **FORPSI Standard VPS** (4 vCPU, 8 GB RAM, 80 GB NVMe, ~295 Kč/měs).
 
-- **Live:** http://194-182-78-7.nip.io (testovací, bez TLS)
+- **Live:** https://phc-nexus.eu
 - Automatický deploy přes GitHub Actions po merge do master
-- Caddy reverse proxy se security headers (HSTS po nastavení domény)
+- Caddy reverse proxy s auto-TLS (Let's Encrypt) a security headers (HSTS)
 - Google SSO autentizace
 - Průvodce: [`docs/runbooks/forpsi-setup.md`](docs/runbooks/forpsi-setup.md)
 

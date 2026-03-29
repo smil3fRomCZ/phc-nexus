@@ -11,7 +11,7 @@ Co sledovat, jaké hodnoty jsou normální a kdy eskalovat.
 docker compose ps
 
 # Quick health check
-curl -s -o /dev/null -w "%{http_code}" https://nexus.pearshealthcare.cz/up
+curl -s -o /dev/null -w "%{http_code}" https://phc-nexus.eu/up
 # Očekáváno: 200
 ```
 
@@ -43,7 +43,7 @@ docker compose exec app php artisan queue:failed
 # Normální: 0, jakýkoli failed job → investigovat
 ```
 
-**Horizon dashboard:** `https://nexus.pearshealthcare.cz/horizon`
+**Horizon dashboard:** `https://phc-nexus.eu/horizon`
 
 | Metrika | Normální | Varování | Kritické |
 |---------|----------|----------|----------|

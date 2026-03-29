@@ -166,7 +166,7 @@ docker compose -f docker-compose.yml -f docker-compose.prod.yml up -d
 
 # 7. Verifikace
 docker compose exec app php artisan migrate:status
-curl -s https://nexus.pearshealthcare.cz/up
+curl -s https://phc-nexus.eu/up
 ```
 
 ---

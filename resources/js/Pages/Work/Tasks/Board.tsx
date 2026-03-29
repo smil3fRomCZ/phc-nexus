@@ -31,8 +31,8 @@ export default function TaskBoard({ project, columns: initialColumns }: Props) {
     const [dropTarget, setDropTarget] = useState<string | null>(null);
 
     const breadcrumbs: Breadcrumb[] = [
-        { label: 'Home', href: '/' },
-        { label: 'Projects', href: '/projects' },
+        { label: 'Domů', href: '/' },
+        { label: 'Projekty', href: '/projects' },
         { label: project.name, href: `/projects/${project.id}` },
         { label: 'Board' },
     ];
@@ -116,7 +116,7 @@ export default function TaskBoard({ project, columns: initialColumns }: Props) {
                         href={`/projects/${project.id}/table`}
                         className="rounded-md border border-border-default px-4 py-2 text-sm font-medium text-text-default no-underline transition-colors hover:bg-surface-hover"
                     >
-                        Table
+                        Tabulka
                     </Link>
                 </div>
             </div>
@@ -161,7 +161,7 @@ export default function TaskBoard({ project, columns: initialColumns }: Props) {
                                     </Link>
                                     <div className="mt-2 flex items-center justify-between text-xs text-text-muted">
                                         {task.epic && <span>{task.epic.title}</span>}
-                                        <span>{task.assignee?.name ?? 'Unassigned'}</span>
+                                        <span>{task.assignee?.name ?? 'Nepřiřazeno'}</span>
                                     </div>
                                 </div>
                             ))}

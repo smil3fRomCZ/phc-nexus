@@ -133,7 +133,7 @@ export default function GlobalSearch() {
                 onChange={(e) => handleChange(e.target.value)}
                 onFocus={() => results && setOpen(true)}
                 onKeyDown={handleKeyDown}
-                placeholder="Search tasks, projects, docs... (⌘K)"
+                placeholder="Hledat úkoly, projekty... (⌘K)"
                 className="h-8 w-full rounded-md border border-border-default bg-surface-hover pl-[2.25rem] pr-4 text-sm text-text-default placeholder:text-text-subtle outline-none transition-colors focus:border-brand-primary focus:shadow-[0_0_0_2px_var(--color-brand-soft)]"
             />
 
@@ -142,14 +142,14 @@ export default function GlobalSearch() {
                 <div className="absolute left-0 right-0 top-full z-50 mt-1 overflow-hidden rounded-lg border border-border-default bg-surface-primary shadow-lg">
                     {noResults && (
                         <div className="px-4 py-6 text-center text-sm text-text-muted">
-                            No results for &ldquo;{query}&rdquo;
+                            Žádné výsledky pro &ldquo;{query}&rdquo;
                         </div>
                     )}
 
                     {results && results.projects.length > 0 && (
                         <div>
                             <div className="px-3 py-2 text-xs font-semibold uppercase tracking-wider text-text-subtle">
-                                Projects
+                                Projekty
                             </div>
                             {results.projects.map((project, i) => {
                                 const idx = i;
@@ -176,7 +176,7 @@ export default function GlobalSearch() {
                     {results && results.tasks.length > 0 && (
                         <div className={results.projects.length > 0 ? 'border-t border-border-subtle' : ''}>
                             <div className="px-3 py-2 text-xs font-semibold uppercase tracking-wider text-text-subtle">
-                                Tasks
+                                Úkoly
                             </div>
                             {results.tasks.map((task, i) => {
                                 const idx = (results.projects?.length ?? 0) + i;

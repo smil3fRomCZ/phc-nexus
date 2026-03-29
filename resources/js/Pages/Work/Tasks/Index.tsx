@@ -39,23 +39,23 @@ export default function TasksIndex({ project, epic, tasks }: Props) {
     }
 
     const breadcrumbs: Breadcrumb[] = [
-        { label: 'Home', href: '/' },
-        { label: 'Projects', href: '/projects' },
+        { label: 'Domů', href: '/' },
+        { label: 'Projekty', href: '/projects' },
         { label: project.name, href: `/projects/${project.id}` },
         ...(epic
             ? [
-                  { label: 'Epics', href: `/projects/${project.id}/epics` },
+                  { label: 'Epiky', href: `/projects/${project.id}/epics` },
                   { label: epic.title, href: `/projects/${project.id}/epics/${epic.id}` },
-                  { label: 'Tasks' },
+                  { label: 'Úkoly' },
               ]
-            : [{ label: 'Tasks' }]),
+            : [{ label: 'Úkoly' }]),
     ];
 
     return (
-        <AppLayout title={`${project.key} — Tasks`} breadcrumbs={breadcrumbs}>
+        <AppLayout title={`${project.key} — Úkoly`} breadcrumbs={breadcrumbs}>
             <div className="mb-6 flex items-center justify-between">
                 <h1 className="text-2xl font-bold leading-tight text-text-strong">
-                    Tasks{epic ? ` — ${epic.title}` : ''}
+                    Úkoly{epic ? ` — ${epic.title}` : ''}
                 </h1>
             </div>
 
@@ -65,7 +65,7 @@ export default function TasksIndex({ project, epic, tasks }: Props) {
                     type="text"
                     value={data.title}
                     onChange={(e) => setData('title', e.target.value)}
-                    placeholder="New task title..."
+                    placeholder="Název nového úkolu..."
                     className="flex-1 rounded-md border border-border-default bg-surface-primary px-3 py-2 text-base focus:border-border-focus focus:outline-none focus:shadow-[0_0_0_2px_var(--color-brand-soft)]"
                 />
                 <select
@@ -73,10 +73,10 @@ export default function TasksIndex({ project, epic, tasks }: Props) {
                     onChange={(e) => setData('priority', e.target.value)}
                     className="rounded-md border border-border-default bg-surface-primary px-3 py-2 text-sm focus:border-border-focus focus:outline-none"
                 >
-                    <option value="low">Low</option>
-                    <option value="medium">Medium</option>
-                    <option value="high">High</option>
-                    <option value="urgent">Urgent</option>
+                    <option value="low">Nízká</option>
+                    <option value="medium">Střední</option>
+                    <option value="high">Vysoká</option>
+                    <option value="urgent">Urgentní</option>
                 </select>
                 <button
                     type="submit"
@@ -84,7 +84,7 @@ export default function TasksIndex({ project, epic, tasks }: Props) {
                     className="inline-flex items-center gap-2 rounded-md bg-brand-primary px-4 py-2 text-sm font-medium text-text-inverse transition-colors hover:bg-brand-hover disabled:opacity-50"
                 >
                     <Plus className="h-3.5 w-3.5" strokeWidth={2.5} />
-                    Add
+                    Přidat
                 </button>
             </form>
             {errors.title && <p className="mb-4 text-xs text-status-danger">{errors.title}</p>}
@@ -109,11 +109,11 @@ export default function TasksIndex({ project, epic, tasks }: Props) {
                             <span className={getPriority(task.priority).textClass}>
                                 {getPriority(task.priority).label}
                             </span>
-                            <span className="text-text-muted">{task.assignee?.name ?? 'Unassigned'}</span>
+                            <span className="text-text-muted">{task.assignee?.name ?? 'Nepřiřazeno'}</span>
                         </div>
                     </div>
                 ))}
-                {tasks.length === 0 && <EmptyState icon={ClipboardList} message="No tasks yet. Add your first one." />}
+                {tasks.length === 0 && <EmptyState icon={ClipboardList} message="Zatím žádné úkoly. Přidejte první." />}
             </div>
         </AppLayout>
     );

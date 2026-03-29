@@ -26,7 +26,7 @@ interface Props {
     unreadCount: number;
 }
 
-const BREADCRUMBS: Breadcrumb[] = [{ label: 'Home', href: '/' }, { label: 'Notifications' }];
+const BREADCRUMBS: Breadcrumb[] = [{ label: 'Domů', href: '/' }, { label: 'Notifikace' }];
 
 const typeIcons: Record<string, string> = {
     approval_requested: '\u2705',
@@ -71,11 +71,11 @@ export default function NotificationsIndex({ notifications, unreadCount }: Props
     }
 
     return (
-        <AppLayout title="Notifications" breadcrumbs={BREADCRUMBS}>
+        <AppLayout title="Notifikace" breadcrumbs={BREADCRUMBS}>
             <div className="mx-auto max-w-3xl">
                 <div className="mb-6 flex items-center justify-between">
                     <h1 className="text-2xl font-bold leading-tight text-text-strong">
-                        Notifications
+                        Notifikace
                         {unreadCount > 0 && (
                             <span className="ml-2 inline-flex rounded-full bg-brand-primary px-2 py-px text-xs font-semibold text-text-inverse">
                                 {unreadCount}
@@ -84,7 +84,7 @@ export default function NotificationsIndex({ notifications, unreadCount }: Props
                     </h1>
                     {unreadCount > 0 && (
                         <button onClick={markAllAsRead} className="text-sm text-brand-primary hover:underline">
-                            Mark all as read
+                            Označit vše jako přečtené
                         </button>
                     )}
                 </div>
@@ -115,7 +115,7 @@ export default function NotificationsIndex({ notifications, unreadCount }: Props
                                             }}
                                             className="rounded-sm px-2 py-1 text-xs text-brand-primary transition-colors hover:bg-surface-hover"
                                         >
-                                            Read
+                                            Přečteno
                                         </button>
                                     )}
                                 </div>
@@ -136,7 +136,7 @@ export default function NotificationsIndex({ notifications, unreadCount }: Props
                             </div>
                         );
                     })}
-                    {notifications.data.length === 0 && <EmptyState icon={Bell} message="No notifications." />}
+                    {notifications.data.length === 0 && <EmptyState icon={Bell} message="Žádné notifikace." />}
                 </div>
 
                 <Pagination links={notifications.links} />

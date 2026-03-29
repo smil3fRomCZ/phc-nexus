@@ -17,9 +17,9 @@ interface Props {
     month: string; // "YYYY-MM"
 }
 
-const BREADCRUMBS: Breadcrumb[] = [{ label: 'Home', href: '/' }, { label: 'Calendar' }];
+const BREADCRUMBS: Breadcrumb[] = [{ label: 'Domů', href: '/' }, { label: 'Kalendář' }];
 
-const DAY_NAMES = ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun'];
+const DAY_NAMES = ['Po', 'Út', 'St', 'Čt', 'Pá', 'So', 'Ne'];
 
 const PRIORITY_DOT: Record<string, string> = {
     urgent: 'bg-status-danger',
@@ -109,10 +109,10 @@ export default function CalendarIndex({ tasks, month }: Props) {
     }
 
     return (
-        <AppLayout title="Calendar" breadcrumbs={BREADCRUMBS}>
+        <AppLayout title="Kalendář" breadcrumbs={BREADCRUMBS}>
             {/* Header */}
             <div className="mb-6 flex items-center justify-between">
-                <h1 className="text-2xl font-bold leading-tight text-text-strong">Calendar</h1>
+                <h1 className="text-2xl font-bold leading-tight text-text-strong">Kalendář</h1>
                 <div className="flex items-center gap-3">
                     <button
                         onClick={() => navigate(-1)}
@@ -133,7 +133,7 @@ export default function CalendarIndex({ tasks, month }: Props) {
                         onClick={() => router.get('/calendar', {}, { preserveState: true })}
                         className="rounded-md border border-border-default px-3 py-1.5 text-sm text-text-muted transition-colors hover:bg-surface-hover"
                     >
-                        Today
+                        Dnes
                     </button>
                 </div>
             </div>

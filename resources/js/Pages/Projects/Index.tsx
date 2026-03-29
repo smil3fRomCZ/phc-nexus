@@ -8,7 +8,7 @@ import { Link } from '@inertiajs/react';
 import { Plus, Search } from 'lucide-react';
 import { useState } from 'react';
 
-const BREADCRUMBS: Breadcrumb[] = [{ label: 'Home', href: '/' }, { label: 'Projects' }];
+const BREADCRUMBS: Breadcrumb[] = [{ label: 'Domů', href: '/' }, { label: 'Projekty' }];
 
 interface Project {
     id: string;
@@ -37,7 +37,7 @@ function getProgress(completed: number, total: number): number {
 
 function formatUpdatedAt(dateStr: string): string {
     const date = new Date(dateStr);
-    return date.toLocaleDateString('en-US', { month: 'short', day: 'numeric' });
+    return date.toLocaleDateString('cs-CZ', { day: 'numeric', month: 'numeric', year: 'numeric' });
 }
 
 export default function ProjectsIndex({ projects }: Props) {
@@ -51,16 +51,16 @@ export default function ProjectsIndex({ projects }: Props) {
     });
 
     return (
-        <AppLayout title="Projects" breadcrumbs={BREADCRUMBS}>
+        <AppLayout title="Projekty" breadcrumbs={BREADCRUMBS}>
             {/* Page Header */}
             <div className="mb-6 flex items-center justify-between">
-                <h1 className="text-2xl font-bold leading-tight text-text-strong">Projects</h1>
+                <h1 className="text-2xl font-bold leading-tight text-text-strong">Projekty</h1>
                 <Link
                     href="/projects/create"
                     className="inline-flex items-center justify-center gap-2 rounded-md bg-brand-primary px-5 py-2 text-xs font-medium text-text-inverse no-underline transition-colors hover:bg-brand-hover"
                 >
                     <Plus className="h-3.5 w-3.5" strokeWidth={2.5} />
-                    New Project
+                    Nový projekt
                 </Link>
             </div>
 
@@ -71,20 +71,19 @@ export default function ProjectsIndex({ projects }: Props) {
                     onChange={(e) => setStatusFilter(e.target.value)}
                     className="h-8 rounded-md border border-border-default bg-surface-primary px-3 text-xs text-text-default outline-none transition-colors focus:border-brand-primary focus:ring-2 focus:ring-brand-soft"
                 >
-                    <option value="">All Statuses</option>
-                    <option value="active">Active</option>
-                    <option value="planning">Planning</option>
-                    <option value="on_hold">On Hold</option>
-                    <option value="in_review">In Review</option>
-                    <option value="draft">Draft</option>
-                    <option value="cancelled">Cancelled</option>
+                    <option value="">Všechny stavy</option>
+                    <option value="active">Aktivní</option>
+                    <option value="on_hold">Pozastavený</option>
+                    <option value="draft">Návrh</option>
+                    <option value="completed">Dokončený</option>
+                    <option value="archived">Archivovaný</option>
                 </select>
 
                 <div className="relative">
                     <Search className="pointer-events-none absolute left-2.5 top-1/2 h-[13px] w-[13px] -translate-y-1/2 text-text-muted" />
                     <input
                         type="text"
-                        placeholder="Search projects..."
+                        placeholder="Hledat projekty..."
                         value={searchQuery}
                         onChange={(e) => setSearchQuery(e.target.value)}
                         className="h-8 w-56 rounded-md border border-border-default bg-surface-primary pl-8 pr-3 text-xs text-text-default placeholder:text-text-subtle outline-none transition-colors focus:border-brand-primary focus:ring-2 focus:ring-brand-soft"
@@ -98,28 +97,28 @@ export default function ProjectsIndex({ projects }: Props) {
                     <thead>
                         <tr>
                             <th className="border-b border-border-default bg-surface-secondary px-5 py-3 text-left text-[11px] font-semibold uppercase tracking-wider text-text-subtle">
-                                Project Name
+                                Název projektu
                             </th>
                             <th className="border-b border-border-default bg-surface-secondary px-5 py-3 text-left text-[11px] font-semibold uppercase tracking-wider text-text-subtle">
-                                Status
+                                Stav
                             </th>
                             <th className="border-b border-border-default bg-surface-secondary px-5 py-3 text-left text-[11px] font-semibold uppercase tracking-wider text-text-subtle">
-                                Owner
+                                Vlastník
                             </th>
                             <th className="border-b border-border-default bg-surface-secondary px-5 py-3 text-left text-[11px] font-semibold uppercase tracking-wider text-text-subtle">
-                                Team
+                                Tým
                             </th>
                             <th className="border-b border-border-default bg-surface-secondary px-5 py-3 text-left text-[11px] font-semibold uppercase tracking-wider text-text-subtle">
-                                Tasks
+                                Úkoly
                             </th>
                             <th
                                 className="border-b border-border-default bg-surface-secondary px-5 py-3 text-left text-[11px] font-semibold uppercase tracking-wider text-text-subtle"
                                 style={{ minWidth: 130 }}
                             >
-                                Progress
+                                Průběh
                             </th>
                             <th className="border-b border-border-default bg-surface-secondary px-5 py-3 text-left text-[11px] font-semibold uppercase tracking-wider text-text-subtle">
-                                Updated
+                                Aktualizováno
                             </th>
                         </tr>
                     </thead>
@@ -183,8 +182,8 @@ export default function ProjectsIndex({ projects }: Props) {
                                 colSpan={7}
                                 message={
                                     projects.data.length === 0
-                                        ? 'No projects yet. Create your first one.'
-                                        : 'No projects match your filters.'
+                                        ? 'Zatím žádné projekty. Vytvořte svůj první.'
+                                        : 'Žádné projekty neodpovídají filtrům.'
                                 }
                             />
                         )}

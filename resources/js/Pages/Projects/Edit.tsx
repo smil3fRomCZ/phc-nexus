@@ -10,6 +10,7 @@ interface Project {
     key: string;
     description: string | null;
     status: string;
+    data_classification: string;
     team_id: string | null;
     start_date: string | null;
     target_date: string | null;
@@ -18,20 +19,22 @@ interface Project {
 interface Props {
     project: Project;
     statuses: Array<{ value: string; label: string }>;
+    classifications: Array<{ value: string; label: string }>;
 }
 
-export default function ProjectEdit({ project, statuses }: Props) {
+export default function ProjectEdit({ project, statuses, classifications }: Props) {
     const breadcrumbs: Breadcrumb[] = [
-        { label: 'Home', href: '/' },
-        { label: 'Projects', href: '/projects' },
+        { label: 'Domů', href: '/' },
+        { label: 'Projekty', href: '/projects' },
         { label: project.name, href: `/projects/${project.id}` },
-        { label: 'Edit' },
+        { label: 'Upravit' },
     ];
 
     const { data, setData, put, processing, errors } = useForm({
         name: project.name,
         description: project.description ?? '',
         status: project.status,
+        data_classification: project.data_classification ?? 'non_phi',
         team_id: project.team_id ?? '',
         start_date: project.start_date ?? '',
         target_date: project.target_date ?? '',
@@ -43,14 +46,14 @@ export default function ProjectEdit({ project, statuses }: Props) {
     }
 
     return (
-        <AppLayout title={`Edit ${project.name}`} breadcrumbs={breadcrumbs}>
+        <AppLayout title={`Upravit ${project.name}`} breadcrumbs={breadcrumbs}>
             <div className="mx-auto max-w-2xl">
                 <h1 className="mb-6 text-2xl font-bold leading-tight text-text-strong">
-                    Edit Project <span className="font-mono text-text-muted">{project.key}</span>
+                    Upravit projekt <span className="font-mono text-text-muted">{project.key}</span>
                 </h1>
 
                 <form onSubmit={submit} className="space-y-5">
-                    <Field label="Name *" error={errors.name}>
+                    <Field label="Název *" error={errors.name}>
                         <input
                             type="text"
                             value={data.name}
@@ -59,7 +62,7 @@ export default function ProjectEdit({ project, statuses }: Props) {
                         />
                     </Field>
 
-                    <Field label="Description">
+                    <Field label="Popis">
                         <textarea
                             value={data.description}
                             onChange={(e) => setData('description', e.target.value)}
@@ -68,7 +71,21 @@ export default function ProjectEdit({ project, statuses }: Props) {
                         />
                     </Field>
 
-                    <Field label="Status">
+                    <Field label="Klasifikace dat">
+                        <select
+                            value={data.data_classification}
+                            onChange={(e) => setData('data_classification', e.target.value)}
+                            className="mt-1 rounded-md border border-border-default bg-surface-primary px-3 py-2 text-base focus:border-border-focus focus:outline-none focus:shadow-[0_0_0_2px_var(--color-brand-soft)]"
+                        >
+                            {classifications.map((c) => (
+                                <option key={c.value} value={c.value}>
+                                    {c.label}
+                                </option>
+                            ))}
+                        </select>
+                    </Field>
+
+                    <Field label="Stav">
                         <select
                             value={data.status}
                             onChange={(e) => setData('status', e.target.value)}
@@ -83,7 +100,7 @@ export default function ProjectEdit({ project, statuses }: Props) {
                     </Field>
 
                     <div className="grid grid-cols-2 gap-4">
-                        <Field label="Start date">
+                        <Field label="Datum zahájení">
                             <input
                                 type="date"
                                 value={data.start_date}
@@ -91,7 +108,7 @@ export default function ProjectEdit({ project, statuses }: Props) {
                                 className="mt-1 w-full rounded-md border border-border-default bg-surface-primary px-3 py-2 text-base focus:border-border-focus focus:outline-none focus:shadow-[0_0_0_2px_var(--color-brand-soft)]"
                             />
                         </Field>
-                        <Field label="Target date" error={errors.target_date}>
+                        <Field label="Cílové datum" error={errors.target_date}>
                             <input
                                 type="date"
                                 value={data.target_date}
@@ -108,7 +125,7 @@ export default function ProjectEdit({ project, statuses }: Props) {
                             className="inline-flex items-center gap-2 rounded-md bg-brand-primary px-6 py-2 text-sm font-medium text-text-inverse transition-colors hover:bg-brand-hover disabled:opacity-50"
                         >
                             {processing && <Spinner size="sm" />}
-                            Save Changes
+                            Uložit změny
                         </button>
                     </div>
                 </form>

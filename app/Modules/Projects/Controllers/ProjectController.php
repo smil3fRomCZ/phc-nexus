@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace App\Modules\Projects\Controllers;
 
 use App\Http\Controllers\Controller;
+use App\Modules\Audit\Enums\PhiClassification;
 use App\Modules\Projects\Enums\ProjectStatus;
 use App\Modules\Projects\Models\Project;
 use Illuminate\Http\RedirectResponse;
@@ -39,9 +40,10 @@ final class ProjectController extends Controller
         Gate::authorize('create', Project::class);
 
         return Inertia::render('Projects/Create', [
-            'statuses' => collect(ProjectStatus::cases())->map(fn ($s) => [
-                'value' => $s->value,
-                'label' => $s->label(),
+            'existingKeys' => Project::pluck('key')->toArray(),
+            'classifications' => collect(PhiClassification::cases())->map(fn ($c) => [
+                'value' => $c->value,
+                'label' => $c->label(),
             ]),
         ]);
     }
@@ -54,7 +56,7 @@ final class ProjectController extends Controller
             'name' => ['required', 'string', 'max:255'],
             'key' => ['required', 'string', 'max:10', 'unique:projects,key', 'regex:/^[A-Z][A-Z0-9-]*$/'],
             'description' => ['nullable', 'string'],
-            'status' => ['required', 'string', 'in:'.implode(',', array_column(ProjectStatus::cases(), 'value'))],
+            'data_classification' => ['nullable', 'string', 'in:'.implode(',', array_column(PhiClassification::cases(), 'value'))],
             'team_id' => ['nullable', 'uuid', 'exists:teams,id'],
             'start_date' => ['nullable', 'date'],
             'target_date' => ['nullable', 'date', 'after_or_equal:start_date'],
@@ -62,6 +64,8 @@ final class ProjectController extends Controller
 
         $project = Project::create([
             ...$validated,
+            'status' => ProjectStatus::Draft,
+            'data_classification' => $validated['data_classification'] ?? PhiClassification::NonPhi->value,
             'owner_id' => $request->user()->id,
         ]);
 
@@ -109,6 +113,10 @@ final class ProjectController extends Controller
                 'value' => $s->value,
                 'label' => $s->label(),
             ]),
+            'classifications' => collect(PhiClassification::cases())->map(fn ($c) => [
+                'value' => $c->value,
+                'label' => $c->label(),
+            ]),
         ]);
     }
 
@@ -120,6 +128,7 @@ final class ProjectController extends Controller
             'name' => ['required', 'string', 'max:255'],
             'description' => ['nullable', 'string'],
             'status' => ['required', 'string', 'in:'.implode(',', array_column(ProjectStatus::cases(), 'value'))],
+            'data_classification' => ['nullable', 'string', 'in:'.implode(',', array_column(PhiClassification::cases(), 'value'))],
             'team_id' => ['nullable', 'uuid', 'exists:teams,id'],
             'start_date' => ['nullable', 'date'],
             'target_date' => ['nullable', 'date', 'after_or_equal:start_date'],

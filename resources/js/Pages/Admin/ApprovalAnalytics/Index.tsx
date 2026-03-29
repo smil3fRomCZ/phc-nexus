@@ -28,7 +28,11 @@ interface Props {
     history: HistoryItem[];
 }
 
-const BREADCRUMBS: Breadcrumb[] = [{ label: 'Home', href: '/' }, { label: 'Admin' }, { label: 'Approval Analytics' }];
+const BREADCRUMBS: Breadcrumb[] = [
+    { label: 'Domů', href: '/' },
+    { label: 'Administrace' },
+    { label: 'Analytika schvalování' },
+];
 
 const STATUS_CONFIG: Record<string, { color: string; bg: string }> = {
     pending: { color: 'text-status-warning', bg: 'bg-status-warning-subtle' },
@@ -49,37 +53,37 @@ function formatHours(hours: number): string {
 
 export default function ApprovalAnalyticsIndex({ stats, history }: Props) {
     const tiles = [
-        { label: 'Total', value: stats.total, icon: BarChart3, color: 'text-text-strong', bg: 'bg-surface-secondary' },
+        { label: 'Celkem', value: stats.total, icon: BarChart3, color: 'text-text-strong', bg: 'bg-surface-secondary' },
         {
-            label: 'Pending',
+            label: 'Čeká',
             value: stats.pending,
             icon: Clock,
             color: 'text-status-warning',
             bg: 'bg-status-warning-subtle',
         },
         {
-            label: 'Approved',
+            label: 'Schváleno',
             value: stats.approved,
             icon: CheckCircle,
             color: 'text-status-info',
             bg: 'bg-status-info-subtle',
         },
         {
-            label: 'Rejected',
+            label: 'Zamítnuto',
             value: stats.rejected,
             icon: XCircle,
             color: 'text-status-danger',
             bg: 'bg-status-danger-subtle',
         },
         {
-            label: 'Cancelled',
+            label: 'Zrušeno',
             value: stats.cancelled,
             icon: Ban,
             color: 'text-status-neutral',
             bg: 'bg-status-neutral-subtle',
         },
         {
-            label: 'Avg Resolution',
+            label: 'Prům. doba',
             value: formatHours(stats.avg_resolution_hours),
             icon: Clock,
             color: 'text-brand-primary',
@@ -88,8 +92,8 @@ export default function ApprovalAnalyticsIndex({ stats, history }: Props) {
     ];
 
     return (
-        <AppLayout title="Approval Analytics" breadcrumbs={BREADCRUMBS}>
-            <h1 className="mb-6 text-2xl font-bold leading-tight text-text-strong">Approval Analytics</h1>
+        <AppLayout title="Analytika schvalování" breadcrumbs={BREADCRUMBS}>
+            <h1 className="mb-6 text-2xl font-bold leading-tight text-text-strong">Analytika schvalování</h1>
 
             {/* Stat Tiles */}
             <div className="mb-8 grid grid-cols-3 gap-4 md:grid-cols-6">
@@ -111,12 +115,12 @@ export default function ApprovalAnalyticsIndex({ stats, history }: Props) {
             </div>
 
             {/* History Table */}
-            <h2 className="mb-4 text-lg font-semibold text-text-strong">History</h2>
+            <h2 className="mb-4 text-lg font-semibold text-text-strong">Historie</h2>
             <div className="overflow-hidden rounded-lg border border-border-subtle bg-surface-primary">
                 <table className="w-full border-collapse">
                     <thead>
                         <tr>
-                            {['Request', 'Requester', 'Status', 'Created', 'Resolved', 'Resolution Time'].map((h) => (
+                            {['Žádost', 'Žadatel', 'Stav', 'Vytvořeno', 'Vyřešeno', 'Doba řešení'].map((h) => (
                                 <th
                                     key={h}
                                     className="border-b border-border-default bg-surface-secondary px-5 py-3 text-left text-xs font-semibold uppercase tracking-wider text-text-subtle"
@@ -132,7 +136,7 @@ export default function ApprovalAnalyticsIndex({ stats, history }: Props) {
                             return (
                                 <tr key={item.id} className="transition-colors hover:bg-brand-soft">
                                     <td className="border-b border-border-subtle px-5 py-3 text-sm font-medium text-text-strong">
-                                        {item.approvable_title || item.description || 'Approval request'}
+                                        {item.approvable_title || item.description || 'Žádost o schválení'}
                                     </td>
                                     <td className="border-b border-border-subtle px-5 py-3 text-sm text-text-muted">
                                         {item.requester_name}
@@ -156,7 +160,7 @@ export default function ApprovalAnalyticsIndex({ stats, history }: Props) {
                                 </tr>
                             );
                         })}
-                        {history.length === 0 && <EmptyState colSpan={6} message="No approval requests found." />}
+                        {history.length === 0 && <EmptyState colSpan={6} message="Žádné žádosti o schválení." />}
                     </tbody>
                 </table>
             </div>

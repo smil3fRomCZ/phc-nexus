@@ -214,15 +214,32 @@ git branch -d feat/<module>-<popis>
 ## Deployment flow
 
 ```
-local                    staging                  production
-(docker compose up)  →   (stejný image, VPS)  →   (stejný image, po schválení)
+local (dev)                              production (VPS)
+docker compose                           docker compose
+  -f docker-compose.yml                    -f docker-compose.yml
+  -f docker-compose.dev.yml                -f docker-compose.prod.yml
+  up -d                                    up -d
 ```
 
-- CI buildne image na merge do `main`
-- Image tagovaný git SHA + volitelně semver
-- Staging deploy průběžně
-- Production 1× týdně nebo dle potřeby
-- Hotfix: branch z `main` → `fix/...` → expedited review → deploy
+### Lokální dev
+- `docker compose -f docker-compose.yml -f docker-compose.dev.yml up -d`
+- Bind mounts (živé soubory), Vite HMR, self-signed TLS na `localhost`
+
+### Produkce (FORPSI VPS)
+```bash
+cd /opt/phc-nexus
+git checkout master && git pull
+docker compose -f docker-compose.yml -f docker-compose.prod.yml build --no-cache
+docker volume rm phc-nexus_app-public 2>/dev/null   # vynutí čerstvý sync assets
+docker compose -f docker-compose.yml -f docker-compose.prod.yml up -d
+```
+
+- Named volume `app-public` sdílí Vite build assets mezi `app` a `caddy`
+- Entrypoint (`docker/entrypoint.sh`) synchronizuje `public/` z image do volume při každém startu
+- PHP-FPM master běží jako root (privilege drop přes `user/group` v pool configu)
+- Caddy: auto-TLS (Let's Encrypt) pro `phc-nexus.eu`
+- CI (GitHub Actions) spouští deploy automaticky po merge do `master`
+- Hotfix: branch z `master` → `fix/...` → expedited review → merge → auto deploy
 
 ---
 
@@ -236,3 +253,6 @@ local                    staging                  production
 | Queue nezpracovává | Zkontrolovat worker logy, ověřit `redis-data` je up |
 | Testy padají na DB | `docker compose exec app php artisan migrate:fresh --env=testing` |
 | Pomalý build | Ověřit `.dockerignore`, zvážit OrbStack místo Docker Desktop |
+| Produkce má staré CSS/JS | `docker volume rm phc-nexus_app-public` a rebuild — entrypoint sync nakopíruje čerstvé assets |
+| FPM Permission denied | Ověřit že `USER appuser` není v Dockerfile — FPM master musí běžet jako root |
+| ERR_SSL_PROTOCOL_ERROR | Ověřit že produkce používá `-f docker-compose.prod.yml` (Caddyfile.prod, ne dev) |

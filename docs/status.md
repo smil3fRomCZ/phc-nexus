@@ -2,7 +2,7 @@
 
 Živý dokument mapující co je **reálně implementováno** vs. plánováno. Aktualizuje se po každém milestone a významné změně.
 
-> Poslední aktualizace: 2026-03-28
+> Poslední aktualizace: 2026-03-29
 
 ---
 
@@ -135,10 +135,12 @@
 
 | Položka | Status | Detail |
 |---------|--------|--------|
-| Dockerfile | Done | Multi-stage: composer → node → PHP 8.4-FPM Alpine |
+| Dockerfile | Done | Multi-stage: composer → node → PHP 8.4-FPM Alpine, entrypoint sync public assets |
 | docker-compose.yml (dev) | Done | 8 služeb: app, worker, scheduler, caddy, postgres, redis-cache, redis-data, mailpit |
-| docker-compose.prod.yml | Done | Override bez volume mounts, restart policies |
-| Caddyfile | Done | Reverse proxy, self-signed TLS, Vite HMR proxy, security headers |
+| docker-compose.dev.yml | Done | Dev override: bind mounts, dev PHP config |
+| docker-compose.prod.yml | Done | Prod override: named volumes (app-public, app-storage), restart policies, Redis hesla |
+| Caddyfile | Done | Dev: reverse proxy, self-signed TLS, Vite HMR proxy |
+| Caddyfile.prod | Done | Prod: doména phc-nexus.eu, auto-TLS (Let's Encrypt), HSTS, security headers |
 | PHP config (dev/prod) | Done | OPcache, JIT, timezone Europe/Prague |
 | .dockerignore | Done | Optimalizovaný pro build context |
 | GitHub Actions CI | Done | PHP 8.4, Node 22, PostgreSQL 17, Redis — lint + test + build |
@@ -227,6 +229,7 @@
 3. ~~**Testy běží na SQLite in-memory**~~ — Vyřešeno: `phpunit.pgsql.xml` pro opt-in PostgreSQL testy (`composer test:pgsql`). SQLite zůstává default pro rychlý feedback.
 4. ~~**Žádné seed data**~~ — Vyřešeno: DemoSeeder s realistickou org strukturou, uživateli, projekty, epiky, úkoly, approvals a komentáři.
 5. ~~**Design tokeny částečně**~~ — Vyřešeno: kompletní token set včetně form states, skeleton, transitions. `docs/design/design-tokens.md` v1.0.
+6. ~~**Produkce servíruje staré CSS/JS**~~ — Vyřešeno: sdílený named volume `app-public` mezi app a Caddy, entrypoint sync skript kopíruje public assets z image při každém startu kontejneru.
 
 ---
 
@@ -264,3 +267,4 @@
 | 2026-03-28 | MVP4-I3 | FORPSI setup guide (12 kroků od objednávky po zálohy), .env.production.example, finální MVP4 dokumentace |
 | 2026-03-28 | MVP4 | Production deploy na FORPSI Standard VPS — Docker prod fixes (volumes, package discovery, public assets sharing), Google SSO live, aplikace běží na http://194-182-78-7.nip.io |
 | 2026-03-29 | MVP4 | Změna produkční domény na phc-nexus.eu, DNS nastaveno na FORPSI, aktualizace Caddyfile.prod, .env šablon a runbooků |
+| 2026-03-29 | MVP4 | Docker production fix: sdílený `app-public` named volume (app↔Caddy), entrypoint sync skript, PHP-FPM root master (privilege drop přes pool config), sjednocení češtiny v UI, fallback classifications prop |

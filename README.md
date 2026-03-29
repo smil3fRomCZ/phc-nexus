@@ -106,14 +106,17 @@ app/Modules/
 
 | Kontejner | Image | Účel |
 |-----------|-------|------|
-| app | PHP 8.4-FPM Alpine | Hlavní aplikace |
+| app | PHP 8.4-FPM Alpine | Hlavní aplikace (entrypoint sync public assets do sdíleného volume) |
 | worker | Horizon | Queue processing |
 | scheduler | Laravel Scheduler | Cron úlohy (recurring tasks) |
-| caddy | Caddy 2 Alpine | Reverse proxy, TLS |
+| caddy | Caddy 2 Alpine | Reverse proxy, auto-TLS (Let's Encrypt v produkci) |
 | postgres | PostgreSQL 17 Alpine | Databáze |
 | redis-cache | Redis 7 Alpine | Cache (allkeys-lru) |
 | redis-data | Redis 7 Alpine | Sessions + queues (noeviction) |
 | mailpit | Mailpit | Email testing (dev) |
+
+**Dev:** `docker compose -f docker-compose.yml -f docker-compose.dev.yml up -d` (bind mounts, Vite HMR)
+**Produkce:** `docker compose -f docker-compose.yml -f docker-compose.prod.yml up -d` (named volumes, Let's Encrypt)
 
 ### Production Deployment
 
@@ -122,6 +125,7 @@ Běží na **FORPSI Standard VPS** (4 vCPU, 8 GB RAM, 80 GB NVMe, ~295 Kč/měs)
 - **Live:** https://phc-nexus.eu
 - Automatický deploy přes GitHub Actions po merge do master
 - Caddy reverse proxy s auto-TLS (Let's Encrypt) a security headers (HSTS)
+- Sdílený `app-public` named volume — entrypoint sync zajišťuje aktuální CSS/JS assets
 - Google SSO autentizace
 - Průvodce: [`docs/runbooks/forpsi-setup.md`](docs/runbooks/forpsi-setup.md)
 

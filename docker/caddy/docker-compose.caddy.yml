@@ -1,0 +1,38 @@
+services:
+  caddy:
+    image: caddy:2-alpine
+    ports:
+      - "80:80"
+      - "443:443"
+    volumes:
+      - ./Caddyfile:/etc/caddy/Caddyfile:ro
+      - caddy-data:/data
+      - caddy-config:/config
+      - prod-public:/var/www/html/public:ro
+      - staging-public:/var/www/html/public-staging:ro
+    environment:
+      DOMAIN: ${DOMAIN:-phc-nexus.eu}
+      STAGING_AUTH_USER: ${STAGING_AUTH_USER:-staging}
+      STAGING_AUTH_HASH: ${STAGING_AUTH_HASH}
+    networks:
+      - prod-network
+      - staging-network
+    restart: unless-stopped
+
+volumes:
+  caddy-data:
+  caddy-config:
+  prod-public:
+    external: true
+    name: phc-nexus_app-public
+  staging-public:
+    external: true
+    name: phc-nexus-staging_app-public
+
+networks:
+  prod-network:
+    external: true
+    name: phc-nexus_app-network
+  staging-network:
+    external: true
+    name: phc-nexus-staging_app-network

@@ -87,6 +87,8 @@ EOF
 ```bash
 docker run --rm caddy:2-alpine caddy hash-password --plaintext 'vase-heslo'
 # Výstup zkopírovat do /opt/phc-nexus-shared/.env jako STAGING_AUTH_HASH
+# DŮLEŽITÉ: Všechny $ v hashi zdvojit na $$ (Docker Compose interpolace)
+# Příklad: $2a$14$abc... → $$2a$$14$$abc...
 ```
 
 ## 5. Spuštění služeb (správné pořadí)
@@ -103,13 +105,25 @@ docker compose -f docker-compose.yml -f docker-compose.prod.yml up -d
 cd /opt/phc-nexus-staging
 COMPOSE_PROJECT_NAME=phc-nexus-staging docker compose -f docker-compose.staging.yml up -d
 
-# 4. Vygenerovat APP_KEY pro staging
-COMPOSE_PROJECT_NAME=phc-nexus-staging docker compose -f docker-compose.staging.yml exec app php artisan key:generate --force
+# 4. Vytvořit .env pro Docker Compose (DB a Redis hesla)
+cat > /opt/phc-nexus-staging/.env <<'EOF'
+DB_PASSWORD=vase-db-heslo
+REDIS_PASSWORD=vase-redis-heslo
+EOF
 
-# 5. Spustit migrace na stagingu
+# 5. Vygenerovat APP_KEY pro staging (.env.staging je :ro mount, nelze key:generate --force)
+COMPOSE_PROJECT_NAME=phc-nexus-staging docker compose -f docker-compose.staging.yml exec app php artisan key:generate --show
+# Výstup (base64:xxx...) vložit do .env.staging jako APP_KEY, pak restart:
+COMPOSE_PROJECT_NAME=phc-nexus-staging docker compose -f docker-compose.staging.yml restart app
+
+# 6. Spustit migrace na stagingu
 COMPOSE_PROJECT_NAME=phc-nexus-staging docker compose -f docker-compose.staging.yml exec app php artisan migrate --force
 
-# 6. Spustit sdílený Caddy (po obou sítích existují)
+# 7. Buildnout Docker image (staging compose používá phc-nexus:latest)
+cd /opt/phc-nexus
+docker build --target production -t phc-nexus:latest .
+
+# 8. Spustit sdílený Caddy (po obou sítích existují)
 cd /opt/phc-nexus-shared
 docker compose -f docker-compose.caddy.yml up -d
 ```
@@ -182,3 +196,14 @@ COMPOSE_PROJECT_NAME=phc-nexus-staging docker compose -f docker-compose.staging.
 
 ### TLS certifikát se nevystaví
 Ověřit DNS: `dig dev.phc-nexus.eu` musí ukazovat na VPS IP. Let's Encrypt potřebuje přístup na port 80.
+
+### Caddy nemůže resolvovat Let's Encrypt (ACME)
+Pokud v logu vidíte `dial tcp: lookup acme-v02.api.letsencrypt.org on 127.0.0.53:53: connection refused`, Caddy kontejner nedokáže resolvovat DNS přes systemd-resolved. Řešení — přidat explicitní DNS do `docker-compose.caddy.yml`:
+```yaml
+    dns:
+      - 8.8.8.8
+      - 1.1.1.1
+```
+
+### Docker Compose WARNING o neznámé proměnné
+Pokud vidíte `The "SgQxRmCsLdybVKuEA9dSg" variable is not set`, v `.env` nejsou správně escapované `$` v bcrypt hashi. Všechny `$` zdvojit na `$$`.

@@ -52,13 +52,13 @@ jobs:
             git pull origin master
 
             echo "=== Building image ==="
-            docker build -t phc-nexus:latest --target production .'
+            docker build -t phc-nexus:latest --target production .
 
             echo "=== Syncing staging repo ==="
             cd /opt/phc-nexus-staging
             git pull origin master
 
-            echo "=== Build complete ==="
+            echo "=== Build complete ==="'
 
   # ==========================================================================
   # Deploy Staging — automaticky po každém push na master

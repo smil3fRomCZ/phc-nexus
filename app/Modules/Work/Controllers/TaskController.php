@@ -11,6 +11,7 @@ use App\Modules\Notifications\Notifications\TaskAssignedNotification;
 use App\Modules\Notifications\Notifications\TaskStatusChangedNotification;
 use App\Modules\Projects\Enums\BenefitType;
 use App\Modules\Projects\Models\Project;
+use App\Modules\Projects\Models\WorkflowStatus;
 use App\Modules\Work\Enums\RecurrenceRule;
 use App\Modules\Work\Enums\TaskPriority;
 use App\Modules\Work\Enums\TaskStatus;
@@ -411,10 +412,12 @@ final class TaskController extends Controller
             $currentWs = $task->workflowStatus;
             $targetWs = $workflowStatuses->firstWhere('id', $validated['status']);
 
-            if ($currentWs && $targetWs && ! $currentWs->canTransitionTo($targetWs)) {
-                return response()->json([
-                    'error' => "Přechod z '{$currentWs->getAttribute('name')}' na '{$targetWs->getAttribute('name')}' není povolený.",
-                ], 422);
+            if ($currentWs instanceof WorkflowStatus && $targetWs instanceof WorkflowStatus) {
+                if (! $currentWs->canTransitionTo($targetWs)) {
+                    return response()->json([
+                        'error' => "Přechod z '{$currentWs->name}' na '{$targetWs->name}' není povolený.",
+                    ], 422);
+                }
             }
 
             $task->update(['workflow_status_id' => $validated['status']]);
@@ -432,12 +435,14 @@ final class TaskController extends Controller
                 ]);
             }
 
+            /** @var TaskStatus $oldStatus */
+            $oldStatus = $task->status;
             $task->update(['status' => $newStatus]);
-        }
 
-        $task->load('assignee');
-        if ($task->assignee !== null) {
-            $task->assignee->notify(new TaskStatusChangedNotification($task, $task->status, $task->status));
+            $task->load('assignee');
+            if ($task->assignee !== null) {
+                $task->assignee->notify(new TaskStatusChangedNotification($task, $oldStatus, $newStatus));
+            }
         }
 
         return response()->json(['success' => true]);

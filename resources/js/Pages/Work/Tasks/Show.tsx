@@ -18,7 +18,6 @@ import {
     Pencil,
     X,
     ShieldCheck,
-    ChevronRight,
     Link2,
     Plus,
     Clock,

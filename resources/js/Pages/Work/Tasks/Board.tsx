@@ -6,7 +6,7 @@ import { getPriority } from '@/constants/priority';
 import { displayKey } from '@/utils/displayKey';
 import { formatDate } from '@/utils/formatDate';
 import { Link, router, useForm } from '@inertiajs/react';
-import { MessageSquare, Plus, ShieldAlert, Settings2, Layers, Columns3, Trash2 } from 'lucide-react';
+import { MessageSquare, Plus, ShieldAlert, Settings2, Layers } from 'lucide-react';
 import ProjectTabs from '@/Components/ProjectTabs';
 import ConfirmModal from '@/Components/ConfirmModal';
 import { useState, useRef, useEffect, type DragEvent } from 'react';
@@ -33,19 +33,6 @@ interface Column {
     tasks: Task[];
 }
 
-interface BoardColumnConfig {
-    id: string;
-    name: string;
-    status_key: string;
-    color: string | null;
-    position: number;
-}
-
-interface StatusOption {
-    value: string;
-    label: string;
-}
-
 interface Member {
     id: string;
     name: string;
@@ -63,9 +50,7 @@ interface BoardSettings {
 interface Props {
     project: { id: string; name: string; key: string };
     columns: Column[];
-    boardColumnsConfig: BoardColumnConfig[];
     canManageColumns: boolean;
-    statuses: StatusOption[];
     members: Member[];
     epics: EpicOption[];
     filters: Record<string, string | undefined>;
@@ -85,18 +70,13 @@ const CARD_FIELD_OPTIONS = [
 export default function TaskBoard({
     project,
     columns: initialColumns,
-    boardColumnsConfig = [],
     canManageColumns = false,
-    statuses = [],
     members = [],
     epics = [],
     filters = {},
     boardSettings,
 }: Props) {
     const [columns, setColumns] = useState(initialColumns);
-    const [configOpen, setConfigOpen] = useState(false);
-    const [newColName, setNewColName] = useState('');
-    const [newColStatus, setNewColStatus] = useState('');
     const [createOpen, setCreateOpen] = useState(false);
     const [dragging, setDragging] = useState<string | null>(null);
     const [dropTarget, setDropTarget] = useState<string | null>(null);
@@ -159,48 +139,6 @@ export default function TaskBoard({
 
     function handleDragLeave() {
         setDropTarget(null);
-    }
-
-    function csrfHeaders() {
-        return {
-            'Content-Type': 'application/json',
-            'X-CSRF-TOKEN': document.querySelector<HTMLMetaElement>('meta[name="csrf-token"]')?.content ?? '',
-            Accept: 'application/json',
-        };
-    }
-
-    function addColumn() {
-        if (!newColName || !newColStatus) return;
-        fetch(`/projects/${project.id}/board-columns`, {
-            method: 'POST',
-            headers: csrfHeaders(),
-            body: JSON.stringify({ name: newColName, status_key: newColStatus }),
-        }).then((res) => {
-            if (res.ok) {
-                setNewColName('');
-                setNewColStatus('');
-                router.reload();
-            }
-        });
-    }
-
-    function updateColumn(id: string, data: Record<string, unknown>) {
-        fetch(`/projects/${project.id}/board-columns/${id}`, {
-            method: 'PUT',
-            headers: csrfHeaders(),
-            body: JSON.stringify(data),
-        }).then((res) => {
-            if (res.ok) router.reload();
-        });
-    }
-
-    function deleteColumn(id: string) {
-        fetch(`/projects/${project.id}/board-columns/${id}`, {
-            method: 'DELETE',
-            headers: csrfHeaders(),
-        }).then((res) => {
-            if (res.ok) router.reload();
-        });
     }
 
     function handleDrop(e: DragEvent, targetStatus: string) {
@@ -288,30 +226,19 @@ export default function TaskBoard({
                     ))}
                 </select>
 
-                {/* Column config button (owner/PM only) */}
-                {canManageColumns && (
-                    <button
-                        onClick={() => setConfigOpen(true)}
-                        className="ml-auto inline-flex items-center gap-1.5 rounded-md border border-border-default bg-surface-primary px-3 py-1.5 text-sm text-text-muted transition-colors hover:bg-surface-hover"
-                    >
-                        <Columns3 className="h-3.5 w-3.5" />
-                        Sloupce
-                    </button>
-                )}
-
                 {/* Settings popover */}
-                <div ref={settingsRef} className={`relative ${!canManageColumns ? 'ml-auto' : ''}`}>
+                <div ref={settingsRef} className="relative ml-auto">
                     <button
                         onClick={() => setSettingsOpen(!settingsOpen)}
                         className="inline-flex items-center gap-1.5 rounded-md border border-border-default bg-surface-primary px-3 py-1.5 text-sm text-text-muted transition-colors hover:bg-surface-hover"
                     >
                         <Settings2 className="h-3.5 w-3.5" />
-                        Zobrazení karet
+                        Nastavení
                     </button>
                     {settingsOpen && (
                         <div className="absolute right-0 z-20 mt-1 w-56 rounded-lg border border-border-subtle bg-surface-primary p-3 shadow-lg">
                             <div className="mb-2 text-xs font-semibold uppercase tracking-wider text-text-subtle">
-                                Viditelná pole
+                                Viditelná pole na kartě
                             </div>
                             {CARD_FIELD_OPTIONS.map((opt) => (
                                 <label
@@ -327,6 +254,17 @@ export default function TaskBoard({
                                     {opt.label}
                                 </label>
                             ))}
+                            {canManageColumns && (
+                                <>
+                                    <div className="my-2 border-t border-border-subtle" />
+                                    <Link
+                                        href={`/projects/${project.id}/workflow`}
+                                        className="flex items-center gap-2 rounded px-1 py-1.5 text-sm font-medium text-brand-primary no-underline hover:bg-brand-soft"
+                                    >
+                                        Workflow editor
+                                    </Link>
+                                </>
+                            )}
                         </div>
                     )}
                 </div>
@@ -466,107 +404,6 @@ export default function TaskBoard({
                 message={modalMessage ?? ''}
                 onConfirm={() => setModalMessage(null)}
             />
-
-            {/* Column config modal */}
-            {configOpen && (
-                <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50">
-                    <div className="w-full max-w-lg rounded-lg border border-border-subtle bg-surface-primary p-6 shadow-xl">
-                        <div className="mb-4 flex items-center justify-between">
-                            <h2 className="flex items-center gap-2 text-lg font-semibold text-text-strong">
-                                <Columns3 className="h-4 w-4" />
-                                Nastavení sloupců
-                            </h2>
-                            <button
-                                onClick={() => setConfigOpen(false)}
-                                className="rounded p-1 text-text-muted hover:bg-surface-hover"
-                            >
-                                ✕
-                            </button>
-                        </div>
-                        <p className="mb-4 text-xs text-text-muted">
-                            Upravte názvy a barvy sloupců. Smazáním sloupce se úkoly přesunou do předchozího.
-                        </p>
-
-                        <div className="mb-4 space-y-2">
-                            {boardColumnsConfig.map((col) => (
-                                <div
-                                    key={col.id}
-                                    className="flex items-center gap-2 rounded-md border border-border-subtle bg-surface-secondary px-3 py-2"
-                                >
-                                    <input
-                                        type="color"
-                                        value={col.color ?? '#97a0af'}
-                                        onChange={(e) => updateColumn(col.id, { color: e.target.value })}
-                                        className="h-6 w-6 cursor-pointer rounded border-0 p-0"
-                                    />
-                                    <input
-                                        type="text"
-                                        defaultValue={col.name}
-                                        onBlur={(e) => {
-                                            if (e.target.value !== col.name) {
-                                                updateColumn(col.id, { name: e.target.value });
-                                            }
-                                        }}
-                                        className="flex-1 rounded border border-transparent bg-transparent px-2 py-1 text-sm font-medium text-text-strong hover:border-border-default focus:border-border-focus focus:outline-none"
-                                    />
-                                    <span className="font-mono text-xs text-text-subtle">{col.status_key}</span>
-                                    <span className="text-xs text-text-muted">
-                                        {columns.find((c) => c.status === col.status_key)?.tasks.length ?? 0} úk.
-                                    </span>
-                                    <button
-                                        onClick={() => {
-                                            if (confirm(`Smazat sloupec "${col.name}"? Úkoly budou přesunuty.`)) {
-                                                deleteColumn(col.id);
-                                            }
-                                        }}
-                                        className="rounded p-1 text-text-subtle transition-colors hover:bg-status-danger-subtle hover:text-status-danger"
-                                    >
-                                        <Trash2 className="h-3.5 w-3.5" />
-                                    </button>
-                                </div>
-                            ))}
-                            {boardColumnsConfig.length === 0 && (
-                                <p className="text-sm text-text-muted">
-                                    Žádné vlastní sloupce. Přidejte první pro přepsání výchozího rozložení.
-                                </p>
-                            )}
-                        </div>
-
-                        <div className="flex gap-2">
-                            <input
-                                type="text"
-                                value={newColName}
-                                onChange={(e) => setNewColName(e.target.value)}
-                                placeholder="Název sloupce..."
-                                className="flex-1 rounded-md border border-border-default bg-surface-primary px-3 py-1.5 text-sm focus:border-border-focus focus:outline-none focus:shadow-[0_0_0_2px_var(--color-brand-soft)]"
-                            />
-                            <select
-                                value={newColStatus}
-                                onChange={(e) => setNewColStatus(e.target.value)}
-                                className="rounded-md border border-border-default bg-surface-primary px-2 py-1.5 text-sm"
-                            >
-                                <option value="">Status...</option>
-                                {statuses.map((s) => (
-                                    <option key={s.value} value={s.value}>
-                                        {s.label}
-                                    </option>
-                                ))}
-                            </select>
-                            <button
-                                onClick={addColumn}
-                                disabled={!newColName || !newColStatus}
-                                className="rounded-md bg-brand-primary px-3 py-1.5 text-xs font-semibold text-text-inverse transition-colors hover:bg-brand-hover disabled:opacity-50"
-                            >
-                                + Přidat
-                            </button>
-                        </div>
-
-                        <div className="mt-3 rounded-md bg-status-warning-subtle px-3 py-2 text-xs text-status-warning">
-                            Smazáním sloupce se úkoly automaticky přesunou do předchozího sloupce.
-                        </div>
-                    </div>
-                </div>
-            )}
 
             {/* Task create modal */}
             {createOpen && (

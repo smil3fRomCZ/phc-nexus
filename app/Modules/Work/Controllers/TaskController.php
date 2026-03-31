@@ -460,7 +460,7 @@ final class TaskController extends Controller
 
         $clone = $task->replicate(['id', 'number', 'created_at', 'updated_at']);
         $clone->title = $task->title.' (kopie)';
-        $clone->status = TaskStatus::Backlog;
+        $clone->status = TaskStatus::Backlog->value;
         $clone->save();
 
         return redirect()->route('projects.tasks.show', [$project, $clone])

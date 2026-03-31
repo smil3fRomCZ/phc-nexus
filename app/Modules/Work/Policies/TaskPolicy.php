@@ -57,6 +57,6 @@ final class TaskPolicy
             return true;
         }
 
-        return $task->project->owner_id === $user->id;
+        return $task->project->getAttribute('owner_id') === $user->id;
     }
 }

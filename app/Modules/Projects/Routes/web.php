@@ -4,10 +4,10 @@ declare(strict_types=1);
 
 use App\Modules\Projects\Controllers\BoardColumnController;
 use App\Modules\Projects\Controllers\ProjectAttachmentController;
-use App\Modules\Projects\Controllers\WorkflowController;
 use App\Modules\Projects\Controllers\ProjectCommentController;
 use App\Modules\Projects\Controllers\ProjectController;
 use App\Modules\Projects\Controllers\ProjectExportController;
+use App\Modules\Projects\Controllers\WorkflowController;
 use Illuminate\Support\Facades\Route;
 
 Route::middleware('auth')->group(function () {

@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace App\Modules\Projects\Models;
 
 use App\Models\Concerns\HasUuidV7;
+use Illuminate\Database\Eloquent\Collection;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\HasMany;
@@ -65,7 +66,7 @@ class WorkflowStatus extends Model
     /**
      * Povolené cílové stavy z tohoto stavu.
      */
-    public function allowedTargets(): \Illuminate\Database\Eloquent\Collection
+    public function allowedTargets(): Collection
     {
         $explicit = WorkflowStatus::whereIn(
             'id',

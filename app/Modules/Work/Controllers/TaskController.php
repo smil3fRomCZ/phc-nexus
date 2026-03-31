@@ -201,6 +201,7 @@ final class TaskController extends Controller
 
         $tasks = $project->tasks()
             ->with(['assignee:id,name', 'epic:id,title'])
+            ->withCount('comments')
             ->orderBy('sort_order')
             ->get();
 

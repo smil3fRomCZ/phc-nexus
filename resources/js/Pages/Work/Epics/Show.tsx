@@ -1,20 +1,22 @@
-import { MetadataGrid, MetadataField } from '@/Components/MetadataGrid';
 import CommentsSection from '@/Components/CommentsSection';
 import type { Comment } from '@/Components/CommentsSection';
 import AttachmentsSection from '@/Components/AttachmentsSection';
 import type { Attachment } from '@/Components/AttachmentsSection';
+import Avatar from '@/Components/Avatar';
 import StatusBadge from '@/Components/StatusBadge';
 import { EPIC_STATUS } from '@/constants/status';
 import AppLayout from '@/Layouts/AppLayout';
 import type { Breadcrumb } from '@/Layouts/AppLayout';
 import { TASK_STATUS } from '@/constants/status';
 import { displayKey } from '@/utils/displayKey';
+import { formatDate } from '@/utils/formatDate';
 import { Link, router, useForm } from '@inertiajs/react';
 import { Pencil, Trash2, X, Plus } from 'lucide-react';
 import { useState, type FormEvent } from 'react';
 
 interface Task {
     id: string;
+    number: number;
     title: string;
     status: string;
     assignee: { id: string; name: string } | null;
@@ -33,6 +35,10 @@ interface Epic {
     attachments: Attachment[];
     attachments_count: number;
     comments_count: number;
+    start_date: string | null;
+    target_date: string | null;
+    created_at: string;
+    updated_at: string;
 }
 
 interface Member {
@@ -55,6 +61,9 @@ interface Props {
 export default function EpicShow({ project, epic, members, statuses }: Props) {
     const [editing, setEditing] = useState(false);
 
+    const doneCount = epic.tasks.filter((t) => t.status === 'done').length;
+    const progress = epic.tasks_count > 0 ? Math.round((doneCount / epic.tasks_count) * 100) : 0;
+
     const breadcrumbs: Breadcrumb[] = [
         { label: 'Domů', href: '/' },
         { label: 'Projekty', href: '/projects' },
@@ -64,116 +73,211 @@ export default function EpicShow({ project, epic, members, statuses }: Props) {
     ];
 
     return (
-        <AppLayout title={`${project.key} — ${epic.title}`} breadcrumbs={breadcrumbs}>
-            <div className="mx-auto max-w-4xl">
-                <div className="mb-6">
-                    <div className="flex items-center gap-3">
-                        <h1 className="text-2xl font-bold leading-tight text-text-strong">
-                            <span className="mr-2 text-text-muted">{displayKey(project.key, epic.number)}</span>
-                            {epic.title}
-                        </h1>
-                        <StatusBadge statusMap={EPIC_STATUS} value={epic.status} />
-                        <div className="ml-auto flex gap-2">
-                            <button
-                                onClick={() => setEditing(true)}
-                                className="rounded-md border border-border-default px-3 py-1.5 text-xs font-medium text-text-muted transition-colors hover:bg-surface-hover hover:text-text-default"
-                            >
-                                <Pencil className="mr-1 inline-block h-3 w-3" />
-                                Upravit
-                            </button>
-                            <button
-                                onClick={() => {
-                                    if (confirm('Opravdu chcete smazat tento EPIC? Tuto akci nelze vrátit.')) {
-                                        router.delete(`/projects/${project.id}/epics/${epic.id}`);
-                                    }
-                                }}
-                                className="rounded-md border border-status-danger/30 px-3 py-1.5 text-xs font-medium text-status-danger transition-colors hover:bg-status-danger-subtle"
-                            >
-                                <Trash2 className="h-3 w-3" />
-                            </button>
-                        </div>
-                    </div>
-                    {epic.description && <p className="mt-2 text-base text-text-default">{epic.description}</p>}
-                </div>
-
-                {editing && (
-                    <EpicEditDialog
-                        project={project}
-                        epic={epic}
-                        members={members}
-                        statuses={statuses}
-                        onClose={() => setEditing(false)}
-                    />
-                )}
-
-                <div className="mb-6">
-                    <MetadataGrid columns={4}>
-                        <MetadataField label="Stav">{EPIC_STATUS[epic.status]?.label ?? epic.status}</MetadataField>
-                        <MetadataField label="Vlastník">{epic.owner?.name ?? '\u2014'}</MetadataField>
-                        <MetadataField label="Úkoly">{epic.tasks_count}</MetadataField>
-                        <MetadataField label="Přílohy / Komentáře">
-                            {epic.attachments_count} / {epic.comments_count}
-                        </MetadataField>
-                    </MetadataGrid>
-                </div>
-
-                <div>
-                    <div className="mb-3 flex items-center justify-between">
-                        <h3 className="text-xs font-semibold uppercase tracking-wider text-text-subtle">
-                            Úkoly ({epic.tasks_count})
-                        </h3>
-                        <Link
-                            href={`/projects/${project.id}/epics/${epic.id}/tasks`}
-                            className="text-xs text-text-muted no-underline hover:text-brand-primary"
-                        >
-                            Zobrazit vše
-                        </Link>
-                    </div>
-
-                    <QuickAddTask projectId={project.id} epicId={epic.id} />
-
-                    {epic.tasks.length > 0 && (
-                        <div className="mt-2 space-y-1">
-                            {epic.tasks.map((task) => (
-                                <div
-                                    key={task.id}
-                                    className="flex items-center justify-between rounded-md border border-border-subtle px-4 py-2 text-sm transition-colors hover:bg-brand-soft"
+        <AppLayout title={`${displayKey(project.key, epic.number)} — ${epic.title}`} breadcrumbs={breadcrumbs}>
+            <div className="flex gap-8">
+                {/* ── Left Column ── */}
+                <div className="min-w-0 flex-1">
+                    {/* Title */}
+                    <div className="mb-6">
+                        <div className="flex items-center gap-3">
+                            <h1 className="text-2xl font-bold leading-tight text-text-strong">
+                                <span className="mr-2 text-text-muted">{displayKey(project.key, epic.number)}</span>
+                                {epic.title}
+                            </h1>
+                            <StatusBadge statusMap={EPIC_STATUS} value={epic.status} />
+                            <div className="ml-auto flex gap-2">
+                                <button
+                                    onClick={() => setEditing(true)}
+                                    className="rounded-md border border-border-default px-3 py-1.5 text-xs font-medium text-text-muted transition-colors hover:bg-surface-hover hover:text-text-default"
                                 >
-                                    <div className="flex items-center gap-2">
-                                        <StatusBadge statusMap={TASK_STATUS} value={task.status} />
-                                        <Link
-                                            href={`/projects/${project.id}/tasks/${task.id}`}
-                                            className="font-medium text-text-strong no-underline hover:text-brand-primary"
-                                        >
-                                            {task.title}
-                                        </Link>
-                                    </div>
-                                    <span className="text-text-muted">{task.assignee?.name ?? 'Nepřiřazeno'}</span>
-                                </div>
-                            ))}
+                                    <Pencil className="mr-1 inline-block h-3 w-3" />
+                                    Upravit
+                                </button>
+                                <button
+                                    onClick={() => {
+                                        if (confirm('Opravdu chcete smazat tento EPIC? Tuto akci nelze vrátit.')) {
+                                            router.delete(`/projects/${project.id}/epics/${epic.id}`);
+                                        }
+                                    }}
+                                    className="rounded-md border border-status-danger/30 px-3 py-1.5 text-xs font-medium text-status-danger transition-colors hover:bg-status-danger-subtle"
+                                >
+                                    <Trash2 className="h-3 w-3" />
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+
+                    {editing && (
+                        <EpicEditDialog
+                            project={project}
+                            epic={epic}
+                            members={members}
+                            statuses={statuses}
+                            onClose={() => setEditing(false)}
+                        />
+                    )}
+
+                    {/* Metadata strip */}
+                    <div className="mb-6 flex gap-6 rounded-lg border border-border-subtle bg-surface-secondary px-5 py-3 text-xs text-text-muted">
+                        <span>
+                            Typ: <strong className="text-text-default">EPIC</strong>
+                        </span>
+                        <span>
+                            Vytvořeno <strong className="text-text-default">{formatDate(epic.created_at)}</strong>
+                        </span>
+                        <span>
+                            Aktualizováno <strong className="text-text-default">{formatDate(epic.updated_at)}</strong>
+                        </span>
+                    </div>
+
+                    {/* Description */}
+                    {epic.description && (
+                        <div className="mb-8">
+                            <h2 className="mb-3 text-lg font-semibold text-text-strong">Popis</h2>
+                            <p className="text-base leading-relaxed text-text-default">{epic.description}</p>
                         </div>
                     )}
 
-                    {epic.tasks.length === 0 && (
-                        <p className="mt-2 text-sm text-text-muted">Zatím žádné úkoly. Přidejte první výše.</p>
-                    )}
+                    {/* Tasks with progress */}
+                    <div className="mb-8">
+                        <div className="mb-3 flex items-center justify-between">
+                            <h2 className="text-lg font-semibold text-text-strong">Úkoly ({epic.tasks_count})</h2>
+                            <Link
+                                href={`/projects/${project.id}/epics/${epic.id}/tasks`}
+                                className="text-xs text-text-muted no-underline hover:text-brand-primary"
+                            >
+                                Zobrazit vše
+                            </Link>
+                        </div>
+
+                        {/* Progress bar */}
+                        {epic.tasks_count > 0 && (
+                            <div className="mb-4">
+                                <div className="mb-1 text-xs text-text-muted">
+                                    {doneCount} z {epic.tasks_count} hotovo ({progress}%)
+                                </div>
+                                <div className="h-2 rounded-full bg-border-subtle">
+                                    <div
+                                        className="h-2 rounded-full bg-brand-primary transition-all"
+                                        style={{ width: `${progress}%` }}
+                                    />
+                                </div>
+                            </div>
+                        )}
+
+                        <QuickAddTask projectId={project.id} epicId={epic.id} />
+
+                        {epic.tasks.length > 0 && (
+                            <div className="mt-2 space-y-1">
+                                {epic.tasks.map((task) => (
+                                    <div
+                                        key={task.id}
+                                        className="flex items-center justify-between rounded-md border border-border-subtle px-4 py-2 text-sm transition-colors hover:bg-brand-soft"
+                                    >
+                                        <div className="flex items-center gap-2">
+                                            <StatusBadge statusMap={TASK_STATUS} value={task.status} />
+                                            <Link
+                                                href={`/projects/${project.id}/tasks/${task.id}`}
+                                                className="font-medium text-text-strong no-underline hover:text-brand-primary"
+                                            >
+                                                <span className="mr-1.5 text-xs font-semibold text-text-muted">
+                                                    {displayKey(project.key, task.number)}
+                                                </span>
+                                                {task.title}
+                                            </Link>
+                                        </div>
+                                        <span className="text-text-muted">
+                                            {task.assignee ? (
+                                                <Avatar name={task.assignee.name} size="sm" />
+                                            ) : (
+                                                'Nepřiřazeno'
+                                            )}
+                                        </span>
+                                    </div>
+                                ))}
+                            </div>
+                        )}
+
+                        {epic.tasks.length === 0 && (
+                            <p className="mt-2 text-sm text-text-muted">Zatím žádné úkoly. Přidejte první výše.</p>
+                        )}
+                    </div>
+
+                    {/* Comments */}
+                    <div className="mb-8">
+                        <CommentsSection
+                            comments={epic.root_comments}
+                            commentsCount={epic.comments_count}
+                            postUrl={`/projects/${project.id}/epics/${epic.id}/comments`}
+                        />
+                    </div>
                 </div>
 
-                {/* Attachments */}
-                <div className="mt-6">
-                    <AttachmentsSection
-                        attachments={epic.attachments}
-                        uploadUrl={`/projects/${project.id}/epics/${epic.id}/attachments`}
-                    />
-                </div>
+                {/* ── Right Sidebar ── */}
+                <div className="w-72 flex-shrink-0">
+                    <div className="sticky top-20 space-y-0 rounded-lg border border-border-subtle bg-surface-primary p-5">
+                        {/* Group: Status */}
+                        <div className="pb-4 mb-4 border-b border-border-subtle">
+                            <div className="mb-1 text-xs font-semibold uppercase tracking-wider text-text-subtle">
+                                Stav
+                            </div>
+                            <StatusBadge statusMap={EPIC_STATUS} value={epic.status} />
+                        </div>
 
-                {/* Comments */}
-                <div className="mt-6">
-                    <CommentsSection
-                        comments={epic.root_comments}
-                        commentsCount={epic.comments_count}
-                        postUrl={`/projects/${project.id}/epics/${epic.id}/comments`}
-                    />
+                        {/* Group: People */}
+                        <div className="pb-4 mb-4 border-b border-border-subtle">
+                            <div className="mb-1 text-xs font-semibold uppercase tracking-wider text-text-subtle">
+                                Vlastník
+                            </div>
+                            {epic.owner ? (
+                                <div className="flex items-center gap-2">
+                                    <Avatar name={epic.owner.name} />
+                                    <span className="text-sm text-text-default">{epic.owner.name}</span>
+                                </div>
+                            ) : (
+                                <span className="text-sm text-text-muted">{'\u2014'}</span>
+                            )}
+                        </div>
+
+                        {/* Group: Context */}
+                        <div className="pb-4 mb-4 border-b border-border-subtle space-y-3">
+                            <div>
+                                <div className="mb-1 text-xs font-semibold uppercase tracking-wider text-text-subtle">
+                                    Projekt
+                                </div>
+                                <Link
+                                    href={`/projects/${project.id}`}
+                                    className="text-sm text-brand-primary no-underline hover:underline"
+                                >
+                                    {project.name}
+                                </Link>
+                            </div>
+                            {epic.start_date && (
+                                <div>
+                                    <div className="mb-1 text-xs font-semibold uppercase tracking-wider text-text-subtle">
+                                        Zahájení
+                                    </div>
+                                    <span className="text-sm text-text-default">{formatDate(epic.start_date)}</span>
+                                </div>
+                            )}
+                            {epic.target_date && (
+                                <div>
+                                    <div className="mb-1 text-xs font-semibold uppercase tracking-wider text-text-subtle">
+                                        Cíl
+                                    </div>
+                                    <span className="text-sm text-text-default">{formatDate(epic.target_date)}</span>
+                                </div>
+                            )}
+                        </div>
+
+                        {/* Group: Attachments */}
+                        <div>
+                            <AttachmentsSection
+                                attachments={epic.attachments}
+                                uploadUrl={`/projects/${project.id}/epics/${epic.id}/attachments`}
+                            />
+                        </div>
+                    </div>
                 </div>
             </div>
         </AppLayout>

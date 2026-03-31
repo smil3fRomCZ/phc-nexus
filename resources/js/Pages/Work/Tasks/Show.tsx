@@ -18,7 +18,7 @@ import {
     Pencil,
     X,
     ShieldCheck,
-    Clock,
+    ChevronRight,
     Link2,
     Plus,
 } from 'lucide-react';
@@ -132,6 +132,7 @@ export default function TaskShow({
     const { auth } = usePage<PageProps>().props;
     const [editing, setEditing] = useState(false);
     const [requestingApproval, setRequestingApproval] = useState(false);
+    const [activityOpen, setActivityOpen] = useState(true);
 
     const breadcrumbs: Breadcrumb[] = [
         { label: 'Domů', href: '/' },
@@ -277,148 +278,189 @@ export default function TaskShow({
                         <CommentForm projectId={project.id} taskId={task.id} />
                     </div>
 
-                    {/* Activity Timeline */}
+                    {/* Activity Timeline — collapsible */}
                     <div>
-                        <h2 className="mb-4 flex items-center gap-2 text-lg font-semibold text-text-strong">
-                            <Clock className="h-4 w-4" />
+                        <button
+                            onClick={() => setActivityOpen(!activityOpen)}
+                            className="mb-4 flex items-center gap-2 text-lg font-semibold text-text-strong"
+                        >
+                            <ChevronRight
+                                className={`h-4 w-4 transition-transform ${activityOpen ? 'rotate-90' : ''}`}
+                            />
                             Aktivita
-                        </h2>
-                        <ActivityTimeline entries={activity} />
+                        </button>
+                        {activityOpen && <ActivityTimeline entries={activity} />}
                     </div>
                 </div>
 
                 {/* ── Right Sidebar ── */}
-                <div className="w-72 flex-shrink-0 space-y-5">
-                    <SidebarSection label="Stav">
-                        <StatusBadge statusMap={TASK_STATUS} value={task.status} />
-                        {allowedTransitions.length > 0 && (
-                            <div className="mt-2 flex flex-wrap gap-1">
-                                {allowedTransitions.map((t) => (
-                                    <button
-                                        key={t.value}
-                                        onClick={() => handleStatusChange(t.value)}
-                                        className="rounded border border-border-default px-2 py-0.5 text-xs text-text-muted transition-colors hover:bg-surface-hover hover:text-text-default"
+                <div className="w-72 flex-shrink-0">
+                    <div className="sticky top-20 space-y-0 rounded-lg border border-border-subtle bg-surface-primary p-5">
+                        {/* Group: Status + Priority */}
+                        <div className="pb-4 mb-4 border-b border-border-subtle">
+                            <SidebarSection label="Stav">
+                                <StatusBadge statusMap={TASK_STATUS} value={task.status} />
+                                {allowedTransitions.length > 0 && (
+                                    <div className="mt-2 flex flex-wrap gap-1">
+                                        {allowedTransitions.map((t) => (
+                                            <button
+                                                key={t.value}
+                                                onClick={() => handleStatusChange(t.value)}
+                                                className="rounded border border-border-default px-2 py-0.5 text-xs text-text-muted transition-colors hover:bg-surface-hover hover:text-text-default"
+                                            >
+                                                &rarr; {t.label}
+                                            </button>
+                                        ))}
+                                    </div>
+                                )}
+                            </SidebarSection>
+                            <div className="mt-4">
+                                <SidebarSection label="Priorita">
+                                    <select
+                                        value={task.priority}
+                                        onChange={(e) => inlineUpdate({ priority: e.target.value })}
+                                        className="w-full rounded border border-transparent bg-transparent px-0 py-0.5 text-sm font-medium transition-colors hover:border-border-default focus:border-border-focus focus:outline-none"
                                     >
-                                        &rarr; {t.label}
-                                    </button>
-                                ))}
+                                        {priorities.map((p) => (
+                                            <option key={p.value} value={p.value}>
+                                                {p.label}
+                                            </option>
+                                        ))}
+                                    </select>
+                                </SidebarSection>
                             </div>
-                        )}
-                    </SidebarSection>
+                        </div>
 
-                    <SidebarSection label="Priorita">
-                        <select
-                            value={task.priority}
-                            onChange={(e) => inlineUpdate({ priority: e.target.value })}
-                            className="w-full rounded border border-transparent bg-transparent px-0 py-0.5 text-sm font-medium transition-colors hover:border-border-default focus:border-border-focus focus:outline-none"
-                        >
-                            {priorities.map((p) => (
-                                <option key={p.value} value={p.value}>
-                                    {p.label}
-                                </option>
-                            ))}
-                        </select>
-                    </SidebarSection>
-
-                    <SidebarSection label="Řešitel">
-                        <select
-                            value={task.assignee?.id ?? ''}
-                            onChange={(e) => inlineUpdate({ assignee_id: e.target.value || null })}
-                            className="w-full rounded border border-transparent bg-transparent px-0 py-0.5 text-sm transition-colors hover:border-border-default focus:border-border-focus focus:outline-none"
-                        >
-                            <option value="">Nepřiřazeno</option>
-                            {members.map((m) => (
-                                <option key={m.id} value={m.id}>
-                                    {m.name}
-                                </option>
-                            ))}
-                        </select>
-                    </SidebarSection>
-
-                    <SidebarSection label="Zadavatel">
-                        {task.reporter ? (
-                            <div className="flex items-center gap-2">
-                                <Avatar name={task.reporter.name} />
-                                <span className="text-sm text-text-default">{task.reporter.name}</span>
+                        {/* Group: People */}
+                        <div className="pb-4 mb-4 border-b border-border-subtle">
+                            <SidebarSection label="Řešitel">
+                                <select
+                                    value={task.assignee?.id ?? ''}
+                                    onChange={(e) => inlineUpdate({ assignee_id: e.target.value || null })}
+                                    className="w-full rounded border border-transparent bg-transparent px-0 py-0.5 text-sm transition-colors hover:border-border-default focus:border-border-focus focus:outline-none"
+                                >
+                                    <option value="">Nepřiřazeno</option>
+                                    {members.map((m) => (
+                                        <option key={m.id} value={m.id}>
+                                            {m.name}
+                                        </option>
+                                    ))}
+                                </select>
+                            </SidebarSection>
+                            <div className="mt-4">
+                                <SidebarSection label="Zadavatel">
+                                    {task.reporter ? (
+                                        <div className="flex items-center gap-2">
+                                            <Avatar name={task.reporter.name} />
+                                            <span className="text-sm text-text-default">{task.reporter.name}</span>
+                                        </div>
+                                    ) : (
+                                        <span className="text-sm text-text-muted">{'\u2014'}</span>
+                                    )}
+                                </SidebarSection>
                             </div>
-                        ) : (
-                            <span className="text-sm text-text-muted">{'\u2014'}</span>
-                        )}
-                    </SidebarSection>
+                        </div>
 
-                    <SidebarSection label="Projekt">
-                        <Link
-                            href={`/projects/${project.id}`}
-                            className="text-sm text-brand-primary no-underline hover:underline"
-                        >
-                            {project.name}
-                        </Link>
-                    </SidebarSection>
+                        {/* Group: Context */}
+                        <div className="pb-4 mb-4 border-b border-border-subtle space-y-4">
+                            <SidebarSection label="Projekt">
+                                <Link
+                                    href={`/projects/${project.id}`}
+                                    className="text-sm text-brand-primary no-underline hover:underline"
+                                >
+                                    {project.name}
+                                </Link>
+                            </SidebarSection>
 
-                    {task.epic && (
-                        <SidebarSection label="EPIC">
-                            <Link
-                                href={`/projects/${project.id}/epics/${task.epic.id}`}
-                                className="text-sm text-brand-primary no-underline hover:underline"
-                            >
-                                {task.epic.title}
-                            </Link>
-                        </SidebarSection>
-                    )}
+                            {task.epic && (
+                                <SidebarSection label="EPIC">
+                                    <Link
+                                        href={`/projects/${project.id}/epics/${task.epic.id}`}
+                                        className="text-sm text-brand-primary no-underline hover:underline"
+                                    >
+                                        {task.epic.title}
+                                    </Link>
+                                </SidebarSection>
+                            )}
 
-                    <SidebarSection label="Termín">
-                        <input
-                            type="date"
-                            value={task.due_date ?? ''}
-                            onChange={(e) => inlineUpdate({ due_date: e.target.value || null })}
-                            className="w-full rounded border border-transparent bg-transparent px-0 py-0.5 text-sm transition-colors hover:border-border-default focus:border-border-focus focus:outline-none"
-                        />
-                    </SidebarSection>
+                            <SidebarSection label="Termín">
+                                <input
+                                    type="date"
+                                    value={task.due_date ?? ''}
+                                    onChange={(e) => inlineUpdate({ due_date: e.target.value || null })}
+                                    className="w-full rounded border border-transparent bg-transparent px-0 py-0.5 text-sm transition-colors hover:border-border-default focus:border-border-focus focus:outline-none"
+                                />
+                            </SidebarSection>
 
-                    <SidebarSection label="Opakování">
-                        <select
-                            value={task.recurrence_rule ?? ''}
-                            onChange={(e) => {
-                                fetch(`/projects/${project.id}/tasks/${task.id}/recurrence`, {
-                                    method: 'PATCH',
-                                    headers: {
-                                        'Content-Type': 'application/json',
-                                        'X-CSRF-TOKEN':
-                                            document.querySelector<HTMLMetaElement>('meta[name="csrf-token"]')
-                                                ?.content ?? '',
-                                        Accept: 'application/json',
-                                    },
-                                    body: JSON.stringify({ recurrence_rule: e.target.value || null }),
-                                }).then((res) => {
-                                    if (res.ok) router.reload();
-                                });
-                            }}
-                            className="w-full rounded border border-transparent bg-transparent px-0 py-0.5 text-sm transition-colors hover:border-border-default focus:border-border-focus focus:outline-none"
-                        >
-                            <option value="">Bez opakování</option>
-                            {recurrenceRules.map((r) => (
-                                <option key={r.value} value={r.value}>
-                                    {r.label}
-                                </option>
-                            ))}
-                        </select>
-                        {task.recurrence_next_at && (
-                            <p className="mt-1 text-xs text-text-muted">Next: {formatDate(task.recurrence_next_at)}</p>
-                        )}
-                    </SidebarSection>
+                            <SidebarSection label="Opakování">
+                                <select
+                                    value={task.recurrence_rule ?? ''}
+                                    onChange={(e) => {
+                                        fetch(`/projects/${project.id}/tasks/${task.id}/recurrence`, {
+                                            method: 'PATCH',
+                                            headers: {
+                                                'Content-Type': 'application/json',
+                                                'X-CSRF-TOKEN':
+                                                    document.querySelector<HTMLMetaElement>('meta[name="csrf-token"]')
+                                                        ?.content ?? '',
+                                                Accept: 'application/json',
+                                            },
+                                            body: JSON.stringify({ recurrence_rule: e.target.value || null }),
+                                        }).then((res) => {
+                                            if (res.ok) router.reload();
+                                        });
+                                    }}
+                                    className="w-full rounded border border-transparent bg-transparent px-0 py-0.5 text-sm transition-colors hover:border-border-default focus:border-border-focus focus:outline-none"
+                                >
+                                    <option value="">Bez opakování</option>
+                                    {recurrenceRules.map((r) => (
+                                        <option key={r.value} value={r.value}>
+                                            {r.label}
+                                        </option>
+                                    ))}
+                                </select>
+                                {task.recurrence_next_at && (
+                                    <p className="mt-1 text-xs text-text-muted">
+                                        Next: {formatDate(task.recurrence_next_at)}
+                                    </p>
+                                )}
+                            </SidebarSection>
+                        </div>
 
-                    <SidebarSection label="Závislosti">
-                        <DependenciesPanel project={project} task={task} projectTasks={projectTasks} />
-                    </SidebarSection>
+                        {/* Group: Classification */}
+                        <div className="pb-4 mb-4 border-b border-border-subtle">
+                            <SidebarSection label="Klasifikace dat">
+                                <span
+                                    className={`rounded px-2 py-0.5 text-sm font-semibold ${
+                                        task.data_classification === 'phi'
+                                            ? 'bg-status-warning-subtle text-status-warning'
+                                            : 'bg-status-neutral-subtle text-text-muted'
+                                    }`}
+                                >
+                                    {task.data_classification.toUpperCase()}
+                                </span>
+                            </SidebarSection>
+                        </div>
 
-                    <SidebarSection label={`Přílohy (${task.attachments_count})`}>
-                        <AttachmentList
-                            attachments={task.attachments}
-                            projectId={project.id}
-                            taskId={task.id}
-                            currentUserId={auth.user?.id}
-                        />
-                    </SidebarSection>
+                        {/* Group: Dependencies */}
+                        <div className="pb-4 mb-4 border-b border-border-subtle">
+                            <SidebarSection label="Závislosti">
+                                <DependenciesPanel project={project} task={task} projectTasks={projectTasks} />
+                            </SidebarSection>
+                        </div>
+
+                        {/* Group: Attachments */}
+                        <div>
+                            <SidebarSection label={`Přílohy (${task.attachments_count})`}>
+                                <AttachmentList
+                                    attachments={task.attachments}
+                                    projectId={project.id}
+                                    taskId={task.id}
+                                    currentUserId={auth.user?.id}
+                                />
+                            </SidebarSection>
+                        </div>
+                    </div>
                 </div>
             </div>
         </AppLayout>

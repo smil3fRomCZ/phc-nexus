@@ -199,6 +199,11 @@ final class TaskController extends Controller
             'activity' => $activity,
             'projectTasks' => $projectTasks,
             'recurrenceRules' => $recurrenceRules,
+            'timeEntries' => $task->timeEntries()
+                ->with('user:id,name')
+                ->latest('date')
+                ->get(),
+            'totalHours' => (float) $task->timeEntries()->sum('hours'),
             'benefitTypes' => collect(BenefitType::cases())->map(fn ($b) => [
                 'value' => $b->value,
                 'label' => $b->label(),

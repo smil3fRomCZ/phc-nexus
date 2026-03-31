@@ -2,7 +2,6 @@
 
 declare(strict_types=1);
 
-use App\Modules\Projects\Controllers\BoardColumnController;
 use App\Modules\Projects\Controllers\ProjectAttachmentController;
 use App\Modules\Projects\Controllers\ProjectCommentController;
 use App\Modules\Projects\Controllers\ProjectController;
@@ -29,9 +28,4 @@ Route::middleware('auth')->group(function () {
     Route::post('projects/{project}/workflow/transitions', [WorkflowController::class, 'storeTransition'])->name('projects.workflow.transitions.store');
     Route::delete('projects/{project}/workflow/transitions/{workflowTransition}', [WorkflowController::class, 'destroyTransition'])->name('projects.workflow.transitions.destroy');
 
-    // Board columns
-    Route::post('projects/{project}/board-columns', [BoardColumnController::class, 'store'])->name('projects.board-columns.store');
-    Route::put('projects/{project}/board-columns/{boardColumn}', [BoardColumnController::class, 'update'])->name('projects.board-columns.update');
-    Route::delete('projects/{project}/board-columns/{boardColumn}', [BoardColumnController::class, 'destroy'])->name('projects.board-columns.destroy');
-    Route::post('projects/{project}/board-columns/reorder', [BoardColumnController::class, 'reorder'])->name('projects.board-columns.reorder');
 });

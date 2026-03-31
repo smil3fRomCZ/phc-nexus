@@ -20,6 +20,8 @@ class WorkflowStatus extends Model
         'slug',
         'color',
         'position',
+        'pos_x',
+        'pos_y',
         'is_initial',
         'is_done',
         'is_cancelled',

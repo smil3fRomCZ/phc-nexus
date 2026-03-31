@@ -11,6 +11,7 @@ use App\Modules\Notifications\Notifications\TaskAssignedNotification;
 use App\Modules\Notifications\Notifications\TaskStatusChangedNotification;
 use App\Modules\Projects\Enums\BenefitType;
 use App\Modules\Projects\Models\Project;
+use App\Modules\Projects\Models\WorkflowStatus;
 use App\Modules\Work\Enums\RecurrenceRule;
 use App\Modules\Work\Enums\TaskPriority;
 use App\Modules\Work\Enums\TaskStatus;
@@ -394,31 +395,54 @@ final class TaskController extends Controller
     {
         Gate::authorize('update', $task);
 
-        $validated = $request->validate([
-            'status' => ['required', 'string', 'in:'.implode(',', array_column(TaskStatus::cases(), 'value'))],
-        ]);
-
-        $newStatus = TaskStatus::from($validated['status']);
-
         if ($task->hasPendingApproval()) {
             return response()->json([
                 'error' => 'Tento úkol má nevyřízenou žádost o schválení. Před změnou stavu je nutné žádost schválit nebo zamítnout.',
             ], 422);
         }
 
-        if (! $task->status->canTransitionTo($newStatus)) {
-            throw ValidationException::withMessages([
-                'status' => "Přechod z '{$task->status->label()}' na '{$newStatus->label()}' není povolený.",
+        $workflowStatuses = $project->workflowStatuses;
+
+        if ($workflowStatuses->isNotEmpty()) {
+            // Workflow-based transition
+            $validated = $request->validate([
+                'status' => ['required', 'uuid', 'exists:workflow_statuses,id'],
             ]);
-        }
 
-        /** @var TaskStatus $oldStatus */
-        $oldStatus = $task->status;
-        $task->update(['status' => $newStatus]);
+            $currentWs = $task->workflowStatus;
+            $targetWs = $workflowStatuses->firstWhere('id', $validated['status']);
 
-        $task->load('assignee');
-        if ($task->assignee !== null) {
-            $task->assignee->notify(new TaskStatusChangedNotification($task, $oldStatus, $newStatus));
+            if ($currentWs instanceof WorkflowStatus && $targetWs instanceof WorkflowStatus) {
+                if (! $currentWs->canTransitionTo($targetWs)) {
+                    return response()->json([
+                        'error' => "Přechod z '{$currentWs->name}' na '{$targetWs->name}' není povolený.",
+                    ], 422);
+                }
+            }
+
+            $task->update(['workflow_status_id' => $validated['status']]);
+        } else {
+            // Fallback — enum-based transition
+            $validated = $request->validate([
+                'status' => ['required', 'string', 'in:'.implode(',', array_column(TaskStatus::cases(), 'value'))],
+            ]);
+
+            $newStatus = TaskStatus::from($validated['status']);
+
+            if (! $task->status->canTransitionTo($newStatus)) {
+                throw ValidationException::withMessages([
+                    'status' => "Přechod z '{$task->status->label()}' na '{$newStatus->label()}' není povolený.",
+                ]);
+            }
+
+            /** @var TaskStatus $oldStatus */
+            $oldStatus = $task->status;
+            $task->update(['status' => $newStatus]);
+
+            $task->load('assignee');
+            if ($task->assignee !== null) {
+                $task->assignee->notify(new TaskStatusChangedNotification($task, $oldStatus, $newStatus));
+            }
         }
 
         return response()->json(['success' => true]);

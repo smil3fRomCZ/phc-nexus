@@ -1,0 +1,166 @@
+<!DOCTYPE html>
+<html lang="cs">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Preview: Epic Index Grid</title>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+<style>
+:root {
+  --color-brand-primary: #f5a623;
+  --color-brand-primary-hover: #e09000;
+  --color-brand-primary-soft: #fff8eb;
+  --color-text-strong: #172b4d;
+  --color-text-default: #42526e;
+  --color-text-muted: #6b778c;
+  --color-text-subtle: #97a0af;
+  --color-text-on-brand: #ffffff;
+  --color-surface-canvas: #f4f5f7;
+  --color-surface-panel: #ffffff;
+  --color-surface-panel-subtle: #fafbfc;
+  --color-border-subtle: #ebecf0;
+  --color-border-default: #dfe1e6;
+  --color-status-success-bg: #e3fcef; --color-status-success-fg: #006644;
+  --color-status-info-bg: #deebff; --color-status-info-fg: #0747a6;
+  --color-status-neutral-bg: #dfe1e6; --color-status-neutral-fg: #42526e;
+  --color-status-warning-bg: #fff0b3; --color-status-warning-fg: #974f0c;
+  --color-status-danger-bg: #ffebe6; --color-status-danger-fg: #bf2600;
+  --font-sans: "Inter", -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+  --font-mono: "SFMono-Regular", Consolas, monospace;
+  --font-size-xs: 0.6875rem; --font-size-sm: 0.75rem; --font-size-base: 0.875rem;
+  --radius-md: 0.5rem; --radius-lg: 0.75rem;
+  --shadow-sm: 0 1px 2px rgba(0,0,0,0.05);
+}
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+body { font-family: var(--font-sans); font-size: var(--font-size-base); color: var(--color-text-default); background: var(--color-surface-canvas); padding: 2rem; }
+
+/* Tabs */
+.tabs { display: flex; gap: 0; border-bottom: 1px solid var(--color-border-subtle); margin-bottom: 1.25rem; }
+.tab { padding: 0.625rem 1rem; font-size: var(--font-size-sm); font-weight: 500; color: var(--color-text-muted); border-bottom: 2px solid transparent; cursor: pointer; text-decoration: none; }
+.tab:hover { color: var(--color-text-default); }
+.tab.active { color: var(--color-brand-primary); border-color: var(--color-brand-primary); }
+
+/* Quick add */
+.quick-add { display: flex; gap: 0.5rem; margin-bottom: 1rem; }
+.quick-add input { flex: 1; padding: 0.375rem 0.75rem; border: 1px solid var(--color-border-default); border-radius: var(--radius-md); font-size: var(--font-size-base); background: var(--color-surface-panel); }
+.quick-add input:focus { outline: none; border-color: var(--color-brand-primary); box-shadow: 0 0 0 2px var(--color-brand-primary-soft); }
+.btn-primary { padding: 0.375rem 0.75rem; border-radius: var(--radius-md); font-size: var(--font-size-xs); font-weight: 600; border: none; background: var(--color-brand-primary); color: var(--color-text-on-brand); cursor: pointer; }
+
+/* Table */
+.data-table { width: 100%; border-collapse: collapse; }
+.data-table th { text-align: left; padding: 0.5rem 1rem; font-size: var(--font-size-xs); font-weight: 600; text-transform: uppercase; letter-spacing: 0.05em; color: var(--color-text-subtle); border-bottom: 2px solid var(--color-border-subtle); }
+.data-table th.sortable { cursor: pointer; }
+.data-table th.sortable:hover { color: var(--color-text-default); }
+.data-table td { padding: 0.625rem 1rem; font-size: var(--font-size-sm); border-bottom: 1px solid var(--color-border-subtle); vertical-align: middle; }
+.data-table tbody tr { transition: background 0.15s; }
+.data-table tbody tr:hover { background: var(--color-brand-primary-soft); }
+.data-table tbody tr { cursor: pointer; }
+
+.badge { display: inline-flex; padding: 0.125rem 0.5rem; border-radius: 999px; font-size: var(--font-size-xs); font-weight: 600; }
+.badge-success { background: var(--color-status-success-bg); color: var(--color-status-success-fg); }
+.badge-info { background: var(--color-status-info-bg); color: var(--color-status-info-fg); }
+.badge-neutral { background: var(--color-status-neutral-bg); color: var(--color-status-neutral-fg); }
+.badge-danger { background: var(--color-status-danger-bg); color: var(--color-status-danger-fg); }
+
+.priority-high { color: #bf2600; font-weight: 600; }
+.priority-medium { color: var(--color-text-default); font-weight: 500; }
+.priority-low { color: var(--color-text-muted); }
+.priority-urgent { color: #bf2600; font-weight: 700; }
+
+.epic-key { font-family: var(--font-mono); font-size: var(--font-size-xs); color: var(--color-text-muted); font-weight: 600; }
+.epic-title { font-weight: 500; color: var(--color-text-strong); }
+.task-count { font-size: var(--font-size-xs); color: var(--color-text-muted); }
+</style>
+</head>
+<body>
+
+<p style="font-size:var(--font-size-xs); color:var(--color-text-subtle); margin-bottom:1.5rem;">PREVIEW: Epic Index — datovy grid (nahrazuje seznam karet)</p>
+
+<!-- Tabs -->
+<div class="tabs">
+  <a class="tab" href="#">Prehled</a>
+  <a class="tab" href="#">Board</a>
+  <a class="tab" href="#">Backlog</a>
+  <a class="tab active" href="#">Epic</a>
+  <a class="tab" href="#">Schvalovani</a>
+</div>
+
+<!-- Quick add -->
+<div class="quick-add">
+  <span style="color:var(--color-text-muted); display:flex; align-items:center;">+</span>
+  <input type="text" placeholder="Nazev noveho Epicu...">
+  <button class="btn-primary">Pridat</button>
+</div>
+
+<!-- Data grid -->
+<div style="background: var(--color-surface-panel); border: 1px solid var(--color-border-subtle); border-radius: var(--radius-lg); overflow: hidden;">
+  <table class="data-table">
+    <thead>
+      <tr>
+        <th class="sortable">Klic</th>
+        <th class="sortable">Nazev</th>
+        <th class="sortable">Stav</th>
+        <th class="sortable">Priorita</th>
+        <th>Vlastnik</th>
+        <th class="sortable">Ukoly</th>
+        <th class="sortable">Start</th>
+        <th class="sortable">Cil</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td><span class="epic-key">PHN-1</span></td>
+        <td><span class="epic-title">Autentizace a SSO</span></td>
+        <td><span class="badge badge-success">Hotovo</span></td>
+        <td><span class="priority-high">Vysoka</span></td>
+        <td>Jan Melicherik</td>
+        <td><span class="task-count">12 ukolu</span></td>
+        <td>01.03.2026</td>
+        <td>15.04.2026</td>
+      </tr>
+      <tr>
+        <td><span class="epic-key">PHN-2</span></td>
+        <td><span class="epic-title">Projektove rizeni</span></td>
+        <td><span class="badge badge-info">V prubehu</span></td>
+        <td><span class="priority-urgent">Urgentni</span></td>
+        <td>Petr Novak</td>
+        <td><span class="task-count">8 ukolu</span></td>
+        <td>10.03.2026</td>
+        <td>30.05.2026</td>
+      </tr>
+      <tr>
+        <td><span class="epic-key">PHN-3</span></td>
+        <td><span class="epic-title">Schvalovaci procesy</span></td>
+        <td><span class="badge badge-neutral">Backlog</span></td>
+        <td><span class="priority-medium">Stredni</span></td>
+        <td>Jana Svobodova</td>
+        <td><span class="task-count">3 ukoly</span></td>
+        <td>&mdash;</td>
+        <td>30.06.2026</td>
+      </tr>
+      <tr>
+        <td><span class="epic-key">PHN-4</span></td>
+        <td><span class="epic-title">Notifikacni system</span></td>
+        <td><span class="badge badge-neutral">Backlog</span></td>
+        <td><span class="priority-low">Nizka</span></td>
+        <td>&mdash;</td>
+        <td><span class="task-count">0 ukolu</span></td>
+        <td>&mdash;</td>
+        <td>&mdash;</td>
+      </tr>
+      <tr>
+        <td><span class="epic-key">PHN-5</span></td>
+        <td><span class="epic-title">GDPR Compliance</span></td>
+        <td><span class="badge badge-danger">Zruseno</span></td>
+        <td><span class="priority-medium">Stredni</span></td>
+        <td>Petr Novak</td>
+        <td><span class="task-count">5 ukolu</span></td>
+        <td>01.02.2026</td>
+        <td>31.12.2026</td>
+      </tr>
+    </tbody>
+  </table>
+</div>
+
+</body>
+</html>

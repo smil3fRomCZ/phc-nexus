@@ -4,10 +4,10 @@ import AttachmentsSection from '@/Components/AttachmentsSection';
 import type { Attachment } from '@/Components/AttachmentsSection';
 import Avatar from '@/Components/Avatar';
 import StatusBadge from '@/Components/StatusBadge';
-import { EPIC_STATUS } from '@/constants/status';
+import { EPIC_STATUS, TASK_STATUS } from '@/constants/status';
+import { getPriority } from '@/constants/priority';
 import AppLayout from '@/Layouts/AppLayout';
 import type { Breadcrumb } from '@/Layouts/AppLayout';
-import { TASK_STATUS } from '@/constants/status';
 import { displayKey } from '@/utils/displayKey';
 import { formatDate } from '@/utils/formatDate';
 import { Link, router, useForm } from '@inertiajs/react';
@@ -19,6 +19,8 @@ interface Task {
     number: number;
     title: string;
     status: string;
+    priority: string;
+    due_date: string | null;
     assignee: { id: string; name: string } | null;
 }
 
@@ -193,32 +195,64 @@ export default function EpicShow({ project, epic, members, statuses, priorities 
                         <QuickAddTask projectId={project.id} epicId={epic.id} />
 
                         {epic.tasks.length > 0 && (
-                            <div className="mt-2 space-y-1">
-                                {epic.tasks.map((task) => (
-                                    <Link
-                                        key={task.id}
-                                        href={`/projects/${project.id}/tasks/${task.id}`}
-                                        className="flex cursor-pointer items-center justify-between rounded-md border border-border-subtle px-4 py-2 text-sm no-underline transition-colors hover:bg-brand-soft"
-                                    >
-                                        <div className="flex items-center gap-2">
-                                            <StatusBadge statusMap={TASK_STATUS} value={task.status} />
-                                            <span className="font-medium text-text-strong">
-                                                <span className="mr-1.5 text-xs font-semibold text-text-muted">
-                                                    {displayKey(project.key, task.number)}
-                                                </span>
-                                                {task.title}
-                                            </span>
-                                        </div>
-                                        <span className="text-text-muted">
-                                            {task.assignee ? (
-                                                <Avatar name={task.assignee.name} size="sm" />
-                                            ) : (
-                                                'Nepřiřazeno'
-                                            )}
-                                        </span>
-                                    </Link>
-                                ))}
-                            </div>
+                            <table className="mt-2 w-full border-collapse">
+                                <thead>
+                                    <tr>
+                                        {['Klíč', 'Název', 'Stav', 'Priorita', 'Řešitel', 'Termín'].map((h) => (
+                                            <th
+                                                key={h}
+                                                className="border-b-2 border-border-subtle px-3 py-2 text-left text-xs font-semibold uppercase tracking-wider text-text-subtle"
+                                            >
+                                                {h}
+                                            </th>
+                                        ))}
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    {epic.tasks.map((task) => (
+                                        <tr
+                                            key={task.id}
+                                            className="cursor-pointer transition-colors hover:bg-brand-soft"
+                                            onClick={() =>
+                                                (window.location.href = `/projects/${project.id}/tasks/${task.id}`)
+                                            }
+                                        >
+                                            <td className="border-b border-border-subtle px-3 py-2 font-mono text-xs font-semibold text-text-muted">
+                                                {displayKey(project.key, task.number)}
+                                            </td>
+                                            <td className="border-b border-border-subtle px-3 py-2">
+                                                <Link
+                                                    href={`/projects/${project.id}/tasks/${task.id}`}
+                                                    className="text-sm font-medium text-text-strong no-underline hover:text-brand-primary"
+                                                >
+                                                    {task.title}
+                                                </Link>
+                                            </td>
+                                            <td className="border-b border-border-subtle px-3 py-2">
+                                                <StatusBadge statusMap={TASK_STATUS} value={task.status} />
+                                            </td>
+                                            <td
+                                                className={`border-b border-border-subtle px-3 py-2 text-xs font-semibold ${getPriority(task.priority).textClass}`}
+                                            >
+                                                {getPriority(task.priority).label}
+                                            </td>
+                                            <td className="border-b border-border-subtle px-3 py-2 text-sm text-text-muted">
+                                                {task.assignee ? (
+                                                    <div className="flex items-center gap-1.5">
+                                                        <Avatar name={task.assignee.name} size="sm" />
+                                                        <span>{task.assignee.name}</span>
+                                                    </div>
+                                                ) : (
+                                                    '\u2014'
+                                                )}
+                                            </td>
+                                            <td className="border-b border-border-subtle px-3 py-2 text-sm text-text-muted">
+                                                {task.due_date ? formatDate(task.due_date) : '\u2014'}
+                                            </td>
+                                        </tr>
+                                    ))}
+                                </tbody>
+                            </table>
                         )}
 
                         {epic.tasks.length === 0 && (

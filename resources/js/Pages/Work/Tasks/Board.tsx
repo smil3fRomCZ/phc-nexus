@@ -510,6 +510,9 @@ export default function TaskBoard({
                                         className="flex-1 rounded border border-transparent bg-transparent px-2 py-1 text-sm font-medium text-text-strong hover:border-border-default focus:border-border-focus focus:outline-none"
                                     />
                                     <span className="font-mono text-xs text-text-subtle">{col.status_key}</span>
+                                    <span className="text-xs text-text-muted">
+                                        {columns.find((c) => c.status === col.status_key)?.tasks.length ?? 0} úk.
+                                    </span>
                                     <button
                                         onClick={() => {
                                             if (confirm(`Smazat sloupec "${col.name}"? Úkoly budou přesunuty.`)) {
@@ -556,6 +559,10 @@ export default function TaskBoard({
                             >
                                 + Přidat
                             </button>
+                        </div>
+
+                        <div className="mt-3 rounded-md bg-status-warning-subtle px-3 py-2 text-xs text-status-warning">
+                            Smazáním sloupce se úkoly automaticky přesunou do předchozího sloupce.
                         </div>
                     </div>
                 </div>

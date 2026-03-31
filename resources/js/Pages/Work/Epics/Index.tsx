@@ -6,6 +6,7 @@ import type { Breadcrumb } from '@/Layouts/AppLayout';
 import { displayKey } from '@/utils/displayKey';
 import { Link, useForm } from '@inertiajs/react';
 import { Plus, Layers } from 'lucide-react';
+import ProjectTabs from '@/Components/ProjectTabs';
 import type { FormEvent } from 'react';
 
 interface Epic {
@@ -43,8 +44,8 @@ export default function EpicsIndex({ project, epics }: Props) {
 
     return (
         <AppLayout title={`${project.key} — Epics`} breadcrumbs={breadcrumbs}>
-            <div className="mb-6 flex items-center justify-between">
-                <h1 className="text-2xl font-bold leading-tight text-text-strong">EPIC</h1>
+            <div className="mb-6">
+                <ProjectTabs projectId={project.id} active="epics" />
             </div>
 
             {/* Quick add */}

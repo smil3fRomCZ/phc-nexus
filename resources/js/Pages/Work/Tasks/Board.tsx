@@ -6,6 +6,7 @@ import { getPriority } from '@/constants/priority';
 import { displayKey } from '@/utils/displayKey';
 import { Link, router } from '@inertiajs/react';
 import { MessageSquare, Plus, Filter, ShieldAlert } from 'lucide-react';
+import ProjectTabs from '@/Components/ProjectTabs';
 import { useState, type DragEvent } from 'react';
 
 interface Task {
@@ -109,22 +110,8 @@ export default function TaskBoard({ project, columns: initialColumns }: Props) {
 
     return (
         <AppLayout title={`${project.key} — Board`} breadcrumbs={breadcrumbs}>
-            <div className="mb-6 flex items-center justify-between">
-                <h1 className="text-2xl font-bold leading-tight text-text-strong">Board</h1>
-                <div className="flex gap-2">
-                    <Link
-                        href={`/projects/${project.id}/board`}
-                        className="rounded-md bg-brand-primary px-4 py-2 text-sm font-medium text-text-inverse no-underline"
-                    >
-                        Board
-                    </Link>
-                    <Link
-                        href={`/projects/${project.id}/table`}
-                        className="rounded-md border border-border-default px-4 py-2 text-sm font-medium text-text-default no-underline transition-colors hover:bg-surface-hover"
-                    >
-                        Tabulka
-                    </Link>
-                </div>
+            <div className="mb-6">
+                <ProjectTabs projectId={project.id} active="board" />
             </div>
 
             {/* Controls bar */}

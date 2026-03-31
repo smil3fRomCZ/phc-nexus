@@ -20,9 +20,10 @@ interface Props {
     project: Project;
     statuses: Array<{ value: string; label: string }>;
     classifications: Array<{ value: string; label: string }>;
+    teams: Array<{ id: string; name: string }>;
 }
 
-export default function ProjectEdit({ project, statuses, classifications }: Props) {
+export default function ProjectEdit({ project, statuses, classifications, teams = [] }: Props) {
     const breadcrumbs: Breadcrumb[] = [
         { label: 'Domů', href: '/' },
         { label: 'Projekty', href: '/projects' },
@@ -80,6 +81,21 @@ export default function ProjectEdit({ project, statuses, classifications }: Prop
                             {classifications.map((c) => (
                                 <option key={c.value} value={c.value}>
                                     {c.label}
+                                </option>
+                            ))}
+                        </select>
+                    </Field>
+
+                    <Field label="Tým">
+                        <select
+                            value={data.team_id}
+                            onChange={(e) => setData('team_id', e.target.value)}
+                            className="mt-1 rounded-md border border-border-default bg-surface-primary px-3 py-2 text-base focus:border-border-focus focus:outline-none focus:shadow-[0_0_0_2px_var(--color-brand-soft)]"
+                        >
+                            <option value="">Bez týmu</option>
+                            {teams.map((t) => (
+                                <option key={t.id} value={t.id}>
+                                    {t.name}
                                 </option>
                             ))}
                         </select>

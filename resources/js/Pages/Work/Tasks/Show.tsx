@@ -5,7 +5,7 @@ import StatusBadge from '@/Components/StatusBadge';
 import ActivityTimeline from '@/Components/ActivityTimeline';
 import type { ActivityEntry } from '@/Components/ActivityTimeline';
 import { TASK_STATUS } from '@/constants/status';
-import { formatDate } from '@/utils/formatDate';
+import { formatDate, toDateInputValue } from '@/utils/formatDate';
 import { displayKey } from '@/utils/displayKey';
 import { Link, router, useForm, usePage } from '@inertiajs/react';
 import {
@@ -18,9 +18,9 @@ import {
     Pencil,
     X,
     ShieldCheck,
-    ChevronRight,
     Link2,
     Plus,
+    Clock,
 } from 'lucide-react';
 import type { PageProps } from '@/types';
 import { useState, type FormEvent } from 'react';
@@ -132,7 +132,7 @@ export default function TaskShow({
     const { auth } = usePage<PageProps>().props;
     const [editing, setEditing] = useState(false);
     const [requestingApproval, setRequestingApproval] = useState(false);
-    const [activityOpen, setActivityOpen] = useState(true);
+    const [activeTab, setActiveTab] = useState<'detail' | 'activity'>('detail');
 
     const breadcrumbs: Breadcrumb[] = [
         { label: 'Domů', href: '/' },
@@ -152,7 +152,7 @@ export default function TaskShow({
                 priority: task.priority,
                 assignee_id: task.assignee?.id ?? '',
                 reporter_id: task.reporter?.id ?? '',
-                due_date: task.due_date ?? '',
+                due_date: toDateInputValue(task.due_date),
                 ...fields,
             },
             { preserveScroll: true },
@@ -177,9 +177,9 @@ export default function TaskShow({
         <AppLayout title={`${displayKey(project.key, task.number)} — ${task.title}`} breadcrumbs={breadcrumbs}>
             <div className="flex gap-8">
                 {/* ── Main Column ── */}
-                <div className="min-w-0 flex-1">
-                    {/* Title */}
-                    <div className="mb-6">
+                <div className="min-w-0 flex-1 space-y-5">
+                    {/* Header card */}
+                    <div className="rounded-lg border border-border-subtle bg-surface-primary p-5">
                         <div className="flex items-center gap-3">
                             <h1 className="text-2xl font-bold leading-tight text-text-strong">
                                 <span className="mr-2 text-text-muted">{displayKey(project.key, task.number)}</span>
@@ -216,6 +216,22 @@ export default function TaskShow({
                         {task.description && (
                             <p className="mt-3 text-base leading-relaxed text-text-default">{task.description}</p>
                         )}
+
+                        {/* Metadata strip */}
+                        <div className="mt-4 flex gap-6 border-t border-border-subtle pt-4 text-xs text-text-muted">
+                            <span>
+                                Vytvořeno <strong className="text-text-default">{formatDate(task.created_at)}</strong>
+                            </span>
+                            <span>
+                                Aktualizováno{' '}
+                                <strong className="text-text-default">{formatDate(task.updated_at)}</strong>
+                            </span>
+                            {task.data_classification === 'phi' && (
+                                <span className="rounded bg-status-warning-subtle px-1.5 py-0.5 text-xs font-bold tracking-wide text-status-warning">
+                                    PHI
+                                </span>
+                            )}
+                        </div>
                     </div>
 
                     {editing && (
@@ -238,59 +254,67 @@ export default function TaskShow({
                         />
                     )}
 
-                    {/* Metadata strip */}
-                    <div className="mb-6 flex gap-6 rounded-lg border border-border-subtle bg-surface-secondary px-5 py-3 text-xs text-text-muted">
-                        <span>
-                            Vytvořeno <strong className="text-text-default">{formatDate(task.created_at)}</strong>
-                        </span>
-                        <span>
-                            Aktualizováno <strong className="text-text-default">{formatDate(task.updated_at)}</strong>
-                        </span>
-                        {task.data_classification === 'phi' && (
-                            <span className="rounded bg-status-warning-subtle px-1.5 py-0.5 text-xs font-bold tracking-wide text-status-warning">
-                                PHI
-                            </span>
-                        )}
-                    </div>
-
-                    {/* Comments Section */}
-                    <div className="mb-8">
-                        <h2 className="mb-4 flex items-center gap-2 text-lg font-semibold text-text-strong">
-                            <MessageSquare className="h-4 w-4" />
-                            Komentáře
-                            <span className="rounded-full bg-status-neutral-subtle px-2 py-px text-xs font-medium text-text-muted">
+                    {/* Tab navigation */}
+                    <div className="flex gap-0 border-b border-border-subtle">
+                        <button
+                            onClick={() => setActiveTab('detail')}
+                            className={`flex items-center gap-2 border-b-2 px-4 py-2.5 text-sm font-medium transition-colors ${
+                                activeTab === 'detail'
+                                    ? 'border-brand-primary text-brand-primary'
+                                    : 'border-transparent text-text-muted hover:text-text-default'
+                            }`}
+                        >
+                            <MessageSquare className="h-3.5 w-3.5" />
+                            Detail
+                            <span className="rounded-full bg-status-neutral-subtle px-1.5 py-px text-xs font-medium text-text-muted">
                                 {task.comments_count}
                             </span>
-                        </h2>
-
-                        <div className="space-y-4">
-                            {task.root_comments.map((comment) => (
-                                <CommentItem
-                                    key={comment.id}
-                                    comment={comment}
-                                    projectId={project.id}
-                                    taskId={task.id}
-                                    currentUserId={auth.user?.id}
-                                />
-                            ))}
-                        </div>
-
-                        <CommentForm projectId={project.id} taskId={task.id} />
-                    </div>
-
-                    {/* Activity Timeline — collapsible */}
-                    <div>
-                        <button
-                            onClick={() => setActivityOpen(!activityOpen)}
-                            className="mb-4 flex items-center gap-2 text-lg font-semibold text-text-strong"
-                        >
-                            <ChevronRight
-                                className={`h-4 w-4 transition-transform ${activityOpen ? 'rotate-90' : ''}`}
-                            />
-                            Aktivita
                         </button>
-                        {activityOpen && <ActivityTimeline entries={activity} />}
+                        <button
+                            onClick={() => setActiveTab('activity')}
+                            className={`flex items-center gap-2 border-b-2 px-4 py-2.5 text-sm font-medium transition-colors ${
+                                activeTab === 'activity'
+                                    ? 'border-brand-primary text-brand-primary'
+                                    : 'border-transparent text-text-muted hover:text-text-default'
+                            }`}
+                        >
+                            <Clock className="h-3.5 w-3.5" />
+                            Aktivita
+                            <span className="rounded-full bg-status-neutral-subtle px-1.5 py-px text-xs font-medium text-text-muted">
+                                {activity.length}
+                            </span>
+                        </button>
                     </div>
+
+                    {/* Tab content */}
+                    {activeTab === 'detail' && (
+                        <div className="rounded-lg border border-border-subtle bg-surface-primary p-5">
+                            <h2 className="mb-4 flex items-center gap-2 text-base font-semibold text-text-strong">
+                                <MessageSquare className="h-4 w-4" />
+                                Komentáře
+                            </h2>
+
+                            <div className="space-y-4">
+                                {task.root_comments.map((comment) => (
+                                    <CommentItem
+                                        key={comment.id}
+                                        comment={comment}
+                                        projectId={project.id}
+                                        taskId={task.id}
+                                        currentUserId={auth.user?.id}
+                                    />
+                                ))}
+                            </div>
+
+                            <CommentForm projectId={project.id} taskId={task.id} />
+                        </div>
+                    )}
+
+                    {activeTab === 'activity' && (
+                        <div className="rounded-lg border border-border-subtle bg-surface-primary p-5">
+                            <ActivityTimeline entries={activity} />
+                        </div>
+                    )}
                 </div>
 
                 {/* ── Right Sidebar ── */}
@@ -386,7 +410,7 @@ export default function TaskShow({
                             <SidebarSection label="Termín">
                                 <input
                                     type="date"
-                                    value={task.due_date ?? ''}
+                                    value={toDateInputValue(task.due_date)}
                                     onChange={(e) => inlineUpdate({ due_date: e.target.value || null })}
                                     className="w-full rounded border border-transparent bg-transparent px-0 py-0.5 text-sm transition-colors hover:border-border-default focus:border-border-focus focus:outline-none"
                                 />
@@ -489,7 +513,7 @@ function TaskEditDialog({
         priority: task.priority,
         assignee_id: task.assignee?.id ?? '',
         reporter_id: task.reporter?.id ?? '',
-        due_date: task.due_date ?? '',
+        due_date: toDateInputValue(task.due_date),
     });
 
     function submit(e: FormEvent) {

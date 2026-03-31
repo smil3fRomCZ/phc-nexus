@@ -23,6 +23,15 @@ export function formatDateTime(dateStr: string): string {
 }
 
 /**
+ * Konverze ISO datetime stringu na YYYY-MM-DD pro HTML date input.
+ * Zpracuje jak "2026-03-15T00:00:00.000000Z" tak "2026-03-15".
+ */
+export function toDateInputValue(dateStr: string | null): string {
+    if (!dateStr) return '';
+    return dateStr.slice(0, 10);
+}
+
+/**
  * Měsíc a rok — pro kalendář (např. "březen 2026")
  */
 export function formatMonthYear(date: Date): string {

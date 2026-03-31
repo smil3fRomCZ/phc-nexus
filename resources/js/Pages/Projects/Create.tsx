@@ -8,6 +8,7 @@ import { useState, type FormEvent } from 'react';
 interface Props {
     existingKeys: string[];
     classifications: Array<{ value: string; label: string }>;
+    teams: Array<{ id: string; name: string }>;
 }
 
 const BREADCRUMBS: Breadcrumb[] = [
@@ -64,7 +65,7 @@ const DEFAULT_CLASSIFICATIONS = [
     { value: 'unknown', label: 'Unknown' },
 ];
 
-export default function ProjectCreate({ existingKeys, classifications = DEFAULT_CLASSIFICATIONS }: Props) {
+export default function ProjectCreate({ existingKeys, classifications = DEFAULT_CLASSIFICATIONS, teams = [] }: Props) {
     const { data, setData, post, processing, errors } = useForm({
         name: '',
         key: '',
@@ -142,6 +143,21 @@ export default function ProjectCreate({ existingKeys, classifications = DEFAULT_
                             {classifications.map((c) => (
                                 <option key={c.value} value={c.value}>
                                     {c.label}
+                                </option>
+                            ))}
+                        </select>
+                    </Field>
+
+                    <Field label="Tým">
+                        <select
+                            value={data.team_id}
+                            onChange={(e) => setData('team_id', e.target.value)}
+                            className="mt-1 rounded-md border border-border-default bg-surface-primary px-3 py-2 text-base focus:border-border-focus focus:outline-none focus:shadow-[0_0_0_2px_var(--color-brand-soft)]"
+                        >
+                            <option value="">Bez týmu</option>
+                            {teams.map((t) => (
+                                <option key={t.id} value={t.id}>
+                                    {t.name}
                                 </option>
                             ))}
                         </select>

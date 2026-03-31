@@ -4,6 +4,7 @@ import { APPROVAL_STATUS } from '@/constants/status';
 import AppLayout from '@/Layouts/AppLayout';
 import type { Breadcrumb } from '@/Layouts/AppLayout';
 import { Link } from '@inertiajs/react';
+import ProjectTabs from '@/Components/ProjectTabs';
 
 interface Vote {
     id: string;
@@ -38,7 +39,9 @@ export default function ApprovalsIndex({ project, approvalRequests }: Props) {
 
     return (
         <AppLayout title={`${project.key} — Schvalování`} breadcrumbs={breadcrumbs}>
-            <h1 className="mb-6 text-2xl font-bold leading-tight text-text-strong">Schvalování</h1>
+            <div className="mb-6">
+                <ProjectTabs projectId={project.id} active="approvals" />
+            </div>
 
             <div className="space-y-2">
                 {approvalRequests.map((req) => (

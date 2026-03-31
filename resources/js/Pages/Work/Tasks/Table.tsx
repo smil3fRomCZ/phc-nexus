@@ -4,8 +4,10 @@ import EmptyState from '@/Components/EmptyState';
 import { TASK_STATUS, getStatus } from '@/constants/status';
 import { getPriority } from '@/constants/priority';
 import { displayKey } from '@/utils/displayKey';
+import { formatDate } from '@/utils/formatDate';
 import { Link, router } from '@inertiajs/react';
 import { useState } from 'react';
+import ProjectTabs from '@/Components/ProjectTabs';
 
 interface Task {
     id: string;
@@ -113,22 +115,8 @@ export default function TaskTable({ project, tasks, filters, statuses, prioritie
 
     return (
         <AppLayout title={`${project.key} — Tabulka`} breadcrumbs={breadcrumbs}>
-            <div className="mb-6 flex items-center justify-between">
-                <h1 className="text-2xl font-bold leading-tight text-text-strong">Tabulka</h1>
-                <div className="flex gap-2">
-                    <Link
-                        href={`/projects/${project.id}/board`}
-                        className="rounded-md border border-border-default px-4 py-2 text-sm font-medium text-text-default no-underline transition-colors hover:bg-surface-hover"
-                    >
-                        Board
-                    </Link>
-                    <Link
-                        href={`/projects/${project.id}/table`}
-                        className="rounded-md bg-brand-primary px-4 py-2 text-sm font-medium text-text-inverse no-underline"
-                    >
-                        Tabulka
-                    </Link>
-                </div>
+            <div className="mb-6">
+                <ProjectTabs projectId={project.id} active="table" />
             </div>
 
             {/* Filters */}
@@ -281,7 +269,7 @@ export default function TaskTable({ project, tasks, filters, statuses, prioritie
                                     )}
                                 </td>
                                 <td className="border-b border-border-subtle px-5 py-3 text-sm text-text-muted">
-                                    {task.due_date ?? '\u2014'}
+                                    {task.due_date ? formatDate(task.due_date) : '\u2014'}
                                 </td>
                             </tr>
                         ))}

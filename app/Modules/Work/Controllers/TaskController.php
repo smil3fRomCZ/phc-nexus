@@ -5,6 +5,8 @@ declare(strict_types=1);
 namespace App\Modules\Work\Controllers;
 
 use App\Http\Controllers\Controller;
+use App\Models\User;
+use App\Modules\Audit\Models\AuditEntry;
 use App\Modules\Notifications\Notifications\TaskAssignedNotification;
 use App\Modules\Notifications\Notifications\TaskStatusChangedNotification;
 use App\Modules\Projects\Models\Project;
@@ -13,6 +15,7 @@ use App\Modules\Work\Enums\TaskPriority;
 use App\Modules\Work\Enums\TaskStatus;
 use App\Modules\Work\Models\Epic;
 use App\Modules\Work\Models\Task;
+use Illuminate\Database\Eloquent\Model;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
@@ -114,6 +117,55 @@ final class TaskController extends Controller
             ->latest('created_at')
             ->limit(50)
             ->get(['id', 'action', 'actor_id', 'old_values', 'new_values', 'created_at']);
+
+        // Resolvovat user ID na jména a enum hodnoty na labely
+        $userIds = collect();
+        /** @var AuditEntry $entry */
+        foreach ($activity as $entry) {
+            foreach (['old_values', 'new_values'] as $key) {
+                $values = $entry->getAttribute($key);
+                if (! is_array($values)) {
+                    continue;
+                }
+                foreach (['assignee_id', 'reporter_id'] as $field) {
+                    if (! empty($values[$field])) {
+                        $userIds->push($values[$field]);
+                    }
+                }
+            }
+        }
+        $userNames = $userIds->unique()->isNotEmpty()
+            ? User::whereIn('id', $userIds->unique())->pluck('name', 'id')
+            : collect();
+
+        $statusLabels = collect(TaskStatus::cases())->mapWithKeys(fn (TaskStatus $s) => [$s->value => $s->label()]);
+        $priorityLabels = collect(TaskPriority::cases())->mapWithKeys(fn (TaskPriority $p) => [$p->value => $p->label()]);
+
+        $activity->transform(function (Model $entry) use ($userNames, $statusLabels, $priorityLabels) {
+            foreach (['old_values', 'new_values'] as $key) {
+                /** @var array<string, mixed>|null $values */
+                $values = $entry->getAttribute($key);
+                if (! is_array($values)) {
+                    continue;
+                }
+                foreach (['assignee_id', 'reporter_id'] as $field) {
+                    if (! empty($values[$field]) && $userNames->has($values[$field])) {
+                        $values[$field] = $userNames[$values[$field]];
+                    } elseif (array_key_exists($field, $values) && empty($values[$field])) {
+                        $values[$field] = null;
+                    }
+                }
+                if (! empty($values['status']) && $statusLabels->has($values['status'])) {
+                    $values['status'] = $statusLabels[$values['status']];
+                }
+                if (! empty($values['priority']) && $priorityLabels->has($values['priority'])) {
+                    $values['priority'] = $priorityLabels[$values['priority']];
+                }
+                $entry->setAttribute($key, $values);
+            }
+
+            return $entry;
+        });
 
         $projectTasks = $project->tasks()
             ->where('id', '!=', $task->id)

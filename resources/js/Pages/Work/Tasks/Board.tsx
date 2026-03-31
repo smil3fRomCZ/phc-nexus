@@ -8,6 +8,7 @@ import { formatDate } from '@/utils/formatDate';
 import { Link, router } from '@inertiajs/react';
 import { MessageSquare, Plus, ShieldAlert, Settings2, Layers } from 'lucide-react';
 import ProjectTabs from '@/Components/ProjectTabs';
+import ConfirmModal from '@/Components/ConfirmModal';
 import { useState, useRef, useEffect, type DragEvent } from 'react';
 
 interface Task {
@@ -75,6 +76,7 @@ export default function TaskBoard({
     const [dragging, setDragging] = useState<string | null>(null);
     const [dropTarget, setDropTarget] = useState<string | null>(null);
     const [settingsOpen, setSettingsOpen] = useState(false);
+    const [modalMessage, setModalMessage] = useState<string | null>(null);
     const [cardFields, setCardFields] = useState<string[]>(
         boardSettings?.card_fields ?? ['priority', 'assignee', 'comments_count'],
     );
@@ -155,6 +157,8 @@ export default function TaskBoard({
 
         if (!sourceTask || sourceStatus === targetStatus) return;
 
+        const snapshot = columns;
+
         setColumns((prev) =>
             prev.map((col) => {
                 if (col.status === sourceStatus) {
@@ -177,11 +181,11 @@ export default function TaskBoard({
             body: JSON.stringify({ status: targetStatus }),
         }).then(async (res) => {
             if (!res.ok) {
+                setColumns(snapshot);
                 const data = await res.json().catch(() => null);
-                if (data?.error) {
-                    alert(data.error);
-                }
-                router.reload({ only: ['columns'] });
+                setModalMessage(
+                    data?.error ?? 'Změna stavu se nezdařila.',
+                );
             }
         });
     }
@@ -374,6 +378,14 @@ export default function TaskBoard({
                     </div>
                 ))}
             </div>
+
+            <ConfirmModal
+                open={!!modalMessage}
+                variant="warning"
+                title="Změna stavu blokována"
+                message={modalMessage ?? ''}
+                onConfirm={() => setModalMessage(null)}
+            />
         </AppLayout>
     );
 }

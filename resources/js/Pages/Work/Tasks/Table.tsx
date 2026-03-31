@@ -6,6 +6,7 @@ import { getPriority } from '@/constants/priority';
 import { displayKey } from '@/utils/displayKey';
 import { formatDate } from '@/utils/formatDate';
 import { Link, router } from '@inertiajs/react';
+import { Layers } from 'lucide-react';
 import { useState } from 'react';
 import ProjectTabs from '@/Components/ProjectTabs';
 
@@ -26,15 +27,21 @@ interface Option {
     label: string;
 }
 
+interface Member {
+    id: string;
+    name: string;
+}
+
 interface Props {
     project: { id: string; name: string; key: string };
     tasks: Task[];
     filters: Record<string, string | undefined>;
     statuses: Option[];
     priorities: Option[];
+    members: Member[];
 }
 
-export default function TaskTable({ project, tasks, filters, statuses, priorities }: Props) {
+export default function TaskTable({ project, tasks, filters, statuses, priorities, members = [] }: Props) {
     const [selected, setSelected] = useState<string[]>([]);
     const [bulkStatus, setBulkStatus] = useState('');
 
@@ -142,6 +149,18 @@ export default function TaskTable({ project, tasks, filters, statuses, prioritie
                     {priorities.map((p) => (
                         <option key={p.value} value={p.value}>
                             {p.label}
+                        </option>
+                    ))}
+                </select>
+                <select
+                    value={filters.assignee_id ?? ''}
+                    onChange={(e) => applyFilter('assignee_id', e.target.value)}
+                    className="h-8 rounded-md border border-border-default bg-surface-primary px-3 text-sm focus:border-brand-primary focus:outline-none focus:shadow-[0_0_0_2px_var(--color-brand-soft)]"
+                >
+                    <option value="">Všichni řešitelé</option>
+                    {members.map((m) => (
+                        <option key={m.id} value={m.id}>
+                            {m.name}
                         </option>
                     ))}
                 </select>
@@ -260,8 +279,9 @@ export default function TaskTable({ project, tasks, filters, statuses, prioritie
                                     {task.epic ? (
                                         <Link
                                             href={`/projects/${project.id}/epics/${task.epic.id}`}
-                                            className="no-underline hover:text-brand-primary"
+                                            className="inline-flex items-center gap-1.5 rounded-full bg-surface-secondary px-2.5 py-0.5 text-xs font-medium text-text-default no-underline transition-colors hover:bg-brand-soft hover:text-brand-primary"
                                         >
+                                            <Layers className="h-3 w-3 text-text-subtle" />
                                             {task.epic.title}
                                         </Link>
                                     ) : (

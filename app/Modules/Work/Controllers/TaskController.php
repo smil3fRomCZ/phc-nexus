@@ -15,6 +15,7 @@ use App\Modules\Work\Enums\TaskPriority;
 use App\Modules\Work\Enums\TaskStatus;
 use App\Modules\Work\Models\Epic;
 use App\Modules\Work\Models\Task;
+use Illuminate\Database\Eloquent\Model;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
@@ -140,7 +141,7 @@ final class TaskController extends Controller
         $statusLabels = collect(TaskStatus::cases())->mapWithKeys(fn (TaskStatus $s) => [$s->value => $s->label()]);
         $priorityLabels = collect(TaskPriority::cases())->mapWithKeys(fn (TaskPriority $p) => [$p->value => $p->label()]);
 
-        $activity->transform(function (AuditEntry $entry) use ($userNames, $statusLabels, $priorityLabels) {
+        $activity->transform(function (Model $entry) use ($userNames, $statusLabels, $priorityLabels) {
             foreach (['old_values', 'new_values'] as $key) {
                 /** @var array<string, mixed>|null $values */
                 $values = $entry->getAttribute($key);

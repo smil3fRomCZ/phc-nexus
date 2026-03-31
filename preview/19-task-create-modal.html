@@ -1,0 +1,107 @@
+<!DOCTYPE html>
+<html lang="cs">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Preview: Inline Task Create Modal — Kanban board</title>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+<style>
+:root {
+  --color-brand-primary: #f5a623; --color-brand-hover: #e09000; --color-brand-soft: #fff8eb;
+  --color-text-strong: #172b4d; --color-text-default: #42526e; --color-text-muted: #6b778c; --color-text-subtle: #97a0af; --color-text-on-brand: #fff;
+  --color-surface-panel: #fff; --color-surface-secondary: #fafbfc;
+  --color-border-subtle: #ebecf0; --color-border-default: #dfe1e6;
+  --font-sans: "Inter", -apple-system, sans-serif;
+  --font-size-xs: 0.6875rem; --font-size-sm: 0.75rem; --font-size-base: 0.875rem; --font-size-lg: 1.125rem;
+  --radius-md: 0.5rem; --radius-lg: 0.75rem;
+}
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+body { font-family: var(--font-sans); font-size: var(--font-size-base); color: var(--color-text-default); background: #ccc; padding: 2rem; }
+
+.overlay { position: fixed; inset: 0; background: rgba(0,0,0,0.5); display: flex; align-items: center; justify-content: center; z-index: 50; }
+.modal { background: var(--color-surface-panel); border: 1px solid var(--color-border-subtle); border-radius: var(--radius-lg); padding: 1.5rem; width: 100%; max-width: 28rem; box-shadow: 0 8px 24px rgba(23,43,77,0.18); }
+.modal-title { font-size: var(--font-size-lg); font-weight: 600; color: var(--color-text-strong); margin-bottom: 1rem; display: flex; align-items: center; justify-content: space-between; }
+.close-btn { border: none; background: none; color: var(--color-text-muted); cursor: pointer; font-size: 1.25rem; padding: 0.25rem; border-radius: var(--radius-md); }
+.close-btn:hover { background: var(--color-surface-secondary); }
+
+.form-group { margin-bottom: 0.75rem; }
+.form-group label { display: block; font-size: var(--font-size-xs); font-weight: 600; text-transform: uppercase; letter-spacing: 0.05em; color: var(--color-text-subtle); margin-bottom: 0.25rem; }
+.form-group input, .form-group select, .form-group textarea { width: 100%; padding: 0.5rem 0.75rem; border: 1px solid var(--color-border-default); border-radius: var(--radius-md); font-size: var(--font-size-sm); background: var(--color-surface-panel); }
+.form-group input:focus, .form-group select:focus, .form-group textarea:focus { outline: none; border-color: var(--color-brand-primary); box-shadow: 0 0 0 2px var(--color-brand-soft); }
+.form-row { display: grid; grid-template-columns: 1fr 1fr; gap: 0.75rem; }
+.form-actions { display: flex; justify-content: flex-end; gap: 0.5rem; margin-top: 1rem; }
+.btn { padding: 0.5rem 1.25rem; border-radius: var(--radius-md); font-size: var(--font-size-sm); font-weight: 600; border: none; cursor: pointer; }
+.btn-primary { background: var(--color-brand-primary); color: var(--color-text-on-brand); }
+.btn-outline { background: transparent; border: 1px solid var(--color-border-default); color: var(--color-text-default); }
+
+.section-label { font-size: var(--font-size-xs); color: var(--color-text-subtle); margin-bottom: 1rem; text-transform: uppercase; letter-spacing: 0.05em; font-weight: 600; }
+</style>
+</head>
+<body>
+
+<p class="section-label">PREVIEW: Inline Task Create Modal — otevira se na Kanban boardu misto 404</p>
+
+<div style="position:relative; height:500px; background:#e8e8e8; border-radius:8px; overflow:hidden;">
+  <div class="overlay" style="position:absolute;">
+    <div class="modal">
+      <div class="modal-title">
+        Novy ukol
+        <button class="close-btn">&times;</button>
+      </div>
+
+      <div class="form-group">
+        <label>Nazev *</label>
+        <input type="text" placeholder="Co je potreba udelat..." autofocus>
+      </div>
+
+      <div class="form-group">
+        <label>Popis</label>
+        <textarea rows="2" placeholder="Volitelny popis..."></textarea>
+      </div>
+
+      <div class="form-row">
+        <div class="form-group">
+          <label>Priorita</label>
+          <select>
+            <option>Nizka</option>
+            <option selected>Stredni</option>
+            <option>Vysoka</option>
+            <option>Urgentni</option>
+          </select>
+        </div>
+        <div class="form-group">
+          <label>Resitel</label>
+          <select>
+            <option value="">Neprirazeno</option>
+            <option>Jan Melicherik</option>
+            <option>Petr Novak</option>
+            <option>Jana Svobodova</option>
+          </select>
+        </div>
+      </div>
+
+      <div class="form-row">
+        <div class="form-group">
+          <label>Epic</label>
+          <select>
+            <option value="">Bez epicu</option>
+            <option>Autentizace a SSO</option>
+            <option>Projektove rizeni</option>
+          </select>
+        </div>
+        <div class="form-group">
+          <label>Termin</label>
+          <input type="date">
+        </div>
+      </div>
+
+      <div class="form-actions">
+        <button class="btn btn-outline">Zrusit</button>
+        <button class="btn btn-primary">Vytvorit ukol</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+</body>
+</html>

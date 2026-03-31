@@ -55,11 +55,19 @@ export default function ProjectShow({ project }: { project: Project }) {
                 <div className="rounded-lg border border-border-subtle bg-surface-primary p-5">
                     <div className="flex items-start justify-between">
                         <div>
-                            <div className="flex items-center gap-3">
+                            <span className="text-xs font-semibold uppercase tracking-wider text-text-subtle">
+                                Projekt
+                            </span>
+                            <div className="mt-0.5 flex items-center gap-3">
                                 <h1 className="text-2xl font-bold leading-tight text-text-strong">{project.name}</h1>
                                 <StatusBadge statusMap={PROJECT_STATUS} value={project.status} />
                             </div>
-                            <span className="text-sm font-mono text-text-muted">{project.key}</span>
+                            <div className="mt-1">
+                                <span className="text-xs font-semibold uppercase tracking-wider text-text-subtle">
+                                    Kód:{' '}
+                                </span>
+                                <span className="font-mono text-sm text-text-muted">{project.key}</span>
+                            </div>
                             {project.description && (
                                 <p className="mt-2 text-base text-text-default">{project.description}</p>
                             )}

@@ -1,0 +1,91 @@
+<!DOCTYPE html>
+<html lang="cs">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Preview: Entity Header Labels — název a kód s labely</title>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+<style>
+:root {
+  --color-brand-primary: #f5a623; --color-brand-soft: #fff8eb;
+  --color-text-strong: #172b4d; --color-text-default: #42526e; --color-text-muted: #6b778c; --color-text-subtle: #97a0af;
+  --color-surface-panel: #fff; --color-surface-canvas: #f4f5f7; --color-surface-secondary: #fafbfc;
+  --color-border-subtle: #ebecf0; --color-border-default: #dfe1e6;
+  --color-status-success-bg: #e3fcef; --color-status-success-fg: #006644;
+  --color-status-info-bg: #deebff; --color-status-info-fg: #0747a6;
+  --font-sans: "Inter", -apple-system, sans-serif; --font-mono: "SFMono-Regular", Consolas, monospace;
+  --font-size-xs: 0.6875rem; --font-size-sm: 0.75rem; --font-size-base: 0.875rem; --font-size-2xl: 1.75rem;
+  --radius-md: 0.5rem; --radius-lg: 0.75rem;
+}
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+body { font-family: var(--font-sans); font-size: var(--font-size-base); color: var(--color-text-default); background: var(--color-surface-canvas); padding: 2rem; }
+
+.card { background: var(--color-surface-panel); border: 1px solid var(--color-border-subtle); border-radius: var(--radius-lg); padding: 1.25rem; max-width: 48rem; margin-bottom: 1.5rem; }
+.label { font-size: var(--font-size-xs); font-weight: 600; text-transform: uppercase; letter-spacing: 0.05em; color: var(--color-text-subtle); margin-bottom: 0.125rem; }
+.badge { display: inline-flex; padding: 0.125rem 0.5rem; border-radius: 999px; font-size: var(--font-size-xs); font-weight: 600; }
+.badge-success { background: var(--color-status-success-bg); color: var(--color-status-success-fg); }
+.badge-info { background: var(--color-status-info-bg); color: var(--color-status-info-fg); }
+.key { font-family: var(--font-mono); font-size: var(--font-size-sm); color: var(--color-text-muted); }
+.section-label { font-size: var(--font-size-xs); color: var(--color-text-subtle); margin-bottom: 1rem; text-transform: uppercase; letter-spacing: 0.05em; font-weight: 600; }
+.header-row { display: flex; align-items: flex-start; justify-content: space-between; }
+.title-area { display: flex; align-items: center; gap: 0.75rem; flex-wrap: wrap; }
+</style>
+</head>
+<body>
+
+<p class="section-label">PREVIEW: Entity header — s labely pro nazev a kod (projekt, task, epic)</p>
+
+<!-- Projekt header -->
+<div class="card">
+  <p class="section-label" style="margin-bottom:0.75rem">Detail projektu</p>
+  <div class="header-row">
+    <div>
+      <div class="label">Projekt</div>
+      <div class="title-area">
+        <h1 style="font-size:var(--font-size-2xl); font-weight:700; color:var(--color-text-strong);">PHC Nexus Platform</h1>
+        <span class="badge badge-success">Aktivni</span>
+      </div>
+      <div style="margin-top:0.25rem;">
+        <span class="label" style="display:inline; margin-right:0.25rem;">Kod:</span>
+        <span class="key">PHN</span>
+      </div>
+      <p style="margin-top:0.5rem; color:var(--color-text-default); line-height:1.5;">Interni produktivitni platforma pro Pears Health Care.</p>
+    </div>
+    <div style="display:flex; gap:0.5rem;">
+      <button style="padding:0.5rem 1.25rem; border-radius:var(--radius-md); font-size:var(--font-size-sm); border:1px solid var(--color-border-default); background:transparent; cursor:pointer;">Upravit</button>
+    </div>
+  </div>
+</div>
+
+<!-- Task header -->
+<div class="card">
+  <p class="section-label" style="margin-bottom:0.75rem">Detail ukolu</p>
+  <div class="header-row">
+    <div>
+      <div class="label">Ukol</div>
+      <div class="title-area">
+        <span class="key" style="font-size:var(--font-size-base);">PHN-127</span>
+        <h1 style="font-size:var(--font-size-2xl); font-weight:700; color:var(--color-text-strong);">Implementovat Google SSO</h1>
+        <span class="badge badge-info">V prubehu</span>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- Epic header -->
+<div class="card">
+  <p class="section-label" style="margin-bottom:0.75rem">Detail epicu</p>
+  <div class="header-row">
+    <div>
+      <div class="label">Epic</div>
+      <div class="title-area">
+        <span class="key" style="font-size:var(--font-size-base);">PHN-2</span>
+        <h1 style="font-size:var(--font-size-2xl); font-weight:700; color:var(--color-text-strong);">Autentizace a SSO</h1>
+        <span class="badge badge-success">Hotovo</span>
+      </div>
+    </div>
+  </div>
+</div>
+
+</body>
+</html>

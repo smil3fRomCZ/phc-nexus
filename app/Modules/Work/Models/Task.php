@@ -20,6 +20,7 @@ use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\BelongsToMany;
 use Illuminate\Database\Eloquent\SoftDeletes;
+use Illuminate\Support\Facades\DB;
 
 class Task extends Model
 {
@@ -52,6 +53,18 @@ class Task extends Model
             'recurrence_rule' => RecurrenceRule::class,
             'recurrence_next_at' => 'date',
         ];
+    }
+
+    protected static function booted(): void
+    {
+        static::creating(function (Task $task): void {
+            if ($task->number === null) {
+                $task->number = DB::table('tasks')
+                    ->where('project_id', $task->project_id)
+                    ->lockForUpdate()
+                    ->max('number') + 1;
+            }
+        });
     }
 
     protected static function newFactory(): TaskFactory

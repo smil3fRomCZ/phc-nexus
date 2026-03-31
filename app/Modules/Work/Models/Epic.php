@@ -18,6 +18,7 @@ use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Database\Eloquent\SoftDeletes;
+use Illuminate\Support\Facades\DB;
 
 class Epic extends Model
 {
@@ -43,6 +44,18 @@ class Epic extends Model
             'start_date' => 'date',
             'target_date' => 'date',
         ];
+    }
+
+    protected static function booted(): void
+    {
+        static::creating(function (Epic $epic): void {
+            if ($epic->number === null) {
+                $epic->number = DB::table('epics')
+                    ->where('project_id', $epic->project_id)
+                    ->lockForUpdate()
+                    ->max('number') + 1;
+            }
+        });
     }
 
     protected static function newFactory(): EpicFactory

@@ -1,6 +1,7 @@
 import AppLayout from '@/Layouts/AppLayout';
 import type { Breadcrumb } from '@/Layouts/AppLayout';
 import EmptyState from '@/Components/EmptyState';
+import { formatDateTime } from '@/utils/formatDate';
 import { router } from '@inertiajs/react';
 import { ShieldAlert } from 'lucide-react';
 
@@ -29,13 +30,7 @@ interface Props {
 const BREADCRUMBS: Breadcrumb[] = [{ label: 'Domů', href: '/' }, { label: 'Administrace' }, { label: 'PHI report' }];
 
 function formatTime(dateStr: string): string {
-    return new Date(dateStr).toLocaleString('cs-CZ', {
-        day: 'numeric',
-        month: 'short',
-        year: 'numeric',
-        hour: '2-digit',
-        minute: '2-digit',
-    });
+    return formatDateTime(dateStr);
 }
 
 function entityLabel(type: string): string {

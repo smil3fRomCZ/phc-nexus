@@ -4,12 +4,14 @@ import EmptyState from '@/Components/EmptyState';
 import StatusBadge from '@/Components/StatusBadge';
 import { TASK_STATUS } from '@/constants/status';
 import { getPriority } from '@/constants/priority';
+import { displayKey } from '@/utils/displayKey';
 import { Link, useForm } from '@inertiajs/react';
 import { Plus, ClipboardList } from 'lucide-react';
 import type { FormEvent } from 'react';
 
 interface Task {
     id: string;
+    number: number;
     title: string;
     status: string;
     priority: string;
@@ -44,7 +46,7 @@ export default function TasksIndex({ project, epic, tasks }: Props) {
         { label: project.name, href: `/projects/${project.id}` },
         ...(epic
             ? [
-                  { label: 'Epiky', href: `/projects/${project.id}/epics` },
+                  { label: 'EPIC', href: `/projects/${project.id}/epics` },
                   { label: epic.title, href: `/projects/${project.id}/epics/${epic.id}` },
                   { label: 'Úkoly' },
               ]
@@ -102,6 +104,7 @@ export default function TasksIndex({ project, epic, tasks }: Props) {
                                 href={`/projects/${project.id}/tasks/${task.id}`}
                                 className="text-base font-medium text-text-strong no-underline hover:text-brand-primary"
                             >
+                                <span className="mr-1.5 text-xs font-semibold text-text-muted">{displayKey(project.key, task.number)}</span>
                                 {task.title}
                             </Link>
                         </div>

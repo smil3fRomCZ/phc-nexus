@@ -1,5 +1,6 @@
 import AppLayout from '@/Layouts/AppLayout';
 import type { Breadcrumb } from '@/Layouts/AppLayout';
+import { formatMonthYear } from '@/utils/formatDate';
 import { Link, router } from '@inertiajs/react';
 import { ChevronLeft, ChevronRight } from 'lucide-react';
 
@@ -38,7 +39,7 @@ function parseMonth(month: string): Date {
 }
 
 function formatMonthLabel(date: Date): string {
-    return date.toLocaleDateString('cs-CZ', { month: 'long', year: 'numeric' });
+    return formatMonthYear(date);
 }
 
 function shiftMonth(month: string, delta: number): string {

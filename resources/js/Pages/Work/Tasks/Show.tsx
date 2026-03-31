@@ -5,6 +5,8 @@ import StatusBadge from '@/Components/StatusBadge';
 import ActivityTimeline from '@/Components/ActivityTimeline';
 import type { ActivityEntry } from '@/Components/ActivityTimeline';
 import { TASK_STATUS } from '@/constants/status';
+import { formatDate } from '@/utils/formatDate';
+import { displayKey } from '@/utils/displayKey';
 import { Link, router, useForm, usePage } from '@inertiajs/react';
 import {
     Paperclip,
@@ -50,6 +52,7 @@ interface DependencyTask {
 
 interface Task {
     id: string;
+    number: number;
     title: string;
     description: string | null;
     status: string;
@@ -98,10 +101,6 @@ interface Props {
     recurrenceRules: SelectOption[];
 }
 
-function formatDate(dateStr: string): string {
-    return new Date(dateStr).toLocaleDateString('cs-CZ', { month: 'short', day: 'numeric', year: 'numeric' });
-}
-
 function timeAgo(dateStr: string): string {
     const diff = Date.now() - new Date(dateStr).getTime();
     const mins = Math.floor(diff / 60000);
@@ -139,7 +138,7 @@ export default function TaskShow({
         { label: 'Projekty', href: '/projects' },
         { label: project.name, href: `/projects/${project.id}` },
         { label: 'Úkoly', href: `/projects/${project.id}/tasks` },
-        { label: task.title },
+        { label: displayKey(project.key, task.number) },
     ];
 
     function inlineUpdate(fields: Record<string, unknown>) {
@@ -174,14 +173,17 @@ export default function TaskShow({
     }
 
     return (
-        <AppLayout title={`${project.key} — ${task.title}`} breadcrumbs={breadcrumbs}>
+        <AppLayout title={`${displayKey(project.key, task.number)} — ${task.title}`} breadcrumbs={breadcrumbs}>
             <div className="flex gap-8">
                 {/* ── Main Column ── */}
                 <div className="min-w-0 flex-1">
                     {/* Title */}
                     <div className="mb-6">
                         <div className="flex items-center gap-3">
-                            <h1 className="text-2xl font-bold leading-tight text-text-strong">{task.title}</h1>
+                            <h1 className="text-2xl font-bold leading-tight text-text-strong">
+                                <span className="mr-2 text-text-muted">{displayKey(project.key, task.number)}</span>
+                                {task.title}
+                            </h1>
                             <StatusBadge statusMap={TASK_STATUS} value={task.status} />
                             <div className="ml-auto flex gap-2">
                                 <button
@@ -354,7 +356,7 @@ export default function TaskShow({
                     </SidebarSection>
 
                     {task.epic && (
-                        <SidebarSection label="Epik">
+                        <SidebarSection label="EPIC">
                             <Link
                                 href={`/projects/${project.id}/epics/${task.epic.id}`}
                                 className="text-sm text-brand-primary no-underline hover:underline"
@@ -403,10 +405,7 @@ export default function TaskShow({
                         {task.recurrence_next_at && (
                             <p className="mt-1 text-xs text-text-muted">
                                 Next:{' '}
-                                {new Date(task.recurrence_next_at).toLocaleDateString('cs-CZ', {
-                                    day: 'numeric',
-                                    month: 'short',
-                                })}
+                                {formatDate(task.recurrence_next_at)}
                             </p>
                         )}
                     </SidebarSection>
@@ -838,21 +837,35 @@ function SidebarSection({ label, children }: { label: string; children: React.Re
     );
 }
 
+/** Recursively collect all nested replies into a flat array. */
+function flattenTaskReplies(comment: Comment): Comment[] {
+    const result: Comment[] = [];
+    for (const reply of comment.replies ?? []) {
+        result.push(reply);
+        result.push(...flattenTaskReplies(reply));
+    }
+    return result;
+}
+
 function CommentItem({
     comment,
     projectId,
     taskId,
     currentUserId,
     isReply = false,
+    rootId,
 }: {
     comment: Comment;
     projectId: string;
     taskId: string;
     currentUserId?: string;
     isReply?: boolean;
+    rootId?: string;
 }) {
     const [showReply, setShowReply] = useState(false);
     const isOwner = comment.author.id === currentUserId;
+    const effectiveRootId = rootId ?? comment.id;
+    const allReplies = !isReply ? flattenTaskReplies(comment) : [];
 
     function handleDelete() {
         if (confirm('Smazat tento komentář?')) {
@@ -861,7 +874,7 @@ function CommentItem({
     }
 
     return (
-        <div className={isReply ? 'ml-8 border-l-2 border-border-subtle pl-4' : ''}>
+        <div>
             <div className="rounded-lg border border-border-subtle bg-surface-primary p-4">
                 <div className="mb-2 flex items-center justify-between">
                     <div className="flex items-center gap-2">
@@ -871,14 +884,12 @@ function CommentItem({
                         {comment.edited_at && <span className="text-xs italic text-text-subtle">(upraveno)</span>}
                     </div>
                     <div className="flex gap-1">
-                        {!isReply && (
-                            <button
-                                onClick={() => setShowReply(!showReply)}
-                                className="rounded px-2 py-0.5 text-xs text-text-muted hover:bg-surface-hover hover:text-text-default"
-                            >
-                                Odpovědět
-                            </button>
-                        )}
+                        <button
+                            onClick={() => setShowReply(!showReply)}
+                            className="rounded px-2 py-0.5 text-xs text-text-muted hover:bg-surface-hover hover:text-text-default"
+                        >
+                            Odpovědět
+                        </button>
                         {isOwner && (
                             <button
                                 onClick={handleDelete}
@@ -892,23 +903,29 @@ function CommentItem({
                 <p className="whitespace-pre-wrap text-sm leading-relaxed text-text-default">{comment.body}</p>
             </div>
 
-            {comment.replies?.map((reply) => (
-                <CommentItem
-                    key={reply.id}
-                    comment={reply}
-                    projectId={projectId}
-                    taskId={taskId}
-                    currentUserId={currentUserId}
-                    isReply
-                />
-            ))}
+            {/* Flat replies — all at the same indentation level */}
+            {!isReply && allReplies.length > 0 && (
+                <div className="ml-8 border-l-2 border-border-subtle pl-4 space-y-2 mt-2">
+                    {allReplies.map((reply) => (
+                        <CommentItem
+                            key={reply.id}
+                            comment={reply}
+                            projectId={projectId}
+                            taskId={taskId}
+                            currentUserId={currentUserId}
+                            isReply
+                            rootId={effectiveRootId}
+                        />
+                    ))}
+                </div>
+            )}
 
             {showReply && (
-                <div className="ml-8 mt-2">
+                <div className={isReply ? 'mt-2' : 'ml-8 mt-2'}>
                     <CommentForm
                         projectId={projectId}
                         taskId={taskId}
-                        parentId={comment.id}
+                        parentId={effectiveRootId}
                         onDone={() => setShowReply(false)}
                     />
                 </div>

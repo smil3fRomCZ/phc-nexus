@@ -4,6 +4,7 @@ import Avatar from '@/Components/Avatar';
 import EmptyState from '@/Components/EmptyState';
 import StatusBadge from '@/Components/StatusBadge';
 import { PROJECT_STATUS } from '@/constants/status';
+import { formatDate } from '@/utils/formatDate';
 import { Link } from '@inertiajs/react';
 import { Plus, Search } from 'lucide-react';
 import { useState } from 'react';
@@ -35,10 +36,6 @@ function getProgress(completed: number, total: number): number {
     return Math.round((completed / total) * 100);
 }
 
-function formatUpdatedAt(dateStr: string): string {
-    const date = new Date(dateStr);
-    return date.toLocaleDateString('cs-CZ', { day: 'numeric', month: 'numeric', year: 'numeric' });
-}
 
 export default function ProjectsIndex({ projects }: Props) {
     const [statusFilter, setStatusFilter] = useState('');
@@ -172,7 +169,7 @@ export default function ProjectsIndex({ projects }: Props) {
                                         </div>
                                     </td>
                                     <td className="border-b border-border-subtle px-5 py-3 text-xs text-text-muted">
-                                        {formatUpdatedAt(project.updated_at)}
+                                        {formatDate(project.updated_at)}
                                     </td>
                                 </tr>
                             );

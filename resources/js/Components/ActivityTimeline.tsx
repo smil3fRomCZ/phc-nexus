@@ -1,3 +1,4 @@
+import { formatDateTime } from '@/utils/formatDate';
 import { Clock, Plus, Edit3, Trash2, Eye, ArrowRight } from 'lucide-react';
 
 export interface ActivityEntry {
@@ -33,12 +34,7 @@ const FIELD_LABELS: Record<string, string> = {
 };
 
 function formatTime(dateStr: string): string {
-    return new Date(dateStr).toLocaleString('cs-CZ', {
-        day: 'numeric',
-        month: 'short',
-        hour: '2-digit',
-        minute: '2-digit',
-    });
+    return formatDateTime(dateStr);
 }
 
 function formatValue(value: unknown): string {

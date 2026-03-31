@@ -57,19 +57,33 @@ export default function CommentsSection({
     );
 }
 
+/** Recursively collect all nested replies into a flat array. */
+function flattenReplies(comment: Comment): Comment[] {
+    const result: Comment[] = [];
+    for (const reply of comment.replies ?? []) {
+        result.push(reply);
+        result.push(...flattenReplies(reply));
+    }
+    return result;
+}
+
 function CommentItem({
     comment,
     postUrl,
     currentUserId,
     isReply = false,
+    rootId,
 }: {
     comment: Comment;
     postUrl: string;
     currentUserId?: string;
     isReply?: boolean;
+    rootId?: string;
 }) {
     const [showReply, setShowReply] = useState(false);
     const isOwner = comment.author.id === currentUserId;
+    // Root comment ID for threading — replies always point to the root
+    const effectiveRootId = rootId ?? comment.id;
 
     function handleDelete() {
         if (confirm('Smazat tento komentář?')) {
@@ -77,8 +91,11 @@ function CommentItem({
         }
     }
 
+    // For root comments, collect all replies (flat, not nested)
+    const allReplies = !isReply ? flattenReplies(comment) : [];
+
     return (
-        <div className={isReply ? 'ml-8 border-l-2 border-border-subtle pl-4' : ''}>
+        <div>
             <div className="rounded-lg border border-border-subtle bg-surface-primary p-4">
                 <div className="mb-2 flex items-center justify-between">
                     <div className="flex items-center gap-2">
@@ -88,14 +105,12 @@ function CommentItem({
                         {comment.edited_at && <span className="text-xs italic text-text-subtle">(upraveno)</span>}
                     </div>
                     <div className="flex gap-1">
-                        {!isReply && (
-                            <button
-                                onClick={() => setShowReply(!showReply)}
-                                className="rounded px-2 py-0.5 text-xs text-text-muted hover:bg-surface-hover hover:text-text-default"
-                            >
-                                Odpovědět
-                            </button>
-                        )}
+                        <button
+                            onClick={() => setShowReply(!showReply)}
+                            className="rounded px-2 py-0.5 text-xs text-text-muted hover:bg-surface-hover hover:text-text-default"
+                        >
+                            Odpovědět
+                        </button>
                         {isOwner && (
                             <button
                                 onClick={handleDelete}
@@ -109,13 +124,18 @@ function CommentItem({
                 <p className="whitespace-pre-wrap text-sm leading-relaxed text-text-default">{comment.body}</p>
             </div>
 
-            {comment.replies?.map((reply) => (
-                <CommentItem key={reply.id} comment={reply} postUrl={postUrl} currentUserId={currentUserId} isReply />
-            ))}
+            {/* Flat replies — all at the same indentation level */}
+            {!isReply && allReplies.length > 0 && (
+                <div className="ml-8 border-l-2 border-border-subtle pl-4 space-y-2 mt-2">
+                    {allReplies.map((reply) => (
+                        <CommentItem key={reply.id} comment={reply} postUrl={postUrl} currentUserId={currentUserId} isReply rootId={effectiveRootId} />
+                    ))}
+                </div>
+            )}
 
             {showReply && (
-                <div className="ml-8 mt-2">
-                    <CommentForm postUrl={postUrl} parentId={comment.id} onDone={() => setShowReply(false)} />
+                <div className={isReply ? 'mt-2' : 'ml-8 mt-2'}>
+                    <CommentForm postUrl={postUrl} parentId={effectiveRootId} onDone={() => setShowReply(false)} />
                 </div>
             )}
         </div>

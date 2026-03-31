@@ -6,6 +6,7 @@ namespace App\Modules\Work\Controllers;
 
 use App\Http\Controllers\Controller;
 use App\Models\User;
+use App\Modules\Audit\Models\AuditEntry;
 use App\Modules\Notifications\Notifications\TaskAssignedNotification;
 use App\Modules\Notifications\Notifications\TaskStatusChangedNotification;
 use App\Modules\Projects\Models\Project;
@@ -118,9 +119,10 @@ final class TaskController extends Controller
 
         // Resolvovat user ID na jména a enum hodnoty na labely
         $userIds = collect();
+        /** @var AuditEntry $entry */
         foreach ($activity as $entry) {
             foreach (['old_values', 'new_values'] as $key) {
-                $values = $entry->$key;
+                $values = $entry->getAttribute($key);
                 if (! is_array($values)) {
                     continue;
                 }
@@ -138,9 +140,10 @@ final class TaskController extends Controller
         $statusLabels = collect(TaskStatus::cases())->mapWithKeys(fn (TaskStatus $s) => [$s->value => $s->label()]);
         $priorityLabels = collect(TaskPriority::cases())->mapWithKeys(fn (TaskPriority $p) => [$p->value => $p->label()]);
 
-        $activity->transform(function ($entry) use ($userNames, $statusLabels, $priorityLabels) {
+        $activity->transform(function (AuditEntry $entry) use ($userNames, $statusLabels, $priorityLabels) {
             foreach (['old_values', 'new_values'] as $key) {
-                $values = $entry->$key;
+                /** @var array<string, mixed>|null $values */
+                $values = $entry->getAttribute($key);
                 if (! is_array($values)) {
                     continue;
                 }
@@ -157,7 +160,7 @@ final class TaskController extends Controller
                 if (! empty($values['priority']) && $priorityLabels->has($values['priority'])) {
                     $values['priority'] = $priorityLabels[$values['priority']];
                 }
-                $entry->$key = $values;
+                $entry->setAttribute($key, $values);
             }
 
             return $entry;

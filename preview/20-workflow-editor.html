@@ -1,0 +1,264 @@
+<!DOCTYPE html>
+<html lang="cs">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Preview: Visual Workflow Editor</title>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+<style>
+:root {
+  --color-brand-primary: #f5a623; --color-brand-hover: #e09000; --color-brand-soft: #fff8eb;
+  --color-text-strong: #172b4d; --color-text-default: #42526e; --color-text-muted: #6b778c; --color-text-subtle: #97a0af; --color-text-on-brand: #fff;
+  --color-surface-canvas: #f4f5f7; --color-surface-panel: #fff; --color-surface-secondary: #fafbfc;
+  --color-border-subtle: #ebecf0; --color-border-default: #dfe1e6;
+  --color-status-success-bg: #e3fcef; --color-status-success-fg: #006644;
+  --color-status-info-bg: #deebff; --color-status-info-fg: #0747a6;
+  --font-sans: "Inter", -apple-system, sans-serif;
+  --font-size-xs: 0.6875rem; --font-size-sm: 0.75rem; --font-size-base: 0.875rem; --font-size-lg: 1.125rem;
+  --radius-md: 0.5rem; --radius-lg: 0.75rem;
+}
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+body { font-family: var(--font-sans); font-size: var(--font-size-base); color: var(--color-text-default); background: var(--color-surface-canvas); padding: 2rem; }
+
+.section-label { font-size: var(--font-size-xs); color: var(--color-text-subtle); margin-bottom: 1rem; text-transform: uppercase; letter-spacing: 0.05em; font-weight: 600; }
+
+.card { background: var(--color-surface-panel); border: 1px solid var(--color-border-subtle); border-radius: var(--radius-lg); padding: 1.5rem; margin-bottom: 1.5rem; }
+.card-title { font-size: var(--font-size-lg); font-weight: 600; color: var(--color-text-strong); margin-bottom: 0.25rem; display: flex; align-items: center; gap: 0.5rem; }
+.card-subtitle { font-size: var(--font-size-sm); color: var(--color-text-muted); margin-bottom: 1rem; }
+
+/* Toolbar */
+.editor-toolbar { display: flex; gap: 0.5rem; margin-bottom: 1rem; padding: 0.5rem 0.75rem; background: var(--color-surface-secondary); border: 1px solid var(--color-border-subtle); border-radius: var(--radius-md); }
+.toolbar-btn { padding: 0.375rem 0.75rem; border-radius: var(--radius-md); font-size: var(--font-size-xs); font-weight: 600; border: 1px solid var(--color-border-default); background: var(--color-surface-panel); color: var(--color-text-default); cursor: pointer; display: flex; align-items: center; gap: 0.375rem; }
+.toolbar-btn:hover { background: var(--color-brand-soft); border-color: var(--color-brand-primary); }
+.toolbar-btn-primary { background: var(--color-brand-primary); color: var(--color-text-on-brand); border-color: var(--color-brand-primary); }
+
+/* Canvas */
+.workflow-canvas { position: relative; width: 100%; height: 420px; background: var(--color-surface-secondary); border: 1px solid var(--color-border-subtle); border-radius: var(--radius-lg); overflow: hidden; background-image: radial-gradient(circle, #d0d0d0 1px, transparent 1px); background-size: 20px 20px; }
+
+/* Nodes */
+.wf-node { position: absolute; width: 140px; background: var(--color-surface-panel); border: 2px solid var(--color-border-default); border-radius: var(--radius-lg); padding: 0; cursor: grab; box-shadow: 0 2px 8px rgba(0,0,0,0.08); transition: box-shadow 0.15s; user-select: none; }
+.wf-node:hover { box-shadow: 0 4px 16px rgba(0,0,0,0.12); }
+.wf-node.selected { border-color: var(--color-brand-primary); box-shadow: 0 0 0 3px var(--color-brand-soft); }
+.wf-node-header { padding: 0.375rem 0.625rem; border-radius: var(--radius-lg) var(--radius-lg) 0 0; display: flex; align-items: center; gap: 0.375rem; }
+.wf-node-color { width: 0.625rem; height: 0.625rem; border-radius: 999px; flex-shrink: 0; }
+.wf-node-name { font-size: var(--font-size-sm); font-weight: 600; color: #fff; }
+.wf-node-body { padding: 0.375rem 0.625rem; font-size: var(--font-size-xs); color: var(--color-text-muted); }
+.wf-node-flag { display: inline-flex; padding: 0.05rem 0.3rem; border-radius: var(--radius-md); font-size: 0.55rem; font-weight: 700; letter-spacing: 0.04em; }
+.wf-node-count { font-size: var(--font-size-xs); color: var(--color-text-subtle); }
+
+/* Connection ports */
+.wf-port { position: absolute; width: 10px; height: 10px; background: var(--color-border-default); border: 2px solid var(--color-surface-panel); border-radius: 999px; cursor: crosshair; z-index: 2; }
+.wf-port:hover { background: var(--color-brand-primary); transform: scale(1.3); }
+.wf-port-right { right: -5px; top: 50%; transform: translateY(-50%); }
+.wf-port-left { left: -5px; top: 50%; transform: translateY(-50%); }
+
+/* SVG arrows */
+.workflow-canvas svg { position: absolute; top: 0; left: 0; width: 100%; height: 100%; pointer-events: none; }
+.arrow-line { stroke: var(--color-border-default); stroke-width: 2; fill: none; }
+.arrow-line:hover { stroke: var(--color-brand-primary); stroke-width: 3; }
+.arrow-head { fill: var(--color-border-default); }
+
+/* Node detail panel */
+.detail-panel { position: absolute; right: 0; top: 0; bottom: 0; width: 260px; background: var(--color-surface-panel); border-left: 1px solid var(--color-border-subtle); padding: 1rem; overflow-y: auto; z-index: 5; }
+.detail-title { font-size: var(--font-size-sm); font-weight: 600; color: var(--color-text-strong); margin-bottom: 0.75rem; }
+.detail-field { margin-bottom: 0.625rem; }
+.detail-label { font-size: var(--font-size-xs); font-weight: 600; text-transform: uppercase; letter-spacing: 0.05em; color: var(--color-text-subtle); margin-bottom: 0.25rem; }
+.detail-input { width: 100%; padding: 0.375rem 0.5rem; border: 1px solid var(--color-border-default); border-radius: var(--radius-md); font-size: var(--font-size-sm); }
+.detail-input:focus { outline: none; border-color: var(--color-brand-primary); box-shadow: 0 0 0 2px var(--color-brand-soft); }
+.detail-checkbox { display: flex; align-items: center; gap: 0.5rem; font-size: var(--font-size-sm); cursor: pointer; padding: 0.25rem 0; }
+.detail-checkbox input { accent-color: var(--color-brand-primary); }
+.detail-transitions { margin-top: 0.5rem; }
+.detail-transition-item { display: flex; align-items: center; justify-content: space-between; padding: 0.25rem 0; font-size: var(--font-size-xs); }
+.transition-arrow { color: var(--color-brand-primary); font-weight: 600; }
+.remove-transition { border: none; background: none; color: var(--color-text-subtle); cursor: pointer; font-size: var(--font-size-sm); }
+.remove-transition:hover { color: #bf2600; }
+
+.hint { font-size: var(--font-size-xs); color: var(--color-text-subtle); margin-top: 0.5rem; font-style: italic; }
+</style>
+</head>
+<body>
+
+<p class="section-label">PREVIEW: Visual Workflow Editor — drag & drop uzly, klikatelne spojnice</p>
+
+<div class="card" style="max-width: 64rem; padding: 1rem 1.5rem 1.5rem;">
+  <div class="card-title">&#9881; Workflow Editor</div>
+  <div class="card-subtitle">Pretahujte uzly pro usporadani. Tahnutim z portu (kolecko) na jiny uzel vytvorite prechod. Kliknutim na uzel ho editujte. Stav s flagem "Odkudkoliv" je dostupny ze vsech ostatnich stavu (prerušovany border).</div>
+
+  <!-- Toolbar -->
+  <div class="editor-toolbar">
+    <button class="toolbar-btn toolbar-btn-primary">+ Pridat stav</button>
+    <button class="toolbar-btn">&#8634; Reset na vychozi</button>
+    <span style="flex:1;"></span>
+    <span style="font-size:var(--font-size-xs); color:var(--color-text-subtle); display:flex; align-items:center;">6 stavu &middot; 10 prechodu</span>
+  </div>
+
+  <!-- Canvas -->
+  <div class="workflow-canvas">
+
+    <!-- SVG arrows (connections) -->
+    <svg>
+      <!-- Backlog → K zpracovani -->
+      <path d="M 175 80 C 220 80, 230 80, 265 80" class="arrow-line" marker-end="url(#arrowhead)"/>
+      <!-- Backlog → Zruseno (automaticky pres "odkudkoliv") -->
+      <!-- K zpracovani → V prubehu -->
+      <path d="M 405 80 C 450 80, 460 80, 495 80" class="arrow-line" marker-end="url(#arrowhead)"/>
+      <!-- K zpracovani → Backlog -->
+      <path d="M 265 95 C 220 95, 210 95, 175 95" class="arrow-line" marker-end="url(#arrowhead)"/>
+      <!-- V prubehu → Code Review -->
+      <path d="M 635 80 C 680 80, 500 190, 495 200" class="arrow-line" marker-end="url(#arrowhead)"/>
+      <!-- V prubehu → K zpracovani -->
+      <path d="M 495 95 C 450 95, 440 95, 405 95" class="arrow-line" marker-end="url(#arrowhead)"/>
+      <!-- Code Review → Hotovo -->
+      <path d="M 635 210 C 680 210, 680 210, 265 210" class="arrow-line" marker-end="url(#arrowhead)"/>
+      <!-- Code Review → V prubehu -->
+      <path d="M 495 195 C 450 150, 530 95, 565 80" class="arrow-line" marker-end="url(#arrowhead)"/>
+      <!-- Hotovo → V prubehu -->
+      <path d="M 255 195 C 400 160, 490 120, 565 95" class="arrow-line" marker-end="url(#arrowhead)"/>
+      <!-- Zruseno → Backlog -->
+      <path d="M 265 340 C 140 340, 100 200, 105 105" class="arrow-line" marker-end="url(#arrowhead)"/>
+
+      <defs>
+        <marker id="arrowhead" markerWidth="8" markerHeight="6" refX="8" refY="3" orient="auto">
+          <polygon points="0 0, 8 3, 0 6" class="arrow-head" fill="#97a0af"/>
+        </marker>
+      </defs>
+    </svg>
+
+    <!-- Nodes -->
+    <div class="wf-node" style="left:35px; top:55px; border-color:#97a0af;">
+      <div class="wf-node-header" style="background:#97a0af;">
+        <span class="wf-node-name">Backlog</span>
+      </div>
+      <div class="wf-node-body">
+        <span class="wf-node-flag" style="background:var(--color-status-info-bg); color:var(--color-status-info-fg);">VYCHOZI</span>
+        <span class="wf-node-count">&middot; 3 ukoly</span>
+      </div>
+      <div class="wf-port wf-port-right"></div>
+      <div class="wf-port wf-port-left"></div>
+    </div>
+
+    <div class="wf-node" style="left:265px; top:55px; border-color:#4c9aff;">
+      <div class="wf-node-header" style="background:#4c9aff;">
+        <span class="wf-node-name">K zpracovani</span>
+      </div>
+      <div class="wf-node-body">
+        <span class="wf-node-count">2 ukoly</span>
+      </div>
+      <div class="wf-port wf-port-right"></div>
+      <div class="wf-port wf-port-left"></div>
+    </div>
+
+    <div class="wf-node selected" style="left:495px; top:55px; border-color:#0065ff;">
+      <div class="wf-node-header" style="background:#0065ff;">
+        <span class="wf-node-name">V prubehu</span>
+      </div>
+      <div class="wf-node-body">
+        <span class="wf-node-count">2 ukoly</span>
+      </div>
+      <div class="wf-port wf-port-right"></div>
+      <div class="wf-port wf-port-left"></div>
+    </div>
+
+    <div class="wf-node" style="left:495px; top:175px; border-color:#8777d9;">
+      <div class="wf-node-header" style="background:#8777d9;">
+        <span class="wf-node-name">Code Review</span>
+      </div>
+      <div class="wf-node-body">
+        <span class="wf-node-count">1 ukol</span>
+      </div>
+      <div class="wf-port wf-port-right"></div>
+      <div class="wf-port wf-port-left"></div>
+    </div>
+
+    <div class="wf-node" style="left:115px; top:175px; border-color:#36b37e;">
+      <div class="wf-node-header" style="background:#36b37e;">
+        <span class="wf-node-name">Hotovo</span>
+      </div>
+      <div class="wf-node-body">
+        <span class="wf-node-flag" style="background:var(--color-status-success-bg); color:var(--color-status-success-fg);">HOTOVO</span>
+        <span class="wf-node-count">&middot; 4 ukoly</span>
+      </div>
+      <div class="wf-port wf-port-right"></div>
+      <div class="wf-port wf-port-left"></div>
+    </div>
+
+    <div class="wf-node" style="left:265px; top:320px; border-color:#97a0af; border-style:dashed;">
+      <div class="wf-node-header" style="background:#6b778c;">
+        <span class="wf-node-name">Zruseno</span>
+      </div>
+      <div class="wf-node-body">
+        <span class="wf-node-flag" style="background:#dfe1e6; color:var(--color-text-muted);">ZRUSENO</span>
+        <span class="wf-node-flag" style="background:var(--color-brand-soft); color:var(--color-brand-hover); margin-left:0.25rem;">&#x21E6; ODKUDKOLIV</span>
+        <br>
+        <span class="wf-node-count">0 ukolu</span>
+      </div>
+      <div class="wf-port wf-port-right"></div>
+      <div class="wf-port wf-port-left"></div>
+    </div>
+
+    <!-- Detail panel (shown when node selected) -->
+    <div class="detail-panel">
+      <div class="detail-title">Editace stavu: V prubehu</div>
+
+      <div class="detail-field">
+        <div class="detail-label">Nazev</div>
+        <input class="detail-input" value="V prubehu">
+      </div>
+
+      <div class="detail-field">
+        <div class="detail-label">Barva</div>
+        <input type="color" value="#0065ff" style="width:100%; height:2rem; border:1px solid var(--color-border-default); border-radius:var(--radius-md); cursor:pointer;">
+      </div>
+
+      <div class="detail-field">
+        <div class="detail-label">Flagy</div>
+        <label class="detail-checkbox"><input type="checkbox"> Vychozi stav (pro nove ukoly)</label>
+        <label class="detail-checkbox"><input type="checkbox"> Hotovo (pro progress)</label>
+        <label class="detail-checkbox"><input type="checkbox"> Zruseno</label>
+        <label class="detail-checkbox"><input type="checkbox"> Prechod odkudkoliv (globalní cíl)</label>
+      </div>
+
+      <div class="detail-field">
+        <div class="detail-label">Prechody z tohoto stavu</div>
+        <div class="detail-transitions">
+          <div class="detail-transition-item">
+            <span><span class="transition-arrow">&#8594;</span> K zpracovani</span>
+            <button class="remove-transition">&#x2715;</button>
+          </div>
+          <div class="detail-transition-item">
+            <span><span class="transition-arrow">&#8594;</span> Code Review</span>
+            <button class="remove-transition">&#x2715;</button>
+          </div>
+          <div class="detail-transition-item">
+            <span><span class="transition-arrow">&#8594;</span> Zruseno</span>
+            <button class="remove-transition">&#x2715;</button>
+          </div>
+        </div>
+      </div>
+
+      <div class="detail-field">
+        <div class="detail-label">Prechody do tohoto stavu</div>
+        <div class="detail-transitions">
+          <div class="detail-transition-item">
+            <span><span class="transition-arrow">&#8592;</span> K zpracovani</span>
+          </div>
+          <div class="detail-transition-item">
+            <span><span class="transition-arrow">&#8592;</span> Code Review</span>
+          </div>
+          <div class="detail-transition-item">
+            <span><span class="transition-arrow">&#8592;</span> Hotovo</span>
+          </div>
+        </div>
+      </div>
+
+      <div style="margin-top:0.75rem;">
+        <button style="width:100%; padding:0.375rem; border-radius:var(--radius-md); font-size:var(--font-size-xs); font-weight:600; border:1px solid rgba(191,38,0,0.3); background:transparent; color:#bf2600; cursor:pointer;">Smazat stav</button>
+      </div>
+
+      <div class="hint">Tahnutim z portu (kolecko na boku) na jiny uzel vytvorite novy prechod.</div>
+    </div>
+  </div>
+</div>
+
+</body>
+</html>

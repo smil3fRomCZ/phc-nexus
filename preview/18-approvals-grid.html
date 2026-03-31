@@ -1,0 +1,114 @@
+<!DOCTYPE html>
+<html lang="cs">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Preview: Schvalovani — datovy grid s filtrem</title>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+<style>
+:root {
+  --color-brand-primary: #f5a623; --color-brand-hover: #e09000; --color-brand-soft: #fff8eb;
+  --color-text-strong: #172b4d; --color-text-default: #42526e; --color-text-muted: #6b778c; --color-text-subtle: #97a0af; --color-text-on-brand: #fff;
+  --color-surface-canvas: #f4f5f7; --color-surface-panel: #fff;
+  --color-border-subtle: #ebecf0; --color-border-default: #dfe1e6;
+  --color-status-success-bg: #e3fcef; --color-status-success-fg: #006644;
+  --color-status-warning-bg: #fff0b3; --color-status-warning-fg: #974f0c;
+  --color-status-danger-bg: #ffebe6; --color-status-danger-fg: #bf2600;
+  --color-status-neutral-bg: #dfe1e6; --color-status-neutral-fg: #42526e;
+  --font-sans: "Inter", -apple-system, sans-serif;
+  --font-size-xs: 0.6875rem; --font-size-sm: 0.75rem; --font-size-base: 0.875rem;
+  --radius-md: 0.5rem; --radius-lg: 0.75rem;
+}
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+body { font-family: var(--font-sans); font-size: var(--font-size-base); color: var(--color-text-default); background: var(--color-surface-canvas); padding: 2rem; }
+
+.filter-bar { display: flex; gap: 0.5rem; margin-bottom: 1rem; }
+.filter-select { height: 2rem; padding: 0 0.75rem; border: 1px solid var(--color-border-default); border-radius: var(--radius-md); font-size: var(--font-size-sm); background: var(--color-surface-panel); cursor: pointer; }
+
+.data-table { width: 100%; border-collapse: collapse; background: var(--color-surface-panel); border: 1px solid var(--color-border-subtle); border-radius: var(--radius-lg); overflow: hidden; }
+.data-table th { text-align: left; padding: 0.5rem 1rem; font-size: var(--font-size-xs); font-weight: 600; text-transform: uppercase; letter-spacing: 0.05em; color: var(--color-text-subtle); border-bottom: 2px solid var(--color-border-subtle); cursor: pointer; }
+.data-table th:hover { color: var(--color-text-default); }
+.data-table td { padding: 0.625rem 1rem; font-size: var(--font-size-sm); border-bottom: 1px solid var(--color-border-subtle); }
+.data-table tbody tr { cursor: pointer; transition: background 0.15s; }
+.data-table tbody tr:hover { background: var(--color-brand-soft); }
+
+.badge { display: inline-flex; padding: 0.125rem 0.5rem; border-radius: 999px; font-size: var(--font-size-xs); font-weight: 600; }
+.badge-warning { background: var(--color-status-warning-bg); color: var(--color-status-warning-fg); }
+.badge-success { background: var(--color-status-success-bg); color: var(--color-status-success-fg); }
+.badge-danger { background: var(--color-status-danger-bg); color: var(--color-status-danger-fg); }
+.badge-neutral { background: var(--color-status-neutral-bg); color: var(--color-status-neutral-fg); }
+
+.section-label { font-size: var(--font-size-xs); color: var(--color-text-subtle); margin-bottom: 1rem; text-transform: uppercase; letter-spacing: 0.05em; font-weight: 600; }
+</style>
+</head>
+<body>
+
+<p class="section-label">PREVIEW: Schvalovani — datovy grid s filtrem stavu</p>
+
+<div class="filter-bar">
+  <select class="filter-select">
+    <option>Vsechny stavy</option>
+    <option selected>Ceka na schvaleni</option>
+    <option>Schvaleno</option>
+    <option>Zamitnuto</option>
+    <option>Zruseno</option>
+  </select>
+</div>
+
+<table class="data-table">
+  <thead>
+    <tr>
+      <th>Stav</th>
+      <th>Popis</th>
+      <th>Zadatel</th>
+      <th>Hlasy</th>
+      <th>Vytvoreno</th>
+      <th>Vyprsi</th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr>
+      <td><span class="badge badge-warning">Ceka</span></td>
+      <td>Schvaleni nasazeni v2.1</td>
+      <td>Jan Melicherik</td>
+      <td>1/3 hlasu</td>
+      <td>31.03.2026</td>
+      <td>05.04.2026</td>
+    </tr>
+    <tr>
+      <td><span class="badge badge-warning">Ceka</span></td>
+      <td>Zmena priority RBAC</td>
+      <td>Petr Novak</td>
+      <td>0/2 hlasu</td>
+      <td>30.03.2026</td>
+      <td>03.04.2026</td>
+    </tr>
+    <tr>
+      <td><span class="badge badge-success">Schvaleno</span></td>
+      <td>Release kandidat SSO</td>
+      <td>Jan Melicherik</td>
+      <td>3/3 hlasu</td>
+      <td>28.03.2026</td>
+      <td>&mdash;</td>
+    </tr>
+    <tr>
+      <td><span class="badge badge-danger">Zamitnuto</span></td>
+      <td>Zmena architektury cache</td>
+      <td>Jana Svobodova</td>
+      <td>1/2 hlasu</td>
+      <td>25.03.2026</td>
+      <td>&mdash;</td>
+    </tr>
+    <tr>
+      <td><span class="badge badge-neutral">Zruseno</span></td>
+      <td>Migrace databaze</td>
+      <td>Petr Novak</td>
+      <td>0/1 hlasu</td>
+      <td>20.03.2026</td>
+      <td>&mdash;</td>
+    </tr>
+  </tbody>
+</table>
+
+</body>
+</html>

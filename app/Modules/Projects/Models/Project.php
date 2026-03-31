@@ -11,6 +11,7 @@ use App\Models\Concerns\HasPhiClassification;
 use App\Models\Concerns\HasUuidV7;
 use App\Models\User;
 use App\Modules\Organization\Models\Team;
+use App\Modules\Projects\Enums\BenefitType;
 use App\Modules\Projects\Enums\ProjectStatus;
 use App\Modules\Work\Models\Epic;
 use App\Modules\Work\Models\Task;
@@ -37,6 +38,9 @@ class Project extends Model
         'team_id',
         'start_date',
         'target_date',
+        'benefit_type',
+        'benefit_amount',
+        'benefit_note',
     ];
 
     protected function casts(): array
@@ -45,6 +49,8 @@ class Project extends Model
             'status' => ProjectStatus::class,
             'start_date' => 'date',
             'target_date' => 'date',
+            'benefit_type' => BenefitType::class,
+            'benefit_amount' => 'decimal:2',
         ];
     }
 

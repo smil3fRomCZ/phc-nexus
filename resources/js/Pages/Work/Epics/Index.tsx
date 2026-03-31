@@ -1,11 +1,13 @@
 import EmptyState from '@/Components/EmptyState';
 import StatusBadge from '@/Components/StatusBadge';
 import { EPIC_STATUS } from '@/constants/status';
+import { getPriority } from '@/constants/priority';
 import AppLayout from '@/Layouts/AppLayout';
 import type { Breadcrumb } from '@/Layouts/AppLayout';
 import { displayKey } from '@/utils/displayKey';
+import { formatDate } from '@/utils/formatDate';
 import { Link, useForm } from '@inertiajs/react';
-import { Plus, Layers } from 'lucide-react';
+import { Plus } from 'lucide-react';
 import ProjectTabs from '@/Components/ProjectTabs';
 import type { FormEvent } from 'react';
 
@@ -14,9 +16,12 @@ interface Epic {
     number: number;
     title: string;
     status: string;
+    priority: string;
     owner: { id: string; name: string } | null;
     tasks_count: number;
     sort_order: number;
+    start_date: string | null;
+    target_date: string | null;
 }
 
 interface Props {
@@ -29,7 +34,7 @@ export default function EpicsIndex({ project, epics }: Props) {
         { label: 'Domů', href: '/' },
         { label: 'Projekty', href: '/projects' },
         { label: project.name, href: `/projects/${project.id}` },
-        { label: 'EPIC' },
+        { label: 'Epic' },
     ];
 
     const { data, setData, post, processing, reset, errors } = useForm({
@@ -43,57 +48,91 @@ export default function EpicsIndex({ project, epics }: Props) {
     }
 
     return (
-        <AppLayout title={`${project.key} — Epics`} breadcrumbs={breadcrumbs}>
+        <AppLayout title={`${project.key} — Epic`} breadcrumbs={breadcrumbs}>
             <div className="mb-6">
                 <ProjectTabs projectId={project.id} active="epics" />
             </div>
 
             {/* Quick add */}
-            <form onSubmit={submit} className="mb-6 flex gap-2">
+            <form onSubmit={submit} className="mb-4 flex gap-2">
+                <Plus className="mt-2.5 h-4 w-4 flex-shrink-0 text-text-muted" />
                 <input
                     type="text"
                     value={data.title}
                     onChange={(e) => setData('title', e.target.value)}
-                    placeholder="Název nového EPIC..."
-                    className="flex-1 rounded-md border border-border-default bg-surface-primary px-3 py-2 text-base focus:border-border-focus focus:outline-none focus:shadow-[0_0_0_2px_var(--color-brand-soft)]"
+                    placeholder="Název nového Epicu..."
+                    className="flex-1 rounded-md border border-border-default bg-surface-primary px-3 py-2 text-sm focus:border-border-focus focus:outline-none focus:shadow-[0_0_0_2px_var(--color-brand-soft)]"
                 />
                 <button
                     type="submit"
                     disabled={processing || !data.title}
-                    className="inline-flex items-center gap-2 rounded-md bg-brand-primary px-4 py-2 text-sm font-medium text-text-inverse transition-colors hover:bg-brand-hover disabled:opacity-50"
+                    className="rounded-md bg-brand-primary px-4 py-2 text-xs font-semibold text-text-inverse transition-colors hover:bg-brand-hover disabled:opacity-50"
                 >
-                    <Plus className="h-3.5 w-3.5" strokeWidth={2.5} />
                     Přidat
                 </button>
             </form>
             {errors.title && <p className="mb-4 text-xs text-status-danger">{errors.title}</p>}
 
-            {/* Epic list */}
-            <div className="space-y-2">
-                {epics.map((epic) => (
-                    <div
-                        key={epic.id}
-                        className="flex items-center justify-between rounded-lg border border-border-subtle bg-surface-primary px-5 py-3 transition-colors hover:bg-brand-soft"
-                    >
-                        <div className="flex items-center gap-3">
-                            <StatusBadge statusMap={EPIC_STATUS} value={epic.status} />
-                            <Link
-                                href={`/projects/${project.id}/epics/${epic.id}`}
-                                className="text-base font-medium text-text-strong no-underline hover:text-brand-primary"
+            {/* Data grid */}
+            <div className="overflow-hidden rounded-lg border border-border-subtle bg-surface-primary">
+                <table className="w-full border-collapse">
+                    <thead>
+                        <tr>
+                            {['Klíč', 'Název', 'Stav', 'Priorita', 'Vlastník', 'Úkoly', 'Start', 'Cíl'].map(
+                                (header) => (
+                                    <th
+                                        key={header}
+                                        className="border-b-2 border-border-subtle px-4 py-2 text-left text-xs font-semibold uppercase tracking-wider text-text-subtle"
+                                    >
+                                        {header}
+                                    </th>
+                                ),
+                            )}
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {epics.map((epic) => (
+                            <tr
+                                key={epic.id}
+                                className="cursor-pointer transition-colors hover:bg-brand-soft"
+                                onClick={() => (window.location.href = `/projects/${project.id}/epics/${epic.id}`)}
                             >
-                                <span className="mr-1.5 text-xs font-semibold text-text-muted">
+                                <td className="border-b border-border-subtle px-4 py-2.5 font-mono text-xs font-semibold text-text-muted">
                                     {displayKey(project.key, epic.number)}
-                                </span>
-                                {epic.title}
-                            </Link>
-                        </div>
-                        <div className="flex items-center gap-4 text-sm text-text-muted">
-                            {epic.owner && <span>{epic.owner.name}</span>}
-                            <span>{epic.tasks_count} úkolů</span>
-                        </div>
-                    </div>
-                ))}
-                {epics.length === 0 && <EmptyState icon={Layers} message="Zatím žádné EPIC. Přidejte první." />}
+                                </td>
+                                <td className="border-b border-border-subtle px-4 py-2.5">
+                                    <Link
+                                        href={`/projects/${project.id}/epics/${epic.id}`}
+                                        className="text-sm font-medium text-text-strong no-underline hover:text-brand-primary"
+                                    >
+                                        {epic.title}
+                                    </Link>
+                                </td>
+                                <td className="border-b border-border-subtle px-4 py-2.5">
+                                    <StatusBadge statusMap={EPIC_STATUS} value={epic.status} />
+                                </td>
+                                <td
+                                    className={`border-b border-border-subtle px-4 py-2.5 text-xs font-semibold ${getPriority(epic.priority).textClass}`}
+                                >
+                                    {getPriority(epic.priority).label}
+                                </td>
+                                <td className="border-b border-border-subtle px-4 py-2.5 text-sm text-text-muted">
+                                    {epic.owner?.name ?? '\u2014'}
+                                </td>
+                                <td className="border-b border-border-subtle px-4 py-2.5 text-xs text-text-muted">
+                                    {epic.tasks_count} úkolů
+                                </td>
+                                <td className="border-b border-border-subtle px-4 py-2.5 text-sm text-text-muted">
+                                    {epic.start_date ? formatDate(epic.start_date) : '\u2014'}
+                                </td>
+                                <td className="border-b border-border-subtle px-4 py-2.5 text-sm text-text-muted">
+                                    {epic.target_date ? formatDate(epic.target_date) : '\u2014'}
+                                </td>
+                            </tr>
+                        ))}
+                        {epics.length === 0 && <EmptyState message="Zatím žádné epicy. Přidejte první." colSpan={8} />}
+                    </tbody>
+                </table>
             </div>
         </AppLayout>
     );

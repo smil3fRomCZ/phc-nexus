@@ -4,10 +4,10 @@ import AttachmentsSection from '@/Components/AttachmentsSection';
 import type { Attachment } from '@/Components/AttachmentsSection';
 import Avatar from '@/Components/Avatar';
 import StatusBadge from '@/Components/StatusBadge';
-import { EPIC_STATUS } from '@/constants/status';
+import { EPIC_STATUS, TASK_STATUS } from '@/constants/status';
+import { getPriority } from '@/constants/priority';
 import AppLayout from '@/Layouts/AppLayout';
 import type { Breadcrumb } from '@/Layouts/AppLayout';
-import { TASK_STATUS } from '@/constants/status';
 import { displayKey } from '@/utils/displayKey';
 import { formatDate } from '@/utils/formatDate';
 import { Link, router, useForm } from '@inertiajs/react';
@@ -19,6 +19,8 @@ interface Task {
     number: number;
     title: string;
     status: string;
+    priority: string;
+    due_date: string | null;
     assignee: { id: string; name: string } | null;
 }
 
@@ -28,7 +30,10 @@ interface Epic {
     title: string;
     description: string | null;
     status: string;
+    priority: string;
     owner: { id: string; name: string } | null;
+    pm: { id: string; name: string } | null;
+    lead_developer: { id: string; name: string } | null;
     tasks: Task[];
     tasks_count: number;
     root_comments: Comment[];
@@ -56,10 +61,28 @@ interface Props {
     epic: Epic;
     members: Member[];
     statuses: SelectOption[];
+    priorities: SelectOption[];
 }
 
-export default function EpicShow({ project, epic, members, statuses }: Props) {
+export default function EpicShow({ project, epic, members, statuses, priorities = [] }: Props) {
     const [editing, setEditing] = useState(false);
+
+    function inlineUpdate(fields: Record<string, unknown>) {
+        router.put(
+            `/projects/${project.id}/epics/${epic.id}`,
+            {
+                title: epic.title,
+                description: epic.description ?? '',
+                status: epic.status,
+                priority: epic.priority,
+                owner_id: epic.owner?.id ?? '',
+                pm_id: epic.pm?.id ?? '',
+                lead_developer_id: epic.lead_developer?.id ?? '',
+                ...fields,
+            },
+            { preserveScroll: true },
+        );
+    }
 
     const doneCount = epic.tasks.filter((t) => t.status === 'done').length;
     const progress = epic.tasks_count > 0 ? Math.round((doneCount / epic.tasks_count) * 100) : 0;
@@ -68,7 +91,7 @@ export default function EpicShow({ project, epic, members, statuses }: Props) {
         { label: 'Domů', href: '/' },
         { label: 'Projekty', href: '/projects' },
         { label: project.name, href: `/projects/${project.id}` },
-        { label: 'EPIC', href: `/projects/${project.id}/epics` },
+        { label: 'Epic', href: `/projects/${project.id}/epics` },
         { label: displayKey(project.key, epic.number) },
     ];
 
@@ -95,7 +118,7 @@ export default function EpicShow({ project, epic, members, statuses }: Props) {
                                 </button>
                                 <button
                                     onClick={() => {
-                                        if (confirm('Opravdu chcete smazat tento EPIC? Tuto akci nelze vrátit.')) {
+                                        if (confirm('Opravdu chcete smazat tento Epic? Tuto akci nelze vrátit.')) {
                                             router.delete(`/projects/${project.id}/epics/${epic.id}`);
                                         }
                                     }}
@@ -137,6 +160,7 @@ export default function EpicShow({ project, epic, members, statuses }: Props) {
                             epic={epic}
                             members={members}
                             statuses={statuses}
+                            priorities={priorities}
                             onClose={() => setEditing(false)}
                         />
                     )}
@@ -171,32 +195,64 @@ export default function EpicShow({ project, epic, members, statuses }: Props) {
                         <QuickAddTask projectId={project.id} epicId={epic.id} />
 
                         {epic.tasks.length > 0 && (
-                            <div className="mt-2 space-y-1">
-                                {epic.tasks.map((task) => (
-                                    <Link
-                                        key={task.id}
-                                        href={`/projects/${project.id}/tasks/${task.id}`}
-                                        className="flex cursor-pointer items-center justify-between rounded-md border border-border-subtle px-4 py-2 text-sm no-underline transition-colors hover:bg-brand-soft"
-                                    >
-                                        <div className="flex items-center gap-2">
-                                            <StatusBadge statusMap={TASK_STATUS} value={task.status} />
-                                            <span className="font-medium text-text-strong">
-                                                <span className="mr-1.5 text-xs font-semibold text-text-muted">
-                                                    {displayKey(project.key, task.number)}
-                                                </span>
-                                                {task.title}
-                                            </span>
-                                        </div>
-                                        <span className="text-text-muted">
-                                            {task.assignee ? (
-                                                <Avatar name={task.assignee.name} size="sm" />
-                                            ) : (
-                                                'Nepřiřazeno'
-                                            )}
-                                        </span>
-                                    </Link>
-                                ))}
-                            </div>
+                            <table className="mt-2 w-full border-collapse">
+                                <thead>
+                                    <tr>
+                                        {['Klíč', 'Název', 'Stav', 'Priorita', 'Řešitel', 'Termín'].map((h) => (
+                                            <th
+                                                key={h}
+                                                className="border-b-2 border-border-subtle px-3 py-2 text-left text-xs font-semibold uppercase tracking-wider text-text-subtle"
+                                            >
+                                                {h}
+                                            </th>
+                                        ))}
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    {epic.tasks.map((task) => (
+                                        <tr
+                                            key={task.id}
+                                            className="cursor-pointer transition-colors hover:bg-brand-soft"
+                                            onClick={() =>
+                                                (window.location.href = `/projects/${project.id}/tasks/${task.id}`)
+                                            }
+                                        >
+                                            <td className="border-b border-border-subtle px-3 py-2 font-mono text-xs font-semibold text-text-muted">
+                                                {displayKey(project.key, task.number)}
+                                            </td>
+                                            <td className="border-b border-border-subtle px-3 py-2">
+                                                <Link
+                                                    href={`/projects/${project.id}/tasks/${task.id}`}
+                                                    className="text-sm font-medium text-text-strong no-underline hover:text-brand-primary"
+                                                >
+                                                    {task.title}
+                                                </Link>
+                                            </td>
+                                            <td className="border-b border-border-subtle px-3 py-2">
+                                                <StatusBadge statusMap={TASK_STATUS} value={task.status} />
+                                            </td>
+                                            <td
+                                                className={`border-b border-border-subtle px-3 py-2 text-xs font-semibold ${getPriority(task.priority).textClass}`}
+                                            >
+                                                {getPriority(task.priority).label}
+                                            </td>
+                                            <td className="border-b border-border-subtle px-3 py-2 text-sm text-text-muted">
+                                                {task.assignee ? (
+                                                    <div className="flex items-center gap-1.5">
+                                                        <Avatar name={task.assignee.name} size="sm" />
+                                                        <span>{task.assignee.name}</span>
+                                                    </div>
+                                                ) : (
+                                                    '\u2014'
+                                                )}
+                                            </td>
+                                            <td className="border-b border-border-subtle px-3 py-2 text-sm text-text-muted">
+                                                {task.due_date ? formatDate(task.due_date) : '\u2014'}
+                                            </td>
+                                        </tr>
+                                    ))}
+                                </tbody>
+                            </table>
                         )}
 
                         {epic.tasks.length === 0 && (
@@ -217,27 +273,85 @@ export default function EpicShow({ project, epic, members, statuses }: Props) {
                 {/* ── Right Sidebar ── */}
                 <div className="w-72 flex-shrink-0">
                     <div className="sticky top-20 space-y-0 rounded-lg border border-border-subtle bg-surface-primary p-5">
-                        {/* Group: Status */}
-                        <div className="pb-4 mb-4 border-b border-border-subtle">
-                            <div className="mb-1 text-xs font-semibold uppercase tracking-wider text-text-subtle">
-                                Stav
+                        {/* Group: Status + Priority */}
+                        <div className="pb-4 mb-4 border-b border-border-subtle space-y-4">
+                            <div>
+                                <div className="mb-1 text-xs font-semibold uppercase tracking-wider text-text-subtle">
+                                    Stav
+                                </div>
+                                <StatusBadge statusMap={EPIC_STATUS} value={epic.status} />
                             </div>
-                            <StatusBadge statusMap={EPIC_STATUS} value={epic.status} />
+                            <div>
+                                <div className="mb-1 text-xs font-semibold uppercase tracking-wider text-text-subtle">
+                                    Priorita
+                                </div>
+                                <select
+                                    value={epic.priority}
+                                    onChange={(e) => inlineUpdate({ priority: e.target.value })}
+                                    className="w-full rounded border border-transparent bg-transparent px-0 py-0.5 text-sm font-medium transition-colors hover:border-border-default focus:border-border-focus focus:outline-none"
+                                >
+                                    {priorities.map((p) => (
+                                        <option key={p.value} value={p.value}>
+                                            {p.label}
+                                        </option>
+                                    ))}
+                                </select>
+                            </div>
                         </div>
 
                         {/* Group: People */}
-                        <div className="pb-4 mb-4 border-b border-border-subtle">
-                            <div className="mb-1 text-xs font-semibold uppercase tracking-wider text-text-subtle">
-                                Vlastník
-                            </div>
-                            {epic.owner ? (
-                                <div className="flex items-center gap-2">
-                                    <Avatar name={epic.owner.name} />
-                                    <span className="text-sm text-text-default">{epic.owner.name}</span>
+                        <div className="pb-4 mb-4 border-b border-border-subtle space-y-4">
+                            <div>
+                                <div className="mb-1 text-xs font-semibold uppercase tracking-wider text-text-subtle">
+                                    Vlastník
                                 </div>
-                            ) : (
-                                <span className="text-sm text-text-muted">{'\u2014'}</span>
-                            )}
+                                <select
+                                    value={epic.owner?.id ?? ''}
+                                    onChange={(e) => inlineUpdate({ owner_id: e.target.value || null })}
+                                    className="w-full rounded border border-transparent bg-transparent px-0 py-0.5 text-sm transition-colors hover:border-border-default focus:border-border-focus focus:outline-none"
+                                >
+                                    <option value="">Nepřiřazeno</option>
+                                    {members.map((m) => (
+                                        <option key={m.id} value={m.id}>
+                                            {m.name}
+                                        </option>
+                                    ))}
+                                </select>
+                            </div>
+                            <div>
+                                <div className="mb-1 text-xs font-semibold uppercase tracking-wider text-text-subtle">
+                                    PM
+                                </div>
+                                <select
+                                    value={epic.pm?.id ?? ''}
+                                    onChange={(e) => inlineUpdate({ pm_id: e.target.value || null })}
+                                    className="w-full rounded border border-transparent bg-transparent px-0 py-0.5 text-sm transition-colors hover:border-border-default focus:border-border-focus focus:outline-none"
+                                >
+                                    <option value="">Nepřiřazeno</option>
+                                    {members.map((m) => (
+                                        <option key={m.id} value={m.id}>
+                                            {m.name}
+                                        </option>
+                                    ))}
+                                </select>
+                            </div>
+                            <div>
+                                <div className="mb-1 text-xs font-semibold uppercase tracking-wider text-text-subtle">
+                                    Lead Developer
+                                </div>
+                                <select
+                                    value={epic.lead_developer?.id ?? ''}
+                                    onChange={(e) => inlineUpdate({ lead_developer_id: e.target.value || null })}
+                                    className="w-full rounded border border-transparent bg-transparent px-0 py-0.5 text-sm transition-colors hover:border-border-default focus:border-border-focus focus:outline-none"
+                                >
+                                    <option value="">Nepřiřazeno</option>
+                                    {members.map((m) => (
+                                        <option key={m.id} value={m.id}>
+                                            {m.name}
+                                        </option>
+                                    ))}
+                                </select>
+                            </div>
                         </div>
 
                         {/* Group: Context */}
@@ -327,19 +441,24 @@ function EpicEditDialog({
     epic,
     members,
     statuses,
+    priorities,
     onClose,
 }: {
     project: { id: string };
     epic: Epic;
     members: Member[];
     statuses: SelectOption[];
+    priorities: SelectOption[];
     onClose: () => void;
 }) {
     const { data, setData, put, processing, errors } = useForm({
         title: epic.title,
         description: epic.description ?? '',
         status: epic.status,
+        priority: epic.priority ?? 'medium',
         owner_id: epic.owner?.id ?? '',
+        pm_id: epic.pm?.id ?? '',
+        lead_developer_id: epic.lead_developer?.id ?? '',
     });
 
     function submit(e: FormEvent) {
@@ -353,7 +472,7 @@ function EpicEditDialog({
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50">
             <div className="w-full max-w-lg rounded-lg border border-border-subtle bg-surface-primary p-6 shadow-xl">
                 <div className="mb-4 flex items-center justify-between">
-                    <h2 className="text-lg font-semibold text-text-strong">Upravit EPIC</h2>
+                    <h2 className="text-lg font-semibold text-text-strong">Upravit Epic</h2>
                     <button onClick={onClose} className="rounded p-1 text-text-muted hover:bg-surface-hover">
                         <X className="h-4 w-4" />
                     </button>
@@ -400,6 +519,23 @@ function EpicEditDialog({
                         </div>
 
                         <div>
+                            <label className="block text-xs font-medium text-text-default">Priorita</label>
+                            <select
+                                value={data.priority}
+                                onChange={(e) => setData('priority', e.target.value)}
+                                className="mt-1 w-full rounded-md border border-border-default bg-surface-primary px-3 py-2 text-sm focus:border-border-focus focus:outline-none focus:shadow-[0_0_0_2px_var(--color-brand-soft)]"
+                            >
+                                {priorities.map((p) => (
+                                    <option key={p.value} value={p.value}>
+                                        {p.label}
+                                    </option>
+                                ))}
+                            </select>
+                        </div>
+                    </div>
+
+                    <div className="grid grid-cols-3 gap-4">
+                        <div>
                             <label className="block text-xs font-medium text-text-default">Vlastník</label>
                             <select
                                 value={data.owner_id}
@@ -413,7 +549,38 @@ function EpicEditDialog({
                                     </option>
                                 ))}
                             </select>
-                            {errors.owner_id && <p className="mt-1 text-xs text-status-danger">{errors.owner_id}</p>}
+                        </div>
+
+                        <div>
+                            <label className="block text-xs font-medium text-text-default">PM</label>
+                            <select
+                                value={data.pm_id}
+                                onChange={(e) => setData('pm_id', e.target.value)}
+                                className="mt-1 w-full rounded-md border border-border-default bg-surface-primary px-3 py-2 text-sm focus:border-border-focus focus:outline-none focus:shadow-[0_0_0_2px_var(--color-brand-soft)]"
+                            >
+                                <option value="">—</option>
+                                {members.map((m) => (
+                                    <option key={m.id} value={m.id}>
+                                        {m.name}
+                                    </option>
+                                ))}
+                            </select>
+                        </div>
+
+                        <div>
+                            <label className="block text-xs font-medium text-text-default">Lead Developer</label>
+                            <select
+                                value={data.lead_developer_id}
+                                onChange={(e) => setData('lead_developer_id', e.target.value)}
+                                className="mt-1 w-full rounded-md border border-border-default bg-surface-primary px-3 py-2 text-sm focus:border-border-focus focus:outline-none focus:shadow-[0_0_0_2px_var(--color-brand-soft)]"
+                            >
+                                <option value="">—</option>
+                                {members.map((m) => (
+                                    <option key={m.id} value={m.id}>
+                                        {m.name}
+                                    </option>
+                                ))}
+                            </select>
                         </div>
                     </div>
 

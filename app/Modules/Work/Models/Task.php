@@ -10,6 +10,7 @@ use App\Models\Concerns\HasComments;
 use App\Models\Concerns\HasPhiClassification;
 use App\Models\Concerns\HasUuidV7;
 use App\Models\User;
+use App\Modules\Projects\Enums\BenefitType;
 use App\Modules\Projects\Models\Project;
 use App\Modules\Work\Enums\RecurrenceRule;
 use App\Modules\Work\Enums\TaskPriority;
@@ -42,6 +43,9 @@ class Task extends Model
         'recurrence_rule',
         'recurrence_next_at',
         'recurrence_source_id',
+        'benefit_type',
+        'benefit_amount',
+        'benefit_note',
     ];
 
     protected function casts(): array
@@ -52,6 +56,8 @@ class Task extends Model
             'due_date' => 'date',
             'recurrence_rule' => RecurrenceRule::class,
             'recurrence_next_at' => 'date',
+            'benefit_type' => BenefitType::class,
+            'benefit_amount' => 'decimal:2',
         ];
     }
 

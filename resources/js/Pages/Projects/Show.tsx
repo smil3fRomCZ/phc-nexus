@@ -2,7 +2,7 @@ import AppLayout from '@/Layouts/AppLayout';
 import type { Breadcrumb } from '@/Layouts/AppLayout';
 import Avatar from '@/Components/Avatar';
 import StatusBadge from '@/Components/StatusBadge';
-import { MetadataGrid, MetadataField } from '@/Components/MetadataGrid';
+
 import CommentsSection from '@/Components/CommentsSection';
 import type { Comment } from '@/Components/CommentsSection';
 import AttachmentsSection from '@/Components/AttachmentsSection';
@@ -21,6 +21,9 @@ interface Project {
     description: string | null;
     status: string;
     data_classification: string;
+    benefit_type: string | null;
+    benefit_amount: string | null;
+    benefit_note: string | null;
     owner: { id: string; name: string; email: string };
     team: { id: string; name: string } | null;
     members: Array<{ id: string; name: string; email: string }>;
@@ -81,24 +84,57 @@ export default function ProjectShow({ project }: { project: Project }) {
                         </div>
                     </div>
 
-                    {/* Metadata strip */}
-                    <div className="mt-4 border-t border-border-subtle pt-4">
-                        <MetadataGrid>
-                            <MetadataField label="Vlastník">{project.owner.name}</MetadataField>
-                            <MetadataField label="Tým">{project.team?.name ?? '\u2014'}</MetadataField>
-                            <MetadataField label="Klasifikace">
+                    {/* Metadata grid */}
+                    <div className="mt-4 grid grid-cols-3 gap-4 border-t border-border-subtle pt-4">
+                        <div>
+                            <div className="text-xs font-semibold uppercase tracking-wider text-text-subtle">
+                                Vlastník
+                            </div>
+                            <div className="mt-0.5 text-sm font-medium text-text-strong">{project.owner.name}</div>
+                        </div>
+                        <div>
+                            <div className="text-xs font-semibold uppercase tracking-wider text-text-subtle">Tým</div>
+                            <div className="mt-0.5 text-sm font-medium text-text-strong">
+                                {project.team?.name ?? '\u2014'}
+                            </div>
+                        </div>
+                        <div>
+                            <div className="text-xs font-semibold uppercase tracking-wider text-text-subtle">
+                                Klasifikace
+                            </div>
+                            <div className="mt-0.5 text-sm font-medium text-text-strong">
                                 {project.data_classification.toUpperCase()}
-                            </MetadataField>
-                            <MetadataField label="Vytvořeno">{formatDate(project.created_at)}</MetadataField>
-                        </MetadataGrid>
+                            </div>
+                        </div>
+                        <div>
+                            <div className="text-xs font-semibold uppercase tracking-wider text-text-subtle">
+                                Zahájení
+                            </div>
+                            <div className="mt-0.5 text-sm text-text-muted">
+                                {project.start_date ? formatDate(project.start_date) : '\u2014'}
+                            </div>
+                        </div>
+                        <div>
+                            <div className="text-xs font-semibold uppercase tracking-wider text-text-subtle">Cíl</div>
+                            <div className="mt-0.5 text-sm text-text-muted">
+                                {project.target_date ? formatDate(project.target_date) : '\u2014'}
+                            </div>
+                        </div>
+                        <div>
+                            <div className="text-xs font-semibold uppercase tracking-wider text-text-subtle">
+                                Vytvořeno
+                            </div>
+                            <div className="mt-0.5 text-sm text-text-muted">{formatDate(project.created_at)}</div>
+                        </div>
                     </div>
 
-                    {/* Dates */}
-                    {(project.start_date || project.target_date) && (
-                        <div className="mt-3 flex gap-4 text-sm text-text-muted">
-                            {project.start_date && <span>Zahájení: {formatDate(project.start_date)}</span>}
-                            {project.target_date && <span>Cíl: {formatDate(project.target_date)}</span>}
-                        </div>
+                    {/* Benefit row */}
+                    {project.benefit_type && (
+                        <BenefitDisplay
+                            type={project.benefit_type}
+                            amount={project.benefit_amount}
+                            note={project.benefit_note}
+                        />
                     )}
                 </div>
 
@@ -171,7 +207,7 @@ function ProjectMetrics({ project }: { project: Project }) {
             href: `/projects/${project.id}/table?status=overdue`,
         },
         {
-            label: 'EPIC',
+            label: 'Epic',
             value: project.epics_count,
             icon: Layers,
             color: 'neutral' as const,
@@ -219,6 +255,35 @@ function ProjectMetrics({ project }: { project: Project }) {
                     </Link>
                 );
             })}
+        </div>
+    );
+}
+
+const BENEFIT_LABELS: Record<string, string> = {
+    revenue: 'Obrat',
+    costsave: 'Costsave',
+    legal: 'Legal',
+    platform: 'Platforma',
+    strategy: 'Strategie',
+};
+
+const BENEFIT_MONEY_TYPES = new Set(['revenue', 'costsave']);
+
+function BenefitDisplay({ type, amount, note }: { type: string; amount: string | null; note: string | null }) {
+    const label = BENEFIT_LABELS[type] ?? type;
+    const hasMoney = BENEFIT_MONEY_TYPES.has(type);
+
+    return (
+        <div className="mt-3 flex items-center gap-3 rounded-md border border-brand-primary/20 bg-brand-soft px-4 py-2.5">
+            <div>
+                <span className="text-xs font-semibold uppercase tracking-wider text-brand-hover">Přínos: {label}</span>
+                {!hasMoney && note && <p className="mt-0.5 text-sm italic text-text-default">{note}</p>}
+            </div>
+            {hasMoney && amount && (
+                <span className="ml-auto text-lg font-bold text-text-strong">
+                    {Number(amount).toLocaleString('cs-CZ')} Kč
+                </span>
+            )}
         </div>
     );
 }

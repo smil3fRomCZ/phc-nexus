@@ -1,0 +1,235 @@
+<!DOCTYPE html>
+<html lang="cs">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Preview: Project Header Redesign</title>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+<style>
+:root {
+  --color-brand-primary: #f5a623;
+  --color-brand-primary-hover: #e09000;
+  --color-brand-primary-soft: #fff8eb;
+  --color-text-strong: #172b4d;
+  --color-text-default: #42526e;
+  --color-text-muted: #6b778c;
+  --color-text-subtle: #97a0af;
+  --color-text-on-brand: #ffffff;
+  --color-surface-canvas: #f4f5f7;
+  --color-surface-panel: #ffffff;
+  --color-surface-panel-subtle: #fafbfc;
+  --color-border-subtle: #ebecf0;
+  --color-border-default: #dfe1e6;
+  --color-status-success-bg: #e3fcef; --color-status-success-fg: #006644;
+  --color-status-info-bg: #deebff; --color-status-info-fg: #0747a6;
+  --color-status-neutral-bg: #dfe1e6; --color-status-neutral-fg: #42526e;
+  --color-status-warning-bg: #fff0b3; --color-status-warning-fg: #974f0c;
+  --font-sans: "Inter", -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+  --font-mono: "SFMono-Regular", Consolas, monospace;
+  --font-size-xs: 0.6875rem; --font-size-sm: 0.75rem; --font-size-base: 0.875rem;
+  --font-size-lg: 1.125rem; --font-size-2xl: 1.75rem;
+  --radius-md: 0.5rem; --radius-lg: 0.75rem;
+  --shadow-sm: 0 1px 2px rgba(0,0,0,0.05);
+}
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+body { font-family: var(--font-sans); font-size: var(--font-size-base); color: var(--color-text-default); background: var(--color-surface-canvas); padding: 2rem; }
+
+.card { background: var(--color-surface-panel); border: 1px solid var(--color-border-subtle); border-radius: var(--radius-lg); padding: 1.25rem; }
+.header-row { display: flex; align-items: flex-start; justify-content: space-between; }
+.title-block h1 { font-size: var(--font-size-2xl); font-weight: 700; color: var(--color-text-strong); display: flex; align-items: center; gap: 0.75rem; }
+.badge { display: inline-flex; padding: 0.125rem 0.5rem; border-radius: 999px; font-size: var(--font-size-xs); font-weight: 600; }
+.badge-success { background: var(--color-status-success-bg); color: var(--color-status-success-fg); }
+.badge-info { background: var(--color-status-info-bg); color: var(--color-status-info-fg); }
+.badge-neutral { background: var(--color-status-neutral-bg); color: var(--color-status-neutral-fg); }
+.badge-warning { background: var(--color-status-warning-bg); color: var(--color-status-warning-fg); }
+.key { font-family: var(--font-mono); font-size: var(--font-size-sm); color: var(--color-text-muted); margin-top: 0.125rem; }
+.description { margin-top: 0.5rem; font-size: var(--font-size-base); color: var(--color-text-default); line-height: 1.6; }
+.actions { display: flex; gap: 0.5rem; }
+.btn { padding: 0.5rem 1.25rem; border-radius: var(--radius-md); font-size: var(--font-size-sm); font-weight: 500; border: 1px solid var(--color-border-default); background: transparent; color: var(--color-text-default); cursor: pointer; }
+.btn:hover { background: var(--color-surface-panel-subtle); }
+.btn-danger { border-color: rgba(191,38,0,0.3); color: #bf2600; }
+
+/* Metadata grid */
+.meta-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 1rem; margin-top: 1rem; padding-top: 1rem; border-top: 1px solid var(--color-border-subtle); }
+.meta-item { }
+.meta-label { font-size: var(--font-size-xs); font-weight: 600; text-transform: uppercase; letter-spacing: 0.05em; color: var(--color-text-subtle); margin-bottom: 0.25rem; }
+.meta-value { font-size: var(--font-size-sm); color: var(--color-text-strong); font-weight: 500; }
+.meta-value-muted { font-size: var(--font-size-sm); color: var(--color-text-muted); }
+
+/* Benefit highlight */
+.benefit-row { display: flex; align-items: center; gap: 0.5rem; margin-top: 0.75rem; padding: 0.5rem 0.75rem; background: var(--color-brand-primary-soft); border-radius: var(--radius-md); border: 1px solid rgba(245,166,35,0.2); }
+.benefit-type { font-size: var(--font-size-xs); font-weight: 600; text-transform: uppercase; letter-spacing: 0.05em; color: var(--color-brand-primary-hover); }
+.benefit-amount { font-size: var(--font-size-lg); font-weight: 700; color: var(--color-text-strong); }
+.benefit-note { font-size: var(--font-size-sm); color: var(--color-text-default); font-style: italic; }
+
+/* Tabs */
+.tabs { display: flex; gap: 0; border-bottom: 1px solid var(--color-border-subtle); margin-top: 1.25rem; }
+.tab { padding: 0.625rem 1rem; font-size: var(--font-size-sm); font-weight: 500; color: var(--color-text-muted); border-bottom: 2px solid transparent; cursor: pointer; text-decoration: none; display: flex; align-items: center; gap: 0.5rem; }
+.tab:hover { color: var(--color-text-default); }
+.tab.active { color: var(--color-brand-primary); border-color: var(--color-brand-primary); }
+
+.section-label { font-size: 0.65rem; font-weight: 700; letter-spacing: 0.08em; text-transform: uppercase; color: var(--color-text-subtle); margin-bottom: 0.25rem; }
+</style>
+</head>
+<body>
+
+<p style="font-size:var(--font-size-xs); color:var(--color-text-subtle); margin-bottom:1.5rem;">PREVIEW: Redesign project header — varianta s benefitem</p>
+
+<!-- ===== PROJECT HEADER CARD ===== -->
+<div class="card" style="max-width: 64rem;">
+  <div class="header-row">
+    <div class="title-block">
+      <h1>
+        PHC Nexus Platform
+        <span class="badge badge-success">Aktivni</span>
+      </h1>
+      <div class="key">PHN</div>
+      <p class="description">Interni produktivitni platforma pro Pears Health Care. Nahrazuje Jira, Asana a Confluence.</p>
+    </div>
+    <div class="actions">
+      <button class="btn">Upravit</button>
+      <button class="btn btn-danger">&#x1F5D1;</button>
+    </div>
+  </div>
+
+  <!-- Metadata 3-column grid -->
+  <div class="meta-grid">
+    <div class="meta-item">
+      <div class="meta-label">Vlastnik</div>
+      <div class="meta-value">Jan Melicherik</div>
+    </div>
+    <div class="meta-item">
+      <div class="meta-label">Tym</div>
+      <div class="meta-value">Engineering</div>
+    </div>
+    <div class="meta-item">
+      <div class="meta-label">Klasifikace</div>
+      <div class="meta-value"><span class="badge badge-neutral">NON-PHI</span></div>
+    </div>
+    <div class="meta-item">
+      <div class="meta-label">Zahajeni</div>
+      <div class="meta-value">01.03.2026</div>
+    </div>
+    <div class="meta-item">
+      <div class="meta-label">Cil</div>
+      <div class="meta-value">30.06.2026</div>
+    </div>
+    <div class="meta-item">
+      <div class="meta-label">Vytvoreno</div>
+      <div class="meta-value-muted">25.03.2026</div>
+    </div>
+  </div>
+
+  <!-- Benefit row — Obrat variant -->
+  <div class="benefit-row">
+    <div>
+      <div class="benefit-type">Prinos: Obrat</div>
+    </div>
+    <div class="benefit-amount" style="margin-left:auto;">500 000 Kc</div>
+  </div>
+</div>
+
+<br>
+
+<!-- Varianta 2: Benefit = Legal (s komentarem) -->
+<div class="card" style="max-width: 64rem;">
+  <div class="header-row">
+    <div class="title-block">
+      <h1>
+        GDPR Compliance
+        <span class="badge badge-warning">Pozastaveny</span>
+      </h1>
+      <div class="key">GDP</div>
+    </div>
+    <div class="actions">
+      <button class="btn">Upravit</button>
+      <button class="btn btn-danger">&#x1F5D1;</button>
+    </div>
+  </div>
+
+  <div class="meta-grid">
+    <div class="meta-item">
+      <div class="meta-label">Vlastnik</div>
+      <div class="meta-value">Petr Novak</div>
+    </div>
+    <div class="meta-item">
+      <div class="meta-label">Tym</div>
+      <div class="meta-value-muted">&mdash;</div>
+    </div>
+    <div class="meta-item">
+      <div class="meta-label">Klasifikace</div>
+      <div class="meta-value"><span class="badge badge-warning">PHI</span></div>
+    </div>
+    <div class="meta-item">
+      <div class="meta-label">Zahajeni</div>
+      <div class="meta-value-muted">&mdash;</div>
+    </div>
+    <div class="meta-item">
+      <div class="meta-label">Cil</div>
+      <div class="meta-value">31.12.2026</div>
+    </div>
+    <div class="meta-item">
+      <div class="meta-label">Vytvoreno</div>
+      <div class="meta-value-muted">15.01.2026</div>
+    </div>
+  </div>
+
+  <!-- Benefit row — Legal variant s komentarem -->
+  <div class="benefit-row">
+    <div>
+      <div class="benefit-type">Prinos: Legal</div>
+      <div class="benefit-note">Splneni regulatornich pozadavku GDPR do Q4 2026</div>
+    </div>
+  </div>
+</div>
+
+<br>
+
+<!-- Varianta 3: Bez benefitu -->
+<div class="card" style="max-width: 64rem;">
+  <div class="header-row">
+    <div class="title-block">
+      <h1>
+        Interni Wiki
+        <span class="badge badge-neutral">Navrh</span>
+      </h1>
+      <div class="key">IWK</div>
+      <p class="description">Knowledge base pro interni dokumentaci.</p>
+    </div>
+    <div class="actions">
+      <button class="btn">Upravit</button>
+      <button class="btn btn-danger">&#x1F5D1;</button>
+    </div>
+  </div>
+
+  <div class="meta-grid">
+    <div class="meta-item">
+      <div class="meta-label">Vlastnik</div>
+      <div class="meta-value">Jana Svobodova</div>
+    </div>
+    <div class="meta-item">
+      <div class="meta-label">Tym</div>
+      <div class="meta-value">Product</div>
+    </div>
+    <div class="meta-item">
+      <div class="meta-label">Klasifikace</div>
+      <div class="meta-value"><span class="badge badge-neutral">NON-PHI</span></div>
+    </div>
+    <div class="meta-item">
+      <div class="meta-label">Zahajeni</div>
+      <div class="meta-value-muted">&mdash;</div>
+    </div>
+    <div class="meta-item">
+      <div class="meta-label">Cil</div>
+      <div class="meta-value-muted">&mdash;</div>
+    </div>
+    <div class="meta-item">
+      <div class="meta-label">Vytvoreno</div>
+      <div class="meta-value-muted">28.03.2026</div>
+    </div>
+  </div>
+  <!-- Bez benefitu — nic se nezobrazuje -->
+</div>
+
+</body>
+</html>

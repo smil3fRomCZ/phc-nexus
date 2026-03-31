@@ -12,6 +12,7 @@ use App\Models\Concerns\HasUuidV7;
 use App\Models\User;
 use App\Modules\Projects\Models\Project;
 use App\Modules\Work\Enums\EpicStatus;
+use App\Modules\Work\Enums\TaskPriority;
 use Database\Factories\EpicFactory;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
@@ -30,8 +31,11 @@ class Epic extends Model
         'title',
         'description',
         'status',
+        'priority',
         'data_classification',
         'owner_id',
+        'pm_id',
+        'lead_developer_id',
         'sort_order',
         'start_date',
         'target_date',
@@ -41,6 +45,7 @@ class Epic extends Model
     {
         return [
             'status' => EpicStatus::class,
+            'priority' => TaskPriority::class,
             'start_date' => 'date',
             'target_date' => 'date',
         ];
@@ -70,6 +75,16 @@ class Epic extends Model
     public function owner(): BelongsTo
     {
         return $this->belongsTo(User::class, 'owner_id');
+    }
+
+    public function pm(): BelongsTo
+    {
+        return $this->belongsTo(User::class, 'pm_id');
+    }
+
+    public function leadDeveloper(): BelongsTo
+    {
+        return $this->belongsTo(User::class, 'lead_developer_id');
     }
 
     public function tasks(): HasMany

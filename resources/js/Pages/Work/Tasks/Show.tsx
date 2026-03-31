@@ -62,6 +62,9 @@ interface Task {
     epic: { id: string; title: string } | null;
     due_date: string | null;
     data_classification: string;
+    benefit_type: string | null;
+    benefit_amount: string | null;
+    benefit_note: string | null;
     root_comments: Comment[];
     attachments: Attachment[];
     blockers: DependencyTask[];
@@ -89,6 +92,12 @@ interface ProjectTask {
     title: string;
 }
 
+interface BenefitTypeOption {
+    value: string;
+    label: string;
+    hasMoney: boolean;
+}
+
 interface Props {
     project: { id: string; name: string; key: string };
     task: Task;
@@ -99,6 +108,7 @@ interface Props {
     activity: ActivityEntry[];
     projectTasks: ProjectTask[];
     recurrenceRules: SelectOption[];
+    benefitTypes: BenefitTypeOption[];
 }
 
 function timeAgo(dateStr: string): string {
@@ -128,6 +138,7 @@ export default function TaskShow({
     activity,
     projectTasks,
     recurrenceRules,
+    benefitTypes = [],
 }: Props) {
     const { auth } = usePage<PageProps>().props;
     const [editing, setEditing] = useState(false);
@@ -408,7 +419,7 @@ export default function TaskShow({
                             </SidebarSection>
 
                             {task.epic && (
-                                <SidebarSection label="EPIC">
+                                <SidebarSection label="Epic">
                                     <Link
                                         href={`/projects/${project.id}/epics/${task.epic.id}`}
                                         className="text-sm text-brand-primary no-underline hover:underline"
@@ -475,6 +486,62 @@ export default function TaskShow({
                                     {task.data_classification.toUpperCase()}
                                 </span>
                             </SidebarSection>
+                        </div>
+
+                        {/* Group: Benefit */}
+                        <div className="pb-4 mb-4 border-b border-border-subtle space-y-3">
+                            <SidebarSection label="Přínos">
+                                <select
+                                    value={task.benefit_type ?? ''}
+                                    onChange={(e) => {
+                                        const val = e.target.value || null;
+                                        inlineUpdate({
+                                            benefit_type: val,
+                                            benefit_amount: null,
+                                            benefit_note: null,
+                                        });
+                                    }}
+                                    className="w-full rounded border border-transparent bg-transparent px-0 py-0.5 text-sm transition-colors hover:border-border-default focus:border-border-focus focus:outline-none"
+                                >
+                                    <option value="">Bez přínosu</option>
+                                    {benefitTypes.map((b) => (
+                                        <option key={b.value} value={b.value}>
+                                            {b.label}
+                                        </option>
+                                    ))}
+                                </select>
+                            </SidebarSection>
+                            {task.benefit_type && benefitTypes.find((b) => b.value === task.benefit_type)?.hasMoney && (
+                                <SidebarSection label="Částka (Kč)">
+                                    <input
+                                        type="number"
+                                        value={task.benefit_amount ?? ''}
+                                        onChange={(e) =>
+                                            inlineUpdate({
+                                                benefit_amount: e.target.value || null,
+                                            })
+                                        }
+                                        placeholder="0"
+                                        className="w-full rounded border border-transparent bg-transparent px-0 py-0.5 text-sm transition-colors hover:border-border-default focus:border-border-focus focus:outline-none"
+                                    />
+                                </SidebarSection>
+                            )}
+                            {task.benefit_type &&
+                                !benefitTypes.find((b) => b.value === task.benefit_type)?.hasMoney && (
+                                    <SidebarSection label="Odůvodnění">
+                                        <textarea
+                                            value={task.benefit_note ?? ''}
+                                            onChange={(e) =>
+                                                inlineUpdate({
+                                                    benefit_note: e.target.value || null,
+                                                })
+                                            }
+                                            rows={2}
+                                            placeholder="Textové odůvodnění..."
+                                            className="w-full rounded border border-transparent bg-transparent px-0 py-0.5 text-sm transition-colors hover:border-border-default focus:border-border-focus focus:outline-none"
+                                        />
+                                    </SidebarSection>
+                                )}
                         </div>
 
                         {/* Group: Dependencies */}

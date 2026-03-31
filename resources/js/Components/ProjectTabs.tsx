@@ -9,8 +9,8 @@ interface ProjectTabsProps {
 const TABS = [
     { key: 'overview', path: '', label: 'Přehled', icon: Info },
     { key: 'board', path: '/board', label: 'Board', icon: LayoutGrid },
-    { key: 'table', path: '/table', label: 'Tabulka', icon: Table2 },
-    { key: 'epics', path: '/epics', label: 'EPIC', icon: Layers },
+    { key: 'table', path: '/table', label: 'Backlog', icon: Table2 },
+    { key: 'epics', path: '/epics', label: 'Epic', icon: Layers },
     { key: 'approvals', path: '/approvals', label: 'Schvalování', icon: CheckSquare },
 ] as const;
 

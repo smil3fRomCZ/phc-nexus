@@ -6,6 +6,7 @@ namespace App\Modules\Work\Controllers;
 
 use App\Http\Controllers\Controller;
 use App\Models\User;
+use Carbon\Carbon;
 use App\Modules\Audit\Models\AuditEntry;
 use App\Modules\Notifications\Notifications\TaskAssignedNotification;
 use App\Modules\Notifications\Notifications\TaskStatusChangedNotification;
@@ -168,7 +169,7 @@ final class TaskController extends Controller
                 foreach (['due_date', 'start_date', 'target_date', 'recurrence_next_at'] as $dateField) {
                     if (! empty($values[$dateField]) && is_string($values[$dateField])) {
                         try {
-                            $values[$dateField] = \Carbon\Carbon::parse($values[$dateField])->format('d.m.Y');
+                            $values[$dateField] = Carbon::parse($values[$dateField])->format('d.m.Y');
                         } catch (\Throwable) {
                             // ponechat původní hodnotu
                         }

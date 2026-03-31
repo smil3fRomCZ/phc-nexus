@@ -9,6 +9,7 @@ use App\Http\Controllers\GlobalApprovalsController;
 use App\Http\Controllers\MyTasksController;
 use App\Http\Controllers\SearchController;
 use App\Models\User;
+use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Route;
 
@@ -20,7 +21,7 @@ Route::middleware('auth')->group(function () {
     Route::get('/calendar', CalendarController::class)->name('calendar');
     Route::get('/admin/approval-analytics', ApprovalAnalyticsController::class)->name('admin.approval-analytics');
 
-    Route::patch('/user/board-settings', function (\Illuminate\Http\Request $request) {
+    Route::patch('/user/board-settings', function (Request $request) {
         $validated = $request->validate([
             'card_fields' => ['required', 'array'],
             'card_fields.*' => ['string', 'in:priority,assignee,epic,due_date,comments_count,phi,reporter'],

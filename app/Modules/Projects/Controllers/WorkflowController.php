@@ -77,6 +77,8 @@ final class WorkflowController extends Controller
             'name' => ['sometimes', 'string', 'max:50'],
             'color' => ['nullable', 'string', 'max:7'],
             'position' => ['sometimes', 'integer', 'min:0'],
+            'pos_x' => ['sometimes', 'integer'],
+            'pos_y' => ['sometimes', 'integer'],
             'is_initial' => ['sometimes', 'boolean'],
             'is_done' => ['sometimes', 'boolean'],
             'is_cancelled' => ['sometimes', 'boolean'],

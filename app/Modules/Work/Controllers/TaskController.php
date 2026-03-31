@@ -394,31 +394,50 @@ final class TaskController extends Controller
     {
         Gate::authorize('update', $task);
 
-        $validated = $request->validate([
-            'status' => ['required', 'string', 'in:'.implode(',', array_column(TaskStatus::cases(), 'value'))],
-        ]);
-
-        $newStatus = TaskStatus::from($validated['status']);
-
         if ($task->hasPendingApproval()) {
             return response()->json([
                 'error' => 'Tento úkol má nevyřízenou žádost o schválení. Před změnou stavu je nutné žádost schválit nebo zamítnout.',
             ], 422);
         }
 
-        if (! $task->status->canTransitionTo($newStatus)) {
-            throw ValidationException::withMessages([
-                'status' => "Přechod z '{$task->status->label()}' na '{$newStatus->label()}' není povolený.",
-            ]);
-        }
+        $workflowStatuses = $project->workflowStatuses;
 
-        /** @var TaskStatus $oldStatus */
-        $oldStatus = $task->status;
-        $task->update(['status' => $newStatus]);
+        if ($workflowStatuses->isNotEmpty()) {
+            // Workflow-based transition
+            $validated = $request->validate([
+                'status' => ['required', 'uuid', 'exists:workflow_statuses,id'],
+            ]);
+
+            $currentWs = $task->workflowStatus;
+            $targetWs = $workflowStatuses->firstWhere('id', $validated['status']);
+
+            if ($currentWs && $targetWs && ! $currentWs->canTransitionTo($targetWs)) {
+                return response()->json([
+                    'error' => "Přechod z '{$currentWs->getAttribute('name')}' na '{$targetWs->getAttribute('name')}' není povolený.",
+                ], 422);
+            }
+
+            $task->update(['workflow_status_id' => $validated['status']]);
+        } else {
+            // Fallback — enum-based transition
+            $validated = $request->validate([
+                'status' => ['required', 'string', 'in:'.implode(',', array_column(TaskStatus::cases(), 'value'))],
+            ]);
+
+            $newStatus = TaskStatus::from($validated['status']);
+
+            if (! $task->status->canTransitionTo($newStatus)) {
+                throw ValidationException::withMessages([
+                    'status' => "Přechod z '{$task->status->label()}' na '{$newStatus->label()}' není povolený.",
+                ]);
+            }
+
+            $task->update(['status' => $newStatus]);
+        }
 
         $task->load('assignee');
         if ($task->assignee !== null) {
-            $task->assignee->notify(new TaskStatusChangedNotification($task, $oldStatus, $newStatus));
+            $task->assignee->notify(new TaskStatusChangedNotification($task, $task->status, $task->status));
         }
 
         return response()->json(['success' => true]);

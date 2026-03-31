@@ -11,6 +11,7 @@ import {
     type Edge,
     type Connection,
     type NodeChange,
+    type NodeDragHandler,
     applyNodeChanges,
     MarkerType,
 } from '@xyflow/react';
@@ -22,6 +23,8 @@ interface WorkflowStatus {
     slug: string;
     color: string | null;
     position: number;
+    pos_x: number;
+    pos_y: number;
     is_initial: boolean;
     is_done: boolean;
     is_cancelled: boolean;
@@ -107,13 +110,31 @@ export default function Workflow({ project, statuses, transitions }: Props) {
             statuses.map((s, i) => ({
                 id: s.id,
                 type: 'status',
-                position: { x: (i % 3) * 200 + 50, y: Math.floor(i / 3) * 150 + 50 },
+                position: {
+                    x: s.pos_x || (i % 3) * 200 + 50,
+                    y: s.pos_y || Math.floor(i / 3) * 150 + 50,
+                },
                 data: { ...s, onEdit: setEditingId },
             })),
         [statuses],
     );
 
     const [nodes, setNodes] = useState<Node[]>(initialNodes);
+
+    const onNodeDragStop: NodeDragHandler = useCallback(
+        (_event, node) => {
+            fetch(`/projects/${project.id}/workflow/statuses/${node.id}`, {
+                method: 'PUT',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'X-CSRF-TOKEN': document.querySelector<HTMLMetaElement>('meta[name="csrf-token"]')?.content ?? '',
+                    Accept: 'application/json',
+                },
+                body: JSON.stringify({ pos_x: Math.round(node.position.x), pos_y: Math.round(node.position.y) }),
+            });
+        },
+        [project.id],
+    );
 
     const edges: Edge[] = useMemo(
         () =>
@@ -237,6 +258,7 @@ export default function Workflow({ project, statuses, transitions }: Props) {
                             nodes={nodes}
                             edges={edges}
                             onNodesChange={onNodesChange}
+                            onNodeDragStop={onNodeDragStop}
                             onConnect={onConnect}
                             nodeTypes={nodeTypes}
                             fitView

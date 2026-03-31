@@ -86,7 +86,9 @@ export default function ProjectShow({ project }: { project: Project }) {
                         <MetadataGrid>
                             <MetadataField label="Vlastník">{project.owner.name}</MetadataField>
                             <MetadataField label="Tým">{project.team?.name ?? '\u2014'}</MetadataField>
-                            <MetadataField label="Klasifikace">{project.data_classification.toUpperCase()}</MetadataField>
+                            <MetadataField label="Klasifikace">
+                                {project.data_classification.toUpperCase()}
+                            </MetadataField>
                             <MetadataField label="Vytvořeno">{formatDate(project.created_at)}</MetadataField>
                         </MetadataGrid>
                     </div>

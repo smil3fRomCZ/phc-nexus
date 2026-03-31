@@ -1,4 +1,3 @@
-import { MetadataGrid, MetadataField } from '@/Components/MetadataGrid';
 import CommentsSection from '@/Components/CommentsSection';
 import type { Comment } from '@/Components/CommentsSection';
 import AttachmentsSection from '@/Components/AttachmentsSection';

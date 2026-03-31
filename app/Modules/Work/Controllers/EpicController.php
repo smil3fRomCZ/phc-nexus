@@ -18,19 +18,27 @@ use Inertia\Response;
 
 final class EpicController extends Controller
 {
-    public function index(Project $project): Response
+    public function index(Request $request, Project $project): Response
     {
         Gate::authorize('view', $project);
 
-        $epics = $project->epics()
+        $query = $project->epics()
             ->with(['owner:id,name', 'pm:id,name', 'leadDeveloper:id,name'])
-            ->withCount('tasks')
-            ->orderBy('sort_order')
-            ->get();
+            ->withCount('tasks');
+
+        $sortField = $request->input('sort', 'sort_order');
+        $sortDir = $request->input('dir', 'asc');
+        $allowedSorts = ['sort_order', 'number', 'title', 'status', 'priority', 'tasks_count', 'start_date', 'target_date'];
+        if (in_array($sortField, $allowedSorts)) {
+            $query->orderBy($sortField, $sortDir === 'desc' ? 'desc' : 'asc');
+        }
+
+        $epics = $query->get();
 
         return Inertia::render('Work/Epics/Index', [
             'project' => $project->only('id', 'name', 'key'),
             'epics' => $epics,
+            'filters' => $request->only(['sort', 'dir']),
             'priorities' => collect(TaskPriority::cases())->map(fn (TaskPriority $p) => ['value' => $p->value, 'label' => $p->label()]),
             'statuses' => collect(EpicStatus::cases())->map(fn (EpicStatus $s) => ['value' => $s->value, 'label' => $s->label()]),
         ]);

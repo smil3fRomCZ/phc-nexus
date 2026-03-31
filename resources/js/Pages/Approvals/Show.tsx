@@ -3,6 +3,7 @@ import StatusBadge from '@/Components/StatusBadge';
 import { APPROVAL_STATUS } from '@/constants/status';
 import AppLayout from '@/Layouts/AppLayout';
 import type { Breadcrumb } from '@/Layouts/AppLayout';
+import { formatDate } from '@/utils/formatDate';
 import { Link, router } from '@inertiajs/react';
 import { useState } from 'react';
 
@@ -108,8 +109,10 @@ export default function ApprovalShow({ project, approvalRequest: req, auth }: Pr
                             </Link>
                         </MetadataField>
                         <MetadataField label="Režim">All must approve</MetadataField>
-                        {req.expires_at && <MetadataField label="Vyprší">{req.expires_at}</MetadataField>}
-                        {req.decided_at && <MetadataField label="Rozhodnuto">{req.decided_at}</MetadataField>}
+                        {req.expires_at && <MetadataField label="Vyprší">{formatDate(req.expires_at)}</MetadataField>}
+                        {req.decided_at && (
+                            <MetadataField label="Rozhodnuto">{formatDate(req.decided_at)}</MetadataField>
+                        )}
                     </MetadataGrid>
                 </div>
 

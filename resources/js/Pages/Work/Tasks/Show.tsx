@@ -202,7 +202,8 @@ export default function TaskShow({
                 <div className="min-w-0 flex-1 space-y-5">
                     {/* Header card */}
                     <div className="rounded-lg border border-border-subtle bg-surface-primary p-5">
-                        <div className="flex items-center gap-3">
+                        <span className="text-xs font-semibold uppercase tracking-wider text-text-subtle">Úkol</span>
+                        <div className="mt-0.5 flex items-center gap-3">
                             <h1 className="text-2xl font-bold leading-tight text-text-strong">
                                 <span className="mr-2 text-text-muted">{displayKey(project.key, task.number)}</span>
                                 {task.title}

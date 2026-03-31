@@ -6,7 +6,7 @@ import AppLayout from '@/Layouts/AppLayout';
 import type { Breadcrumb } from '@/Layouts/AppLayout';
 import { displayKey } from '@/utils/displayKey';
 import { formatDate } from '@/utils/formatDate';
-import { Link, useForm } from '@inertiajs/react';
+import { Link, router, useForm } from '@inertiajs/react';
 import { Plus } from 'lucide-react';
 import ProjectTabs from '@/Components/ProjectTabs';
 import type { FormEvent } from 'react';
@@ -27,15 +27,30 @@ interface Epic {
 interface Props {
     project: { id: string; name: string; key: string };
     epics: Epic[];
+    filters: Record<string, string | undefined>;
 }
 
-export default function EpicsIndex({ project, epics }: Props) {
+export default function EpicsIndex({ project, epics, filters = {} }: Props) {
     const breadcrumbs: Breadcrumb[] = [
         { label: 'Domů', href: '/' },
         { label: 'Projekty', href: '/projects' },
         { label: project.name, href: `/projects/${project.id}` },
         { label: 'Epic' },
     ];
+
+    function applySort(field: string) {
+        const dir = filters.sort === field && filters.dir !== 'desc' ? 'desc' : 'asc';
+        router.get(
+            `/projects/${project.id}/epics`,
+            { ...filters, sort: field, dir },
+            { preserveState: true, replace: true },
+        );
+    }
+
+    function sortIndicator(field: string) {
+        if (filters.sort !== field) return '';
+        return filters.dir === 'desc' ? ' \u25BC' : ' \u25B2';
+    }
 
     const { data, setData, post, processing, reset, errors } = useForm({
         title: '',
@@ -78,16 +93,25 @@ export default function EpicsIndex({ project, epics }: Props) {
                 <table className="w-full border-collapse">
                     <thead>
                         <tr>
-                            {['Klíč', 'Název', 'Stav', 'Priorita', 'Vlastník', 'Úkoly', 'Start', 'Cíl'].map(
-                                (header) => (
-                                    <th
-                                        key={header}
-                                        className="border-b-2 border-border-subtle px-4 py-2 text-left text-xs font-semibold uppercase tracking-wider text-text-subtle"
-                                    >
-                                        {header}
-                                    </th>
-                                ),
-                            )}
+                            {[
+                                { field: 'number', label: 'Klíč', sortable: true },
+                                { field: 'title', label: 'Název', sortable: true },
+                                { field: 'status', label: 'Stav', sortable: true },
+                                { field: 'priority', label: 'Priorita', sortable: true },
+                                { field: 'owner', label: 'Vlastník', sortable: false },
+                                { field: 'tasks_count', label: 'Úkoly', sortable: true },
+                                { field: 'start_date', label: 'Start', sortable: true },
+                                { field: 'target_date', label: 'Cíl', sortable: true },
+                            ].map((col) => (
+                                <th
+                                    key={col.field}
+                                    className={`border-b-2 border-border-subtle px-4 py-2 text-left text-xs font-semibold uppercase tracking-wider text-text-subtle ${col.sortable ? 'cursor-pointer hover:text-text-default' : ''}`}
+                                    onClick={col.sortable ? () => applySort(col.field) : undefined}
+                                >
+                                    {col.label}
+                                    {col.sortable ? sortIndicator(col.field) : ''}
+                                </th>
+                            ))}
                         </tr>
                     </thead>
                     <tbody>

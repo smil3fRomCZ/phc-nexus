@@ -21,19 +21,31 @@ use Inertia\Response;
 
 final class ApprovalController extends Controller
 {
-    public function index(Project $project): Response
+    public function index(Request $request, Project $project): Response
     {
         Gate::authorize('view', $project);
 
-        $requests = ApprovalRequest::where('approvable_type', Task::class)
+        $query = ApprovalRequest::where('approvable_type', Task::class)
             ->whereIn('approvable_id', $project->tasks()->select('id'))
-            ->with(['requester:id,name', 'votes.voter:id,name'])
-            ->latest()
-            ->get();
+            ->with(['requester:id,name', 'votes.voter:id,name']);
+
+        if ($request->filled('status')) {
+            $query->where('status', $request->input('status'));
+        }
+
+        $sortField = $request->input('sort', 'created_at');
+        $sortDir = $request->input('dir', 'desc');
+        $allowedSorts = ['status', 'created_at', 'expires_at'];
+        if (in_array($sortField, $allowedSorts)) {
+            $query->orderBy($sortField, $sortDir === 'desc' ? 'desc' : 'asc');
+        }
+
+        $requests = $query->get();
 
         return Inertia::render('Approvals/Index', [
             'project' => $project->only('id', 'name', 'key'),
             'approvalRequests' => $requests,
+            'filters' => $request->only(['status', 'sort', 'dir']),
         ]);
     }
 

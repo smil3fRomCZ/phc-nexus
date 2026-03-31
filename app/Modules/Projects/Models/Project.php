@@ -98,6 +98,21 @@ class Project extends Model
         return $this->hasMany(WikiPage::class);
     }
 
+    public function workflowStatuses(): HasMany
+    {
+        return $this->hasMany(WorkflowStatus::class)->orderBy('position');
+    }
+
+    public function workflowTransitions(): HasMany
+    {
+        return $this->hasMany(WorkflowTransition::class);
+    }
+
+    public function initialWorkflowStatus(): ?Model
+    {
+        return $this->workflowStatuses()->where('is_initial', true)->first();
+    }
+
     protected static function newFactory(): ProjectFactory
     {
         return ProjectFactory::new();

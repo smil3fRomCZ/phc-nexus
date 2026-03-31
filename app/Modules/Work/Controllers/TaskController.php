@@ -293,16 +293,20 @@ final class TaskController extends Controller
 
         $tasks = $query->get();
 
-        // Custom board columns nebo default z enumu
-        $customColumns = $project->boardColumns;
-        if ($customColumns->isNotEmpty()) {
-            $columns = $customColumns->map(fn (Model $col) => [
-                'id' => $col->getAttribute('id'),
-                'status' => $col->getAttribute('status_key'),
-                'label' => $col->getAttribute('name'),
-                'color' => $col->getAttribute('color'),
-                'tasks' => $tasks->where('status', $col->getAttribute('status_key'))->values(),
-            ]);
+        // Workflow statuses jako sloupce
+        $workflowStatuses = $project->workflowStatuses;
+        if ($workflowStatuses->isNotEmpty()) {
+            // Filtrovat: cancelled stavy nezobrazovat jako sloupce (pokud nemají úkoly)
+            $columns = $workflowStatuses
+                ->filter(fn (Model $ws) => ! $ws->getAttribute('is_cancelled') || $tasks->where('workflow_status_id', $ws->getAttribute('id'))->isNotEmpty())
+                ->map(fn (Model $ws) => [
+                    'id' => $ws->getAttribute('id'),
+                    'status' => $ws->getAttribute('id'),
+                    'label' => $ws->getAttribute('name'),
+                    'color' => $ws->getAttribute('color'),
+                    'tasks' => $tasks->where('workflow_status_id', $ws->getAttribute('id'))->values(),
+                ])
+                ->values();
         } else {
             $columns = collect(TaskStatus::boardColumns())->map(fn (TaskStatus $status) => [
                 'id' => null,
@@ -323,18 +327,14 @@ final class TaskController extends Controller
         $epics = $project->epics()->orderBy('title')->get(['id', 'title']);
 
         $user = $request->user();
-        $canManageColumns = $project->owner_id === $user->id
+        $canManageColumns = $project->getAttribute('owner_id') === $user->id
             || $project->epics()->where('pm_id', $user->id)->exists();
-
-        $statuses = collect(TaskStatus::cases())
-            ->map(fn (TaskStatus $s) => ['value' => $s->value, 'label' => $s->label()]);
 
         return Inertia::render('Work/Tasks/Board', [
             'project' => $project->only('id', 'name', 'key'),
             'columns' => $columns,
-            'boardColumnsConfig' => $customColumns,
+            'workflowStatuses' => $workflowStatuses,
             'canManageColumns' => $canManageColumns,
-            'statuses' => $statuses,
             'members' => $members,
             'epics' => $epics,
             'filters' => $request->only(['assignee_id', 'epic_id']),

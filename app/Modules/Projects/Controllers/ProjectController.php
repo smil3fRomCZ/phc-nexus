@@ -7,6 +7,7 @@ namespace App\Modules\Projects\Controllers;
 use App\Http\Controllers\Controller;
 use App\Modules\Audit\Enums\PhiClassification;
 use App\Modules\Organization\Models\Team;
+use App\Modules\Projects\Actions\SeedDefaultWorkflow;
 use App\Modules\Projects\Enums\BenefitType;
 use App\Modules\Projects\Enums\ProjectStatus;
 use App\Modules\Projects\Models\Project;
@@ -82,6 +83,9 @@ final class ProjectController extends Controller
 
         // Owner je automaticky člen
         $project->members()->attach($request->user()->id, ['role' => 'owner']);
+
+        // Výchozí workflow
+        SeedDefaultWorkflow::execute($project);
 
         return redirect()->route('projects.show', $project)
             ->with('success', 'Projekt vytvořen.');

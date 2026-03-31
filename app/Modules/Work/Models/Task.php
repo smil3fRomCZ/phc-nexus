@@ -13,6 +13,7 @@ use App\Models\User;
 use App\Modules\Approvals\Models\ApprovalRequest;
 use App\Modules\Projects\Enums\BenefitType;
 use App\Modules\Projects\Models\Project;
+use App\Modules\Projects\Models\WorkflowStatus;
 use App\Modules\Work\Enums\RecurrenceRule;
 use App\Modules\Work\Enums\TaskPriority;
 use App\Modules\Work\Enums\TaskStatus;
@@ -46,6 +47,7 @@ class Task extends Model
         'recurrence_rule',
         'recurrence_next_at',
         'recurrence_source_id',
+        'workflow_status_id',
         'benefit_type',
         'benefit_amount',
         'benefit_note',
@@ -88,6 +90,11 @@ class Task extends Model
     public function epic(): BelongsTo
     {
         return $this->belongsTo(Epic::class);
+    }
+
+    public function workflowStatus(): BelongsTo
+    {
+        return $this->belongsTo(WorkflowStatus::class);
     }
 
     /** @return BelongsTo<User, $this> */

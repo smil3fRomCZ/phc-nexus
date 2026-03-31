@@ -13,6 +13,7 @@ use App\Models\User;
 use App\Modules\Organization\Models\Team;
 use App\Modules\Projects\Enums\BenefitType;
 use App\Modules\Projects\Enums\ProjectStatus;
+use App\Modules\Wiki\Models\WikiPage;
 use App\Modules\Work\Models\Epic;
 use App\Modules\Work\Models\Task;
 use App\Modules\Work\Models\TimeEntry;
@@ -90,6 +91,11 @@ class Project extends Model
     public function timeEntries(): HasMany
     {
         return $this->hasMany(TimeEntry::class);
+    }
+
+    public function wikiPages(): HasMany
+    {
+        return $this->hasMany(WikiPage::class);
     }
 
     protected static function newFactory(): ProjectFactory

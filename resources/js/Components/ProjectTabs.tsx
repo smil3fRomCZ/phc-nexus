@@ -1,9 +1,9 @@
 import { Link } from '@inertiajs/react';
-import { Info, LayoutGrid, Table2, Layers, CheckSquare } from 'lucide-react';
+import { Info, LayoutGrid, Table2, Layers, CheckSquare, BookOpen } from 'lucide-react';
 
 interface ProjectTabsProps {
     projectId: string;
-    active: 'overview' | 'board' | 'table' | 'epics' | 'approvals';
+    active: 'overview' | 'board' | 'table' | 'epics' | 'approvals' | 'wiki';
 }
 
 const TABS = [
@@ -12,6 +12,7 @@ const TABS = [
     { key: 'table', path: '/table', label: 'Backlog', icon: Table2 },
     { key: 'epics', path: '/epics', label: 'Epic', icon: Layers },
     { key: 'approvals', path: '/approvals', label: 'Schvalování', icon: CheckSquare },
+    { key: 'wiki', path: '/wiki', label: 'Wiki', icon: BookOpen },
 ] as const;
 
 export default function ProjectTabs({ projectId, active }: ProjectTabsProps) {

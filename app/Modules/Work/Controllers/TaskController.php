@@ -10,7 +10,6 @@ use App\Modules\Audit\Models\AuditEntry;
 use App\Modules\Notifications\Notifications\TaskAssignedNotification;
 use App\Modules\Notifications\Notifications\TaskStatusChangedNotification;
 use App\Modules\Projects\Enums\BenefitType;
-use App\Modules\Projects\Models\BoardColumn;
 use App\Modules\Projects\Models\Project;
 use App\Modules\Work\Enums\RecurrenceRule;
 use App\Modules\Work\Enums\TaskPriority;
@@ -297,12 +296,12 @@ final class TaskController extends Controller
         // Custom board columns nebo default z enumu
         $customColumns = $project->boardColumns;
         if ($customColumns->isNotEmpty()) {
-            $columns = $customColumns->map(fn (BoardColumn $col) => [
-                'id' => $col->id,
-                'status' => $col->status_key,
-                'label' => $col->name,
-                'color' => $col->color,
-                'tasks' => $tasks->where('status', $col->status_key)->values(),
+            $columns = $customColumns->map(fn (Model $col) => [
+                'id' => $col->getAttribute('id'),
+                'status' => $col->getAttribute('status_key'),
+                'label' => $col->getAttribute('name'),
+                'color' => $col->getAttribute('color'),
+                'tasks' => $tasks->where('status', $col->getAttribute('status_key'))->values(),
             ]);
         } else {
             $columns = collect(TaskStatus::boardColumns())->map(fn (TaskStatus $status) => [

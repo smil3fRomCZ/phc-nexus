@@ -269,15 +269,23 @@ final class TaskController extends Controller
     /**
      * Kanban board — všechny úkoly projektu seskupené podle statusu.
      */
-    public function board(Project $project): Response
+    public function board(Request $request, Project $project): Response
     {
         Gate::authorize('view', $project);
 
-        $tasks = $project->tasks()
-            ->with(['assignee:id,name', 'epic:id,title'])
+        $query = $project->tasks()
+            ->with(['assignee:id,name', 'reporter:id,name', 'epic:id,title'])
             ->withCount('comments')
-            ->orderBy('sort_order')
-            ->get();
+            ->orderBy('sort_order');
+
+        if ($request->filled('assignee_id')) {
+            $query->where('assignee_id', $request->input('assignee_id'));
+        }
+        if ($request->filled('epic_id')) {
+            $query->where('epic_id', $request->input('epic_id'));
+        }
+
+        $tasks = $query->get();
 
         $columns = collect(TaskStatus::boardColumns())->map(fn (TaskStatus $status) => [
             'status' => $status->value,
@@ -285,9 +293,22 @@ final class TaskController extends Controller
             'tasks' => $tasks->where('status', $status)->values(),
         ]);
 
+        $members = $project->members()
+            ->select('users.id', 'users.name')
+            ->get()
+            ->when($project->owner_id, fn ($col) => $col->push($project->owner()->select('id', 'name')->first()))
+            ->unique('id')
+            ->values();
+
+        $epics = $project->epics()->orderBy('title')->get(['id', 'title']);
+
         return Inertia::render('Work/Tasks/Board', [
             'project' => $project->only('id', 'name', 'key'),
             'columns' => $columns,
+            'members' => $members,
+            'epics' => $epics,
+            'filters' => $request->only(['assignee_id', 'epic_id']),
+            'boardSettings' => $request->user()->board_settings ?? ['card_fields' => ['priority', 'assignee', 'comments_count']],
         ]);
     }
 

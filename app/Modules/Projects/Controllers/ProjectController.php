@@ -6,6 +6,7 @@ namespace App\Modules\Projects\Controllers;
 
 use App\Http\Controllers\Controller;
 use App\Modules\Audit\Enums\PhiClassification;
+use App\Modules\Organization\Models\Team;
 use App\Modules\Projects\Enums\ProjectStatus;
 use App\Modules\Projects\Models\Project;
 use Illuminate\Http\RedirectResponse;
@@ -45,6 +46,7 @@ final class ProjectController extends Controller
                 'value' => $c->value,
                 'label' => $c->label(),
             ]),
+            'teams' => Team::orderBy('name')->get(['id', 'name']),
         ]);
     }
 
@@ -117,6 +119,7 @@ final class ProjectController extends Controller
                 'value' => $c->value,
                 'label' => $c->label(),
             ]),
+            'teams' => Team::orderBy('name')->get(['id', 'name']),
         ]);
     }
 

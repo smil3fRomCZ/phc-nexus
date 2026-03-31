@@ -11,6 +11,7 @@ import { PROJECT_STATUS } from '@/constants/status';
 import { formatDate } from '@/utils/formatDate';
 import { Link, router } from '@inertiajs/react';
 import { Trash2, FileDown, ChevronDown, CheckCircle2, AlertCircle, Layers, Users } from 'lucide-react';
+import ProjectTabs from '@/Components/ProjectTabs';
 import { useState, useRef, useEffect } from 'react';
 
 interface Project {
@@ -46,54 +47,70 @@ export default function ProjectShow({ project }: { project: Project }) {
 
     return (
         <AppLayout title={project.name} breadcrumbs={breadcrumbs}>
-            <div className="mx-auto max-w-4xl">
-                {/* Header */}
-                <div className="mb-6 flex items-start justify-between">
-                    <div>
-                        <div className="flex items-center gap-3">
-                            <h1 className="text-2xl font-bold leading-tight text-text-strong">{project.name}</h1>
-                            <StatusBadge statusMap={PROJECT_STATUS} value={project.status} />
+            <div className="mx-auto max-w-5xl space-y-5">
+                {/* Header card */}
+                <div className="rounded-lg border border-border-subtle bg-surface-primary p-5">
+                    <div className="flex items-start justify-between">
+                        <div>
+                            <div className="flex items-center gap-3">
+                                <h1 className="text-2xl font-bold leading-tight text-text-strong">{project.name}</h1>
+                                <StatusBadge statusMap={PROJECT_STATUS} value={project.status} />
+                            </div>
+                            <span className="text-sm font-mono text-text-muted">{project.key}</span>
+                            {project.description && (
+                                <p className="mt-2 text-base text-text-default">{project.description}</p>
+                            )}
                         </div>
-                        <span className="text-sm font-mono text-text-muted">{project.key}</span>
-                        {project.description && (
-                            <p className="mt-2 text-base text-text-default">{project.description}</p>
-                        )}
+                        <div className="flex gap-2">
+                            <Link
+                                href={`/projects/${project.id}/edit`}
+                                className="rounded-md border border-border-default px-5 py-2 text-sm font-medium text-text-default no-underline transition-colors hover:bg-surface-hover"
+                            >
+                                Upravit
+                            </Link>
+                            <button
+                                onClick={() => {
+                                    if (confirm('Opravdu chcete smazat tento projekt? Tuto akci nelze vrátit.')) {
+                                        router.delete(`/projects/${project.id}`);
+                                    }
+                                }}
+                                className="rounded-md border border-status-danger/30 px-3 py-2 text-sm font-medium text-status-danger transition-colors hover:bg-status-danger-subtle"
+                            >
+                                <Trash2 className="h-4 w-4" />
+                            </button>
+                        </div>
                     </div>
-                    <div className="flex gap-2">
-                        <Link
-                            href={`/projects/${project.id}/edit`}
-                            className="rounded-md border border-border-default px-5 py-2 text-sm font-medium text-text-default no-underline transition-colors hover:bg-surface-hover"
-                        >
-                            Upravit
-                        </Link>
-                        <button
-                            onClick={() => {
-                                if (confirm('Opravdu chcete smazat tento projekt? Tuto akci nelze vrátit.')) {
-                                    router.delete(`/projects/${project.id}`);
-                                }
-                            }}
-                            className="rounded-md border border-status-danger/30 px-3 py-2 text-sm font-medium text-status-danger transition-colors hover:bg-status-danger-subtle"
-                        >
-                            <Trash2 className="h-4 w-4" />
-                        </button>
+
+                    {/* Metadata strip */}
+                    <div className="mt-4 border-t border-border-subtle pt-4">
+                        <MetadataGrid>
+                            <MetadataField label="Vlastník">{project.owner.name}</MetadataField>
+                            <MetadataField label="Tým">{project.team?.name ?? '\u2014'}</MetadataField>
+                            <MetadataField label="Klasifikace">{project.data_classification.toUpperCase()}</MetadataField>
+                            <MetadataField label="Vytvořeno">{formatDate(project.created_at)}</MetadataField>
+                        </MetadataGrid>
                     </div>
+
+                    {/* Dates */}
+                    {(project.start_date || project.target_date) && (
+                        <div className="mt-3 flex gap-4 text-sm text-text-muted">
+                            {project.start_date && <span>Zahájení: {formatDate(project.start_date)}</span>}
+                            {project.target_date && <span>Cíl: {formatDate(project.target_date)}</span>}
+                        </div>
+                    )}
                 </div>
 
-                {/* Metadata */}
-                <div className="mb-6">
-                    <MetadataGrid>
-                        <MetadataField label="Vlastník">{project.owner.name}</MetadataField>
-                        <MetadataField label="Tým">{project.team?.name ?? '\u2014'}</MetadataField>
-                        <MetadataField label="Klasifikace">{project.data_classification.toUpperCase()}</MetadataField>
-                        <MetadataField label="Vytvořeno">{formatDate(project.created_at)}</MetadataField>
-                    </MetadataGrid>
+                {/* Tab navigation */}
+                <div className="flex items-center justify-between">
+                    <ProjectTabs projectId={project.id} active="overview" />
+                    <ExportDropdown projectId={project.id} />
                 </div>
 
                 {/* Metrics */}
                 <ProjectMetrics project={project} />
 
                 {/* Members */}
-                <div className="mb-6">
+                <div className="rounded-lg border border-border-subtle bg-surface-primary p-5">
                     <h3 className="mb-3 text-xs font-semibold uppercase tracking-wider text-text-subtle">
                         Členové ({project.members.length})
                     </h3>
@@ -110,45 +127,8 @@ export default function ProjectShow({ project }: { project: Project }) {
                     </div>
                 </div>
 
-                {/* Quick Links */}
-                <div className="flex gap-3">
-                    <Link
-                        href={`/projects/${project.id}/board`}
-                        className="rounded-md border border-border-default px-4 py-2 text-sm font-medium text-text-default no-underline transition-colors hover:bg-surface-hover"
-                    >
-                        Board
-                    </Link>
-                    <Link
-                        href={`/projects/${project.id}/table`}
-                        className="rounded-md border border-border-default px-4 py-2 text-sm font-medium text-text-default no-underline transition-colors hover:bg-surface-hover"
-                    >
-                        Tabulka
-                    </Link>
-                    <Link
-                        href={`/projects/${project.id}/epics`}
-                        className="rounded-md border border-border-default px-4 py-2 text-sm font-medium text-text-default no-underline transition-colors hover:bg-surface-hover"
-                    >
-                        EPIC
-                    </Link>
-                    <Link
-                        href={`/projects/${project.id}/approvals`}
-                        className="rounded-md border border-border-default px-4 py-2 text-sm font-medium text-text-default no-underline transition-colors hover:bg-surface-hover"
-                    >
-                        Schvalování
-                    </Link>
-                    <ExportDropdown projectId={project.id} />
-                </div>
-
-                {/* Dates */}
-                {(project.start_date || project.target_date) && (
-                    <div className="mt-6 flex gap-4 text-sm text-text-muted">
-                        {project.start_date && <span>Zahájení: {formatDate(project.start_date)}</span>}
-                        {project.target_date && <span>Cíl: {formatDate(project.target_date)}</span>}
-                    </div>
-                )}
-
                 {/* Attachments */}
-                <div className="mt-6">
+                <div className="rounded-lg border border-border-subtle bg-surface-primary p-5">
                     <AttachmentsSection
                         attachments={project.attachments}
                         uploadUrl={`/projects/${project.id}/attachments`}
@@ -156,7 +136,7 @@ export default function ProjectShow({ project }: { project: Project }) {
                 </div>
 
                 {/* Comments */}
-                <div className="mt-6">
+                <div className="rounded-lg border border-border-subtle bg-surface-primary p-5">
                     <CommentsSection
                         comments={project.root_comments}
                         commentsCount={project.comments_count}

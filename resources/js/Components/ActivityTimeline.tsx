@@ -15,22 +15,22 @@ interface Props {
 }
 
 const ACTION_CONFIG: Record<string, { icon: typeof Clock; label: string; color: string }> = {
-    created: { icon: Plus, label: 'Created', color: 'text-status-info' },
-    updated: { icon: Edit3, label: 'Updated', color: 'text-status-warning' },
-    deleted: { icon: Trash2, label: 'Deleted', color: 'text-status-danger' },
-    viewed: { icon: Eye, label: 'Viewed', color: 'text-text-muted' },
-    status_changed: { icon: ArrowRight, label: 'Status changed', color: 'text-brand-primary' },
+    created: { icon: Plus, label: 'Vytvořeno', color: 'text-status-info' },
+    updated: { icon: Edit3, label: 'Aktualizováno', color: 'text-status-warning' },
+    deleted: { icon: Trash2, label: 'Smazáno', color: 'text-status-danger' },
+    viewed: { icon: Eye, label: 'Zobrazeno', color: 'text-text-muted' },
+    status_changed: { icon: ArrowRight, label: 'Změna stavu', color: 'text-brand-primary' },
 };
 
 const FIELD_LABELS: Record<string, string> = {
-    title: 'Title',
-    description: 'Description',
-    status: 'Status',
-    priority: 'Priority',
-    assignee_id: 'Assignee',
-    reporter_id: 'Reporter',
-    due_date: 'Due date',
-    data_classification: 'Classification',
+    title: 'Název',
+    description: 'Popis',
+    status: 'Stav',
+    priority: 'Priorita',
+    assignee_id: 'Řešitel',
+    reporter_id: 'Zadavatel',
+    due_date: 'Termín',
+    data_classification: 'Klasifikace',
 };
 
 function formatTime(dateStr: string): string {
@@ -61,7 +61,7 @@ function describeChanges(
 
 export default function ActivityTimeline({ entries }: Props) {
     if (entries.length === 0) {
-        return <p className="text-sm text-text-muted">No activity recorded.</p>;
+        return <p className="text-sm text-text-muted">Žádná aktivita.</p>;
     }
 
     return (
@@ -96,7 +96,7 @@ export default function ActivityTimeline({ entries }: Props) {
 
                             {entry.action === 'created' && entry.new_values?.['title'] != null && (
                                 <p className="mt-0.5 text-xs text-text-muted">
-                                    Created task &ldquo;{String(entry.new_values['title'])}&rdquo;
+                                    Vytvořen úkol &ldquo;{String(entry.new_values['title'])}&rdquo;
                                 </p>
                             )}
 

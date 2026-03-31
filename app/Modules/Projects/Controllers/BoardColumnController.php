@@ -60,8 +60,8 @@ final class BoardColumnController extends Controller
 
         if ($previousColumn) {
             $project->tasks()
-                ->where('status', $boardColumn->status_key)
-                ->update(['status' => $previousColumn->status_key]);
+                ->where('status', $boardColumn->getAttribute('status_key'))
+                ->update(['status' => $previousColumn->getAttribute('status_key')]);
         }
 
         $boardColumn->delete();

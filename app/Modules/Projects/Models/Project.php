@@ -81,6 +81,11 @@ class Project extends Model
         return $this->hasMany(Task::class);
     }
 
+    public function boardColumns(): HasMany
+    {
+        return $this->hasMany(BoardColumn::class)->orderBy('position');
+    }
+
     protected static function newFactory(): ProjectFactory
     {
         return ProjectFactory::new();

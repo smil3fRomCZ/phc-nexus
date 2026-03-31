@@ -293,11 +293,25 @@ final class TaskController extends Controller
 
         $tasks = $query->get();
 
-        $columns = collect(TaskStatus::boardColumns())->map(fn (TaskStatus $status) => [
-            'status' => $status->value,
-            'label' => $status->label(),
-            'tasks' => $tasks->where('status', $status)->values(),
-        ]);
+        // Custom board columns nebo default z enumu
+        $customColumns = $project->boardColumns;
+        if ($customColumns->isNotEmpty()) {
+            $columns = $customColumns->map(fn (Model $col) => [
+                'id' => $col->getAttribute('id'),
+                'status' => $col->getAttribute('status_key'),
+                'label' => $col->getAttribute('name'),
+                'color' => $col->getAttribute('color'),
+                'tasks' => $tasks->where('status', $col->getAttribute('status_key'))->values(),
+            ]);
+        } else {
+            $columns = collect(TaskStatus::boardColumns())->map(fn (TaskStatus $status) => [
+                'id' => null,
+                'status' => $status->value,
+                'label' => $status->label(),
+                'color' => null,
+                'tasks' => $tasks->where('status', $status)->values(),
+            ]);
+        }
 
         $members = $project->members()
             ->select('users.id', 'users.name')
@@ -308,9 +322,19 @@ final class TaskController extends Controller
 
         $epics = $project->epics()->orderBy('title')->get(['id', 'title']);
 
+        $user = $request->user();
+        $canManageColumns = $project->owner_id === $user->id
+            || $project->epics()->where('pm_id', $user->id)->exists();
+
+        $statuses = collect(TaskStatus::cases())
+            ->map(fn (TaskStatus $s) => ['value' => $s->value, 'label' => $s->label()]);
+
         return Inertia::render('Work/Tasks/Board', [
             'project' => $project->only('id', 'name', 'key'),
             'columns' => $columns,
+            'boardColumnsConfig' => $customColumns,
+            'canManageColumns' => $canManageColumns,
+            'statuses' => $statuses,
             'members' => $members,
             'epics' => $epics,
             'filters' => $request->only(['assignee_id', 'epic_id']),

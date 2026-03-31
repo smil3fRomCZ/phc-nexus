@@ -26,6 +26,7 @@ import {
     Plus,
     Clock,
     Timer,
+    Copy,
 } from 'lucide-react';
 import type { PageProps } from '@/types';
 import { useState, type FormEvent } from 'react';
@@ -223,6 +224,13 @@ export default function TaskShow({
                                 >
                                     <Pencil className="mr-1 inline-block h-3 w-3" />
                                     Upravit
+                                </button>
+                                <button
+                                    onClick={() => router.post(`/projects/${project.id}/tasks/${task.id}/duplicate`)}
+                                    className="rounded-md border border-border-default px-3 py-1.5 text-xs font-medium text-text-muted transition-colors hover:bg-surface-hover hover:text-text-default"
+                                >
+                                    <Copy className="mr-1 inline-block h-3 w-3" />
+                                    Duplikovat
                                 </button>
                                 <button
                                     onClick={() => {

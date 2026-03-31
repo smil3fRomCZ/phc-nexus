@@ -53,9 +53,10 @@ final class TaskPolicy
 
     public function delete(User $user, Task $task): bool
     {
-        return in_array($user->system_role, [
-            SystemRole::Executive,
-            SystemRole::ProjectManager,
-        ]);
+        if (in_array($user->system_role, [SystemRole::Executive, SystemRole::ProjectManager])) {
+            return true;
+        }
+
+        return $task->project->getAttribute('owner_id') === $user->id;
     }
 }

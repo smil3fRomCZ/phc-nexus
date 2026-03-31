@@ -120,20 +120,31 @@ class TaskCrudTest extends TestCase
         $this->assertEquals('Aktualizovaný úkol', $task->fresh()->title);
     }
 
-    public function test_only_executive_or_pm_can_delete_task(): void
+    public function test_only_executive_pm_or_owner_can_delete_task(): void
     {
+        $owner = User::factory()->create();
         $member = User::factory()->create();
         $pm = User::factory()->projectManager()->create();
-        $project = Project::factory()->create(['owner_id' => $member->id]);
+        $project = Project::factory()->create(['owner_id' => $owner->id]);
+        $project->members()->attach($member->id, ['role' => 'member']);
         $task = Task::factory()->create(['project_id' => $project->id]);
 
+        // Regular member cannot delete
         $this->actingAs($member)->delete("/projects/{$project->id}/tasks/{$task->id}")
             ->assertForbidden();
 
+        // PM can delete
         $this->actingAs($pm)->delete("/projects/{$project->id}/tasks/{$task->id}")
             ->assertRedirect();
 
         $this->assertSoftDeleted($task);
+
+        // Owner can delete too
+        $task2 = Task::factory()->create(['project_id' => $project->id]);
+        $this->actingAs($owner)->delete("/projects/{$project->id}/tasks/{$task2->id}")
+            ->assertRedirect();
+
+        $this->assertSoftDeleted($task2);
     }
 
     public function test_task_creation_is_audited(): void

@@ -38,6 +38,7 @@ Route::middleware('auth')->scopeBindings()->group(function () {
     Route::post('projects/{project}/tasks/bulk-status', [TaskController::class, 'bulkUpdateStatus'])->name('projects.tasks.bulkUpdateStatus');
     Route::patch('projects/{project}/tasks/{task}/recurrence', [TaskController::class, 'setRecurrence'])->name('projects.tasks.setRecurrence');
     Route::delete('projects/{project}/tasks/{task}', [TaskController::class, 'destroy'])->name('projects.tasks.destroy');
+    Route::post('projects/{project}/tasks/{task}/duplicate', [TaskController::class, 'duplicate'])->name('projects.tasks.duplicate');
 
     // Task dependencies
     Route::post('projects/{project}/tasks/{task}/dependencies', [TaskDependencyController::class, 'store'])->name('projects.tasks.dependencies.store');

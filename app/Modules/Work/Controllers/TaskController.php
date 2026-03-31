@@ -453,4 +453,17 @@ final class TaskController extends Controller
         return redirect()->route('projects.tasks.index', $project)
             ->with('success', 'Úkol smazán.');
     }
+
+    public function duplicate(Project $project, Task $task): RedirectResponse
+    {
+        Gate::authorize('create', Task::class);
+
+        $clone = $task->replicate(['id', 'number', 'created_at', 'updated_at']);
+        $clone->title = $task->title.' (kopie)';
+        $clone->status = TaskStatus::Backlog->value;
+        $clone->save();
+
+        return redirect()->route('projects.tasks.show', [$project, $clone])
+            ->with('success', 'Úkol duplikován.');
+    }
 }

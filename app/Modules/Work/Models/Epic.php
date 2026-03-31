@@ -50,9 +50,8 @@ class Epic extends Model
     {
         static::creating(function (Epic $epic): void {
             if ($epic->number === null) {
-                $epic->number = DB::table('epics')
+                $epic->number = (int) DB::table('epics')
                     ->where('project_id', $epic->project_id)
-                    ->lockForUpdate()
                     ->max('number') + 1;
             }
         });

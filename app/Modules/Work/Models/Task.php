@@ -59,9 +59,8 @@ class Task extends Model
     {
         static::creating(function (Task $task): void {
             if ($task->number === null) {
-                $task->number = DB::table('tasks')
+                $task->number = (int) DB::table('tasks')
                     ->where('project_id', $task->project_id)
-                    ->lockForUpdate()
                     ->max('number') + 1;
             }
         });

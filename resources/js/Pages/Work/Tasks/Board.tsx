@@ -159,7 +159,9 @@ export default function TaskBoard({ project, columns: initialColumns }: Props) {
                                         href={`/projects/${project.id}/tasks/${task.id}`}
                                         className="text-sm font-medium text-text-strong no-underline hover:text-brand-primary"
                                     >
-                                        <span className="mr-1.5 text-xs font-semibold text-text-muted">{displayKey(project.key, task.number)}</span>
+                                        <span className="mr-1.5 text-xs font-semibold text-text-muted">
+                                            {displayKey(project.key, task.number)}
+                                        </span>
                                         {task.title}
                                     </Link>
                                     <div className="mt-2 flex items-center justify-between text-xs text-text-muted">

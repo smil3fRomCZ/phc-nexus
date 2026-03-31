@@ -36,7 +36,6 @@ function getProgress(completed: number, total: number): number {
     return Math.round((completed / total) * 100);
 }
 
-
 export default function ProjectsIndex({ projects }: Props) {
     const [statusFilter, setStatusFilter] = useState('');
     const [searchQuery, setSearchQuery] = useState('');

@@ -128,7 +128,14 @@ function CommentItem({
             {!isReply && allReplies.length > 0 && (
                 <div className="ml-8 border-l-2 border-border-subtle pl-4 space-y-2 mt-2">
                     {allReplies.map((reply) => (
-                        <CommentItem key={reply.id} comment={reply} postUrl={postUrl} currentUserId={currentUserId} isReply rootId={effectiveRootId} />
+                        <CommentItem
+                            key={reply.id}
+                            comment={reply}
+                            postUrl={postUrl}
+                            currentUserId={currentUserId}
+                            isReply
+                            rootId={effectiveRootId}
+                        />
                     ))}
                 </div>
             )}

@@ -403,10 +403,7 @@ export default function TaskShow({
                             ))}
                         </select>
                         {task.recurrence_next_at && (
-                            <p className="mt-1 text-xs text-text-muted">
-                                Next:{' '}
-                                {formatDate(task.recurrence_next_at)}
-                            </p>
+                            <p className="mt-1 text-xs text-text-muted">Next: {formatDate(task.recurrence_next_at)}</p>
                         )}
                     </SidebarSection>
 

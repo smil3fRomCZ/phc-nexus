@@ -80,7 +80,9 @@ export default function EpicsIndex({ project, epics }: Props) {
                                 href={`/projects/${project.id}/epics/${epic.id}`}
                                 className="text-base font-medium text-text-strong no-underline hover:text-brand-primary"
                             >
-                                <span className="mr-1.5 text-xs font-semibold text-text-muted">{displayKey(project.key, epic.number)}</span>
+                                <span className="mr-1.5 text-xs font-semibold text-text-muted">
+                                    {displayKey(project.key, epic.number)}
+                                </span>
                                 {epic.title}
                             </Link>
                         </div>

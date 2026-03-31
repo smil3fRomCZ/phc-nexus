@@ -42,7 +42,6 @@ const STATUS_CONFIG: Record<string, { color: string; bg: string }> = {
     cancelled: { color: 'text-status-neutral', bg: 'bg-status-neutral-subtle' },
 };
 
-
 function formatHours(hours: number): string {
     if (hours < 1) return `${Math.round(hours * 60)}m`;
     if (hours < 24) return `${hours}h`;

@@ -119,7 +119,9 @@ export default function MyTasksIndex({ tasks, filters, statuses, priorities }: P
                                                 href={`/projects/${task.project.id}/tasks/${task.id}`}
                                                 className="no-underline hover:text-brand-primary"
                                             >
-                                                <span className="mr-1.5 text-xs font-semibold text-text-muted">{displayKey(task.project.key, task.number)}</span>
+                                                <span className="mr-1.5 text-xs font-semibold text-text-muted">
+                                                    {displayKey(task.project.key, task.number)}
+                                                </span>
                                                 {task.title}
                                             </Link>
                                         ) : (

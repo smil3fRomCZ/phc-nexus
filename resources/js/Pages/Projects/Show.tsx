@@ -85,9 +85,7 @@ export default function ProjectShow({ project }: { project: Project }) {
                         <MetadataField label="Vlastník">{project.owner.name}</MetadataField>
                         <MetadataField label="Tým">{project.team?.name ?? '\u2014'}</MetadataField>
                         <MetadataField label="Klasifikace">{project.data_classification.toUpperCase()}</MetadataField>
-                        <MetadataField label="Vytvořeno">
-                            {formatDate(project.created_at)}
-                        </MetadataField>
+                        <MetadataField label="Vytvořeno">{formatDate(project.created_at)}</MetadataField>
                     </MetadataGrid>
                 </div>
 
@@ -144,12 +142,8 @@ export default function ProjectShow({ project }: { project: Project }) {
                 {/* Dates */}
                 {(project.start_date || project.target_date) && (
                     <div className="mt-6 flex gap-4 text-sm text-text-muted">
-                        {project.start_date && (
-                            <span>Zahájení: {formatDate(project.start_date)}</span>
-                        )}
-                        {project.target_date && (
-                            <span>Cíl: {formatDate(project.target_date)}</span>
-                        )}
+                        {project.start_date && <span>Zahájení: {formatDate(project.start_date)}</span>}
+                        {project.target_date && <span>Cíl: {formatDate(project.target_date)}</span>}
                     </div>
                 )}
 

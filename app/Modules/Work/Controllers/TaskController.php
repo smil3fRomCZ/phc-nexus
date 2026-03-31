@@ -5,13 +5,13 @@ declare(strict_types=1);
 namespace App\Modules\Work\Controllers;
 
 use App\Http\Controllers\Controller;
+use App\Models\User;
 use App\Modules\Notifications\Notifications\TaskAssignedNotification;
 use App\Modules\Notifications\Notifications\TaskStatusChangedNotification;
 use App\Modules\Projects\Models\Project;
 use App\Modules\Work\Enums\RecurrenceRule;
 use App\Modules\Work\Enums\TaskPriority;
 use App\Modules\Work\Enums\TaskStatus;
-use App\Models\User;
 use App\Modules\Work\Models\Epic;
 use App\Modules\Work\Models\Task;
 use Illuminate\Http\JsonResponse;

@@ -101,6 +101,7 @@ interface BenefitTypeOption {
 interface Props {
     project: { id: string; name: string; key: string };
     task: Task;
+    hasPendingApproval: boolean;
     allowedTransitions: SelectOption[];
     members: Member[];
     statuses: SelectOption[];
@@ -139,6 +140,7 @@ export default function TaskShow({
     projectTasks,
     recurrenceRules,
     benefitTypes = [],
+    hasPendingApproval = false,
 }: Props) {
     const { auth } = usePage<PageProps>().props;
     const [editing, setEditing] = useState(false);
@@ -149,7 +151,7 @@ export default function TaskShow({
         { label: 'Domů', href: '/' },
         { label: 'Projekty', href: '/projects' },
         { label: project.name, href: `/projects/${project.id}` },
-        { label: 'Úkoly', href: `/projects/${project.id}/tasks` },
+        { label: 'Backlog', href: `/projects/${project.id}/table` },
         { label: displayKey(project.key, task.number) },
     ];
 
@@ -346,7 +348,12 @@ export default function TaskShow({
                         <div className="pb-4 mb-4 border-b border-border-subtle">
                             <SidebarSection label="Stav">
                                 <StatusBadge statusMap={TASK_STATUS} value={task.status} />
-                                {allowedTransitions.length > 0 && (
+                                {hasPendingApproval && (
+                                    <p className="mt-2 rounded bg-status-warning-subtle px-2 py-1 text-xs text-status-warning">
+                                        Čeká na schválení — změna stavu blokována
+                                    </p>
+                                )}
+                                {allowedTransitions.length > 0 && !hasPendingApproval && (
                                     <div className="mt-2 flex flex-wrap gap-1">
                                         {allowedTransitions.map((t) => (
                                             <button

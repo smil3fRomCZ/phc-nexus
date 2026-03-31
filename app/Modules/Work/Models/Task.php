@@ -10,6 +10,7 @@ use App\Models\Concerns\HasComments;
 use App\Models\Concerns\HasPhiClassification;
 use App\Models\Concerns\HasUuidV7;
 use App\Models\User;
+use App\Modules\Approvals\Models\ApprovalRequest;
 use App\Modules\Projects\Enums\BenefitType;
 use App\Modules\Projects\Models\Project;
 use App\Modules\Work\Enums\RecurrenceRule;
@@ -20,6 +21,7 @@ use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\BelongsToMany;
+use Illuminate\Database\Eloquent\Relations\MorphMany;
 use Illuminate\Database\Eloquent\SoftDeletes;
 use Illuminate\Support\Facades\DB;
 
@@ -110,5 +112,15 @@ class Task extends Model
     {
         return $this->belongsToMany(self::class, 'task_dependencies', 'blocker_id', 'blocked_id')
             ->withTimestamps();
+    }
+
+    public function approvalRequests(): MorphMany
+    {
+        return $this->morphMany(ApprovalRequest::class, 'approvable');
+    }
+
+    public function hasPendingApproval(): bool
+    {
+        return $this->approvalRequests()->where('status', 'pending')->exists();
     }
 }

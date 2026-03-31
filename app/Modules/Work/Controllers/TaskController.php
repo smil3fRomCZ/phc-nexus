@@ -165,6 +165,15 @@ final class TaskController extends Controller
                 if (! empty($values['priority']) && $priorityLabels->has($values['priority'])) {
                     $values['priority'] = $priorityLabels[$values['priority']];
                 }
+                foreach (['due_date', 'start_date', 'target_date', 'recurrence_next_at'] as $dateField) {
+                    if (! empty($values[$dateField]) && is_string($values[$dateField])) {
+                        try {
+                            $values[$dateField] = \Carbon\Carbon::parse($values[$dateField])->format('d.m.Y');
+                        } catch (\Throwable) {
+                            // ponechat původní hodnotu
+                        }
+                    }
+                }
                 $entry->setAttribute($key, $values);
             }
 
@@ -182,6 +191,7 @@ final class TaskController extends Controller
         return Inertia::render('Work/Tasks/Show', [
             'project' => $project->only('id', 'name', 'key'),
             'task' => $task,
+            'hasPendingApproval' => $task->hasPendingApproval(),
             'allowedTransitions' => $allowedTransitions,
             'members' => $members,
             'statuses' => $statuses,
@@ -339,6 +349,12 @@ final class TaskController extends Controller
         ]);
 
         $newStatus = TaskStatus::from($validated['status']);
+
+        if ($task->hasPendingApproval()) {
+            return response()->json([
+                'error' => 'Tento úkol má nevyřízenou žádost o schválení. Před změnou stavu je nutné žádost schválit nebo zamítnout.',
+            ], 422);
+        }
 
         if (! $task->status->canTransitionTo($newStatus)) {
             throw ValidationException::withMessages([

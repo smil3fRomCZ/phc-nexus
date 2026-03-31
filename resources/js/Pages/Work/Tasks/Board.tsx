@@ -101,8 +101,12 @@ export default function TaskBoard({ project, columns: initialColumns }: Props) {
                 Accept: 'application/json',
             },
             body: JSON.stringify({ status: targetStatus }),
-        }).then((res) => {
+        }).then(async (res) => {
             if (!res.ok) {
+                const data = await res.json().catch(() => null);
+                if (data?.error) {
+                    alert(data.error);
+                }
                 router.reload({ only: ['columns'] });
             }
         });

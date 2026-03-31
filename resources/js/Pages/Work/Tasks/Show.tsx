@@ -62,6 +62,7 @@ interface Task {
     title: string;
     description: string | null;
     status: string;
+    workflow_status: { id: string; name: string; color: string | null } | null;
     priority: string;
     assignee: { id: string; name: string } | null;
     reporter: { id: string; name: string } | null;
@@ -209,7 +210,11 @@ export default function TaskShow({
                                 <span className="mr-2 text-text-muted">{displayKey(project.key, task.number)}</span>
                                 {task.title}
                             </h1>
-                            <StatusBadge statusMap={TASK_STATUS} value={task.status} />
+                            {task.workflow_status ? (
+                                <StatusBadge label={task.workflow_status.name} color={task.workflow_status.color} />
+                            ) : (
+                                <StatusBadge statusMap={TASK_STATUS} value={task.status} />
+                            )}
                             <div className="ml-auto flex gap-2">
                                 <button
                                     onClick={() => setRequestingApproval(true)}
@@ -390,7 +395,11 @@ export default function TaskShow({
                         {/* Group: Status + Priority */}
                         <div className="pb-4 mb-4 border-b border-border-subtle">
                             <SidebarSection label="Stav">
-                                <StatusBadge statusMap={TASK_STATUS} value={task.status} />
+                                {task.workflow_status ? (
+                                    <StatusBadge label={task.workflow_status.name} color={task.workflow_status.color} />
+                                ) : (
+                                    <StatusBadge statusMap={TASK_STATUS} value={task.status} />
+                                )}
                                 {hasPendingApproval && (
                                     <p className="mt-2 rounded bg-status-warning-subtle px-2 py-1 text-xs text-status-warning">
                                         Čeká na schválení — změna stavu blokována

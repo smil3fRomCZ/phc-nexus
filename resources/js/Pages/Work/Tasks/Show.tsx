@@ -175,7 +175,7 @@ export default function TaskShow({
 
     return (
         <AppLayout title={`${displayKey(project.key, task.number)} — ${task.title}`} breadcrumbs={breadcrumbs}>
-            <div className="flex gap-8">
+            <div className="flex items-start gap-8">
                 {/* ── Main Column ── */}
                 <div className="min-w-0 flex-1 space-y-5">
                     {/* Header card */}
@@ -213,12 +213,23 @@ export default function TaskShow({
                                 </button>
                             </div>
                         </div>
+
+                        {/* Description */}
                         {task.description && (
-                            <p className="mt-3 text-base leading-relaxed text-text-default">{task.description}</p>
+                            <div className="mt-4 rounded-md border border-border-subtle bg-surface-secondary px-4 py-3">
+                                <span className="mb-1 block text-xs font-semibold uppercase tracking-wider text-text-subtle">
+                                    Popis
+                                </span>
+                                <p className="text-sm leading-relaxed text-text-default">{task.description}</p>
+                            </div>
                         )}
 
                         {/* Metadata strip */}
-                        <div className="mt-4 flex gap-6 border-t border-border-subtle pt-4 text-xs text-text-muted">
+                        <div className="mt-4 flex flex-wrap gap-x-6 gap-y-1 border-t border-border-subtle pt-4 text-xs text-text-muted">
+                            <span>
+                                Vytvořil/a{' '}
+                                <strong className="text-text-default">{task.reporter?.name ?? '\u2014'}</strong>
+                            </span>
                             <span>
                                 Vytvořeno <strong className="text-text-default">{formatDate(task.created_at)}</strong>
                             </span>

@@ -74,11 +74,11 @@ export default function EpicShow({ project, epic, members, statuses }: Props) {
 
     return (
         <AppLayout title={`${displayKey(project.key, epic.number)} — ${epic.title}`} breadcrumbs={breadcrumbs}>
-            <div className="flex gap-8">
+            <div className="flex items-start gap-8">
                 {/* ── Left Column ── */}
-                <div className="min-w-0 flex-1">
-                    {/* Title */}
-                    <div className="mb-6">
+                <div className="min-w-0 flex-1 space-y-5">
+                    {/* Header card */}
+                    <div className="rounded-lg border border-border-subtle bg-surface-primary p-5">
                         <div className="flex items-center gap-3">
                             <h1 className="text-2xl font-bold leading-tight text-text-strong">
                                 <span className="mr-2 text-text-muted">{displayKey(project.key, epic.number)}</span>
@@ -105,6 +105,30 @@ export default function EpicShow({ project, epic, members, statuses }: Props) {
                                 </button>
                             </div>
                         </div>
+
+                        {/* Description */}
+                        {epic.description && (
+                            <div className="mt-4 rounded-md border border-border-subtle bg-surface-secondary px-4 py-3">
+                                <span className="mb-1 block text-xs font-semibold uppercase tracking-wider text-text-subtle">
+                                    Popis
+                                </span>
+                                <p className="text-sm leading-relaxed text-text-default">{epic.description}</p>
+                            </div>
+                        )}
+
+                        {/* Metadata strip */}
+                        <div className="mt-4 flex flex-wrap gap-x-6 gap-y-1 border-t border-border-subtle pt-4 text-xs text-text-muted">
+                            <span>
+                                Vlastník <strong className="text-text-default">{epic.owner?.name ?? '\u2014'}</strong>
+                            </span>
+                            <span>
+                                Vytvořeno <strong className="text-text-default">{formatDate(epic.created_at)}</strong>
+                            </span>
+                            <span>
+                                Aktualizováno{' '}
+                                <strong className="text-text-default">{formatDate(epic.updated_at)}</strong>
+                            </span>
+                        </div>
                     </div>
 
                     {editing && (
@@ -117,34 +141,13 @@ export default function EpicShow({ project, epic, members, statuses }: Props) {
                         />
                     )}
 
-                    {/* Metadata strip */}
-                    <div className="mb-6 flex gap-6 rounded-lg border border-border-subtle bg-surface-secondary px-5 py-3 text-xs text-text-muted">
-                        <span>
-                            Typ: <strong className="text-text-default">EPIC</strong>
-                        </span>
-                        <span>
-                            Vytvořeno <strong className="text-text-default">{formatDate(epic.created_at)}</strong>
-                        </span>
-                        <span>
-                            Aktualizováno <strong className="text-text-default">{formatDate(epic.updated_at)}</strong>
-                        </span>
-                    </div>
-
-                    {/* Description */}
-                    {epic.description && (
-                        <div className="mb-8">
-                            <h2 className="mb-3 text-lg font-semibold text-text-strong">Popis</h2>
-                            <p className="text-base leading-relaxed text-text-default">{epic.description}</p>
-                        </div>
-                    )}
-
                     {/* Tasks with progress */}
-                    <div className="mb-8">
+                    <div className="rounded-lg border border-border-subtle bg-surface-primary p-5">
                         <div className="mb-3 flex items-center justify-between">
-                            <h2 className="text-lg font-semibold text-text-strong">Úkoly ({epic.tasks_count})</h2>
+                            <h2 className="text-base font-semibold text-text-strong">Úkoly ({epic.tasks_count})</h2>
                             <Link
                                 href={`/projects/${project.id}/epics/${epic.id}/tasks`}
-                                className="text-xs text-text-muted no-underline hover:text-brand-primary"
+                                className="cursor-pointer text-xs text-text-muted no-underline hover:text-brand-primary"
                             >
                                 Zobrazit vše
                             </Link>
@@ -170,21 +173,19 @@ export default function EpicShow({ project, epic, members, statuses }: Props) {
                         {epic.tasks.length > 0 && (
                             <div className="mt-2 space-y-1">
                                 {epic.tasks.map((task) => (
-                                    <div
+                                    <Link
                                         key={task.id}
-                                        className="flex items-center justify-between rounded-md border border-border-subtle px-4 py-2 text-sm transition-colors hover:bg-brand-soft"
+                                        href={`/projects/${project.id}/tasks/${task.id}`}
+                                        className="flex cursor-pointer items-center justify-between rounded-md border border-border-subtle px-4 py-2 text-sm no-underline transition-colors hover:bg-brand-soft"
                                     >
                                         <div className="flex items-center gap-2">
                                             <StatusBadge statusMap={TASK_STATUS} value={task.status} />
-                                            <Link
-                                                href={`/projects/${project.id}/tasks/${task.id}`}
-                                                className="font-medium text-text-strong no-underline hover:text-brand-primary"
-                                            >
+                                            <span className="font-medium text-text-strong">
                                                 <span className="mr-1.5 text-xs font-semibold text-text-muted">
                                                     {displayKey(project.key, task.number)}
                                                 </span>
                                                 {task.title}
-                                            </Link>
+                                            </span>
                                         </div>
                                         <span className="text-text-muted">
                                             {task.assignee ? (
@@ -193,7 +194,7 @@ export default function EpicShow({ project, epic, members, statuses }: Props) {
                                                 'Nepřiřazeno'
                                             )}
                                         </span>
-                                    </div>
+                                    </Link>
                                 ))}
                             </div>
                         )}
@@ -204,7 +205,7 @@ export default function EpicShow({ project, epic, members, statuses }: Props) {
                     </div>
 
                     {/* Comments */}
-                    <div className="mb-8">
+                    <div className="rounded-lg border border-border-subtle bg-surface-primary p-5">
                         <CommentsSection
                             comments={epic.root_comments}
                             commentsCount={epic.comments_count}

@@ -161,10 +161,29 @@ function ProjectMetrics({ project }: { project: Project }) {
             icon: CheckCircle2,
             color: 'info' as const,
             progress,
+            href: `/projects/${project.id}/table`,
         },
-        { label: 'Po termínu', value: project.tasks_overdue_count, icon: AlertCircle, color: 'danger' as const },
-        { label: 'EPIC', value: project.epics_count, icon: Layers, color: 'neutral' as const },
-        { label: 'Členové', value: project.members_count, icon: Users, color: 'neutral' as const },
+        {
+            label: 'Po termínu',
+            value: project.tasks_overdue_count,
+            icon: AlertCircle,
+            color: 'danger' as const,
+            href: `/projects/${project.id}/table?status=overdue`,
+        },
+        {
+            label: 'EPIC',
+            value: project.epics_count,
+            icon: Layers,
+            color: 'neutral' as const,
+            href: `/projects/${project.id}/epics`,
+        },
+        {
+            label: 'Členové',
+            value: project.members_count,
+            icon: Users,
+            color: 'neutral' as const,
+            href: `/projects/${project.id}/edit`,
+        },
     ];
 
     const colors: Record<string, { bg: string; text: string }> = {
@@ -174,14 +193,15 @@ function ProjectMetrics({ project }: { project: Project }) {
     };
 
     return (
-        <div className="mb-6 grid grid-cols-4 gap-4">
+        <div className="grid grid-cols-4 gap-4">
             {tiles.map((tile) => {
                 const c = colors[tile.color];
                 const Icon = tile.icon;
                 return (
-                    <div
+                    <Link
                         key={tile.label}
-                        className="flex flex-col gap-1 rounded-lg border border-border-subtle bg-surface-primary p-4 transition-shadow hover:shadow-md"
+                        href={tile.href}
+                        className="flex cursor-pointer flex-col gap-1 rounded-lg border border-border-subtle bg-surface-primary p-4 no-underline transition-shadow hover:shadow-md"
                     >
                         <div className={`mb-1 flex h-7 w-7 items-center justify-center rounded-md ${c.bg}`}>
                             <Icon className={`h-3.5 w-3.5 ${c.text}`} strokeWidth={2} />
@@ -196,7 +216,7 @@ function ProjectMetrics({ project }: { project: Project }) {
                                 />
                             </div>
                         )}
-                    </div>
+                    </Link>
                 );
             })}
         </div>

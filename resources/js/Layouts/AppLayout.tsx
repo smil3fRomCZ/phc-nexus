@@ -122,7 +122,7 @@ export default function AppLayout({ title, breadcrumbs, children }: AppLayoutPro
                     <div className="flex items-center gap-4">
                         <button
                             onClick={() => router.visit('/notifications')}
-                            className="relative text-text-muted transition-colors hover:text-text-strong"
+                            className="relative cursor-pointer text-text-muted transition-colors hover:text-text-strong"
                             aria-label={`Notifications${notificationCount > 0 ? ` (${notificationCount} unread)` : ''}`}
                         >
                             <Bell className="h-[18px] w-[18px]" />

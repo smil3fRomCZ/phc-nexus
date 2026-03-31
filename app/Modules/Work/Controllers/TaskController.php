@@ -333,7 +333,6 @@ final class TaskController extends Controller
         return Inertia::render('Work/Tasks/Board', [
             'project' => $project->only('id', 'name', 'key'),
             'columns' => $columns,
-            'workflowStatuses' => $workflowStatuses,
             'canManageColumns' => $canManageColumns,
             'members' => $members,
             'epics' => $epics,

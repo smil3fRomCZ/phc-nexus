@@ -45,7 +45,7 @@ final class EpicController extends Controller
 
         $project->epics()->create($validated);
 
-        return back()->with('success', 'Epik vytvořen.');
+        return back()->with('success', 'EPIC vytvořen.');
     }
 
     public function show(Project $project, Epic $epic): Response
@@ -92,7 +92,7 @@ final class EpicController extends Controller
 
         $epic->update($validated);
 
-        return back()->with('success', 'Epik aktualizován.');
+        return back()->with('success', 'EPIC aktualizován.');
     }
 
     public function destroy(Project $project, Epic $epic): RedirectResponse
@@ -102,6 +102,6 @@ final class EpicController extends Controller
         $epic->delete();
 
         return redirect()->route('projects.epics.index', $project)
-            ->with('success', 'Epik smazán.');
+            ->with('success', 'EPIC smazán.');
     }
 }

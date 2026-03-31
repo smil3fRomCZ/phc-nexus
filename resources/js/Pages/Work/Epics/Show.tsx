@@ -8,6 +8,7 @@ import { EPIC_STATUS } from '@/constants/status';
 import AppLayout from '@/Layouts/AppLayout';
 import type { Breadcrumb } from '@/Layouts/AppLayout';
 import { TASK_STATUS } from '@/constants/status';
+import { displayKey } from '@/utils/displayKey';
 import { Link, router, useForm } from '@inertiajs/react';
 import { Pencil, Trash2, X, Plus } from 'lucide-react';
 import { useState, type FormEvent } from 'react';
@@ -21,6 +22,7 @@ interface Task {
 
 interface Epic {
     id: string;
+    number: number;
     title: string;
     description: string | null;
     status: string;
@@ -57,8 +59,8 @@ export default function EpicShow({ project, epic, members, statuses }: Props) {
         { label: 'Domů', href: '/' },
         { label: 'Projekty', href: '/projects' },
         { label: project.name, href: `/projects/${project.id}` },
-        { label: 'Epiky', href: `/projects/${project.id}/epics` },
-        { label: epic.title },
+        { label: 'EPIC', href: `/projects/${project.id}/epics` },
+        { label: displayKey(project.key, epic.number) },
     ];
 
     return (
@@ -66,7 +68,10 @@ export default function EpicShow({ project, epic, members, statuses }: Props) {
             <div className="mx-auto max-w-4xl">
                 <div className="mb-6">
                     <div className="flex items-center gap-3">
-                        <h1 className="text-2xl font-bold leading-tight text-text-strong">{epic.title}</h1>
+                        <h1 className="text-2xl font-bold leading-tight text-text-strong">
+                            <span className="mr-2 text-text-muted">{displayKey(project.key, epic.number)}</span>
+                            {epic.title}
+                        </h1>
                         <StatusBadge statusMap={EPIC_STATUS} value={epic.status} />
                         <div className="ml-auto flex gap-2">
                             <button
@@ -78,7 +83,7 @@ export default function EpicShow({ project, epic, members, statuses }: Props) {
                             </button>
                             <button
                                 onClick={() => {
-                                    if (confirm('Opravdu chcete smazat tento epik? Tuto akci nelze vrátit.')) {
+                                    if (confirm('Opravdu chcete smazat tento EPIC? Tuto akci nelze vrátit.')) {
                                         router.delete(`/projects/${project.id}/epics/${epic.id}`);
                                     }
                                 }}
@@ -243,7 +248,7 @@ function EpicEditDialog({
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50">
             <div className="w-full max-w-lg rounded-lg border border-border-subtle bg-surface-primary p-6 shadow-xl">
                 <div className="mb-4 flex items-center justify-between">
-                    <h2 className="text-lg font-semibold text-text-strong">Upravit epik</h2>
+                    <h2 className="text-lg font-semibold text-text-strong">Upravit EPIC</h2>
                     <button onClick={onClose} className="rounded p-1 text-text-muted hover:bg-surface-hover">
                         <X className="h-4 w-4" />
                     </button>

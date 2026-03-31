@@ -8,6 +8,7 @@ import type { Comment } from '@/Components/CommentsSection';
 import AttachmentsSection from '@/Components/AttachmentsSection';
 import type { Attachment } from '@/Components/AttachmentsSection';
 import { PROJECT_STATUS } from '@/constants/status';
+import { formatDate } from '@/utils/formatDate';
 import { Link, router } from '@inertiajs/react';
 import { Trash2, FileDown, ChevronDown, CheckCircle2, AlertCircle, Layers, Users } from 'lucide-react';
 import { useState, useRef, useEffect } from 'react';
@@ -84,13 +85,7 @@ export default function ProjectShow({ project }: { project: Project }) {
                         <MetadataField label="Vlastník">{project.owner.name}</MetadataField>
                         <MetadataField label="Tým">{project.team?.name ?? '\u2014'}</MetadataField>
                         <MetadataField label="Klasifikace">{project.data_classification.toUpperCase()}</MetadataField>
-                        <MetadataField label="Vytvořeno">
-                            {new Date(project.created_at).toLocaleDateString('cs-CZ', {
-                                day: 'numeric',
-                                month: 'numeric',
-                                year: 'numeric',
-                            })}
-                        </MetadataField>
+                        <MetadataField label="Vytvořeno">{formatDate(project.created_at)}</MetadataField>
                     </MetadataGrid>
                 </div>
 
@@ -133,7 +128,7 @@ export default function ProjectShow({ project }: { project: Project }) {
                         href={`/projects/${project.id}/epics`}
                         className="rounded-md border border-border-default px-4 py-2 text-sm font-medium text-text-default no-underline transition-colors hover:bg-surface-hover"
                     >
-                        Epiky
+                        EPIC
                     </Link>
                     <Link
                         href={`/projects/${project.id}/approvals`}
@@ -147,12 +142,8 @@ export default function ProjectShow({ project }: { project: Project }) {
                 {/* Dates */}
                 {(project.start_date || project.target_date) && (
                     <div className="mt-6 flex gap-4 text-sm text-text-muted">
-                        {project.start_date && (
-                            <span>Zahájení: {new Date(project.start_date).toLocaleDateString('cs-CZ')}</span>
-                        )}
-                        {project.target_date && (
-                            <span>Cíl: {new Date(project.target_date).toLocaleDateString('cs-CZ')}</span>
-                        )}
+                        {project.start_date && <span>Zahájení: {formatDate(project.start_date)}</span>}
+                        {project.target_date && <span>Cíl: {formatDate(project.target_date)}</span>}
                     </div>
                 )}
 
@@ -190,7 +181,7 @@ function ProjectMetrics({ project }: { project: Project }) {
             progress,
         },
         { label: 'Po termínu', value: project.tasks_overdue_count, icon: AlertCircle, color: 'danger' as const },
-        { label: 'Epiky', value: project.epics_count, icon: Layers, color: 'neutral' as const },
+        { label: 'EPIC', value: project.epics_count, icon: Layers, color: 'neutral' as const },
         { label: 'Členové', value: project.members_count, icon: Users, color: 'neutral' as const },
     ];
 

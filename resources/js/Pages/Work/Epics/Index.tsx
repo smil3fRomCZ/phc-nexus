@@ -3,12 +3,14 @@ import StatusBadge from '@/Components/StatusBadge';
 import { EPIC_STATUS } from '@/constants/status';
 import AppLayout from '@/Layouts/AppLayout';
 import type { Breadcrumb } from '@/Layouts/AppLayout';
+import { displayKey } from '@/utils/displayKey';
 import { Link, useForm } from '@inertiajs/react';
 import { Plus, Layers } from 'lucide-react';
 import type { FormEvent } from 'react';
 
 interface Epic {
     id: string;
+    number: number;
     title: string;
     status: string;
     owner: { id: string; name: string } | null;
@@ -26,7 +28,7 @@ export default function EpicsIndex({ project, epics }: Props) {
         { label: 'Domů', href: '/' },
         { label: 'Projekty', href: '/projects' },
         { label: project.name, href: `/projects/${project.id}` },
-        { label: 'Epiky' },
+        { label: 'EPIC' },
     ];
 
     const { data, setData, post, processing, reset, errors } = useForm({
@@ -42,7 +44,7 @@ export default function EpicsIndex({ project, epics }: Props) {
     return (
         <AppLayout title={`${project.key} — Epics`} breadcrumbs={breadcrumbs}>
             <div className="mb-6 flex items-center justify-between">
-                <h1 className="text-2xl font-bold leading-tight text-text-strong">Epiky</h1>
+                <h1 className="text-2xl font-bold leading-tight text-text-strong">EPIC</h1>
             </div>
 
             {/* Quick add */}
@@ -51,7 +53,7 @@ export default function EpicsIndex({ project, epics }: Props) {
                     type="text"
                     value={data.title}
                     onChange={(e) => setData('title', e.target.value)}
-                    placeholder="Název nového epiku..."
+                    placeholder="Název nového EPIC..."
                     className="flex-1 rounded-md border border-border-default bg-surface-primary px-3 py-2 text-base focus:border-border-focus focus:outline-none focus:shadow-[0_0_0_2px_var(--color-brand-soft)]"
                 />
                 <button
@@ -78,6 +80,9 @@ export default function EpicsIndex({ project, epics }: Props) {
                                 href={`/projects/${project.id}/epics/${epic.id}`}
                                 className="text-base font-medium text-text-strong no-underline hover:text-brand-primary"
                             >
+                                <span className="mr-1.5 text-xs font-semibold text-text-muted">
+                                    {displayKey(project.key, epic.number)}
+                                </span>
                                 {epic.title}
                             </Link>
                         </div>
@@ -87,7 +92,7 @@ export default function EpicsIndex({ project, epics }: Props) {
                         </div>
                     </div>
                 ))}
-                {epics.length === 0 && <EmptyState icon={Layers} message="Zatím žádné epiky. Přidejte první." />}
+                {epics.length === 0 && <EmptyState icon={Layers} message="Zatím žádné EPIC. Přidejte první." />}
             </div>
         </AppLayout>
     );

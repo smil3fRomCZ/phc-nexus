@@ -4,6 +4,7 @@ import StatusBadge from '@/Components/StatusBadge';
 import EmptyState from '@/Components/EmptyState';
 import { TASK_STATUS } from '@/constants/status';
 import { getPriority } from '@/constants/priority';
+import { formatDate } from '@/utils/formatDate';
 import { Link, usePage } from '@inertiajs/react';
 import { Clock, CheckSquare, AlertCircle, FolderKanban } from 'lucide-react';
 import type { PageProps } from '@/types';
@@ -59,7 +60,7 @@ function formatDueDate(dateStr: string | null): { text: string; overdue: boolean
     const now = new Date();
     now.setHours(0, 0, 0, 0);
     const overdue = date < now;
-    const text = date.toLocaleDateString('cs-CZ');
+    const text = formatDate(dateStr);
     return { text: overdue ? `${text} — PO TERMÍNU` : text, overdue };
 }
 

@@ -6,10 +6,13 @@ import Pagination from '@/Components/Pagination';
 import type { PaginationLink } from '@/Components/Pagination';
 import { TASK_STATUS } from '@/constants/status';
 import { getPriority } from '@/constants/priority';
+import { formatDate } from '@/utils/formatDate';
+import { displayKey } from '@/utils/displayKey';
 import { Link, router } from '@inertiajs/react';
 
 interface Task {
     id: string;
+    number: number;
     title: string;
     status: string;
     priority: string;
@@ -43,7 +46,7 @@ function formatDueDate(dateStr: string | null): { text: string; overdue: boolean
     const now = new Date();
     now.setHours(0, 0, 0, 0);
     const overdue = date < now;
-    const text = date.toLocaleDateString('cs-CZ');
+    const text = formatDate(dateStr);
     return { text: overdue ? `${text} — PO TERMÍNU` : text, overdue };
 }
 
@@ -94,7 +97,7 @@ export default function MyTasksIndex({ tasks, filters, statuses, priorities }: P
                 <table className="w-full border-collapse">
                     <thead>
                         <tr>
-                            {['Úkol', 'Projekt', 'Epik', 'Stav', 'Priorita', 'Termín'].map((header) => (
+                            {['Úkol', 'Projekt', 'EPIC', 'Stav', 'Priorita', 'Termín'].map((header) => (
                                 <th
                                     key={header}
                                     className="border-b border-border-default bg-surface-secondary px-5 py-3 text-left text-xs font-semibold uppercase tracking-wider text-text-subtle"
@@ -116,6 +119,9 @@ export default function MyTasksIndex({ tasks, filters, statuses, priorities }: P
                                                 href={`/projects/${task.project.id}/tasks/${task.id}`}
                                                 className="no-underline hover:text-brand-primary"
                                             >
+                                                <span className="mr-1.5 text-xs font-semibold text-text-muted">
+                                                    {displayKey(task.project.key, task.number)}
+                                                </span>
                                                 {task.title}
                                             </Link>
                                         ) : (

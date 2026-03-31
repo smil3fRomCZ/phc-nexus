@@ -123,17 +123,17 @@ test.describe('Approval flow — vote', () => {
 });
 
 // ============================================================
-// 5. Založení epiku (quick-add)
+// 5. Založení EPIC (quick-add)
 // ============================================================
-test.describe('Založení epiku', () => {
-    test('PM může vytvořit epik přes quick-add', async ({ page }) => {
+test.describe('Založení EPIC', () => {
+    test('PM může vytvořit EPIC přes quick-add', async ({ page }) => {
         await loginAs(page, PM_EMAIL);
         const projectId = await getProjectId(page, 'PHC Nexus');
 
-        const epicName = `E2E epik ${Date.now().toString().slice(-6)}`;
+        const epicName = `E2E EPIC ${Date.now().toString().slice(-6)}`;
         await page.goto(`/projects/${projectId}/epics`);
 
-        await page.getByPlaceholder('Název nového epiku...').fill(epicName);
+        await page.getByPlaceholder('Název nového EPIC...').fill(epicName);
         await page.getByRole('button', { name: 'Přidat' }).click();
 
         await expect(page.getByRole('link', { name: epicName })).toBeVisible();

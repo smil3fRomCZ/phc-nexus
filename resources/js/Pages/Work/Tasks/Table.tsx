@@ -3,11 +3,13 @@ import type { Breadcrumb } from '@/Layouts/AppLayout';
 import EmptyState from '@/Components/EmptyState';
 import { TASK_STATUS, getStatus } from '@/constants/status';
 import { getPriority } from '@/constants/priority';
+import { displayKey } from '@/utils/displayKey';
 import { Link, router } from '@inertiajs/react';
 import { useState } from 'react';
 
 interface Task {
     id: string;
+    number: number;
     title: string;
     status: string;
     priority: string;
@@ -204,7 +206,7 @@ export default function TaskTable({ project, tasks, filters, statuses, prioritie
                                 { field: 'status', label: 'Stav', sortable: true },
                                 { field: 'priority', label: 'Priorita', sortable: true },
                                 { field: 'assignee', label: 'Řešitel', sortable: false },
-                                { field: 'epic', label: 'Epik', sortable: false },
+                                { field: 'epic', label: 'EPIC', sortable: false },
                                 { field: 'due_date', label: 'Termín', sortable: true },
                             ].map((col) => (
                                 <th
@@ -239,6 +241,9 @@ export default function TaskTable({ project, tasks, filters, statuses, prioritie
                                         href={`/projects/${project.id}/tasks/${task.id}`}
                                         className="font-medium text-text-strong no-underline hover:text-brand-primary"
                                     >
+                                        <span className="mr-1.5 text-xs font-semibold text-text-muted">
+                                            {displayKey(project.key, task.number)}
+                                        </span>
                                         {task.title}
                                     </Link>
                                 </td>

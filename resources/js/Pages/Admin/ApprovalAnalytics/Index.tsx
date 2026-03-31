@@ -1,6 +1,7 @@
 import AppLayout from '@/Layouts/AppLayout';
 import type { Breadcrumb } from '@/Layouts/AppLayout';
 import EmptyState from '@/Components/EmptyState';
+import { formatDate } from '@/utils/formatDate';
 import { BarChart3, Clock, CheckCircle, XCircle, Ban } from 'lucide-react';
 
 interface Stats {
@@ -40,10 +41,6 @@ const STATUS_CONFIG: Record<string, { color: string; bg: string }> = {
     rejected: { color: 'text-status-danger', bg: 'bg-status-danger-subtle' },
     cancelled: { color: 'text-status-neutral', bg: 'bg-status-neutral-subtle' },
 };
-
-function formatDate(dateStr: string): string {
-    return new Date(dateStr).toLocaleDateString('cs-CZ', { day: 'numeric', month: 'short', year: 'numeric' });
-}
 
 function formatHours(hours: number): string {
     if (hours < 1) return `${Math.round(hours * 60)}m`;

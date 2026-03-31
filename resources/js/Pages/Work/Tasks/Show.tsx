@@ -408,7 +408,7 @@ export default function TaskShow({
                             </SidebarSection>
 
                             {task.epic && (
-                                <SidebarSection label="EPIC">
+                                <SidebarSection label="Epic">
                                     <Link
                                         href={`/projects/${project.id}/epics/${task.epic.id}`}
                                         className="text-sm text-brand-primary no-underline hover:underline"

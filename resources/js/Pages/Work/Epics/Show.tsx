@@ -68,7 +68,7 @@ export default function EpicShow({ project, epic, members, statuses }: Props) {
         { label: 'Domů', href: '/' },
         { label: 'Projekty', href: '/projects' },
         { label: project.name, href: `/projects/${project.id}` },
-        { label: 'EPIC', href: `/projects/${project.id}/epics` },
+        { label: 'Epic', href: `/projects/${project.id}/epics` },
         { label: displayKey(project.key, epic.number) },
     ];
 
@@ -95,7 +95,7 @@ export default function EpicShow({ project, epic, members, statuses }: Props) {
                                 </button>
                                 <button
                                     onClick={() => {
-                                        if (confirm('Opravdu chcete smazat tento EPIC? Tuto akci nelze vrátit.')) {
+                                        if (confirm('Opravdu chcete smazat tento Epic? Tuto akci nelze vrátit.')) {
                                             router.delete(`/projects/${project.id}/epics/${epic.id}`);
                                         }
                                     }}
@@ -353,7 +353,7 @@ function EpicEditDialog({
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50">
             <div className="w-full max-w-lg rounded-lg border border-border-subtle bg-surface-primary p-6 shadow-xl">
                 <div className="mb-4 flex items-center justify-between">
-                    <h2 className="text-lg font-semibold text-text-strong">Upravit EPIC</h2>
+                    <h2 className="text-lg font-semibold text-text-strong">Upravit Epic</h2>
                     <button onClick={onClose} className="rounded p-1 text-text-muted hover:bg-surface-hover">
                         <X className="h-4 w-4" />
                     </button>

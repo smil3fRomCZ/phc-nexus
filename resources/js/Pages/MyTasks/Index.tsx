@@ -97,7 +97,7 @@ export default function MyTasksIndex({ tasks, filters, statuses, priorities }: P
                 <table className="w-full border-collapse">
                     <thead>
                         <tr>
-                            {['Úkol', 'Projekt', 'EPIC', 'Stav', 'Priorita', 'Termín'].map((header) => (
+                            {['Úkol', 'Projekt', 'Epic', 'Stav', 'Priorita', 'Termín'].map((header) => (
                                 <th
                                     key={header}
                                     className="border-b border-border-default bg-surface-secondary px-5 py-3 text-left text-xs font-semibold uppercase tracking-wider text-text-subtle"

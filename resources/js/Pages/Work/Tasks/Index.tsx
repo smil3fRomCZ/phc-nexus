@@ -46,7 +46,7 @@ export default function TasksIndex({ project, epic, tasks }: Props) {
         { label: project.name, href: `/projects/${project.id}` },
         ...(epic
             ? [
-                  { label: 'EPIC', href: `/projects/${project.id}/epics` },
+                  { label: 'Epic', href: `/projects/${project.id}/epics` },
                   { label: epic.title, href: `/projects/${project.id}/epics/${epic.id}` },
                   { label: 'Úkoly' },
               ]

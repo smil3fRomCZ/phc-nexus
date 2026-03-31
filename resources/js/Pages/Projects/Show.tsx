@@ -171,7 +171,7 @@ function ProjectMetrics({ project }: { project: Project }) {
             href: `/projects/${project.id}/table?status=overdue`,
         },
         {
-            label: 'EPIC',
+            label: 'Epic',
             value: project.epics_count,
             icon: Layers,
             color: 'neutral' as const,

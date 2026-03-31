@@ -7,6 +7,7 @@ namespace App\Modules\Projects\Controllers;
 use App\Http\Controllers\Controller;
 use App\Modules\Audit\Enums\PhiClassification;
 use App\Modules\Organization\Models\Team;
+use App\Modules\Projects\Enums\BenefitType;
 use App\Modules\Projects\Enums\ProjectStatus;
 use App\Modules\Projects\Models\Project;
 use Illuminate\Http\RedirectResponse;
@@ -47,6 +48,11 @@ final class ProjectController extends Controller
                 'label' => $c->label(),
             ]),
             'teams' => Team::orderBy('name')->get(['id', 'name']),
+            'benefitTypes' => collect(BenefitType::cases())->map(fn ($b) => [
+                'value' => $b->value,
+                'label' => $b->label(),
+                'hasMoney' => $b->hasMoneyField(),
+            ]),
         ]);
     }
 
@@ -62,6 +68,9 @@ final class ProjectController extends Controller
             'team_id' => ['nullable', 'uuid', 'exists:teams,id'],
             'start_date' => ['nullable', 'date'],
             'target_date' => ['nullable', 'date', 'after_or_equal:start_date'],
+            'benefit_type' => ['nullable', 'string', 'in:'.implode(',', array_column(BenefitType::cases(), 'value'))],
+            'benefit_amount' => ['nullable', 'numeric', 'min:0'],
+            'benefit_note' => ['nullable', 'string'],
         ]);
 
         $project = Project::create([
@@ -120,6 +129,11 @@ final class ProjectController extends Controller
                 'label' => $c->label(),
             ]),
             'teams' => Team::orderBy('name')->get(['id', 'name']),
+            'benefitTypes' => collect(BenefitType::cases())->map(fn ($b) => [
+                'value' => $b->value,
+                'label' => $b->label(),
+                'hasMoney' => $b->hasMoneyField(),
+            ]),
         ]);
     }
 
@@ -135,6 +149,9 @@ final class ProjectController extends Controller
             'team_id' => ['nullable', 'uuid', 'exists:teams,id'],
             'start_date' => ['nullable', 'date'],
             'target_date' => ['nullable', 'date', 'after_or_equal:start_date'],
+            'benefit_type' => ['nullable', 'string', 'in:'.implode(',', array_column(BenefitType::cases(), 'value'))],
+            'benefit_amount' => ['nullable', 'numeric', 'min:0'],
+            'benefit_note' => ['nullable', 'string'],
         ]);
 
         $project->update($validated);

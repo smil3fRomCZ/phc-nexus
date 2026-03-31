@@ -7,6 +7,7 @@ namespace App\Modules\Work\Controllers;
 use App\Http\Controllers\Controller;
 use App\Models\User;
 use App\Modules\Audit\Models\AuditEntry;
+use App\Modules\Projects\Enums\BenefitType;
 use App\Modules\Notifications\Notifications\TaskAssignedNotification;
 use App\Modules\Notifications\Notifications\TaskStatusChangedNotification;
 use App\Modules\Projects\Models\Project;
@@ -64,6 +65,9 @@ final class TaskController extends Controller
             'assignee_id' => ['nullable', 'uuid', 'exists:users,id'],
             'reporter_id' => ['nullable', 'uuid', 'exists:users,id'],
             'due_date' => ['nullable', 'date'],
+            'benefit_type' => ['nullable', 'string', 'in:'.implode(',', array_column(BenefitType::cases(), 'value'))],
+            'benefit_amount' => ['nullable', 'numeric', 'min:0'],
+            'benefit_note' => ['nullable', 'string'],
         ]);
 
         $validated['project_id'] = $project->id;
@@ -185,6 +189,11 @@ final class TaskController extends Controller
             'activity' => $activity,
             'projectTasks' => $projectTasks,
             'recurrenceRules' => $recurrenceRules,
+            'benefitTypes' => collect(BenefitType::cases())->map(fn ($b) => [
+                'value' => $b->value,
+                'label' => $b->label(),
+                'hasMoney' => $b->hasMoneyField(),
+            ]),
         ]);
     }
 
@@ -220,6 +229,9 @@ final class TaskController extends Controller
             'assignee_id' => ['nullable', 'uuid', 'exists:users,id'],
             'reporter_id' => ['nullable', 'uuid', 'exists:users,id'],
             'due_date' => ['nullable', 'date'],
+            'benefit_type' => ['nullable', 'string', 'in:'.implode(',', array_column(BenefitType::cases(), 'value'))],
+            'benefit_amount' => ['nullable', 'numeric', 'min:0'],
+            'benefit_note' => ['nullable', 'string'],
         ]);
 
         $oldAssigneeId = $task->assignee_id;
@@ -306,6 +318,12 @@ final class TaskController extends Controller
             'filters' => $request->only(['status', 'priority', 'assignee_id', 'sort', 'dir']),
             'statuses' => collect(TaskStatus::cases())->map(fn (TaskStatus $s) => ['value' => $s->value, 'label' => $s->label()]),
             'priorities' => collect(TaskPriority::cases())->map(fn (TaskPriority $p) => ['value' => $p->value, 'label' => $p->label()]),
+            'members' => $project->members()
+                ->select('users.id', 'users.name')
+                ->get()
+                ->when($project->owner_id, fn ($col) => $col->push($project->owner()->select('id', 'name')->first()))
+                ->unique('id')
+                ->values(),
         ]);
     }
 

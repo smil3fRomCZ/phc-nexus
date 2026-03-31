@@ -69,7 +69,7 @@ export default function TaskTable({ project, tasks, filters, statuses, prioritie
         { label: 'Domů', href: '/' },
         { label: 'Projekty', href: '/projects' },
         { label: project.name, href: `/projects/${project.id}` },
-        { label: 'Tabulka' },
+        { label: 'Backlog' },
     ];
 
     function applyFilter(key: string, value: string) {
@@ -194,7 +194,7 @@ export default function TaskTable({ project, tasks, filters, statuses, prioritie
                                 { field: 'status', label: 'Stav', sortable: true },
                                 { field: 'priority', label: 'Priorita', sortable: true },
                                 { field: 'assignee', label: 'Řešitel', sortable: false },
-                                { field: 'epic', label: 'EPIC', sortable: false },
+                                { field: 'epic', label: 'Epic', sortable: false },
                                 { field: 'due_date', label: 'Termín', sortable: true },
                             ].map((col) => (
                                 <th

@@ -29,7 +29,7 @@ export default function EpicsIndex({ project, epics }: Props) {
         { label: 'Domů', href: '/' },
         { label: 'Projekty', href: '/projects' },
         { label: project.name, href: `/projects/${project.id}` },
-        { label: 'EPIC' },
+        { label: 'Epic' },
     ];
 
     const { data, setData, post, processing, reset, errors } = useForm({

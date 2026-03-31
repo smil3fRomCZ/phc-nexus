@@ -7,6 +7,7 @@ namespace App\Modules\Work\Controllers;
 use App\Http\Controllers\Controller;
 use App\Modules\Projects\Models\Project;
 use App\Modules\Work\Enums\EpicStatus;
+use App\Modules\Work\Enums\TaskPriority;
 use App\Modules\Work\Models\Epic;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
@@ -21,13 +22,16 @@ final class EpicController extends Controller
         Gate::authorize('view', $project);
 
         $epics = $project->epics()
-            ->with('owner:id,name')
+            ->with(['owner:id,name', 'pm:id,name', 'leadDeveloper:id,name'])
+            ->withCount('tasks')
             ->orderBy('sort_order')
             ->get();
 
         return Inertia::render('Work/Epics/Index', [
             'project' => $project->only('id', 'name', 'key'),
             'epics' => $epics,
+            'priorities' => collect(TaskPriority::cases())->map(fn (TaskPriority $p) => ['value' => $p->value, 'label' => $p->label()]),
+            'statuses' => collect(EpicStatus::cases())->map(fn (EpicStatus $s) => ['value' => $s->value, 'label' => $s->label()]),
         ]);
     }
 
@@ -40,12 +44,15 @@ final class EpicController extends Controller
             'title' => ['required', 'string', 'max:255'],
             'description' => ['nullable', 'string'],
             'status' => ['required', 'string', 'in:'.implode(',', array_column(EpicStatus::cases(), 'value'))],
+            'priority' => ['nullable', 'string', 'in:'.implode(',', array_column(TaskPriority::cases(), 'value'))],
             'owner_id' => ['nullable', 'uuid', 'exists:users,id'],
+            'pm_id' => ['nullable', 'uuid', 'exists:users,id'],
+            'lead_developer_id' => ['nullable', 'uuid', 'exists:users,id'],
         ]);
 
         $project->epics()->create($validated);
 
-        return back()->with('success', 'EPIC vytvořen.');
+        return back()->with('success', 'Epic vytvořen.');
     }
 
     public function show(Project $project, Epic $epic): Response
@@ -54,6 +61,8 @@ final class EpicController extends Controller
 
         $epic->load([
             'owner:id,name',
+            'pm:id,name',
+            'leadDeveloper:id,name',
             'tasks.assignee:id,name',
             'rootComments.author:id,name',
             'rootComments.replies.author:id,name',
@@ -71,11 +80,15 @@ final class EpicController extends Controller
         $statuses = collect(EpicStatus::cases())
             ->map(fn (EpicStatus $s) => ['value' => $s->value, 'label' => $s->label()]);
 
+        $priorities = collect(TaskPriority::cases())
+            ->map(fn (TaskPriority $p) => ['value' => $p->value, 'label' => $p->label()]);
+
         return Inertia::render('Work/Epics/Show', [
             'project' => $project->only('id', 'name', 'key'),
             'epic' => $epic,
             'members' => $members,
             'statuses' => $statuses,
+            'priorities' => $priorities,
         ]);
     }
 
@@ -87,12 +100,15 @@ final class EpicController extends Controller
             'title' => ['required', 'string', 'max:255'],
             'description' => ['nullable', 'string'],
             'status' => ['required', 'string', 'in:'.implode(',', array_column(EpicStatus::cases(), 'value'))],
+            'priority' => ['nullable', 'string', 'in:'.implode(',', array_column(TaskPriority::cases(), 'value'))],
             'owner_id' => ['nullable', 'uuid', 'exists:users,id'],
+            'pm_id' => ['nullable', 'uuid', 'exists:users,id'],
+            'lead_developer_id' => ['nullable', 'uuid', 'exists:users,id'],
         ]);
 
         $epic->update($validated);
 
-        return back()->with('success', 'EPIC aktualizován.');
+        return back()->with('success', 'Epic aktualizován.');
     }
 
     public function destroy(Project $project, Epic $epic): RedirectResponse
@@ -102,6 +118,6 @@ final class EpicController extends Controller
         $epic->delete();
 
         return redirect()->route('projects.epics.index', $project)
-            ->with('success', 'EPIC smazán.');
+            ->with('success', 'Epic smazán.');
     }
 }

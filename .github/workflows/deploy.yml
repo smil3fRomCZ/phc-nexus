@@ -36,21 +36,23 @@ jobs:
     needs: ci-check
     runs-on: ubuntu-latest
     steps:
+      - name: Setup SSH key
+        run: |
+          mkdir -p ~/.ssh
+          echo "${{ secrets.VPS_SSH_KEY }}" > ~/.ssh/deploy_key
+          chmod 600 ~/.ssh/deploy_key
+          ssh-keyscan -H ${{ secrets.VPS_HOST }} >> ~/.ssh/known_hosts
+
       - name: Build Docker image na VPS
-        uses: appleboy/ssh-action@v1
-        with:
-          host: ${{ secrets.VPS_HOST }}
-          username: ${{ secrets.VPS_USER }}
-          key: ${{ secrets.VPS_SSH_KEY }}
-          script: |
-            set -e
+        run: |
+          ssh -i ~/.ssh/deploy_key -o StrictHostKeyChecking=no ${{ secrets.VPS_USER }}@${{ secrets.VPS_HOST }} 'set -e
             cd /opt/phc-nexus
 
             echo "=== Pulling latest code ==="
             git pull origin master
 
             echo "=== Building image ==="
-            docker build -t phc-nexus:latest --target production .
+            docker build -t phc-nexus:latest --target production .'
 
             echo "=== Syncing staging repo ==="
             cd /opt/phc-nexus-staging
@@ -70,14 +72,16 @@ jobs:
       github.event.inputs.target == 'both'
 
     steps:
+      - name: Setup SSH key
+        run: |
+          mkdir -p ~/.ssh
+          echo "${{ secrets.VPS_SSH_KEY }}" > ~/.ssh/deploy_key
+          chmod 600 ~/.ssh/deploy_key
+          ssh-keyscan -H ${{ secrets.VPS_HOST }} >> ~/.ssh/known_hosts
+
       - name: Deploy staging
-        uses: appleboy/ssh-action@v1
-        with:
-          host: ${{ secrets.VPS_HOST }}
-          username: ${{ secrets.VPS_USER }}
-          key: ${{ secrets.VPS_SSH_KEY }}
-          script: |
-            set -e
+        run: |
+          ssh -i ~/.ssh/deploy_key -o StrictHostKeyChecking=no ${{ secrets.VPS_USER }}@${{ secrets.VPS_HOST }} 'set -e
             cd /opt/phc-nexus-staging
 
             echo "=== Starting staging services ==="
@@ -99,7 +103,7 @@ jobs:
             docker compose -f docker-compose.caddy.yml exec -T caddy \
               caddy reload --config /etc/caddy/Caddyfile || true
 
-            echo "=== Staging deploy complete ==="
+            echo "=== Staging deploy complete ==="'
 
   # ==========================================================================
   # Deploy Production — vyžaduje manuální approve v GitHub UI
@@ -115,14 +119,16 @@ jobs:
        github.event.inputs.target == 'both')
 
     steps:
+      - name: Setup SSH key
+        run: |
+          mkdir -p ~/.ssh
+          echo "${{ secrets.VPS_SSH_KEY }}" > ~/.ssh/deploy_key
+          chmod 600 ~/.ssh/deploy_key
+          ssh-keyscan -H ${{ secrets.VPS_HOST }} >> ~/.ssh/known_hosts
+
       - name: Deploy production
-        uses: appleboy/ssh-action@v1
-        with:
-          host: ${{ secrets.VPS_HOST }}
-          username: ${{ secrets.VPS_USER }}
-          key: ${{ secrets.VPS_SSH_KEY }}
-          script: |
-            set -e
+        run: |
+          ssh -i ~/.ssh/deploy_key -o StrictHostKeyChecking=no ${{ secrets.VPS_USER }}@${{ secrets.VPS_HOST }} 'set -e
             cd /opt/phc-nexus
 
             echo "=== Starting production services ==="
@@ -147,4 +153,4 @@ jobs:
               exit 1
             }
 
-            echo "=== Production deploy complete ==="
+            echo "=== Production deploy complete ==="'

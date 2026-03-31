@@ -183,9 +183,7 @@ export default function TaskBoard({
             if (!res.ok) {
                 setColumns(snapshot);
                 const data = await res.json().catch(() => null);
-                setModalMessage(
-                    data?.error ?? 'Změna stavu se nezdařila.',
-                );
+                setModalMessage(data?.error ?? 'Změna stavu se nezdařila.');
             }
         });
     }

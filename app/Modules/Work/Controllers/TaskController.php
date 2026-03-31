@@ -90,6 +90,7 @@ final class TaskController extends Controller
             'assignee:id,name',
             'reporter:id,name',
             'epic:id,title',
+            'workflowStatus:id,name,color',
             'rootComments.author:id,name',
             'rootComments.replies.author:id,name',
             'attachments.uploader:id,name',
@@ -281,7 +282,7 @@ final class TaskController extends Controller
         Gate::authorize('view', $project);
 
         $query = $project->tasks()
-            ->with(['assignee:id,name', 'reporter:id,name', 'epic:id,title'])
+            ->with(['assignee:id,name', 'reporter:id,name', 'epic:id,title', 'workflowStatus:id,name,color'])
             ->withCount('comments')
             ->orderBy('sort_order');
 
@@ -350,7 +351,7 @@ final class TaskController extends Controller
         Gate::authorize('view', $project);
 
         $query = $project->tasks()
-            ->with(['assignee:id,name', 'reporter:id,name', 'epic:id,title']);
+            ->with(['assignee:id,name', 'reporter:id,name', 'epic:id,title', 'workflowStatus:id,name,color']);
 
         if ($request->filled('status')) {
             $query->where('status', $request->input('status'));

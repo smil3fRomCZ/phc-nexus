@@ -109,8 +109,16 @@ final class ProjectController extends Controller
             'members',
         ]);
 
+        $timeEntries = $project->timeEntries()
+            ->with(['user:id,name', 'task:id,title,number', 'epic:id,title'])
+            ->latest('date')
+            ->get();
+        $totalHours = (float) $project->timeEntries()->sum('hours');
+
         return Inertia::render('Projects/Show', [
             'project' => $project,
+            'timeEntries' => $timeEntries,
+            'totalHours' => $totalHours,
         ]);
     }
 

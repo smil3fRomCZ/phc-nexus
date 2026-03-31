@@ -5,10 +5,17 @@ import { validate, required, maxLength, pattern } from '@/utils/validate';
 import { useForm } from '@inertiajs/react';
 import { useState, type FormEvent } from 'react';
 
+interface BenefitTypeOption {
+    value: string;
+    label: string;
+    hasMoney: boolean;
+}
+
 interface Props {
     existingKeys: string[];
     classifications: Array<{ value: string; label: string }>;
     teams: Array<{ id: string; name: string }>;
+    benefitTypes: BenefitTypeOption[];
 }
 
 const BREADCRUMBS: Breadcrumb[] = [
@@ -65,7 +72,12 @@ const DEFAULT_CLASSIFICATIONS = [
     { value: 'unknown', label: 'Unknown' },
 ];
 
-export default function ProjectCreate({ existingKeys, classifications = DEFAULT_CLASSIFICATIONS, teams = [] }: Props) {
+export default function ProjectCreate({
+    existingKeys,
+    classifications = DEFAULT_CLASSIFICATIONS,
+    teams = [],
+    benefitTypes = [],
+}: Props) {
     const { data, setData, post, processing, errors } = useForm({
         name: '',
         key: '',
@@ -73,6 +85,9 @@ export default function ProjectCreate({ existingKeys, classifications = DEFAULT_
         data_classification: 'non_phi',
         status: 'draft',
         team_id: '',
+        benefit_type: '',
+        benefit_amount: '',
+        benefit_note: '',
         start_date: '',
         target_date: '',
     });
@@ -171,6 +186,52 @@ export default function ProjectCreate({ existingKeys, classifications = DEFAULT_
                             className="mt-1 w-full rounded-md border border-border-default bg-surface-primary px-3 py-2 text-base focus:border-border-focus focus:outline-none focus:shadow-[0_0_0_2px_var(--color-brand-soft)]"
                         />
                     </Field>
+
+                    <Field label="Přínos">
+                        <select
+                            value={data.benefit_type}
+                            onChange={(e) => {
+                                setData((prev) => ({
+                                    ...prev,
+                                    benefit_type: e.target.value,
+                                    benefit_amount: '',
+                                    benefit_note: '',
+                                }));
+                            }}
+                            className="mt-1 rounded-md border border-border-default bg-surface-primary px-3 py-2 text-base focus:border-border-focus focus:outline-none focus:shadow-[0_0_0_2px_var(--color-brand-soft)]"
+                        >
+                            <option value="">Bez přínosu</option>
+                            {benefitTypes.map((b) => (
+                                <option key={b.value} value={b.value}>
+                                    {b.label}
+                                </option>
+                            ))}
+                        </select>
+                    </Field>
+
+                    {data.benefit_type && benefitTypes.find((b) => b.value === data.benefit_type)?.hasMoney && (
+                        <Field label="Částka (Kč)" error={errors.benefit_amount}>
+                            <input
+                                type="number"
+                                value={data.benefit_amount}
+                                onChange={(e) => setData('benefit_amount', e.target.value)}
+                                placeholder="0"
+                                className="mt-1 w-full rounded-md border border-border-default bg-surface-primary px-3 py-2 text-base focus:border-border-focus focus:outline-none focus:shadow-[0_0_0_2px_var(--color-brand-soft)]"
+                            />
+                        </Field>
+                    )}
+
+                    {data.benefit_type && !benefitTypes.find((b) => b.value === data.benefit_type)?.hasMoney && (
+                        <Field label="Odůvodnění" error={errors.benefit_note}>
+                            <textarea
+                                value={data.benefit_note}
+                                onChange={(e) => setData('benefit_note', e.target.value)}
+                                rows={2}
+                                placeholder="Textové odůvodnění přínosu..."
+                                className="mt-1 w-full rounded-md border border-border-default bg-surface-primary px-3 py-2 text-base focus:border-border-focus focus:outline-none focus:shadow-[0_0_0_2px_var(--color-brand-soft)]"
+                            />
+                        </Field>
+                    )}
 
                     <div className="grid grid-cols-2 gap-4">
                         <Field label="Datum zahájení">

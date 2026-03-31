@@ -15,6 +15,7 @@ use App\Modules\Projects\Enums\BenefitType;
 use App\Modules\Projects\Enums\ProjectStatus;
 use App\Modules\Work\Models\Epic;
 use App\Modules\Work\Models\Task;
+use App\Modules\Work\Models\TimeEntry;
 use Database\Factories\ProjectFactory;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
@@ -84,6 +85,11 @@ class Project extends Model
     public function boardColumns(): HasMany
     {
         return $this->hasMany(BoardColumn::class)->orderBy('position');
+    }
+
+    public function timeEntries(): HasMany
+    {
+        return $this->hasMany(TimeEntry::class);
     }
 
     protected static function newFactory(): ProjectFactory

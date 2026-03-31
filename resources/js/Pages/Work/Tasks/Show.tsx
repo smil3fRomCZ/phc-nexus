@@ -4,6 +4,8 @@ import Avatar from '@/Components/Avatar';
 import StatusBadge from '@/Components/StatusBadge';
 import ActivityTimeline from '@/Components/ActivityTimeline';
 import type { ActivityEntry } from '@/Components/ActivityTimeline';
+import RichTextDisplay from '@/Components/RichTextDisplay';
+import RichTextEditor from '@/Components/RichTextEditor';
 import { TASK_STATUS } from '@/constants/status';
 import { formatDate, toDateInputValue } from '@/utils/formatDate';
 import { displayKey } from '@/utils/displayKey';
@@ -246,7 +248,7 @@ export default function TaskShow({
                                 <span className="mb-1 block text-xs font-semibold uppercase tracking-wider text-text-subtle">
                                     Popis
                                 </span>
-                                <p className="text-sm leading-relaxed text-text-default">{task.description}</p>
+                                <RichTextDisplay content={task.description} />
                             </div>
                         )}
 
@@ -667,12 +669,13 @@ function TaskEditDialog({
                     </EditField>
 
                     <EditField label="Popis" error={errors.description}>
-                        <textarea
-                            value={data.description}
-                            onChange={(e) => setData('description', e.target.value)}
-                            rows={3}
-                            className="mt-1 w-full rounded-md border border-border-default bg-surface-primary px-3 py-2 text-sm focus:border-border-focus focus:outline-none focus:shadow-[0_0_0_2px_var(--color-brand-soft)]"
-                        />
+                        <div className="mt-1">
+                            <RichTextEditor
+                                content={data.description}
+                                onChange={(html) => setData('description', html)}
+                                placeholder="Popis úkolu..."
+                            />
+                        </div>
                     </EditField>
 
                     <div className="grid grid-cols-2 gap-4">

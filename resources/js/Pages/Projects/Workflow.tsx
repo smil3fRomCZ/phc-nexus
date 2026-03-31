@@ -11,7 +11,6 @@ import {
     type Edge,
     type Connection,
     type NodeChange,
-    type NodeDragHandler,
     applyNodeChanges,
     MarkerType,
 } from '@xyflow/react';
@@ -121,8 +120,8 @@ export default function Workflow({ project, statuses, transitions }: Props) {
 
     const [nodes, setNodes] = useState<Node[]>(initialNodes);
 
-    const onNodeDragStop: NodeDragHandler = useCallback(
-        (_event, node) => {
+    const onNodeDragStop = useCallback(
+        (_event: unknown, node: Node) => {
             fetch(`/projects/${project.id}/workflow/statuses/${node.id}`, {
                 method: 'PUT',
                 headers: {

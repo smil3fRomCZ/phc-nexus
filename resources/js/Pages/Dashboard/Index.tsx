@@ -41,10 +41,10 @@ interface Props {
 }
 
 const STAT_TILES = [
-    { key: 'active_tasks', label: 'Aktivní úkoly', icon: Clock, color: 'info' },
-    { key: 'pending_approvals', label: 'Čeká na schválení', icon: CheckSquare, color: 'warning' },
-    { key: 'overdue', label: 'Po termínu', icon: AlertCircle, color: 'danger' },
-    { key: 'my_projects', label: 'Moje projekty', icon: FolderKanban, color: 'neutral' },
+    { key: 'active_tasks', label: 'Aktivní úkoly', icon: Clock, color: 'info', href: '/my-tasks' },
+    { key: 'pending_approvals', label: 'Čeká na schválení', icon: CheckSquare, color: 'warning', href: '/approvals' },
+    { key: 'overdue', label: 'Po termínu', icon: AlertCircle, color: 'danger', href: '/my-tasks' },
+    { key: 'my_projects', label: 'Moje projekty', icon: FolderKanban, color: 'neutral', href: '/projects' },
 ] as const;
 
 const TILE_COLORS: Record<string, { bg: string; text: string }> = {
@@ -91,9 +91,10 @@ export default function DashboardIndex({ stats, myTasks, pendingApprovals }: Pro
                     const colors = TILE_COLORS[tile.color];
                     const Icon = tile.icon;
                     return (
-                        <div
+                        <Link
                             key={tile.key}
-                            className="flex flex-col gap-1 rounded-lg border border-border-subtle bg-surface-primary p-5 transition-shadow hover:shadow-md"
+                            href={tile.href}
+                            className="flex cursor-pointer flex-col gap-1 rounded-lg border border-border-subtle bg-surface-primary p-5 no-underline transition-shadow hover:shadow-md"
                         >
                             <div className={`mb-2 flex h-8 w-8 items-center justify-center rounded-md ${colors.bg}`}>
                                 <Icon className={`h-4 w-4 ${colors.text}`} strokeWidth={2} />
@@ -102,7 +103,7 @@ export default function DashboardIndex({ stats, myTasks, pendingApprovals }: Pro
                             <span className="text-2xl font-bold text-text-strong">
                                 {stats[tile.key as keyof typeof stats]}
                             </span>
-                        </div>
+                        </Link>
                     );
                 })}
             </div>

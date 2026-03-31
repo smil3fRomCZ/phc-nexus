@@ -1,0 +1,229 @@
+<!DOCTYPE html>
+<html lang="cs">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Preview: Kanban Redesign — filtry + settings + užší karty</title>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+<style>
+:root {
+  --color-brand-primary: #f5a623; --color-brand-hover: #e09000; --color-brand-soft: #fff8eb;
+  --color-text-strong: #172b4d; --color-text-default: #42526e; --color-text-muted: #6b778c; --color-text-subtle: #97a0af; --color-text-on-brand: #fff;
+  --color-surface-canvas: #f4f5f7; --color-surface-panel: #fff; --color-surface-secondary: #fafbfc;
+  --color-border-subtle: #ebecf0; --color-border-default: #dfe1e6;
+  --color-status-success-bg: #e3fcef; --color-status-success-fg: #006644;
+  --color-status-info-bg: #deebff; --color-status-info-fg: #0747a6;
+  --color-status-neutral-bg: #dfe1e6; --color-status-neutral-fg: #42526e;
+  --color-status-warning-bg: #fff0b3; --color-status-warning-fg: #974f0c;
+  --color-status-review-bg: #eae6ff; --color-status-review-fg: #5243aa;
+  --font-sans: "Inter", -apple-system, sans-serif; --font-mono: "SFMono-Regular", Consolas, monospace;
+  --font-size-xs: 0.6875rem; --font-size-sm: 0.75rem; --font-size-base: 0.875rem;
+  --radius-md: 0.5rem; --radius-lg: 0.75rem;
+}
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+body { font-family: var(--font-sans); font-size: var(--font-size-base); color: var(--color-text-default); background: var(--color-surface-canvas); padding: 1.5rem; }
+
+/* Tabs */
+.tabs { display: flex; gap: 0; border-bottom: 1px solid var(--color-border-subtle); margin-bottom: 1rem; }
+.tab { padding: 0.625rem 1rem; font-size: var(--font-size-sm); font-weight: 500; color: var(--color-text-muted); border-bottom: 2px solid transparent; cursor: pointer; text-decoration: none; }
+.tab.active { color: var(--color-brand-primary); border-color: var(--color-brand-primary); }
+
+/* Filter bar */
+.filter-bar { display: flex; gap: 0.5rem; align-items: center; margin-bottom: 1rem; flex-wrap: wrap; }
+.filter-select { height: 2rem; padding: 0 0.75rem; border: 1px solid var(--color-border-default); border-radius: var(--radius-md); font-size: var(--font-size-sm); background: var(--color-surface-panel); cursor: pointer; }
+.settings-btn { margin-left: auto; display: flex; align-items: center; gap: 0.375rem; padding: 0.375rem 0.75rem; border: 1px solid var(--color-border-default); border-radius: var(--radius-md); font-size: var(--font-size-sm); background: var(--color-surface-panel); cursor: pointer; color: var(--color-text-muted); }
+.settings-btn:hover { background: var(--color-surface-secondary); }
+
+/* Settings popover */
+.settings-popover { position: absolute; right: 0; top: 2.5rem; width: 220px; background: var(--color-surface-panel); border: 1px solid var(--color-border-subtle); border-radius: var(--radius-lg); padding: 0.75rem; box-shadow: 0 8px 24px rgba(23,43,77,0.12); z-index: 10; }
+.settings-popover h4 { font-size: var(--font-size-xs); font-weight: 600; text-transform: uppercase; letter-spacing: 0.05em; color: var(--color-text-subtle); margin-bottom: 0.5rem; }
+.settings-popover label { display: flex; align-items: center; gap: 0.5rem; padding: 0.25rem 0; font-size: var(--font-size-sm); color: var(--color-text-default); cursor: pointer; }
+.settings-popover input[type="checkbox"] { accent-color: var(--color-brand-primary); }
+
+/* Board */
+.board { display: flex; gap: 0.75rem; overflow-x: auto; padding-bottom: 1rem; }
+.column { width: 15rem; flex-shrink: 0; border-radius: var(--radius-lg); overflow: hidden; }
+.column-header { padding: 0.5rem 0.75rem; display: flex; justify-content: space-between; align-items: center; }
+.column-header span:first-child { font-size: var(--font-size-sm); font-weight: 600; text-transform: uppercase; letter-spacing: 0.03em; color: var(--color-text-strong); }
+.column-count { background: var(--color-surface-panel); border-radius: 999px; padding: 0.1rem 0.5rem; font-size: var(--font-size-xs); font-weight: 600; color: var(--color-text-muted); }
+.column-body { padding: 0.5rem; display: flex; flex-direction: column; gap: 0.5rem; min-height: 150px; }
+
+/* Cards — UŽŠÍ */
+.card { background: var(--color-surface-panel); border: 1px solid var(--color-border-subtle); border-radius: var(--radius-md); padding: 0.625rem; cursor: grab; transition: box-shadow 0.15s; }
+.card:hover { border-color: var(--color-brand-primary); box-shadow: 0 2px 8px rgba(245,166,35,0.15); }
+.card-key { font-family: var(--font-mono); font-size: var(--font-size-xs); color: var(--color-text-muted); font-weight: 600; }
+.card-title { font-size: var(--font-size-sm); font-weight: 500; color: var(--color-text-strong); margin-top: 0.125rem; display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden; line-height: 1.4; }
+.card-meta { display: flex; align-items: center; justify-content: space-between; margin-top: 0.5rem; }
+.priority-pill { font-size: 0.6rem; font-weight: 600; padding: 0.1rem 0.375rem; border-radius: var(--radius-md); }
+.priority-high { background: rgba(191,38,0,0.1); color: #bf2600; }
+.priority-medium { background: rgba(66,82,110,0.1); color: #42526e; }
+.priority-low { background: rgba(151,160,175,0.1); color: #97a0af; }
+.avatar-sm { width: 1.25rem; height: 1.25rem; border-radius: 999px; background: var(--color-brand-primary); color: var(--color-text-on-brand); font-size: 0.5rem; font-weight: 600; display: flex; align-items: center; justify-content: center; }
+.card-epic { font-size: var(--font-size-xs); color: var(--color-text-subtle); margin-top: 0.25rem; }
+.card-date { font-size: var(--font-size-xs); color: var(--color-text-muted); }
+
+.badge { display: inline-flex; padding: 0.1rem 0.4rem; border-radius: 999px; font-size: var(--font-size-xs); font-weight: 600; }
+
+/* Column bg colors */
+.col-backlog { background: #f7f8fa; }
+.col-todo { background: #f0f4ff; }
+.col-progress { background: #eef6ff; }
+.col-review { background: #f3f0ff; }
+.col-done { background: #edfcf2; }
+</style>
+</head>
+<body>
+
+<p style="font-size:var(--font-size-xs); color:var(--color-text-subtle); margin-bottom:1rem;">PREVIEW: Kanban redesign — uzsi karty, filtry, settings popover (per-user)</p>
+
+<!-- Tabs -->
+<div class="tabs">
+  <a class="tab" href="#">Prehled</a>
+  <a class="tab active" href="#">Kanban</a>
+  <a class="tab" href="#">Backlog</a>
+  <a class="tab" href="#">Epic</a>
+  <a class="tab" href="#">Schvalovani</a>
+</div>
+
+<!-- Filter bar -->
+<div class="filter-bar">
+  <select class="filter-select"><option>Vsichni resitele</option><option>Jan Melicherik</option><option>Petr Novak</option></select>
+  <select class="filter-select"><option>Vsechny epicy</option><option>Autentizace</option><option>Projektove rizeni</option></select>
+  <div style="position:relative">
+    <button class="settings-btn">&#9881; Zobrazeni karet</button>
+    <!-- Popover -->
+    <div class="settings-popover">
+      <h4>Viditelna pole</h4>
+      <label><input type="checkbox" checked> Priorita</label>
+      <label><input type="checkbox" checked> Resitel</label>
+      <label><input type="checkbox"> Epic</label>
+      <label><input type="checkbox"> Termin</label>
+      <label><input type="checkbox" checked> Komentare</label>
+      <label><input type="checkbox"> PHI</label>
+      <label><input type="checkbox"> Zadavatel</label>
+    </div>
+  </div>
+</div>
+
+<!-- Board -->
+<div class="board">
+  <!-- Backlog -->
+  <div class="column col-backlog">
+    <div class="column-header"><span>Backlog</span><span class="column-count">3</span></div>
+    <div class="column-body">
+      <div class="card">
+        <div class="card-key">PHN-22</div>
+        <div class="card-title">Implementovat export do PDF formatu</div>
+        <div class="card-meta">
+          <span class="priority-pill priority-low">Nizka</span>
+          <div class="avatar-sm">?</div>
+        </div>
+      </div>
+      <div class="card">
+        <div class="card-key">PHN-25</div>
+        <div class="card-title">Migrace dat ze stareho systemu</div>
+        <div class="card-meta">
+          <span class="priority-pill priority-medium">Stredni</span>
+          <div class="avatar-sm">PN</div>
+        </div>
+      </div>
+      <div class="card">
+        <div class="card-key">PHN-28</div>
+        <div class="card-title">Navrh UI pro mobilni zobrazeni dashboardu a hlavni navigace</div>
+        <div class="card-meta">
+          <span class="priority-pill priority-low">Nizka</span>
+          <div class="avatar-sm">?</div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- K zpracovani -->
+  <div class="column col-todo">
+    <div class="column-header"><span>K zpracovani</span><span class="column-count">2</span></div>
+    <div class="column-body">
+      <div class="card">
+        <div class="card-key">PHN-18</div>
+        <div class="card-title">Role-based access control</div>
+        <div class="card-meta">
+          <span class="priority-pill priority-high">Vysoka</span>
+          <div class="avatar-sm">JM</div>
+        </div>
+      </div>
+      <div class="card">
+        <div class="card-key">PHN-20</div>
+        <div class="card-title">Email notifikace pro schvalovaci proces</div>
+        <div class="card-meta">
+          <span class="priority-pill priority-medium">Stredni</span>
+          <div class="avatar-sm">JS</div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- V prubehu -->
+  <div class="column col-progress">
+    <div class="column-header"><span>V prubehu</span><span class="column-count">2</span></div>
+    <div class="column-body">
+      <div class="card">
+        <div class="card-key">PHN-15</div>
+        <div class="card-title">Kanban board drag&drop</div>
+        <div class="card-epic">&#9671; Projektove rizeni</div>
+        <div class="card-meta">
+          <span class="priority-pill priority-high">Vysoka</span>
+          <div class="avatar-sm">JM</div>
+        </div>
+      </div>
+      <div class="card">
+        <div class="card-key">PHN-19</div>
+        <div class="card-title">Audit trail pro PHI entity</div>
+        <div class="card-meta">
+          <span class="priority-pill priority-medium">Stredni</span>
+          <div class="avatar-sm">PN</div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- V revizi -->
+  <div class="column col-review">
+    <div class="column-header"><span>V revizi</span><span class="column-count">1</span></div>
+    <div class="column-body">
+      <div class="card">
+        <div class="card-key">PHN-12</div>
+        <div class="card-title">Google SSO integrace</div>
+        <div class="card-date">Termin: 15.04.2026</div>
+        <div class="card-meta">
+          <span class="priority-pill priority-high">Vysoka</span>
+          <div class="avatar-sm">JM</div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Hotovo -->
+  <div class="column col-done">
+    <div class="column-header"><span>Hotovo</span><span class="column-count">4</span></div>
+    <div class="column-body">
+      <div class="card" style="opacity:0.65">
+        <div class="card-key">PHN-1</div>
+        <div class="card-title">Setup projektu</div>
+        <div class="card-meta">
+          <span class="priority-pill priority-medium">Stredni</span>
+          <div class="avatar-sm">JM</div>
+        </div>
+      </div>
+      <div class="card" style="opacity:0.65">
+        <div class="card-key">PHN-3</div>
+        <div class="card-title">Docker compose dev</div>
+        <div class="card-meta">
+          <span class="priority-pill priority-medium">Stredni</span>
+          <div class="avatar-sm">JM</div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+</body>
+</html>

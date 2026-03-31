@@ -9,6 +9,7 @@ use App\Modules\Work\Controllers\TaskAttachmentController;
 use App\Modules\Work\Controllers\TaskCommentController;
 use App\Modules\Work\Controllers\TaskController;
 use App\Modules\Work\Controllers\TaskDependencyController;
+use App\Modules\Work\Controllers\TimeEntryController;
 use Illuminate\Support\Facades\Route;
 
 Route::middleware('auth')->scopeBindings()->group(function () {
@@ -51,4 +52,9 @@ Route::middleware('auth')->scopeBindings()->group(function () {
     Route::post('projects/{project}/tasks/{task}/attachments', [TaskAttachmentController::class, 'store'])->name('projects.tasks.attachments.store');
     Route::get('attachments/{attachment}/download', [TaskAttachmentController::class, 'download'])->name('attachments.download');
     Route::delete('attachments/{attachment}', [TaskAttachmentController::class, 'destroy'])->name('attachments.destroy');
+
+    // Time entries
+    Route::post('projects/{project}/time-entries', [TimeEntryController::class, 'store'])->name('projects.time-entries.store');
+    Route::post('projects/{project}/tasks/{task}/time-entries', [TimeEntryController::class, 'store'])->name('projects.tasks.time-entries.store');
+    Route::delete('time-entries/{timeEntry}', [TimeEntryController::class, 'destroy'])->name('time-entries.destroy');
 });

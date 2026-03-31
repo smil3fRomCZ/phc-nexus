@@ -12,6 +12,8 @@ import { displayKey } from '@/utils/displayKey';
 import { formatDate } from '@/utils/formatDate';
 import { Link, router, useForm } from '@inertiajs/react';
 import { Pencil, Trash2, X, Plus } from 'lucide-react';
+import RichTextDisplay from '@/Components/RichTextDisplay';
+import RichTextEditor from '@/Components/RichTextEditor';
 import { useState, type FormEvent } from 'react';
 
 interface Task {
@@ -135,7 +137,7 @@ export default function EpicShow({ project, epic, members, statuses, priorities 
                                 <span className="mb-1 block text-xs font-semibold uppercase tracking-wider text-text-subtle">
                                     Popis
                                 </span>
-                                <p className="text-sm leading-relaxed text-text-default">{epic.description}</p>
+                                <RichTextDisplay content={epic.description} />
                             </div>
                         )}
 
@@ -492,12 +494,13 @@ function EpicEditDialog({
 
                     <div>
                         <label className="block text-xs font-medium text-text-default">Popis</label>
-                        <textarea
-                            value={data.description}
-                            onChange={(e) => setData('description', e.target.value)}
-                            rows={3}
-                            className="mt-1 w-full rounded-md border border-border-default bg-surface-primary px-3 py-2 text-sm focus:border-border-focus focus:outline-none focus:shadow-[0_0_0_2px_var(--color-brand-soft)]"
-                        />
+                        <div className="mt-1">
+                            <RichTextEditor
+                                content={data.description}
+                                onChange={(html) => setData('description', html)}
+                                placeholder="Popis epicu..."
+                            />
+                        </div>
                         {errors.description && <p className="mt-1 text-xs text-status-danger">{errors.description}</p>}
                     </div>
 

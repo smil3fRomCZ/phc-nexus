@@ -4,6 +4,8 @@ import Avatar from '@/Components/Avatar';
 import StatusBadge from '@/Components/StatusBadge';
 import ActivityTimeline from '@/Components/ActivityTimeline';
 import type { ActivityEntry } from '@/Components/ActivityTimeline';
+import RichTextDisplay from '@/Components/RichTextDisplay';
+import RichTextEditor from '@/Components/RichTextEditor';
 import { TASK_STATUS } from '@/constants/status';
 import { formatDate, toDateInputValue } from '@/utils/formatDate';
 import { displayKey } from '@/utils/displayKey';
@@ -21,6 +23,7 @@ import {
     Link2,
     Plus,
     Clock,
+    Timer,
 } from 'lucide-react';
 import type { PageProps } from '@/types';
 import { useState, type FormEvent } from 'react';
@@ -92,6 +95,14 @@ interface ProjectTask {
     title: string;
 }
 
+interface TimeEntryData {
+    id: string;
+    date: string;
+    hours: string;
+    note: string | null;
+    user: { id: string; name: string };
+}
+
 interface BenefitTypeOption {
     value: string;
     label: string;
@@ -101,6 +112,7 @@ interface BenefitTypeOption {
 interface Props {
     project: { id: string; name: string; key: string };
     task: Task;
+    hasPendingApproval: boolean;
     allowedTransitions: SelectOption[];
     members: Member[];
     statuses: SelectOption[];
@@ -109,6 +121,8 @@ interface Props {
     projectTasks: ProjectTask[];
     recurrenceRules: SelectOption[];
     benefitTypes: BenefitTypeOption[];
+    timeEntries: TimeEntryData[];
+    totalHours: number;
 }
 
 function timeAgo(dateStr: string): string {
@@ -139,17 +153,20 @@ export default function TaskShow({
     projectTasks,
     recurrenceRules,
     benefitTypes = [],
+    hasPendingApproval = false,
+    timeEntries = [],
+    totalHours = 0,
 }: Props) {
     const { auth } = usePage<PageProps>().props;
     const [editing, setEditing] = useState(false);
     const [requestingApproval, setRequestingApproval] = useState(false);
-    const [activeTab, setActiveTab] = useState<'detail' | 'activity'>('detail');
+    const [activeTab, setActiveTab] = useState<'detail' | 'activity' | 'time'>('detail');
 
     const breadcrumbs: Breadcrumb[] = [
         { label: 'Domů', href: '/' },
         { label: 'Projekty', href: '/projects' },
         { label: project.name, href: `/projects/${project.id}` },
-        { label: 'Úkoly', href: `/projects/${project.id}/tasks` },
+        { label: 'Backlog', href: `/projects/${project.id}/table` },
         { label: displayKey(project.key, task.number) },
     ];
 
@@ -231,7 +248,7 @@ export default function TaskShow({
                                 <span className="mb-1 block text-xs font-semibold uppercase tracking-wider text-text-subtle">
                                     Popis
                                 </span>
-                                <p className="text-sm leading-relaxed text-text-default">{task.description}</p>
+                                <RichTextDisplay content={task.description} />
                             </div>
                         )}
 
@@ -306,6 +323,20 @@ export default function TaskShow({
                                 {activity.length}
                             </span>
                         </button>
+                        <button
+                            onClick={() => setActiveTab('time')}
+                            className={`flex items-center gap-2 border-b-2 px-4 py-2.5 text-sm font-medium transition-colors ${
+                                activeTab === 'time'
+                                    ? 'border-brand-primary text-brand-primary'
+                                    : 'border-transparent text-text-muted hover:text-text-default'
+                            }`}
+                        >
+                            <Timer className="h-3.5 w-3.5" />
+                            Čas
+                            <span className="rounded-full bg-status-neutral-subtle px-1.5 py-px text-xs font-medium text-text-muted">
+                                {totalHours}h
+                            </span>
+                        </button>
                     </div>
 
                     {/* Tab content */}
@@ -337,6 +368,17 @@ export default function TaskShow({
                             <ActivityTimeline entries={activity} />
                         </div>
                     )}
+
+                    {activeTab === 'time' && (
+                        <div className="rounded-lg border border-border-subtle bg-surface-primary p-5">
+                            <TimeLogSection
+                                timeEntries={timeEntries}
+                                totalHours={totalHours}
+                                postUrl={`/projects/${project.id}/tasks/${task.id}/time-entries`}
+                                currentUserId={auth.user?.id}
+                            />
+                        </div>
+                    )}
                 </div>
 
                 {/* ── Right Sidebar ── */}
@@ -346,7 +388,12 @@ export default function TaskShow({
                         <div className="pb-4 mb-4 border-b border-border-subtle">
                             <SidebarSection label="Stav">
                                 <StatusBadge statusMap={TASK_STATUS} value={task.status} />
-                                {allowedTransitions.length > 0 && (
+                                {hasPendingApproval && (
+                                    <p className="mt-2 rounded bg-status-warning-subtle px-2 py-1 text-xs text-status-warning">
+                                        Čeká na schválení — změna stavu blokována
+                                    </p>
+                                )}
+                                {allowedTransitions.length > 0 && !hasPendingApproval && (
                                     <div className="mt-2 flex flex-wrap gap-1">
                                         {allowedTransitions.map((t) => (
                                             <button
@@ -622,12 +669,13 @@ function TaskEditDialog({
                     </EditField>
 
                     <EditField label="Popis" error={errors.description}>
-                        <textarea
-                            value={data.description}
-                            onChange={(e) => setData('description', e.target.value)}
-                            rows={3}
-                            className="mt-1 w-full rounded-md border border-border-default bg-surface-primary px-3 py-2 text-sm focus:border-border-focus focus:outline-none focus:shadow-[0_0_0_2px_var(--color-brand-soft)]"
-                        />
+                        <div className="mt-1">
+                            <RichTextEditor
+                                content={data.description}
+                                onChange={(html) => setData('description', html)}
+                                placeholder="Popis úkolu..."
+                            />
+                        </div>
                     </EditField>
 
                     <div className="grid grid-cols-2 gap-4">
@@ -729,6 +777,165 @@ function EditField({ label, error, children }: { label: string; error?: string; 
             <label className="block text-xs font-medium text-text-default">{label}</label>
             {children}
             {error && <p className="mt-1 text-xs text-status-danger">{error}</p>}
+        </div>
+    );
+}
+
+function TimeLogSection({
+    timeEntries,
+    totalHours,
+    postUrl,
+    currentUserId,
+}: {
+    timeEntries: TimeEntryData[];
+    totalHours: number;
+    postUrl: string;
+    currentUserId?: string;
+}) {
+    const [date, setDate] = useState(new Date().toISOString().slice(0, 10));
+    const [hours, setHours] = useState('');
+    const [note, setNote] = useState('');
+    const [submitting, setSubmitting] = useState(false);
+
+    function handleSubmit(e: FormEvent) {
+        e.preventDefault();
+        if (!hours || submitting) return;
+        setSubmitting(true);
+        fetch(postUrl, {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+                'X-CSRF-TOKEN': document.querySelector<HTMLMetaElement>('meta[name="csrf-token"]')?.content ?? '',
+                Accept: 'application/json',
+            },
+            body: JSON.stringify({ date, hours: parseFloat(hours), note: note || null }),
+        }).then((res) => {
+            setSubmitting(false);
+            if (res.ok) {
+                setHours('');
+                setNote('');
+                router.reload();
+            }
+        });
+    }
+
+    function handleDelete(id: string) {
+        if (!confirm('Smazat záznam?')) return;
+        fetch(`/time-entries/${id}`, {
+            method: 'DELETE',
+            headers: {
+                'X-CSRF-TOKEN': document.querySelector<HTMLMetaElement>('meta[name="csrf-token"]')?.content ?? '',
+                Accept: 'application/json',
+            },
+        }).then((res) => {
+            if (res.ok) router.reload();
+        });
+    }
+
+    return (
+        <div>
+            {/* Summary */}
+            <div className="mb-4 flex gap-6 rounded-md bg-status-info-subtle px-4 py-3">
+                <div>
+                    <div className="text-xs font-semibold uppercase tracking-wider text-status-info">Celkem</div>
+                    <div className="text-lg font-bold text-text-strong">{totalHours} h</div>
+                </div>
+                <div>
+                    <div className="text-xs font-semibold uppercase tracking-wider text-status-info">Záznamů</div>
+                    <div className="text-lg font-bold text-text-strong">{timeEntries.length}</div>
+                </div>
+            </div>
+
+            {/* Add form */}
+            <form onSubmit={handleSubmit} className="mb-4 flex items-end gap-2">
+                <div className="flex flex-col gap-1">
+                    <label className="text-xs font-semibold uppercase tracking-wider text-text-subtle">Datum</label>
+                    <input
+                        type="date"
+                        value={date}
+                        onChange={(e) => setDate(e.target.value)}
+                        className="w-36 rounded-md border border-border-default bg-surface-primary px-2 py-1.5 text-sm focus:border-border-focus focus:outline-none focus:shadow-[0_0_0_2px_var(--color-brand-soft)]"
+                    />
+                </div>
+                <div className="flex flex-col gap-1">
+                    <label className="text-xs font-semibold uppercase tracking-wider text-text-subtle">Hodiny</label>
+                    <input
+                        type="number"
+                        value={hours}
+                        onChange={(e) => setHours(e.target.value)}
+                        step="0.25"
+                        min="0.25"
+                        max="24"
+                        placeholder="0"
+                        className="w-20 rounded-md border border-border-default bg-surface-primary px-2 py-1.5 text-sm focus:border-border-focus focus:outline-none focus:shadow-[0_0_0_2px_var(--color-brand-soft)]"
+                    />
+                </div>
+                <div className="flex flex-1 flex-col gap-1">
+                    <label className="text-xs font-semibold uppercase tracking-wider text-text-subtle">Poznámka</label>
+                    <input
+                        type="text"
+                        value={note}
+                        onChange={(e) => setNote(e.target.value)}
+                        placeholder="Na čem jste pracovali..."
+                        className="w-full rounded-md border border-border-default bg-surface-primary px-2 py-1.5 text-sm focus:border-border-focus focus:outline-none focus:shadow-[0_0_0_2px_var(--color-brand-soft)]"
+                    />
+                </div>
+                <button
+                    type="submit"
+                    disabled={submitting || !hours}
+                    className="rounded-md bg-brand-primary px-3 py-1.5 text-xs font-semibold text-text-inverse transition-colors hover:bg-brand-hover disabled:opacity-50"
+                >
+                    + Zalogovat
+                </button>
+            </form>
+
+            {/* Entries table */}
+            {timeEntries.length > 0 ? (
+                <table className="w-full border-collapse">
+                    <thead>
+                        <tr>
+                            {['Datum', 'Hodiny', 'Uživatel', 'Poznámka', ''].map((h) => (
+                                <th
+                                    key={h}
+                                    className="border-b-2 border-border-subtle px-3 py-2 text-left text-xs font-semibold uppercase tracking-wider text-text-subtle"
+                                >
+                                    {h}
+                                </th>
+                            ))}
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {timeEntries.map((entry) => (
+                            <tr key={entry.id} className="transition-colors hover:bg-brand-soft">
+                                <td className="border-b border-border-subtle px-3 py-2 text-sm">
+                                    {formatDate(entry.date)}
+                                </td>
+                                <td className="border-b border-border-subtle px-3 py-2 text-sm font-bold text-text-strong">
+                                    {entry.hours} h
+                                </td>
+                                <td className="border-b border-border-subtle px-3 py-2 text-sm text-text-muted">
+                                    {entry.user.name}
+                                </td>
+                                <td className="border-b border-border-subtle px-3 py-2 text-sm text-text-muted">
+                                    {entry.note ?? '\u2014'}
+                                </td>
+                                <td className="border-b border-border-subtle px-3 py-2 text-right">
+                                    {entry.user.id === currentUserId && (
+                                        <button
+                                            onClick={() => handleDelete(entry.id)}
+                                            className="text-xs text-text-subtle transition-colors hover:text-status-danger"
+                                        >
+                                            <Trash2 className="h-3.5 w-3.5" />
+                                        </button>
+                                    )}
+                                </td>
+                            </tr>
+                        ))}
+                    </tbody>
+                </table>
+            ) : (
+                <p className="text-sm text-text-muted">Zatím žádné záznamy. Přidejte první výše.</p>
+            )}
         </div>
     );
 }

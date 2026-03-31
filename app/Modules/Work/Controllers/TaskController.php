@@ -16,6 +16,7 @@ use App\Modules\Work\Enums\TaskPriority;
 use App\Modules\Work\Enums\TaskStatus;
 use App\Modules\Work\Models\Epic;
 use App\Modules\Work\Models\Task;
+use Carbon\Carbon;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\RedirectResponse;
@@ -165,6 +166,15 @@ final class TaskController extends Controller
                 if (! empty($values['priority']) && $priorityLabels->has($values['priority'])) {
                     $values['priority'] = $priorityLabels[$values['priority']];
                 }
+                foreach (['due_date', 'start_date', 'target_date', 'recurrence_next_at'] as $dateField) {
+                    if (! empty($values[$dateField]) && is_string($values[$dateField])) {
+                        try {
+                            $values[$dateField] = Carbon::parse($values[$dateField])->format('d.m.Y');
+                        } catch (\Throwable) {
+                            // ponechat původní hodnotu
+                        }
+                    }
+                }
                 $entry->setAttribute($key, $values);
             }
 
@@ -182,6 +192,7 @@ final class TaskController extends Controller
         return Inertia::render('Work/Tasks/Show', [
             'project' => $project->only('id', 'name', 'key'),
             'task' => $task,
+            'hasPendingApproval' => $task->hasPendingApproval(),
             'allowedTransitions' => $allowedTransitions,
             'members' => $members,
             'statuses' => $statuses,
@@ -189,6 +200,11 @@ final class TaskController extends Controller
             'activity' => $activity,
             'projectTasks' => $projectTasks,
             'recurrenceRules' => $recurrenceRules,
+            'timeEntries' => $task->timeEntries()
+                ->with('user:id,name')
+                ->latest('date')
+                ->get(),
+            'totalHours' => (float) $task->timeEntries()->sum('hours'),
             'benefitTypes' => collect(BenefitType::cases())->map(fn ($b) => [
                 'value' => $b->value,
                 'label' => $b->label(),
@@ -259,15 +275,23 @@ final class TaskController extends Controller
     /**
      * Kanban board — všechny úkoly projektu seskupené podle statusu.
      */
-    public function board(Project $project): Response
+    public function board(Request $request, Project $project): Response
     {
         Gate::authorize('view', $project);
 
-        $tasks = $project->tasks()
-            ->with(['assignee:id,name', 'epic:id,title'])
+        $query = $project->tasks()
+            ->with(['assignee:id,name', 'reporter:id,name', 'epic:id,title'])
             ->withCount('comments')
-            ->orderBy('sort_order')
-            ->get();
+            ->orderBy('sort_order');
+
+        if ($request->filled('assignee_id')) {
+            $query->where('assignee_id', $request->input('assignee_id'));
+        }
+        if ($request->filled('epic_id')) {
+            $query->where('epic_id', $request->input('epic_id'));
+        }
+
+        $tasks = $query->get();
 
         $columns = collect(TaskStatus::boardColumns())->map(fn (TaskStatus $status) => [
             'status' => $status->value,
@@ -275,9 +299,22 @@ final class TaskController extends Controller
             'tasks' => $tasks->where('status', $status)->values(),
         ]);
 
+        $members = $project->members()
+            ->select('users.id', 'users.name')
+            ->get()
+            ->when($project->owner_id, fn ($col) => $col->push($project->owner()->select('id', 'name')->first()))
+            ->unique('id')
+            ->values();
+
+        $epics = $project->epics()->orderBy('title')->get(['id', 'title']);
+
         return Inertia::render('Work/Tasks/Board', [
             'project' => $project->only('id', 'name', 'key'),
             'columns' => $columns,
+            'members' => $members,
+            'epics' => $epics,
+            'filters' => $request->only(['assignee_id', 'epic_id']),
+            'boardSettings' => $request->user()->board_settings ?? ['card_fields' => ['priority', 'assignee', 'comments_count']],
         ]);
     }
 
@@ -339,6 +376,12 @@ final class TaskController extends Controller
         ]);
 
         $newStatus = TaskStatus::from($validated['status']);
+
+        if ($task->hasPendingApproval()) {
+            return response()->json([
+                'error' => 'Tento úkol má nevyřízenou žádost o schválení. Před změnou stavu je nutné žádost schválit nebo zamítnout.',
+            ], 422);
+        }
 
         if (! $task->status->canTransitionTo($newStatus)) {
             throw ValidationException::withMessages([

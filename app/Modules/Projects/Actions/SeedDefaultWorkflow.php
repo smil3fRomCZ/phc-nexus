@@ -24,7 +24,7 @@ final class SeedDefaultWorkflow
             $created[$s['slug']] = $project->workflowStatuses()->create([
                 'name' => $s['name'],
                 'slug' => $s['slug'],
-                'color' => $s['color'] ?? null,
+                'color' => $s['color'],
                 'position' => $s['position'],
                 'is_initial' => $s['is_initial'] ?? false,
                 'is_done' => $s['is_done'] ?? false,
@@ -47,8 +47,8 @@ final class SeedDefaultWorkflow
 
         foreach ($transitions as [$from, $to]) {
             $project->workflowTransitions()->create([
-                'from_status_id' => $created[$from]->id,
-                'to_status_id' => $created[$to]->id,
+                'from_status_id' => $created[$from]->getAttribute('id'),
+                'to_status_id' => $created[$to]->getAttribute('id'),
             ]);
         }
     }

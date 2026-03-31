@@ -108,7 +108,8 @@ class Project extends Model
         return $this->hasMany(WorkflowTransition::class);
     }
 
-    public function initialWorkflowStatus(): ?WorkflowStatus
+    /** @return WorkflowStatus|null */
+    public function initialWorkflowStatus(): ?Model
     {
         return $this->workflowStatuses()->where('is_initial', true)->first();
     }

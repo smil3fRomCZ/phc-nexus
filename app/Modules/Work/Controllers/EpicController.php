@@ -9,6 +9,7 @@ use App\Modules\Projects\Models\Project;
 use App\Modules\Work\Enums\EpicStatus;
 use App\Modules\Work\Enums\TaskPriority;
 use App\Modules\Work\Models\Epic;
+use App\Modules\Work\Models\TimeEntry;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Gate;
@@ -83,12 +84,26 @@ final class EpicController extends Controller
         $priorities = collect(TaskPriority::cases())
             ->map(fn (TaskPriority $p) => ['value' => $p->value, 'label' => $p->label()]);
 
+        // Time entries: přímo na epicu + z podřízených úkolů
+        $epicDirectEntries = $epic->timeEntries()->with('user:id,name')->latest('date')->get();
+        $taskEntries = TimeEntry::whereIn('task_id', $epic->tasks()->pluck('id'))
+            ->with(['user:id,name', 'task:id,title,number'])
+            ->latest('date')
+            ->get();
+        $allTimeEntries = $epicDirectEntries->concat($taskEntries)->sortByDesc('date')->values();
+        $epicDirectHours = (float) $epicDirectEntries->sum('hours');
+        $taskHours = (float) $taskEntries->sum('hours');
+
         return Inertia::render('Work/Epics/Show', [
             'project' => $project->only('id', 'name', 'key'),
             'epic' => $epic,
             'members' => $members,
             'statuses' => $statuses,
             'priorities' => $priorities,
+            'timeEntries' => $allTimeEntries,
+            'epicDirectHours' => $epicDirectHours,
+            'taskHours' => $taskHours,
+            'totalHours' => $epicDirectHours + $taskHours,
         ]);
     }
 

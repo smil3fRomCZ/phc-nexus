@@ -91,4 +91,9 @@ class Epic extends Model
     {
         return $this->hasMany(Task::class);
     }
+
+    public function timeEntries(): HasMany
+    {
+        return $this->hasMany(TimeEntry::class);
+    }
 }

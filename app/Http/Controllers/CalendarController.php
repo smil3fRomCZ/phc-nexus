@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace App\Http\Controllers;
 
+use App\Modules\Projects\Models\Project;
 use App\Modules\Work\Models\Task;
 use Carbon\Carbon;
 use Illuminate\Http\Request;
@@ -20,9 +21,14 @@ final class CalendarController extends Controller
         $start = Carbon::createFromFormat('Y-m', $month)->startOfMonth();
         $end = $start->copy()->endOfMonth();
 
+        // Projekty kde je uživatel členem nebo vlastníkem
+        $projectIds = Project::where('owner_id', $user->id)
+            ->orWhereHas('members', fn ($q) => $q->where('user_id', $user->id))
+            ->pluck('id');
+
         $tasks = Task::query()
             ->with(['project:id,name,key'])
-            ->where('assignee_id', $user->id)
+            ->whereIn('project_id', $projectIds)
             ->whereNotNull('due_date')
             ->whereNotIn('status', ['cancelled'])
             ->whereBetween('due_date', [$start, $end])

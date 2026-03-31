@@ -11,9 +11,13 @@ import type { Breadcrumb } from '@/Layouts/AppLayout';
 import { displayKey } from '@/utils/displayKey';
 import { formatDate } from '@/utils/formatDate';
 import { Link, router, useForm } from '@inertiajs/react';
-import { Pencil, Trash2, X, Plus } from 'lucide-react';
+import { Pencil, Trash2, X, Plus, FileText, Timer } from 'lucide-react';
 import RichTextDisplay from '@/Components/RichTextDisplay';
 import RichTextEditor from '@/Components/RichTextEditor';
+import TimeLogSection from '@/Components/TimeLogSection';
+import type { TimeEntryData } from '@/Components/TimeLogSection';
+import { usePage } from '@inertiajs/react';
+import type { PageProps } from '@/types';
 import { useState, type FormEvent } from 'react';
 
 interface Task {
@@ -64,10 +68,26 @@ interface Props {
     members: Member[];
     statuses: SelectOption[];
     priorities: SelectOption[];
+    timeEntries: TimeEntryData[];
+    epicDirectHours: number;
+    taskHours: number;
+    totalHours: number;
 }
 
-export default function EpicShow({ project, epic, members, statuses, priorities = [] }: Props) {
+export default function EpicShow({
+    project,
+    epic,
+    members,
+    statuses,
+    priorities = [],
+    timeEntries = [],
+    epicDirectHours = 0,
+    taskHours = 0,
+    totalHours = 0,
+}: Props) {
+    const { auth } = usePage<PageProps>().props;
     const [editing, setEditing] = useState(false);
+    const [activeTab, setActiveTab] = useState<'detail' | 'time'>('detail');
 
     function inlineUpdate(fields: Record<string, unknown>) {
         router.put(
@@ -167,109 +187,163 @@ export default function EpicShow({ project, epic, members, statuses, priorities 
                         />
                     )}
 
-                    {/* Tasks with progress */}
-                    <div className="rounded-lg border border-border-subtle bg-surface-primary p-5">
-                        <div className="mb-3 flex items-center justify-between">
-                            <h2 className="text-base font-semibold text-text-strong">Úkoly ({epic.tasks_count})</h2>
-                            <Link
-                                href={`/projects/${project.id}/epics/${epic.id}/tasks`}
-                                className="cursor-pointer text-xs text-text-muted no-underline hover:text-brand-primary"
-                            >
-                                Zobrazit vše
-                            </Link>
-                        </div>
+                    {/* Tab navigation */}
+                    <div className="flex gap-0 border-b border-border-subtle">
+                        <button
+                            onClick={() => setActiveTab('detail')}
+                            className={`flex items-center gap-2 border-b-2 px-4 py-2.5 text-sm font-medium transition-colors ${
+                                activeTab === 'detail'
+                                    ? 'border-brand-primary text-brand-primary'
+                                    : 'border-transparent text-text-muted hover:text-text-default'
+                            }`}
+                        >
+                            <FileText className="h-3.5 w-3.5" />
+                            Detail
+                        </button>
+                        <button
+                            onClick={() => setActiveTab('time')}
+                            className={`flex items-center gap-2 border-b-2 px-4 py-2.5 text-sm font-medium transition-colors ${
+                                activeTab === 'time'
+                                    ? 'border-brand-primary text-brand-primary'
+                                    : 'border-transparent text-text-muted hover:text-text-default'
+                            }`}
+                        >
+                            <Timer className="h-3.5 w-3.5" />
+                            Čas
+                            <span className="rounded-full bg-status-neutral-subtle px-1.5 py-px text-xs font-medium text-text-muted">
+                                {totalHours}h
+                            </span>
+                        </button>
+                    </div>
 
-                        {/* Progress bar */}
-                        {epic.tasks_count > 0 && (
-                            <div className="mb-4">
-                                <div className="mb-1 text-xs text-text-muted">
-                                    {doneCount} z {epic.tasks_count} hotovo ({progress}%)
+                    {activeTab === 'detail' && (
+                        <>
+                            {/* Tasks with progress */}
+                            <div className="rounded-lg border border-border-subtle bg-surface-primary p-5">
+                                <div className="mb-3 flex items-center justify-between">
+                                    <h2 className="text-base font-semibold text-text-strong">
+                                        Úkoly ({epic.tasks_count})
+                                    </h2>
+                                    <Link
+                                        href={`/projects/${project.id}/epics/${epic.id}/tasks`}
+                                        className="cursor-pointer text-xs text-text-muted no-underline hover:text-brand-primary"
+                                    >
+                                        Zobrazit vše
+                                    </Link>
                                 </div>
-                                <div className="h-2 rounded-full bg-border-subtle">
-                                    <div
-                                        className="h-2 rounded-full bg-brand-primary transition-all"
-                                        style={{ width: `${progress}%` }}
-                                    />
-                                </div>
-                            </div>
-                        )}
 
-                        <QuickAddTask projectId={project.id} epicId={epic.id} />
+                                {/* Progress bar */}
+                                {epic.tasks_count > 0 && (
+                                    <div className="mb-4">
+                                        <div className="mb-1 text-xs text-text-muted">
+                                            {doneCount} z {epic.tasks_count} hotovo ({progress}%)
+                                        </div>
+                                        <div className="h-2 rounded-full bg-border-subtle">
+                                            <div
+                                                className="h-2 rounded-full bg-brand-primary transition-all"
+                                                style={{ width: `${progress}%` }}
+                                            />
+                                        </div>
+                                    </div>
+                                )}
 
-                        {epic.tasks.length > 0 && (
-                            <table className="mt-2 w-full border-collapse">
-                                <thead>
-                                    <tr>
-                                        {['Klíč', 'Název', 'Stav', 'Priorita', 'Řešitel', 'Termín'].map((h) => (
-                                            <th
-                                                key={h}
-                                                className="border-b-2 border-border-subtle px-3 py-2 text-left text-xs font-semibold uppercase tracking-wider text-text-subtle"
-                                            >
-                                                {h}
-                                            </th>
-                                        ))}
-                                    </tr>
-                                </thead>
-                                <tbody>
-                                    {epic.tasks.map((task) => (
-                                        <tr
-                                            key={task.id}
-                                            className="cursor-pointer transition-colors hover:bg-brand-soft"
-                                            onClick={() =>
-                                                (window.location.href = `/projects/${project.id}/tasks/${task.id}`)
-                                            }
-                                        >
-                                            <td className="border-b border-border-subtle px-3 py-2 font-mono text-xs font-semibold text-text-muted">
-                                                {displayKey(project.key, task.number)}
-                                            </td>
-                                            <td className="border-b border-border-subtle px-3 py-2">
-                                                <Link
-                                                    href={`/projects/${project.id}/tasks/${task.id}`}
-                                                    className="text-sm font-medium text-text-strong no-underline hover:text-brand-primary"
+                                <QuickAddTask projectId={project.id} epicId={epic.id} />
+
+                                {epic.tasks.length > 0 && (
+                                    <table className="mt-2 w-full border-collapse">
+                                        <thead>
+                                            <tr>
+                                                {['Klíč', 'Název', 'Stav', 'Priorita', 'Řešitel', 'Termín'].map((h) => (
+                                                    <th
+                                                        key={h}
+                                                        className="border-b-2 border-border-subtle px-3 py-2 text-left text-xs font-semibold uppercase tracking-wider text-text-subtle"
+                                                    >
+                                                        {h}
+                                                    </th>
+                                                ))}
+                                            </tr>
+                                        </thead>
+                                        <tbody>
+                                            {epic.tasks.map((task) => (
+                                                <tr
+                                                    key={task.id}
+                                                    className="cursor-pointer transition-colors hover:bg-brand-soft"
+                                                    onClick={() =>
+                                                        (window.location.href = `/projects/${project.id}/tasks/${task.id}`)
+                                                    }
                                                 >
-                                                    {task.title}
-                                                </Link>
-                                            </td>
-                                            <td className="border-b border-border-subtle px-3 py-2">
-                                                <StatusBadge statusMap={TASK_STATUS} value={task.status} />
-                                            </td>
-                                            <td
-                                                className={`border-b border-border-subtle px-3 py-2 text-xs font-semibold ${getPriority(task.priority).textClass}`}
-                                            >
-                                                {getPriority(task.priority).label}
-                                            </td>
-                                            <td className="border-b border-border-subtle px-3 py-2 text-sm text-text-muted">
-                                                {task.assignee ? (
-                                                    <div className="flex items-center gap-1.5">
-                                                        <Avatar name={task.assignee.name} size="sm" />
-                                                        <span>{task.assignee.name}</span>
-                                                    </div>
-                                                ) : (
-                                                    '\u2014'
-                                                )}
-                                            </td>
-                                            <td className="border-b border-border-subtle px-3 py-2 text-sm text-text-muted">
-                                                {task.due_date ? formatDate(task.due_date) : '\u2014'}
-                                            </td>
-                                        </tr>
-                                    ))}
-                                </tbody>
-                            </table>
-                        )}
+                                                    <td className="border-b border-border-subtle px-3 py-2 font-mono text-xs font-semibold text-text-muted">
+                                                        {displayKey(project.key, task.number)}
+                                                    </td>
+                                                    <td className="border-b border-border-subtle px-3 py-2">
+                                                        <Link
+                                                            href={`/projects/${project.id}/tasks/${task.id}`}
+                                                            className="text-sm font-medium text-text-strong no-underline hover:text-brand-primary"
+                                                        >
+                                                            {task.title}
+                                                        </Link>
+                                                    </td>
+                                                    <td className="border-b border-border-subtle px-3 py-2">
+                                                        <StatusBadge statusMap={TASK_STATUS} value={task.status} />
+                                                    </td>
+                                                    <td
+                                                        className={`border-b border-border-subtle px-3 py-2 text-xs font-semibold ${getPriority(task.priority).textClass}`}
+                                                    >
+                                                        {getPriority(task.priority).label}
+                                                    </td>
+                                                    <td className="border-b border-border-subtle px-3 py-2 text-sm text-text-muted">
+                                                        {task.assignee ? (
+                                                            <div className="flex items-center gap-1.5">
+                                                                <Avatar name={task.assignee.name} size="sm" />
+                                                                <span>{task.assignee.name}</span>
+                                                            </div>
+                                                        ) : (
+                                                            '\u2014'
+                                                        )}
+                                                    </td>
+                                                    <td className="border-b border-border-subtle px-3 py-2 text-sm text-text-muted">
+                                                        {task.due_date ? formatDate(task.due_date) : '\u2014'}
+                                                    </td>
+                                                </tr>
+                                            ))}
+                                        </tbody>
+                                    </table>
+                                )}
 
-                        {epic.tasks.length === 0 && (
-                            <p className="mt-2 text-sm text-text-muted">Zatím žádné úkoly. Přidejte první výše.</p>
-                        )}
-                    </div>
+                                {epic.tasks.length === 0 && (
+                                    <p className="mt-2 text-sm text-text-muted">
+                                        Zatím žádné úkoly. Přidejte první výše.
+                                    </p>
+                                )}
+                            </div>
 
-                    {/* Comments */}
-                    <div className="rounded-lg border border-border-subtle bg-surface-primary p-5">
-                        <CommentsSection
-                            comments={epic.root_comments}
-                            commentsCount={epic.comments_count}
-                            postUrl={`/projects/${project.id}/epics/${epic.id}/comments`}
-                        />
-                    </div>
+                            {/* Comments */}
+                            <div className="rounded-lg border border-border-subtle bg-surface-primary p-5">
+                                <CommentsSection
+                                    comments={epic.root_comments}
+                                    commentsCount={epic.comments_count}
+                                    postUrl={`/projects/${project.id}/epics/${epic.id}/comments`}
+                                />
+                            </div>
+                        </>
+                    )}
+
+                    {activeTab === 'time' && (
+                        <div className="rounded-lg border border-border-subtle bg-surface-primary p-5">
+                            <TimeLogSection
+                                timeEntries={timeEntries}
+                                totalHours={totalHours}
+                                postUrl={`/projects/${project.id}/epics/${epic.id}/time-entries`}
+                                currentUserId={auth.user?.id}
+                                showTaskColumn
+                                summaryItems={[
+                                    { label: 'Celkem Epic', value: `${totalHours} h`, variant: 'info' },
+                                    { label: 'Z úkolů', value: `${taskHours} h`, variant: 'success' },
+                                    { label: 'Přímo na epicu', value: `${epicDirectHours} h`, variant: 'info' },
+                                ]}
+                            />
+                        </div>
+                    )}
                 </div>
 
                 {/* ── Right Sidebar ── */}

@@ -1,0 +1,168 @@
+<!DOCTYPE html>
+<html lang="cs">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Preview: Kanban — konfigurovatelne sloupce</title>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+<style>
+:root {
+  --color-brand-primary: #f5a623; --color-brand-hover: #e09000; --color-brand-soft: #fff8eb;
+  --color-text-strong: #172b4d; --color-text-default: #42526e; --color-text-muted: #6b778c; --color-text-subtle: #97a0af; --color-text-on-brand: #fff;
+  --color-surface-canvas: #f4f5f7; --color-surface-panel: #fff; --color-surface-secondary: #fafbfc;
+  --color-border-subtle: #ebecf0; --color-border-default: #dfe1e6;
+  --color-status-danger-fg: #bf2600;
+  --font-sans: "Inter", -apple-system, sans-serif;
+  --font-size-xs: 0.6875rem; --font-size-sm: 0.75rem; --font-size-base: 0.875rem; --font-size-lg: 1.125rem;
+  --radius-md: 0.5rem; --radius-lg: 0.75rem;
+}
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+body { font-family: var(--font-sans); font-size: var(--font-size-base); color: var(--color-text-default); background: var(--color-surface-canvas); padding: 2rem; }
+
+.section-label { font-size: var(--font-size-xs); color: var(--color-text-subtle); margin-bottom: 1rem; text-transform: uppercase; letter-spacing: 0.05em; font-weight: 600; }
+
+/* Config panel */
+.config-panel { background: var(--color-surface-panel); border: 1px solid var(--color-border-subtle); border-radius: var(--radius-lg); padding: 1.25rem; max-width: 40rem; }
+.config-title { font-size: var(--font-size-lg); font-weight: 600; color: var(--color-text-strong); margin-bottom: 0.75rem; display: flex; align-items: center; gap: 0.5rem; }
+.config-subtitle { font-size: var(--font-size-sm); color: var(--color-text-muted); margin-bottom: 1rem; }
+
+/* Column rows */
+.column-list { display: flex; flex-direction: column; gap: 0.5rem; margin-bottom: 1rem; }
+.column-row { display: flex; align-items: center; gap: 0.5rem; padding: 0.5rem 0.75rem; border: 1px solid var(--color-border-subtle); border-radius: var(--radius-md); background: var(--color-surface-secondary); }
+.column-row:hover { border-color: var(--color-border-default); }
+.drag-handle { cursor: grab; color: var(--color-text-subtle); font-size: 1rem; }
+.color-dot { width: 1rem; height: 1rem; border-radius: 999px; border: 2px solid rgba(0,0,0,0.1); cursor: pointer; flex-shrink: 0; }
+.column-name-input { flex: 1; border: 1px solid transparent; background: transparent; padding: 0.25rem 0.5rem; font-size: var(--font-size-sm); border-radius: var(--radius-md); color: var(--color-text-strong); font-weight: 500; }
+.column-name-input:hover { border-color: var(--color-border-default); }
+.column-name-input:focus { outline: none; border-color: var(--color-brand-primary); box-shadow: 0 0 0 2px var(--color-brand-soft); }
+.column-status { font-size: var(--font-size-xs); color: var(--color-text-subtle); font-family: monospace; width: 6rem; }
+.column-count { font-size: var(--font-size-xs); color: var(--color-text-muted); width: 4rem; text-align: right; }
+.delete-col-btn { border: none; background: none; color: var(--color-text-subtle); cursor: pointer; font-size: var(--font-size-sm); padding: 0.25rem; border-radius: var(--radius-md); }
+.delete-col-btn:hover { color: var(--color-status-danger-fg); background: rgba(191,38,0,0.08); }
+
+.add-column { display: flex; gap: 0.5rem; }
+.add-column input { flex: 1; padding: 0.375rem 0.75rem; border: 1px solid var(--color-border-default); border-radius: var(--radius-md); font-size: var(--font-size-sm); }
+.add-column select { padding: 0.375rem 0.5rem; border: 1px solid var(--color-border-default); border-radius: var(--radius-md); font-size: var(--font-size-sm); }
+.btn { padding: 0.375rem 0.75rem; border-radius: var(--radius-md); font-size: var(--font-size-xs); font-weight: 600; border: none; cursor: pointer; }
+.btn-primary { background: var(--color-brand-primary); color: var(--color-text-on-brand); }
+.btn-outline { background: transparent; border: 1px solid var(--color-border-default); color: var(--color-text-default); }
+
+/* Warning */
+.warning-box { margin-top: 0.75rem; padding: 0.5rem 0.75rem; border-radius: var(--radius-md); background: #fff0b3; font-size: var(--font-size-xs); color: #974f0c; }
+
+/* Board preview with custom colors */
+.board-preview { display: flex; gap: 0.5rem; margin-top: 1.5rem; overflow-x: auto; }
+.col-preview { width: 10rem; flex-shrink: 0; border-radius: var(--radius-md); overflow: hidden; }
+.col-preview-header { padding: 0.375rem 0.5rem; font-size: var(--font-size-xs); font-weight: 600; text-transform: uppercase; color: #fff; display: flex; justify-content: space-between; }
+.col-preview-body { background: var(--color-surface-secondary); padding: 0.375rem; min-height: 60px; }
+.mini-card { background: var(--color-surface-panel); border: 1px solid var(--color-border-subtle); border-radius: 0.25rem; padding: 0.25rem 0.5rem; font-size: var(--font-size-xs); color: var(--color-text-muted); margin-bottom: 0.25rem; }
+</style>
+</head>
+<body>
+
+<p class="section-label">PREVIEW: Kanban — konfigurace sloupc&#367; (Owner/PM only)</p>
+
+<!-- Config panel (dialog/drawer) -->
+<div class="config-panel">
+  <div class="config-title">&#9881; Nastaveni sloupc&#367; Kanbanu</div>
+  <div class="config-subtitle">Pretahovanim zmente poradi. Kliknutim na barvu ji zmenite. Viditelne jen pro vlastnika a PM.</div>
+
+  <div class="column-list">
+    <div class="column-row">
+      <span class="drag-handle">&#9776;</span>
+      <span class="color-dot" style="background: #97a0af;"></span>
+      <input class="column-name-input" value="Backlog">
+      <span class="column-status">backlog</span>
+      <span class="column-count">3 ukoly</span>
+      <button class="delete-col-btn">&#x1F5D1;</button>
+    </div>
+    <div class="column-row">
+      <span class="drag-handle">&#9776;</span>
+      <span class="color-dot" style="background: #4c9aff;"></span>
+      <input class="column-name-input" value="K zpracovani">
+      <span class="column-status">todo</span>
+      <span class="column-count">2 ukoly</span>
+      <button class="delete-col-btn">&#x1F5D1;</button>
+    </div>
+    <div class="column-row">
+      <span class="drag-handle">&#9776;</span>
+      <span class="color-dot" style="background: #0065ff;"></span>
+      <input class="column-name-input" value="V prubehu">
+      <span class="column-status">in_progress</span>
+      <span class="column-count">2 ukoly</span>
+      <button class="delete-col-btn">&#x1F5D1;</button>
+    </div>
+    <div class="column-row">
+      <span class="drag-handle">&#9776;</span>
+      <span class="color-dot" style="background: #8777d9;"></span>
+      <input class="column-name-input" value="Code Review">
+      <span class="column-status">in_review</span>
+      <span class="column-count">1 ukol</span>
+      <button class="delete-col-btn">&#x1F5D1;</button>
+    </div>
+    <div class="column-row">
+      <span class="drag-handle">&#9776;</span>
+      <span class="color-dot" style="background: #36b37e;"></span>
+      <input class="column-name-input" value="Hotovo">
+      <span class="column-status">done</span>
+      <span class="column-count">4 ukoly</span>
+      <button class="delete-col-btn">&#x1F5D1;</button>
+    </div>
+  </div>
+
+  <!-- Add new column -->
+  <div class="add-column">
+    <input type="text" placeholder="Nazev noveho sloupce...">
+    <select>
+      <option>backlog</option>
+      <option>todo</option>
+      <option>in_progress</option>
+      <option>in_review</option>
+      <option>done</option>
+      <option>cancelled</option>
+    </select>
+    <button class="btn btn-primary">+ Pridat</button>
+  </div>
+
+  <div class="warning-box">
+    &#9888; Smazanim sloupce se ukoly automaticky presunou do predchoziho sloupce.
+  </div>
+
+  <!-- Mini board preview -->
+  <div class="board-preview">
+    <div class="col-preview">
+      <div class="col-preview-header" style="background:#97a0af;"><span>Backlog</span><span>3</span></div>
+      <div class="col-preview-body">
+        <div class="mini-card">PHN-22 Export PDF</div>
+        <div class="mini-card">PHN-25 Migrace</div>
+      </div>
+    </div>
+    <div class="col-preview">
+      <div class="col-preview-header" style="background:#4c9aff;"><span>K zpracovani</span><span>2</span></div>
+      <div class="col-preview-body">
+        <div class="mini-card">PHN-18 RBAC</div>
+      </div>
+    </div>
+    <div class="col-preview">
+      <div class="col-preview-header" style="background:#0065ff;"><span>V prubehu</span><span>2</span></div>
+      <div class="col-preview-body">
+        <div class="mini-card">PHN-15 Kanban</div>
+      </div>
+    </div>
+    <div class="col-preview">
+      <div class="col-preview-header" style="background:#8777d9;"><span>Code Review</span><span>1</span></div>
+      <div class="col-preview-body">
+        <div class="mini-card">PHN-12 SSO</div>
+      </div>
+    </div>
+    <div class="col-preview">
+      <div class="col-preview-header" style="background:#36b37e;"><span>Hotovo</span><span>4</span></div>
+      <div class="col-preview-body">
+        <div class="mini-card">PHN-1 Setup</div>
+      </div>
+    </div>
+  </div>
+</div>
+
+</body>
+</html>

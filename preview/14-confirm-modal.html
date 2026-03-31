@@ -1,0 +1,95 @@
+<!DOCTYPE html>
+<html lang="cs">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Preview: ConfirmModal — designovy modal pro hlasky</title>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+<style>
+:root {
+  --color-brand-primary: #f5a623; --color-brand-hover: #e09000; --color-brand-soft: #fff8eb;
+  --color-text-strong: #172b4d; --color-text-default: #42526e; --color-text-muted: #6b778c; --color-text-on-brand: #fff;
+  --color-surface-panel: #fff;
+  --color-border-subtle: #ebecf0;
+  --color-status-danger-bg: #ffebe6; --color-status-danger-fg: #bf2600;
+  --color-status-warning-bg: #fff0b3; --color-status-warning-fg: #974f0c;
+  --color-status-info-bg: #deebff; --color-status-info-fg: #0747a6;
+  --font-sans: "Inter", -apple-system, sans-serif;
+  --font-size-xs: 0.6875rem; --font-size-sm: 0.75rem; --font-size-base: 0.875rem; --font-size-lg: 1.125rem;
+  --radius-md: 0.5rem; --radius-lg: 0.75rem;
+}
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+body { font-family: var(--font-sans); font-size: var(--font-size-base); color: var(--color-text-default); background: #e8e8e8; padding: 2rem; }
+
+/* Overlay */
+.overlay { position: fixed; inset: 0; background: rgba(0,0,0,0.5); display: flex; align-items: center; justify-content: center; z-index: 50; }
+.modal { background: var(--color-surface-panel); border: 1px solid var(--color-border-subtle); border-radius: var(--radius-lg); padding: 1.5rem; width: 100%; max-width: 26rem; box-shadow: 0 8px 24px rgba(23,43,77,0.18); text-align: center; }
+.modal-icon { width: 3rem; height: 3rem; border-radius: 999px; display: flex; align-items: center; justify-content: center; margin: 0 auto 1rem; font-size: 1.5rem; }
+.modal-icon-warning { background: var(--color-status-warning-bg); color: var(--color-status-warning-fg); }
+.modal-icon-danger { background: var(--color-status-danger-bg); color: var(--color-status-danger-fg); }
+.modal-icon-info { background: var(--color-status-info-bg); color: var(--color-status-info-fg); }
+.modal-title { font-size: var(--font-size-lg); font-weight: 600; color: var(--color-text-strong); margin-bottom: 0.5rem; }
+.modal-message { font-size: var(--font-size-base); color: var(--color-text-muted); line-height: 1.5; margin-bottom: 1.25rem; }
+.modal-actions { display: flex; gap: 0.5rem; justify-content: center; }
+.btn { padding: 0.5rem 1.25rem; border-radius: var(--radius-md); font-size: var(--font-size-sm); font-weight: 600; border: none; cursor: pointer; }
+.btn-primary { background: var(--color-brand-primary); color: var(--color-text-on-brand); }
+.btn-outline { background: transparent; border: 1px solid var(--color-border-subtle); color: var(--color-text-default); }
+.btn-danger { background: var(--color-status-danger-fg); color: #fff; }
+
+.example-label { font-size: var(--font-size-xs); color: var(--color-text-muted); margin-bottom: 1rem; text-transform: uppercase; letter-spacing: 0.05em; font-weight: 600; }
+.spacer { height: 2rem; }
+</style>
+</head>
+<body>
+
+<p class="example-label">PREVIEW: ConfirmModal — 3 varianty (warning, danger confirm, info)</p>
+
+<!-- Varianta 1: Warning (approval blocking) -->
+<div style="position:relative; height:320px; background:#ccc; border-radius:8px; overflow:hidden;">
+  <div class="overlay" style="position:absolute;">
+    <div class="modal">
+      <div class="modal-icon modal-icon-warning">&#9888;</div>
+      <div class="modal-title">Zmena stavu blokovana</div>
+      <div class="modal-message">Tento ukol ma nevyrizenou zadost o schvaleni. Pred zmenou stavu je nutne zadost schvalit nebo zamitnout.</div>
+      <div class="modal-actions">
+        <button class="btn btn-primary">Rozumim</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<div class="spacer"></div>
+
+<!-- Varianta 2: Danger confirm (smazani) -->
+<div style="position:relative; height:300px; background:#ccc; border-radius:8px; overflow:hidden;">
+  <div class="overlay" style="position:absolute;">
+    <div class="modal">
+      <div class="modal-icon modal-icon-danger">&#x1F5D1;</div>
+      <div class="modal-title">Smazat ukol?</div>
+      <div class="modal-message">Opravdu chcete smazat tento ukol? Tuto akci nelze vratit.</div>
+      <div class="modal-actions">
+        <button class="btn btn-outline">Zrusit</button>
+        <button class="btn btn-danger">Smazat</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<div class="spacer"></div>
+
+<!-- Varianta 3: Info -->
+<div style="position:relative; height:280px; background:#ccc; border-radius:8px; overflow:hidden;">
+  <div class="overlay" style="position:absolute;">
+    <div class="modal">
+      <div class="modal-icon modal-icon-info">&#8505;</div>
+      <div class="modal-title">Informace</div>
+      <div class="modal-message">Export byl uspesne vygenerovan a stahnut.</div>
+      <div class="modal-actions">
+        <button class="btn btn-primary">OK</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+</body>
+</html>

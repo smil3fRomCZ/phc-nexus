@@ -110,9 +110,9 @@ jobs:
     environment: production
 
     if: >
-      github.event_name == 'push' ||
-      github.event.inputs.target == 'production' ||
-      github.event.inputs.target == 'both'
+      github.event_name == 'workflow_dispatch' &&
+      (github.event.inputs.target == 'production' ||
+       github.event.inputs.target == 'both')
 
     steps:
       - name: Deploy production

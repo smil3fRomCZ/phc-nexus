@@ -88,10 +88,10 @@ jobs:
             COMPOSE_PROJECT_NAME=phc-nexus-staging \
               docker compose -f docker-compose.staging.yml up -d
 
-            echo "=== Running migrations ==="
+            echo "=== Fresh DB + seed (staging = vždy čistý stav) ==="
             COMPOSE_PROJECT_NAME=phc-nexus-staging \
               docker compose -f docker-compose.staging.yml exec -T app \
-              php artisan migrate --force
+              php artisan migrate:fresh --seed --force
 
             echo "=== Caching config ==="
             COMPOSE_PROJECT_NAME=phc-nexus-staging \

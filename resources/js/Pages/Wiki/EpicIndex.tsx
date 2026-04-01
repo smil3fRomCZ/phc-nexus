@@ -1,6 +1,6 @@
 import AppLayout from '@/Layouts/AppLayout';
 import type { Breadcrumb } from '@/Layouts/AppLayout';
-import ProjectTabs from '@/Components/ProjectTabs';
+import { displayKey } from '@/utils/displayKey';
 import { Link, useForm } from '@inertiajs/react';
 import { BookOpen, ChevronRight, Plus } from 'lucide-react';
 import { useState, type FormEvent } from 'react';
@@ -14,26 +14,31 @@ interface WikiPage {
 
 interface Props {
     project: { id: string; name: string; key: string };
+    epic: { id: string; title: string; number: number };
     pages: WikiPage[];
 }
 
-export default function WikiIndex({ project, pages }: Props) {
+export default function EpicWikiIndex({ project, epic, pages }: Props) {
     const [creating, setCreating] = useState(false);
     const { data, setData, post, processing, reset } = useForm({
         title: '',
         parent_id: '',
     });
 
+    const epicKey = displayKey(project.key, epic.number);
+
     const breadcrumbs: Breadcrumb[] = [
         { label: 'Domů', href: '/' },
         { label: 'Projekty', href: '/projects' },
         { label: project.name, href: `/projects/${project.id}` },
+        { label: 'Epic', href: `/projects/${project.id}/epics` },
+        { label: epicKey, href: `/projects/${project.id}/epics/${epic.id}` },
         { label: 'Dokumentace' },
     ];
 
     function submit(e: FormEvent) {
         e.preventDefault();
-        post(`/projects/${project.id}/wiki`, {
+        post(`/projects/${project.id}/epics/${epic.id}/wiki`, {
             onSuccess: () => {
                 reset();
                 setCreating(false);
@@ -42,13 +47,11 @@ export default function WikiIndex({ project, pages }: Props) {
     }
 
     return (
-        <AppLayout title={`${project.key} — Dokumentace`} breadcrumbs={breadcrumbs}>
-            <div className="mb-6">
-                <ProjectTabs projectId={project.id} active="wiki" />
-            </div>
-
-            <div className="flex items-center justify-between mb-4">
-                <h2 className="text-lg font-semibold text-text-strong">Dokumentace</h2>
+        <AppLayout title={`${epicKey} — Dokumentace`} breadcrumbs={breadcrumbs}>
+            <div className="mb-4 flex items-center justify-between">
+                <h2 className="text-lg font-semibold text-text-strong">
+                    Dokumentace — {epicKey} {epic.title}
+                </h2>
                 <button
                     onClick={() => setCreating(!creating)}
                     className="inline-flex items-center gap-2 rounded-md bg-brand-primary px-4 py-1.5 text-sm font-semibold text-text-inverse transition-colors hover:bg-brand-hover"
@@ -89,7 +92,7 @@ export default function WikiIndex({ project, pages }: Props) {
                 {pages.length > 0 ? (
                     <div className="divide-y divide-border-subtle">
                         {pages.map((page) => (
-                            <PageTreeItem key={page.id} page={page} projectId={project.id} depth={0} />
+                            <PageTreeItem key={page.id} page={page} projectId={project.id} epicId={epic.id} depth={0} />
                         ))}
                     </div>
                 ) : (
@@ -103,14 +106,24 @@ export default function WikiIndex({ project, pages }: Props) {
     );
 }
 
-function PageTreeItem({ page, projectId, depth }: { page: WikiPage; projectId: string; depth: number }) {
+function PageTreeItem({
+    page,
+    projectId,
+    epicId,
+    depth,
+}: {
+    page: WikiPage;
+    projectId: string;
+    epicId: string;
+    depth: number;
+}) {
     const [expanded, setExpanded] = useState(true);
     const hasChildren = page.children && page.children.length > 0;
 
     return (
         <>
             <Link
-                href={`/projects/${projectId}/wiki/${page.id}`}
+                href={`/projects/${projectId}/epics/${epicId}/wiki/${page.id}`}
                 className="flex items-center gap-2 px-4 py-3 text-sm no-underline transition-colors hover:bg-brand-soft"
                 style={{ paddingLeft: `${1 + depth * 1.5}rem` }}
             >
@@ -134,7 +147,13 @@ function PageTreeItem({ page, projectId, depth }: { page: WikiPage; projectId: s
             {hasChildren && expanded && (
                 <>
                     {page.children.map((child) => (
-                        <PageTreeItem key={child.id} page={child} projectId={projectId} depth={depth + 1} />
+                        <PageTreeItem
+                            key={child.id}
+                            page={child}
+                            projectId={projectId}
+                            epicId={epicId}
+                            depth={depth + 1}
+                        />
                     ))}
                 </>
             )}

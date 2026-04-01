@@ -11,6 +11,7 @@ use App\Models\Concerns\HasPhiClassification;
 use App\Models\Concerns\HasUuidV7;
 use App\Models\User;
 use App\Modules\Projects\Models\Project;
+use App\Modules\Wiki\Models\WikiPage;
 use App\Modules\Work\Enums\EpicStatus;
 use App\Modules\Work\Enums\TaskPriority;
 use Database\Factories\EpicFactory;
@@ -95,5 +96,10 @@ class Epic extends Model
     public function timeEntries(): HasMany
     {
         return $this->hasMany(TimeEntry::class);
+    }
+
+    public function wikiPages(): HasMany
+    {
+        return $this->hasMany(WikiPage::class);
     }
 }

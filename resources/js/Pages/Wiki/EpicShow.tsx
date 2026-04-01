@@ -1,12 +1,12 @@
 import AppLayout from '@/Layouts/AppLayout';
 import type { Breadcrumb } from '@/Layouts/AppLayout';
-import ProjectTabs from '@/Components/ProjectTabs';
 import RichTextDisplay from '@/Components/RichTextDisplay';
 import RichTextEditor from '@/Components/RichTextEditor';
 import CommentsSection from '@/Components/CommentsSection';
 import type { Comment } from '@/Components/CommentsSection';
 import AttachmentsSection from '@/Components/AttachmentsSection';
 import type { Attachment } from '@/Components/AttachmentsSection';
+import { displayKey } from '@/utils/displayKey';
 import { formatDate } from '@/utils/formatDate';
 import { Link, router, useForm } from '@inertiajs/react';
 import { ChevronRight, Pencil, Trash2, Plus } from 'lucide-react';
@@ -33,19 +33,25 @@ interface WikiPage {
 
 interface Props {
     project: { id: string; name: string; key: string };
+    epic: { id: string; title: string; number: number };
     page: WikiPage;
     pages: WikiPageTree[];
 }
 
-export default function WikiShow({ project, page, pages }: Props) {
+export default function EpicWikiShow({ project, epic, page, pages }: Props) {
     const [editing, setEditing] = useState(false);
     const [addingChild, setAddingChild] = useState(false);
+
+    const epicKey = displayKey(project.key, epic.number);
+    const basePath = `/projects/${project.id}/epics/${epic.id}/wiki`;
 
     const breadcrumbs: Breadcrumb[] = [
         { label: 'Domů', href: '/' },
         { label: 'Projekty', href: '/projects' },
         { label: project.name, href: `/projects/${project.id}` },
-        { label: 'Dokumentace', href: `/projects/${project.id}/wiki` },
+        { label: 'Epic', href: `/projects/${project.id}/epics` },
+        { label: epicKey, href: `/projects/${project.id}/epics/${epic.id}` },
+        { label: 'Dokumentace', href: basePath },
         { label: page.title },
     ];
 
@@ -53,7 +59,7 @@ export default function WikiShow({ project, page, pages }: Props) {
 
     function submitChild(e: FormEvent) {
         e.preventDefault();
-        childForm.post(`/projects/${project.id}/wiki`, {
+        childForm.post(basePath, {
             onSuccess: () => {
                 childForm.reset();
                 setAddingChild(false);
@@ -62,11 +68,7 @@ export default function WikiShow({ project, page, pages }: Props) {
     }
 
     return (
-        <AppLayout title={`${project.key} — ${page.title}`} breadcrumbs={breadcrumbs}>
-            <div className="mb-6">
-                <ProjectTabs projectId={project.id} active="wiki" />
-            </div>
-
+        <AppLayout title={`${epicKey} — ${page.title}`} breadcrumbs={breadcrumbs}>
             <div className="flex gap-6">
                 {/* Sidebar — tree */}
                 <div className="w-56 flex-shrink-0">
@@ -76,14 +78,14 @@ export default function WikiShow({ project, page, pages }: Props) {
                                 Stránky
                             </span>
                             <Link
-                                href={`/projects/${project.id}/wiki`}
+                                href={basePath}
                                 className="text-xs text-text-muted no-underline hover:text-brand-primary"
                             >
                                 Vše
                             </Link>
                         </div>
                         {pages.map((p) => (
-                            <SidebarTreeItem key={p.id} item={p} projectId={project.id} activeId={page.id} depth={0} />
+                            <SidebarTreeItem key={p.id} item={p} basePath={basePath} activeId={page.id} depth={0} />
                         ))}
                     </div>
                 </div>
@@ -104,7 +106,7 @@ export default function WikiShow({ project, page, pages }: Props) {
                                             {' '}
                                             · v sekci:{' '}
                                             <Link
-                                                href={`/projects/${project.id}/wiki/${page.parent.id}`}
+                                                href={`${basePath}/${page.parent.id}`}
                                                 className="text-brand-primary no-underline hover:underline"
                                             >
                                                 {page.parent.title}
@@ -131,7 +133,7 @@ export default function WikiShow({ project, page, pages }: Props) {
                                 <button
                                     onClick={() => {
                                         if (confirm('Smazat stránku?')) {
-                                            router.delete(`/projects/${project.id}/wiki/${page.id}`);
+                                            router.delete(`${basePath}/${page.id}`);
                                         }
                                     }}
                                     className="rounded-md border border-status-danger/30 px-3 py-1.5 text-xs font-medium text-status-danger transition-colors hover:bg-status-danger-subtle"
@@ -174,7 +176,7 @@ export default function WikiShow({ project, page, pages }: Props) {
 
                         {editing && (
                             <WikiEditForm
-                                projectId={project.id}
+                                basePath={basePath}
                                 page={page}
                                 pages={pages}
                                 onClose={() => setEditing(false)}
@@ -186,7 +188,7 @@ export default function WikiShow({ project, page, pages }: Props) {
                     <div className="rounded-lg border border-border-subtle bg-surface-primary p-5">
                         <AttachmentsSection
                             attachments={page.attachments}
-                            uploadUrl={`/projects/${project.id}/wiki/${page.id}/attachments`}
+                            uploadUrl={`${basePath}/${page.id}/attachments`}
                         />
                     </div>
 
@@ -195,7 +197,7 @@ export default function WikiShow({ project, page, pages }: Props) {
                         <CommentsSection
                             comments={page.root_comments}
                             commentsCount={page.comments_count}
-                            postUrl={`/projects/${project.id}/wiki/${page.id}/comments`}
+                            postUrl={`${basePath}/${page.id}/comments`}
                         />
                     </div>
                 </div>
@@ -206,12 +208,12 @@ export default function WikiShow({ project, page, pages }: Props) {
 
 function SidebarTreeItem({
     item,
-    projectId,
+    basePath,
     activeId,
     depth,
 }: {
-    item: WikiPageTree;
-    projectId: string;
+    item: { id: string; title: string; children: { id: string; title: string; children: unknown[] }[] };
+    basePath: string;
     activeId: string;
     depth: number;
 }) {
@@ -236,7 +238,7 @@ function SidebarTreeItem({
                 ) : (
                     <span className="w-3" />
                 )}
-                <Link href={`/projects/${projectId}/wiki/${item.id}`} className="flex-1 truncate no-underline">
+                <Link href={`${basePath}/${item.id}`} className="flex-1 truncate no-underline">
                     {item.title}
                 </Link>
             </div>
@@ -245,8 +247,8 @@ function SidebarTreeItem({
                     {item.children.map((child) => (
                         <SidebarTreeItem
                             key={child.id}
-                            item={child}
-                            projectId={projectId}
+                            item={child as typeof item}
+                            basePath={basePath}
                             activeId={activeId}
                             depth={depth + 1}
                         />
@@ -258,12 +260,12 @@ function SidebarTreeItem({
 }
 
 function WikiEditForm({
-    projectId,
+    basePath,
     page,
     pages,
     onClose,
 }: {
-    projectId: string;
+    basePath: string;
     page: WikiPage;
     pages: WikiPageTree[];
     onClose: () => void;
@@ -276,7 +278,7 @@ function WikiEditForm({
 
     function submit(e: FormEvent) {
         e.preventDefault();
-        put(`/projects/${projectId}/wiki/${page.id}`, { onSuccess: () => onClose() });
+        put(`${basePath}/${page.id}`, { onSuccess: () => onClose() });
     }
 
     function flattenPages(items: WikiPageTree[], depth = 0): Array<{ id: string; title: string; depth: number }> {

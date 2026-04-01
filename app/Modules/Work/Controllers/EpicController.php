@@ -77,7 +77,7 @@ final class EpicController extends Controller
             'rootComments.replies.author:id,name',
             'attachments.uploader:id,name',
         ]);
-        $epic->loadCount(['tasks', 'attachments', 'comments']);
+        $epic->loadCount(['tasks', 'attachments', 'comments', 'wikiPages']);
 
         $members = $project->members()
             ->select('users.id', 'users.name')

@@ -46,11 +46,15 @@ export default function RichTextEditor({ content, onChange, placeholder = 'Začn
                 : 'text-text-muted hover:bg-surface-hover hover:text-text-strong'
         }`;
 
+    // Prevent mousedown on toolbar buttons from stealing focus/selection from editor
+    const preventFocusLoss = (e: React.MouseEvent) => e.preventDefault();
+
     return (
         <div className="overflow-hidden rounded-md border border-border-default">
             <div className="flex flex-wrap gap-0.5 border-b border-border-subtle bg-surface-secondary px-2 py-1.5">
                 <button
                     type="button"
+                    onMouseDown={preventFocusLoss}
                     onClick={() => editor.chain().focus().toggleBold().run()}
                     className={btnClass(editor.isActive('bold'))}
                     title="Tučné"
@@ -59,6 +63,7 @@ export default function RichTextEditor({ content, onChange, placeholder = 'Začn
                 </button>
                 <button
                     type="button"
+                    onMouseDown={preventFocusLoss}
                     onClick={() => editor.chain().focus().toggleItalic().run()}
                     className={btnClass(editor.isActive('italic'))}
                     title="Kurzíva"
@@ -67,6 +72,7 @@ export default function RichTextEditor({ content, onChange, placeholder = 'Začn
                 </button>
                 <button
                     type="button"
+                    onMouseDown={preventFocusLoss}
                     onClick={() => editor.chain().focus().toggleCode().run()}
                     className={btnClass(editor.isActive('code'))}
                     title="Kód"
@@ -76,6 +82,7 @@ export default function RichTextEditor({ content, onChange, placeholder = 'Začn
                 <div className="mx-1 h-5 w-px self-center bg-border-subtle" />
                 <button
                     type="button"
+                    onMouseDown={preventFocusLoss}
                     onClick={() => editor.chain().focus().toggleHeading({ level: 2 }).run()}
                     className={btnClass(editor.isActive('heading', { level: 2 }))}
                     title="Nadpis 2"
@@ -84,6 +91,7 @@ export default function RichTextEditor({ content, onChange, placeholder = 'Začn
                 </button>
                 <button
                     type="button"
+                    onMouseDown={preventFocusLoss}
                     onClick={() => editor.chain().focus().toggleHeading({ level: 3 }).run()}
                     className={btnClass(editor.isActive('heading', { level: 3 }))}
                     title="Nadpis 3"
@@ -93,6 +101,7 @@ export default function RichTextEditor({ content, onChange, placeholder = 'Začn
                 <div className="mx-1 h-5 w-px self-center bg-border-subtle" />
                 <button
                     type="button"
+                    onMouseDown={preventFocusLoss}
                     onClick={() => editor.chain().focus().toggleBulletList().run()}
                     className={btnClass(editor.isActive('bulletList'))}
                     title="Odrážky"
@@ -101,6 +110,7 @@ export default function RichTextEditor({ content, onChange, placeholder = 'Začn
                 </button>
                 <button
                     type="button"
+                    onMouseDown={preventFocusLoss}
                     onClick={() => editor.chain().focus().toggleOrderedList().run()}
                     className={btnClass(editor.isActive('orderedList'))}
                     title="Číslovaný seznam"
@@ -108,7 +118,13 @@ export default function RichTextEditor({ content, onChange, placeholder = 'Začn
                     <ListOrdered className="h-3.5 w-3.5" />
                 </button>
                 <div className="mx-1 h-5 w-px self-center bg-border-subtle" />
-                <button type="button" onClick={toggleLink} className={btnClass(editor.isActive('link'))} title="Odkaz">
+                <button
+                    type="button"
+                    onMouseDown={preventFocusLoss}
+                    onClick={toggleLink}
+                    className={btnClass(editor.isActive('link'))}
+                    title="Odkaz"
+                >
                     <Link2 className="h-3.5 w-3.5" />
                 </button>
             </div>

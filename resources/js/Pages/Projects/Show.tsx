@@ -41,13 +41,7 @@ interface Project {
     created_at: string;
 }
 
-export default function ProjectShow({
-    project,
-    totalHours = 0,
-}: {
-    project: Project;
-    totalHours: number;
-}) {
+export default function ProjectShow({ project, totalHours = 0 }: { project: Project; totalHours: number }) {
     const breadcrumbs: Breadcrumb[] = [
         { label: 'Domů', href: '/' },
         { label: 'Projekty', href: '/projects' },
@@ -65,7 +59,9 @@ export default function ProjectShow({
                                 Projekt
                             </span>
                             <div className="mt-0.5 flex items-center gap-3">
-                                <h1 className="text-xl md:text-2xl font-bold leading-tight text-text-strong">{project.name}</h1>
+                                <h1 className="text-xl md:text-2xl font-bold leading-tight text-text-strong">
+                                    {project.name}
+                                </h1>
                                 <StatusBadge statusMap={PROJECT_STATUS} value={project.status} />
                             </div>
                             <div className="mt-1">

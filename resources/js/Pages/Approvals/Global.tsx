@@ -66,10 +66,37 @@ export default function GlobalApprovals({ approvals }: Props) {
                 {/* Stats */}
                 <div className="mb-6 grid grid-cols-2 sm:grid-cols-4 gap-3">
                     {[
-                        { key: 'pending', label: 'Čeká', value: counts.pending, icon: Clock, color: 'text-status-warning', bg: 'bg-status-warning-subtle' },
-                        { key: 'approved', label: 'Schváleno', value: counts.approved, icon: CheckCircle, color: 'text-status-info', bg: 'bg-status-info-subtle' },
-                        { key: 'rejected', label: 'Zamítnuto', value: counts.rejected, icon: XCircle, color: 'text-status-danger', bg: 'bg-status-danger-subtle' },
-                        { key: 'all', label: 'Celkem', value: counts.all, color: 'text-text-strong', bg: 'bg-surface-secondary' },
+                        {
+                            key: 'pending',
+                            label: 'Čeká',
+                            value: counts.pending,
+                            icon: Clock,
+                            color: 'text-status-warning',
+                            bg: 'bg-status-warning-subtle',
+                        },
+                        {
+                            key: 'approved',
+                            label: 'Schváleno',
+                            value: counts.approved,
+                            icon: CheckCircle,
+                            color: 'text-status-info',
+                            bg: 'bg-status-info-subtle',
+                        },
+                        {
+                            key: 'rejected',
+                            label: 'Zamítnuto',
+                            value: counts.rejected,
+                            icon: XCircle,
+                            color: 'text-status-danger',
+                            bg: 'bg-status-danger-subtle',
+                        },
+                        {
+                            key: 'all',
+                            label: 'Celkem',
+                            value: counts.all,
+                            color: 'text-text-strong',
+                            bg: 'bg-surface-secondary',
+                        },
                     ].map((tile) => {
                         const Icon = 'icon' in tile ? tile.icon : null;
                         const isActive = filter === tile.key;
@@ -78,7 +105,9 @@ export default function GlobalApprovals({ approvals }: Props) {
                                 key={tile.key}
                                 onClick={() => setFilter(tile.key)}
                                 className={`flex flex-col items-center gap-1 rounded-lg border p-3 transition-colors ${
-                                    isActive ? 'border-brand-primary bg-brand-soft' : 'border-border-subtle bg-surface-primary hover:border-border-default'
+                                    isActive
+                                        ? 'border-brand-primary bg-brand-soft'
+                                        : 'border-border-subtle bg-surface-primary hover:border-border-default'
                                 }`}
                             >
                                 {Icon && (
@@ -106,14 +135,20 @@ export default function GlobalApprovals({ approvals }: Props) {
                                     <div className="flex-1 min-w-0">
                                         <div className="flex items-center gap-2">
                                             <p className="text-sm font-semibold text-text-strong truncate">
-                                                {approval.approvable_title ?? approval.description ?? 'Žádost o schválení'}
+                                                {approval.approvable_title ??
+                                                    approval.description ??
+                                                    'Žádost o schválení'}
                                             </p>
-                                            <span className={`inline-flex shrink-0 rounded-[10px] px-2 py-px text-xs font-semibold ${sc.bg} ${sc.color}`}>
+                                            <span
+                                                className={`inline-flex shrink-0 rounded-[10px] px-2 py-px text-xs font-semibold ${sc.bg} ${sc.color}`}
+                                            >
                                                 {sc.label}
                                             </span>
                                         </div>
                                         {approval.description && approval.approvable_title && (
-                                            <p className="mt-0.5 text-sm text-text-muted truncate">{approval.description}</p>
+                                            <p className="mt-0.5 text-sm text-text-muted truncate">
+                                                {approval.description}
+                                            </p>
                                         )}
                                         <div className="mt-1 flex flex-wrap gap-x-3 gap-y-0.5 text-xs text-text-muted">
                                             <span>Vyžádal/a {approval.requester.name}</span>
@@ -139,7 +174,9 @@ export default function GlobalApprovals({ approvals }: Props) {
                         })}
                     </div>
                 ) : (
-                    <EmptyState message={filter === 'pending' ? 'Žádná čekající schválení.' : 'Žádné žádosti v tomto filtru.'} />
+                    <EmptyState
+                        message={filter === 'pending' ? 'Žádná čekající schválení.' : 'Žádné žádosti v tomto filtru.'}
+                    />
                 )}
             </div>
         </AppLayout>

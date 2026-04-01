@@ -232,9 +232,7 @@ export default function AppLayout({ title, breadcrumbs, children }: AppLayoutPro
                             </div>
                         )}
                         <main className="px-4 py-6 md:px-12 md:py-8">
-                            <div className="mx-auto max-w-screen-2xl">
-                                {children}
-                            </div>
+                            <div className="mx-auto max-w-screen-2xl">{children}</div>
                         </main>
                     </div>
                 </div>

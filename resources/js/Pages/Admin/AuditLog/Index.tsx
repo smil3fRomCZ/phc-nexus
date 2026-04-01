@@ -198,7 +198,9 @@ export default function AuditLogIndex({ entries, filters, actions, entityTypes, 
                             {/* Metadata */}
                             <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
                                 <div>
-                                    <span className="text-xs font-semibold uppercase tracking-wider text-text-subtle">Akce</span>
+                                    <span className="text-xs font-semibold uppercase tracking-wider text-text-subtle">
+                                        Akce
+                                    </span>
                                     <div className="mt-0.5">
                                         <span className="inline-flex rounded-[10px] bg-status-info-subtle px-2 py-px text-xs font-semibold text-status-info">
                                             {selected.action}
@@ -206,30 +208,50 @@ export default function AuditLogIndex({ entries, filters, actions, entityTypes, 
                                     </div>
                                 </div>
                                 <div>
-                                    <span className="text-xs font-semibold uppercase tracking-wider text-text-subtle">Čas</span>
-                                    <p className="mt-0.5 text-sm text-text-default">{formatTime(selected.created_at)}</p>
+                                    <span className="text-xs font-semibold uppercase tracking-wider text-text-subtle">
+                                        Čas
+                                    </span>
+                                    <p className="mt-0.5 text-sm text-text-default">
+                                        {formatTime(selected.created_at)}
+                                    </p>
                                 </div>
                                 <div>
-                                    <span className="text-xs font-semibold uppercase tracking-wider text-text-subtle">Uživatel</span>
-                                    <p className="mt-0.5 text-sm text-text-default">{selected.actor?.name ?? 'Systém'}</p>
+                                    <span className="text-xs font-semibold uppercase tracking-wider text-text-subtle">
+                                        Uživatel
+                                    </span>
+                                    <p className="mt-0.5 text-sm text-text-default">
+                                        {selected.actor?.name ?? 'Systém'}
+                                    </p>
                                 </div>
                                 <div>
-                                    <span className="text-xs font-semibold uppercase tracking-wider text-text-subtle">Entita</span>
+                                    <span className="text-xs font-semibold uppercase tracking-wider text-text-subtle">
+                                        Entita
+                                    </span>
                                     <p className="mt-0.5 text-sm text-text-default">
                                         {entityLabel(selected.entity_type)}{' '}
-                                        <span className="font-mono text-xs text-text-subtle">{selected.entity_id.slice(0, 8)}</span>
+                                        <span className="font-mono text-xs text-text-subtle">
+                                            {selected.entity_id.slice(0, 8)}
+                                        </span>
                                     </p>
                                 </div>
                                 {selected.ip_address && (
                                     <div>
-                                        <span className="text-xs font-semibold uppercase tracking-wider text-text-subtle">IP adresa</span>
-                                        <p className="mt-0.5 font-mono text-sm text-text-default">{selected.ip_address}</p>
+                                        <span className="text-xs font-semibold uppercase tracking-wider text-text-subtle">
+                                            IP adresa
+                                        </span>
+                                        <p className="mt-0.5 font-mono text-sm text-text-default">
+                                            {selected.ip_address}
+                                        </p>
                                     </div>
                                 )}
                                 {selected.user_agent && (
                                     <div className="sm:col-span-2">
-                                        <span className="text-xs font-semibold uppercase tracking-wider text-text-subtle">User Agent</span>
-                                        <p className="mt-0.5 text-xs text-text-muted break-all">{selected.user_agent}</p>
+                                        <span className="text-xs font-semibold uppercase tracking-wider text-text-subtle">
+                                            User Agent
+                                        </span>
+                                        <p className="mt-0.5 text-xs text-text-muted break-all">
+                                            {selected.user_agent}
+                                        </p>
                                     </div>
                                 )}
                             </div>

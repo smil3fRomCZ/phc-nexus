@@ -292,7 +292,9 @@ export default function TaskBoard({
                             dropTarget === col.status && !col.color ? 'ring-2 ring-inset ring-brand-primary' : ''
                         }`}
                         style={
-                            dropTarget === col.status && col.color ? { boxShadow: `inset 0 0 0 2px ${col.color}` } : undefined
+                            dropTarget === col.status && col.color
+                                ? { boxShadow: `inset 0 0 0 2px ${col.color}` }
+                                : undefined
                         }
                         onDragOver={(e) => handleDragOver(e, col.status)}
                         onDragLeave={handleDragLeave}

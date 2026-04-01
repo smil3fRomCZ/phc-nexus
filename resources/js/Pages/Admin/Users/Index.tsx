@@ -135,7 +135,11 @@ export default function UsersIndex({ users, filters, roles, statuses }: Props) {
                     </thead>
                     <tbody>
                         {users.map((user) => (
-                            <tr key={user.id} className="cursor-pointer transition-colors hover:bg-brand-soft" onClick={() => setSelectedUser(user)}>
+                            <tr
+                                key={user.id}
+                                className="cursor-pointer transition-colors hover:bg-brand-soft"
+                                onClick={() => setSelectedUser(user)}
+                            >
                                 <td className="border-b border-border-subtle px-5 py-3 text-sm font-medium text-text-strong">
                                     {user.name}
                                 </td>
@@ -212,20 +216,29 @@ function UserDetailModal({
 
     return (
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50" onClick={onClose}>
-            <div className="mx-4 w-full max-w-md rounded-lg border border-border-subtle bg-surface-primary p-4 sm:p-6 shadow-xl sm:mx-auto" onClick={(e) => e.stopPropagation()}>
+            <div
+                className="mx-4 w-full max-w-md rounded-lg border border-border-subtle bg-surface-primary p-4 sm:p-6 shadow-xl sm:mx-auto"
+                onClick={(e) => e.stopPropagation()}
+            >
                 <div className="mb-4 flex items-center justify-between">
                     <h2 className="text-lg font-semibold text-text-strong">Detail uživatele</h2>
-                    <button onClick={onClose} className="rounded p-2 text-text-muted hover:bg-surface-hover"><X className="h-4 w-4" /></button>
+                    <button onClick={onClose} className="rounded p-2 text-text-muted hover:bg-surface-hover">
+                        <X className="h-4 w-4" />
+                    </button>
                 </div>
 
                 <div className="space-y-4">
                     <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
                         <div>
-                            <span className="text-xs font-semibold uppercase tracking-wider text-text-subtle">Jméno</span>
+                            <span className="text-xs font-semibold uppercase tracking-wider text-text-subtle">
+                                Jméno
+                            </span>
                             <p className="mt-0.5 text-sm font-medium text-text-strong">{user.name}</p>
                         </div>
                         <div>
-                            <span className="text-xs font-semibold uppercase tracking-wider text-text-subtle">Email</span>
+                            <span className="text-xs font-semibold uppercase tracking-wider text-text-subtle">
+                                Email
+                            </span>
                             <p className="mt-0.5 text-sm text-text-default">{user.email}</p>
                         </div>
                         <div>
@@ -233,9 +246,13 @@ function UserDetailModal({
                             <p className="mt-0.5 text-sm text-text-default">{user.team?.name ?? '—'}</p>
                         </div>
                         <div>
-                            <span className="text-xs font-semibold uppercase tracking-wider text-text-subtle">Stav</span>
+                            <span className="text-xs font-semibold uppercase tracking-wider text-text-subtle">
+                                Stav
+                            </span>
                             <div className="mt-0.5">
-                                <span className={`inline-flex rounded-[10px] px-2 py-px text-xs font-semibold leading-relaxed ${STATUS_COLORS[user.status] ?? 'bg-status-neutral-subtle text-status-neutral'}`}>
+                                <span
+                                    className={`inline-flex rounded-[10px] px-2 py-px text-xs font-semibold leading-relaxed ${STATUS_COLORS[user.status] ?? 'bg-status-neutral-subtle text-status-neutral'}`}
+                                >
                                     {statuses.find((s) => s.value === user.status)?.label ?? user.status}
                                 </span>
                             </div>
@@ -244,7 +261,12 @@ function UserDetailModal({
 
                     {/* Role management */}
                     <div className="border-t border-border-subtle pt-4">
-                        <label htmlFor="user-role" className="mb-1 block text-xs font-semibold uppercase tracking-wider text-text-subtle">Role</label>
+                        <label
+                            htmlFor="user-role"
+                            className="mb-1 block text-xs font-semibold uppercase tracking-wider text-text-subtle"
+                        >
+                            Role
+                        </label>
                         <div className="flex gap-2">
                             <select
                                 id="user-role"
@@ -253,7 +275,11 @@ function UserDetailModal({
                                 disabled={!canChangeRole}
                                 className="flex-1 rounded-md border border-border-default bg-surface-primary px-3 py-2 text-sm focus:border-brand-primary focus:outline-none disabled:opacity-50"
                             >
-                                {roles.map((r) => <option key={r.value} value={r.value}>{r.label}</option>)}
+                                {roles.map((r) => (
+                                    <option key={r.value} value={r.value}>
+                                        {r.label}
+                                    </option>
+                                ))}
                             </select>
                             {canChangeRole && role !== user.system_role && (
                                 <button
@@ -265,7 +291,11 @@ function UserDetailModal({
                                 </button>
                             )}
                         </div>
-                        {!canChangeRole && <p className="mt-1 text-xs text-text-muted">{isSelf ? 'Nemůžete měnit vlastní roli.' : 'Pouze Executive může měnit role.'}</p>}
+                        {!canChangeRole && (
+                            <p className="mt-1 text-xs text-text-muted">
+                                {isSelf ? 'Nemůžete měnit vlastní roli.' : 'Pouze Executive může měnit role.'}
+                            </p>
+                        )}
                     </div>
 
                     {/* Status toggle */}

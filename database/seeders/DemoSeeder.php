@@ -534,7 +534,7 @@ class DemoSeeder extends Seeder
         $wikiArch = WikiPage::create([
             'project_id' => $project->id,
             'title' => 'Architektura e-shopu',
-            'content' => "# Architektura e-shopu\n\n## Přehled\nMonolitická Laravel aplikace s Inertia.js frontend. Modularní struktura — každý bounded context (katalog, košík, platby, uživatelé) v separátním modulu.\n\n## Klíčové rozhodnutí\n- PostgreSQL JSONB pro produktové atributy (flexibilní schéma)\n- Redis pro session a cache košíku\n- Event-driven komunikace mezi moduly (Laravel Events)\n\n## Deployment\nDocker + Caddy, CI/CD přes GitHub Actions.",
+            'content' => '<h2>Přehled</h2><p>Monolitická Laravel aplikace s Inertia.js frontend. Modularní struktura — každý bounded context (katalog, košík, platby, uživatelé) v separátním modulu.</p><h2>Klíčové rozhodnutí</h2><ul><li>PostgreSQL JSONB pro produktové atributy (flexibilní schéma)</li><li>Redis pro session a cache košíku</li><li>Event-driven komunikace mezi moduly (Laravel Events)</li></ul><h2>Deployment</h2><p>Docker + Caddy, CI/CD přes GitHub Actions.</p>',
             'author_id' => $u['devBack1']->id,
             'position' => 1,
         ]);
@@ -543,7 +543,7 @@ class DemoSeeder extends Seeder
             'project_id' => $project->id,
             'parent_id' => $wikiArch->id,
             'title' => 'API dokumentace',
-            'content' => "# API dokumentace\n\n## Produkty\n- `GET /api/products` — listing s filtry\n- `GET /api/products/{slug}` — detail produktu\n\n## Košík\n- `POST /api/cart/items` — přidání do košíku\n- `PATCH /api/cart/items/{id}` — změna množství\n- `DELETE /api/cart/items/{id}` — odebrání\n\n## Objednávky\n- `POST /api/orders` — vytvoření objednávky\n- `GET /api/orders/{id}` — detail objednávky",
+            'content' => '<h2>Produkty</h2><ul><li><code>GET /api/products</code> — listing s filtry</li><li><code>GET /api/products/{slug}</code> — detail produktu</li></ul><h2>Košík</h2><ul><li><code>POST /api/cart/items</code> — přidání do košíku</li><li><code>PATCH /api/cart/items/{id}</code> — změna množství</li><li><code>DELETE /api/cart/items/{id}</code> — odebrání</li></ul><h2>Objednávky</h2><ul><li><code>POST /api/orders</code> — vytvoření objednávky</li><li><code>GET /api/orders/{id}</code> — detail objednávky</li></ul>',
             'author_id' => $u['devBack1']->id,
             'position' => 1,
         ]);
@@ -552,7 +552,7 @@ class DemoSeeder extends Seeder
             'project_id' => $project->id,
             'parent_id' => $wikiArch->id,
             'title' => 'Deployment guide',
-            'content' => "# Deployment guide\n\n## Staging\n```bash\ngit push origin main  # auto-deploy přes GitHub Actions\n```\n\n## Produkce\n1. Vytvořit release tag `v*`\n2. GitHub Actions spustí build + deploy\n3. Ověřit smoke testy\n\n## Rollback\n```bash\ndocker compose -f docker-compose.prod.yml up -d --force-recreate\n```",
+            'content' => '<h2>Staging</h2><pre><code>git push origin main  # auto-deploy přes GitHub Actions</code></pre><h2>Produkce</h2><ol><li>Vytvořit release tag <code>v*</code></li><li>GitHub Actions spustí build + deploy</li><li>Ověřit smoke testy</li></ol><h2>Rollback</h2><pre><code>docker compose -f docker-compose.prod.yml up -d --force-recreate</code></pre>',
             'author_id' => $u['pmTech']->id,
             'position' => 2,
         ]);
@@ -732,7 +732,7 @@ class DemoSeeder extends Seeder
         WikiPage::create([
             'project_id' => $project->id,
             'title' => 'SEO checklist',
-            'content' => "# SEO checklist\n\n## Technické\n- [x] XML sitemap\n- [x] Canonical URLs\n- [ ] Structured data\n- [ ] Core Web Vitals < 2.5s LCP\n- [ ] robots.txt audit\n\n## Obsahové\n- [x] Keyword research\n- [ ] Product descriptions (0/100)\n- [ ] Blog plán\n- [ ] Category landing pages\n\n## Analytika\n- [ ] GA4 enhanced ecommerce\n- [ ] Conversion tracking\n- [ ] A/B testing",
+            'content' => '<h2>Technické</h2><ul><li>XML sitemap ✓</li><li>Canonical URLs ✓</li><li>Structured data</li><li>Core Web Vitals &lt; 2.5s LCP</li><li>robots.txt audit</li></ul><h2>Obsahové</h2><ul><li>Keyword research ✓</li><li>Product descriptions (0/100)</li><li>Blog plán</li><li>Category landing pages</li></ul><h2>Analytika</h2><ul><li>GA4 enhanced ecommerce</li><li>Conversion tracking</li><li>A/B testing</li></ul>',
             'author_id' => $u['pmMkt']->id,
             'position' => 1,
         ]);
@@ -869,7 +869,7 @@ class DemoSeeder extends Seeder
         WikiPage::create([
             'project_id' => $project->id,
             'title' => 'Koncept loyalty programu',
-            'content' => "# Koncept loyalty programu\n\n## Cíl\nZvýšit retenci zákazníků o 15 % a průměrnou hodnotu objednávky o 10 %.\n\n## Mechanika\n- 1 Kč = 1 bod\n- Registrace = 500 bodů\n- Recenze = 100 bodů\n- Expirace: 12 měsíců od posledního nákupu\n\n## Úrovně\n| Úroveň | Podmínka | Výhoda |\n|--------|----------|--------|\n| Bronze | 0+ bodů | Základní slevy |\n| Silver | 5 000+ bodů | 5% sleva + přednostní podpora |\n| Gold | 20 000+ bodů | 10% sleva + doprava zdarma |\n\n## Otevřené otázky\n- Napojení na e-shop vs. standalone systém?\n- Partnerské programy?",
+            'content' => '<h2>Cíl</h2><p>Zvýšit retenci zákazníků o 15 % a průměrnou hodnotu objednávky o 10 %.</p><h2>Mechanika</h2><ul><li>1 Kč = 1 bod</li><li>Registrace = 500 bodů</li><li>Recenze = 100 bodů</li><li>Expirace: 12 měsíců od posledního nákupu</li></ul><h2>Úrovně</h2><ul><li><strong>Bronze</strong> (0+ bodů) — Základní slevy</li><li><strong>Silver</strong> (5 000+ bodů) — 5% sleva + přednostní podpora</li><li><strong>Gold</strong> (20 000+ bodů) — 10% sleva + doprava zdarma</li></ul><h2>Otevřené otázky</h2><ul><li>Napojení na e-shop vs. standalone systém?</li><li>Partnerské programy?</li></ul>',
             'author_id' => $u['pmMkt']->id,
             'position' => 1,
         ]);

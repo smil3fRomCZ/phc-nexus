@@ -389,7 +389,7 @@ export default function TaskShow({
 
                 {/* ── Right Sidebar ── */}
                 <div className="w-72 flex-shrink-0">
-                    <div className="sticky top-20 space-y-0 rounded-lg border border-border-subtle bg-surface-primary p-5">
+                    <div className="sticky top-20 max-h-[calc(100vh-6rem)] space-y-0 overflow-y-auto rounded-lg border border-border-subtle bg-surface-primary p-5">
                         {/* Group: Status + Priority */}
                         <div className="pb-4 mb-4 border-b border-border-subtle">
                             <SidebarSection label="Stav">

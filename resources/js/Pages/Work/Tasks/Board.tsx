@@ -289,10 +289,10 @@ export default function TaskBoard({
                     <div
                         key={col.status}
                         className={`flex w-64 flex-shrink-0 flex-col overflow-hidden rounded-lg border border-border-subtle ${
-                            dropTarget === col.status && !col.color ? 'ring-2 ring-brand-primary' : ''
+                            dropTarget === col.status && !col.color ? 'ring-2 ring-inset ring-brand-primary' : ''
                         }`}
                         style={
-                            dropTarget === col.status && col.color ? { boxShadow: `0 0 0 2px ${col.color}` } : undefined
+                            dropTarget === col.status && col.color ? { boxShadow: `inset 0 0 0 2px ${col.color}` } : undefined
                         }
                         onDragOver={(e) => handleDragOver(e, col.status)}
                         onDragLeave={handleDragLeave}

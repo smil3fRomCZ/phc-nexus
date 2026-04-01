@@ -336,7 +336,8 @@ final class TaskController extends Controller
         $epics = $project->epics()->orderBy('title')->get(['id', 'title']);
 
         $user = $request->user();
-        $canManageColumns = $project->getAttribute('owner_id') === $user->id
+        $canManageColumns = $user->isExecutive()
+            || $project->getAttribute('owner_id') === $user->id
             || $project->epics()->where('pm_id', $user->id)->exists();
 
         return Inertia::render('Work/Tasks/Board', [

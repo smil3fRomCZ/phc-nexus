@@ -27,7 +27,7 @@ final class ApprovalAnalyticsController extends Controller
         $resolved = $all->whereNotNull('decided_at');
 
         $avgTimeHours = $resolved->isEmpty() ? 0 : $resolved->avg(function (ApprovalRequest $r) {
-            return $r->created_at->diffInMinutes($r->decided_at) / 60;
+            return $r->created_at->diffInMinutes($r->decided_at, absolute: true) / 60;
         });
 
         $stats = [
@@ -50,10 +50,11 @@ final class ApprovalAnalyticsController extends Controller
                 'status' => is_object($r->status) ? $r->status->value : (string) $r->status,
                 'requester_name' => $r->requester->name ?? '',
                 'approvable_title' => method_exists($approvable, 'getAttribute') ? ($approvable->getAttribute('title') ?? '') : '',
+                'project_id' => method_exists($approvable, 'getAttribute') ? $approvable->getAttribute('project_id') : null,
                 'created_at' => $r->created_at->toISOString(),
                 'decided_at' => $decidedAt instanceof \DateTimeInterface ? $decidedAt->format('c') : null,
                 'resolution_hours' => $decidedAt instanceof \DateTimeInterface
-                    ? round($r->created_at->diffInMinutes($decidedAt) / 60, 1)
+                    ? round($r->created_at->diffInMinutes($decidedAt, absolute: true) / 60, 1)
                     : null,
             ];
         });

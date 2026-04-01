@@ -140,8 +140,8 @@ app/Modules/
 Běží na **FORPSI Standard VPS** (4 vCPU, 8 GB RAM, 80 GB NVMe, ~295 Kč/měs).
 
 - **Produkce:** https://phc-nexus.eu
-- **Staging:** https://dev.phc-nexus.eu (basic auth chráněný)
-- Deploy workflow: push na master → CI → build image → **staging auto** → **produkce po approve**
+- **Staging:** https://dev.phc-nexus.eu (basic auth chráněný, auto-seed při každém deployi)
+- Deploy workflow: push na master → CI → build image → **staging auto** (migrate:fresh --seed) → **produkce po approve** (migrate only)
 - Sdílený Caddy obsluhuje obě domény s auto-TLS (Let's Encrypt)
 - DB sync skript: jednosměrná kopie produkčních dat do stagingu s PHI anonymizací
 - Průvodce: [`docs/runbooks/forpsi-setup.md`](docs/runbooks/forpsi-setup.md), [`docs/staging-setup.md`](docs/staging-setup.md)

@@ -27,13 +27,13 @@ final class CalendarController extends Controller
             ->pluck('id');
 
         $tasks = Task::query()
-            ->with(['project:id,name,key'])
+            ->with(['project:id,name,key', 'workflowStatus:id,name,color,is_done,is_cancelled'])
             ->whereIn('project_id', $projectIds)
             ->whereNotNull('due_date')
-            ->whereNotIn('status', ['cancelled'])
+            ->whereHas('workflowStatus', fn ($q) => $q->where('is_cancelled', false))
             ->whereBetween('due_date', [$start, $end])
             ->orderBy('due_date')
-            ->get(['id', 'title', 'status', 'priority', 'due_date', 'project_id']);
+            ->get(['id', 'title', 'status', 'priority', 'due_date', 'project_id', 'workflow_status_id']);
 
         return Inertia::render('Calendar/Index', [
             'tasks' => $tasks,

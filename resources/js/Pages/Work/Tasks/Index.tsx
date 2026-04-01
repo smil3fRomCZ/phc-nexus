@@ -2,7 +2,7 @@ import AppLayout from '@/Layouts/AppLayout';
 import type { Breadcrumb } from '@/Layouts/AppLayout';
 import EmptyState from '@/Components/EmptyState';
 import StatusBadge from '@/Components/StatusBadge';
-import { TASK_STATUS } from '@/constants/status';
+
 import { getPriority } from '@/constants/priority';
 import { displayKey } from '@/utils/displayKey';
 import { Link, useForm } from '@inertiajs/react';
@@ -18,6 +18,7 @@ interface Task {
     assignee: { id: string; name: string } | null;
     reporter: { id: string; name: string } | null;
     sort_order: number;
+    workflow_status: { id: string; name: string; color: string | null } | null;
 }
 
 interface Props {
@@ -99,7 +100,10 @@ export default function TasksIndex({ project, epic, tasks }: Props) {
                         className="flex items-center justify-between rounded-lg border border-border-subtle bg-surface-primary px-5 py-3 transition-colors hover:bg-brand-soft"
                     >
                         <div className="flex items-center gap-3">
-                            <StatusBadge statusMap={TASK_STATUS} value={task.status} />
+                            <StatusBadge
+                                label={task.workflow_status?.name ?? task.status}
+                                color={task.workflow_status?.color ?? null}
+                            />
                             <Link
                                 href={`/projects/${project.id}/tasks/${task.id}`}
                                 className="text-base font-medium text-text-strong no-underline hover:text-brand-primary"

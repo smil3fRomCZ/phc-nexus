@@ -4,8 +4,8 @@ declare(strict_types=1);
 
 namespace App\Http\Controllers;
 
+use App\Modules\Projects\Models\WorkflowStatus;
 use App\Modules\Work\Enums\TaskPriority;
-use App\Modules\Work\Enums\TaskStatus;
 use App\Modules\Work\Models\Task;
 use Illuminate\Http\Request;
 use Inertia\Inertia;
@@ -22,9 +22,9 @@ final class MyTasksController extends Controller
             ->where('assignee_id', $user->id);
 
         if ($request->filled('status')) {
-            $query->where('status', $request->input('status'));
+            $query->where('workflow_status_id', $request->input('status'));
         } else {
-            $query->whereNotIn('status', ['done', 'cancelled']);
+            $query->whereHas('workflowStatus', fn ($q) => $q->where('is_done', false)->where('is_cancelled', false));
         }
 
         if ($request->filled('priority')) {
@@ -38,11 +38,21 @@ final class MyTasksController extends Controller
             ->paginate(20)
             ->withQueryString();
 
+        // Sesbírat unikátní workflow statuses z projektů uživatele
+        $statuses = WorkflowStatus::whereIn('project_id', function ($q) use ($user) {
+            $q->select('id')->from('projects')
+                ->where('owner_id', $user->id)
+                ->orWhereExists(function ($sub) use ($user) {
+                    $sub->select('user_id')->from('project_members')
+                        ->whereColumn('project_members.project_id', 'projects.id')
+                        ->where('user_id', $user->id);
+                });
+        })->get()->unique('name')->map(fn (WorkflowStatus $s) => ['value' => $s->id, 'label' => $s->name])->values();
+
         return Inertia::render('MyTasks/Index', [
             'tasks' => $tasks,
             'filters' => $request->only(['status', 'priority']),
-            'statuses' => collect(TaskStatus::cases())
-                ->map(fn (TaskStatus $s) => ['value' => $s->value, 'label' => $s->label()]),
+            'statuses' => $statuses,
             'priorities' => collect(TaskPriority::cases())
                 ->map(fn (TaskPriority $p) => ['value' => $p->value, 'label' => $p->label()]),
         ]);

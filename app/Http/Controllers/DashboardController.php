@@ -20,7 +20,7 @@ final class DashboardController extends Controller
         $myTasks = Task::query()
             ->with(['project:id,name,key', 'workflowStatus:id,name,color'])
             ->where('assignee_id', $user->id)
-            ->whereNotIn('status', ['done', 'cancelled'])
+            ->whereHas('workflowStatus', fn ($q) => $q->where('is_done', false)->where('is_cancelled', false))
             ->orderByRaw('CASE WHEN due_date IS NOT NULL AND due_date < ? THEN 0 ELSE 1 END', [now()])
             ->orderBy('due_date')
             ->limit(10)
@@ -54,11 +54,11 @@ final class DashboardController extends Controller
 
         $stats = [
             'active_tasks' => Task::where('assignee_id', $user->id)
-                ->whereIn('status', ['in_progress', 'in_review', 'todo'])
+                ->whereHas('workflowStatus', fn ($q) => $q->where('is_done', false)->where('is_cancelled', false)->where('is_initial', false))
                 ->count(),
             'pending_approvals' => $pendingApprovals->count(),
             'overdue' => Task::where('assignee_id', $user->id)
-                ->whereNotIn('status', ['done', 'cancelled'])
+                ->whereHas('workflowStatus', fn ($q) => $q->where('is_done', false)->where('is_cancelled', false))
                 ->whereNotNull('due_date')
                 ->where('due_date', '<', now())
                 ->count(),

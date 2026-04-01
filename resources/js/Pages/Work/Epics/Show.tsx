@@ -4,7 +4,7 @@ import AttachmentsSection from '@/Components/AttachmentsSection';
 import type { Attachment } from '@/Components/AttachmentsSection';
 import Avatar from '@/Components/Avatar';
 import StatusBadge from '@/Components/StatusBadge';
-import { EPIC_STATUS, TASK_STATUS } from '@/constants/status';
+import { EPIC_STATUS } from '@/constants/status';
 import { getPriority } from '@/constants/priority';
 import AppLayout from '@/Layouts/AppLayout';
 import type { Breadcrumb } from '@/Layouts/AppLayout';
@@ -299,14 +299,10 @@ export default function EpicShow({
                                                         </Link>
                                                     </td>
                                                     <td className="border-b border-border-subtle px-3 py-2">
-                                                        {task.workflow_status ? (
-                                                            <StatusBadge
-                                                                label={task.workflow_status.name}
-                                                                color={task.workflow_status.color}
-                                                            />
-                                                        ) : (
-                                                            <StatusBadge statusMap={TASK_STATUS} value={task.status} />
-                                                        )}
+                                                        <StatusBadge
+                                                            label={task.workflow_status?.name ?? task.status}
+                                                            color={task.workflow_status?.color ?? null}
+                                                        />
                                                     </td>
                                                     <td
                                                         className={`border-b border-border-subtle px-3 py-2 text-xs font-semibold ${getPriority(task.priority).textClass}`}

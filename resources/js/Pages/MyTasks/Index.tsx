@@ -4,7 +4,7 @@ import StatusBadge from '@/Components/StatusBadge';
 import EmptyState from '@/Components/EmptyState';
 import Pagination from '@/Components/Pagination';
 import type { PaginationLink } from '@/Components/Pagination';
-import { TASK_STATUS } from '@/constants/status';
+
 import { getPriority } from '@/constants/priority';
 import { formatDate } from '@/utils/formatDate';
 import { displayKey } from '@/utils/displayKey';
@@ -145,14 +145,10 @@ export default function MyTasksIndex({ tasks, filters, statuses, priorities }: P
                                         {task.epic?.title ?? '\u2014'}
                                     </td>
                                     <td className="border-b border-border-subtle px-5 py-3">
-                                        {task.workflow_status ? (
-                                            <StatusBadge
-                                                label={task.workflow_status.name}
-                                                color={task.workflow_status.color}
-                                            />
-                                        ) : (
-                                            <StatusBadge statusMap={TASK_STATUS} value={task.status} />
-                                        )}
+                                        <StatusBadge
+                                            label={task.workflow_status?.name ?? task.status}
+                                            color={task.workflow_status?.color ?? null}
+                                        />
                                     </td>
                                     <td className="border-b border-border-subtle px-5 py-3">
                                         <span

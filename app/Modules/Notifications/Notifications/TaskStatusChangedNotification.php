@@ -4,7 +4,7 @@ declare(strict_types=1);
 
 namespace App\Modules\Notifications\Notifications;
 
-use App\Modules\Work\Enums\TaskStatus;
+use App\Modules\Projects\Models\WorkflowStatus;
 use App\Modules\Work\Models\Task;
 use Illuminate\Bus\Queueable;
 use Illuminate\Contracts\Queue\ShouldQueue;
@@ -17,8 +17,8 @@ class TaskStatusChangedNotification extends Notification implements ShouldQueue
 
     public function __construct(
         public readonly Task $task,
-        public readonly TaskStatus $oldStatus,
-        public readonly TaskStatus $newStatus,
+        public readonly WorkflowStatus $oldStatus,
+        public readonly WorkflowStatus $newStatus,
     ) {}
 
     /** @return list<string> */
@@ -32,11 +32,11 @@ class TaskStatusChangedNotification extends Notification implements ShouldQueue
     {
         return [
             'title' => 'Status úkolu změněn',
-            'body' => "{$this->task->title}: {$this->oldStatus->label()} → {$this->newStatus->label()}",
+            'body' => "{$this->task->title}: {$this->oldStatus->name} → {$this->newStatus->name}",
             'task_id' => $this->task->id,
             'project_id' => $this->task->project_id,
-            'old_status' => $this->oldStatus->value,
-            'new_status' => $this->newStatus->value,
+            'old_status' => $this->oldStatus->name,
+            'new_status' => $this->newStatus->name,
             'type' => 'task_status_changed',
         ];
     }
@@ -46,7 +46,7 @@ class TaskStatusChangedNotification extends Notification implements ShouldQueue
         return (new MailMessage)
             ->subject("Úkol {$this->task->title}: status změněn")
             ->greeting('Dobrý den,')
-            ->line("Úkol \"{$this->task->title}\" změnil status z {$this->oldStatus->label()} na {$this->newStatus->label()}.")
+            ->line("Úkol \"{$this->task->title}\" změnil status z {$this->oldStatus->name} na {$this->newStatus->name}.")
             ->action('Zobrazit úkol', url('/'))
             ->salutation('PHC Nexus');
     }

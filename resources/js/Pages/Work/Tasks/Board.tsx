@@ -32,6 +32,8 @@ interface Column {
     status: string;
     label: string;
     color: string | null;
+    is_done?: boolean;
+    is_cancelled?: boolean;
     tasks: Task[];
 }
 
@@ -313,7 +315,7 @@ export default function TaskBoard({
                         <div className="flex flex-1 flex-col gap-2 p-2" style={{ minHeight: '150px' }}>
                             {col.tasks.map((task) => {
                                 const priority = getPriority(task.priority);
-                                const isDone = col.status === 'done' || col.status === 'cancelled';
+                                const isDone = col.is_done || col.is_cancelled;
 
                                 return (
                                     <div

@@ -11,7 +11,7 @@ use App\Modules\Notifications\Notifications\ApprovalVoteCastNotification;
 use App\Modules\Notifications\Notifications\TaskAssignedNotification;
 use App\Modules\Notifications\Notifications\TaskStatusChangedNotification;
 use App\Modules\Projects\Models\Project;
-use App\Modules\Work\Enums\TaskStatus;
+use App\Modules\Projects\Models\WorkflowStatus;
 use App\Modules\Work\Models\Task;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Support\Facades\Notification;
@@ -103,7 +103,9 @@ class NotificationTest extends TestCase
         $assigner = User::factory()->create();
 
         $user->notify(new TaskAssignedNotification($task, $assigner));
-        $user->notify(new TaskStatusChangedNotification($task, TaskStatus::Backlog, TaskStatus::Todo));
+        $oldWs = WorkflowStatus::factory()->create(['name' => 'Backlog']);
+        $newWs = WorkflowStatus::factory()->create(['name' => 'Todo']);
+        $user->notify(new TaskStatusChangedNotification($task, $oldWs, $newWs));
 
         $this->assertEquals(2, $user->unreadNotifications()->count());
 
@@ -144,12 +146,14 @@ class NotificationTest extends TestCase
         $user = User::factory()->create();
         $task = Task::factory()->create(['title' => 'Status test']);
 
-        $user->notify(new TaskStatusChangedNotification($task, TaskStatus::Backlog, TaskStatus::Todo));
+        $oldWs = WorkflowStatus::factory()->create(['name' => 'Backlog']);
+        $newWs = WorkflowStatus::factory()->create(['name' => 'Todo']);
+        $user->notify(new TaskStatusChangedNotification($task, $oldWs, $newWs));
 
         $notification = $user->notifications()->first();
         $this->assertEquals('task_status_changed', $notification->data['type']);
-        $this->assertEquals('backlog', $notification->data['old_status']);
-        $this->assertEquals('todo', $notification->data['new_status']);
+        $this->assertEquals('Backlog', $notification->data['old_status']);
+        $this->assertEquals('Todo', $notification->data['new_status']);
     }
 
     public function test_unauthenticated_user_cannot_access_notifications(): void

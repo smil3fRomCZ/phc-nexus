@@ -9,6 +9,7 @@ use App\Models\User;
 use App\Modules\Audit\Models\AuditEntry;
 use App\Modules\Notifications\Notifications\TaskAssignedNotification;
 use App\Modules\Notifications\Notifications\TaskStatusChangedNotification;
+use App\Modules\Projects\Controllers\WorkflowController;
 use App\Modules\Projects\Enums\BenefitType;
 use App\Modules\Projects\Models\Project;
 use App\Modules\Projects\Models\WorkflowStatus;
@@ -23,7 +24,6 @@ use Illuminate\Http\JsonResponse;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Gate;
-use Illuminate\Validation\ValidationException;
 use Inertia\Inertia;
 use Inertia\Response;
 
@@ -38,7 +38,7 @@ final class TaskController extends Controller
             : $project->tasks()->whereNull('epic_id');
 
         $tasks = $query
-            ->with(['assignee:id,name', 'reporter:id,name'])
+            ->with(['assignee:id,name', 'reporter:id,name', 'workflowStatus:id,name,color'])
             ->orderBy('sort_order')
             ->get();
 
@@ -62,7 +62,6 @@ final class TaskController extends Controller
         $validated = $request->validate([
             'title' => ['required', 'string', 'max:255'],
             'description' => ['nullable', 'string'],
-            'status' => ['required', 'string', 'in:'.implode(',', array_column(TaskStatus::cases(), 'value'))],
             'priority' => ['required', 'string', 'in:'.implode(',', array_column(TaskPriority::cases(), 'value'))],
             'assignee_id' => ['nullable', 'uuid', 'exists:users,id'],
             'reporter_id' => ['nullable', 'uuid', 'exists:users,id'],
@@ -76,6 +75,17 @@ final class TaskController extends Controller
         if ($epic) {
             $validated['epic_id'] = $epic->id;
         }
+
+        // Automaticky přiřadit initial workflow status (seed default pokud chybí)
+        if ($project->workflowStatuses()->count() === 0) {
+            WorkflowController::seedDefaultWorkflow($project);
+        }
+        /** @var WorkflowStatus|null $initialStatus */
+        $initialStatus = $project->workflowStatuses()->where('is_initial', true)->first();
+        /** @var WorkflowStatus $fallbackStatus */
+        $fallbackStatus = $initialStatus ?? $project->workflowStatuses()->orderBy('position')->firstOrFail();
+        $validated['workflow_status_id'] = $fallbackStatus->id;
+        $validated['status'] = $fallbackStatus->slug;
 
         Task::create($validated);
 
@@ -99,12 +109,15 @@ final class TaskController extends Controller
         ]);
         $task->loadCount(['attachments', 'comments']);
 
-        /** @var TaskStatus $status */
-        $status = $task->status;
-        $allowedTransitions = collect($status->allowedTransitions())
-            ->map(fn (TaskStatus $s) => ['value' => $s->value, 'label' => $s->label()])
-            ->values()
-            ->all();
+        $allowedTransitions = [];
+        /** @var WorkflowStatus|null $ws */
+        $ws = $task->workflowStatus;
+        if ($ws) {
+            $allowedTransitions = $ws->allowedTargets()
+                ->map(fn (Model $s) => ['value' => $s->getAttribute('id'), 'label' => $s->getAttribute('name'), 'color' => $s->getAttribute('color')])
+                ->values()
+                ->all();
+        }
 
         $members = $project->members()
             ->select('users.id', 'users.name')
@@ -113,8 +126,10 @@ final class TaskController extends Controller
             ->unique('id')
             ->values();
 
-        $statuses = collect(TaskStatus::cases())
-            ->map(fn (TaskStatus $s) => ['value' => $s->value, 'label' => $s->label()]);
+        $statuses = $project->workflowStatuses()
+            ->orderBy('position')
+            ->get()
+            ->map(fn (Model $s) => ['value' => $s->getAttribute('id'), 'label' => $s->getAttribute('name'), 'color' => $s->getAttribute('color')]);
 
         $priorities = collect(TaskPriority::cases())
             ->map(fn (TaskPriority $p) => ['value' => $p->value, 'label' => $p->label()]);
@@ -242,7 +257,7 @@ final class TaskController extends Controller
         $validated = $request->validate([
             'title' => ['required', 'string', 'max:255'],
             'description' => ['nullable', 'string'],
-            'status' => ['required', 'string', 'in:'.implode(',', array_column(TaskStatus::cases(), 'value'))],
+            'workflow_status_id' => ['required', 'uuid', 'exists:workflow_statuses,id'],
             'priority' => ['required', 'string', 'in:'.implode(',', array_column(TaskPriority::cases(), 'value'))],
             'assignee_id' => ['nullable', 'uuid', 'exists:users,id'],
             'reporter_id' => ['nullable', 'uuid', 'exists:users,id'],
@@ -253,8 +268,7 @@ final class TaskController extends Controller
         ]);
 
         $oldAssigneeId = $task->assignee_id;
-        /** @var TaskStatus $oldStatus */
-        $oldStatus = $task->status;
+        $oldWorkflowStatusId = $task->workflow_status_id;
 
         $task->update($validated);
 
@@ -265,10 +279,14 @@ final class TaskController extends Controller
             $task->assignee->notify(new TaskAssignedNotification($task, $request->user()));
         }
 
-        /** @var TaskStatus $newStatus */
-        $newStatus = $task->status;
-        if ($oldStatus !== $newStatus && $task->assignee !== null) {
-            $task->assignee->notify(new TaskStatusChangedNotification($task, $oldStatus, $newStatus));
+        if ($oldWorkflowStatusId !== $task->workflow_status_id && $task->assignee !== null) {
+            /** @var WorkflowStatus|null $oldWs */
+            $oldWs = WorkflowStatus::find($oldWorkflowStatusId);
+            /** @var WorkflowStatus|null $newWs */
+            $newWs = $task->workflowStatus;
+            if ($oldWs && $newWs) {
+                $task->assignee->notify(new TaskStatusChangedNotification($task, $oldWs, $newWs));
+            }
         }
 
         return back()->with('success', 'Úkol aktualizován.');
@@ -296,28 +314,19 @@ final class TaskController extends Controller
         $tasks = $query->get();
 
         // Workflow statuses jako sloupce
-        $workflowStatuses = $project->workflowStatuses;
-        if ($workflowStatuses->isNotEmpty()) {
-            // Filtrovat: cancelled stavy nezobrazovat jako sloupce (pokud nemají úkoly)
-            $columns = $workflowStatuses
-                ->filter(fn (Model $ws) => ! $ws->getAttribute('is_cancelled') || $tasks->where('workflow_status_id', $ws->getAttribute('id'))->isNotEmpty())
-                ->map(fn (Model $ws) => [
-                    'id' => $ws->getAttribute('id'),
-                    'status' => $ws->getAttribute('id'),
-                    'label' => $ws->getAttribute('name'),
-                    'color' => $ws->getAttribute('color'),
-                    'tasks' => $tasks->where('workflow_status_id', $ws->getAttribute('id'))->values(),
-                ])
-                ->values();
-        } else {
-            $columns = collect(TaskStatus::boardColumns())->map(fn (TaskStatus $status) => [
-                'id' => null,
-                'status' => $status->value,
-                'label' => $status->label(),
-                'color' => null,
-                'tasks' => $tasks->where('status', $status)->values(),
-            ]);
-        }
+        $workflowStatuses = $project->workflowStatuses()->orderBy('position')->get();
+        $columns = $workflowStatuses
+            ->filter(fn (Model $ws) => ! $ws->getAttribute('is_cancelled') || $tasks->where('workflow_status_id', $ws->getAttribute('id'))->isNotEmpty())
+            ->map(fn (Model $ws) => [
+                'id' => $ws->getAttribute('id'),
+                'status' => $ws->getAttribute('id'),
+                'label' => $ws->getAttribute('name'),
+                'color' => $ws->getAttribute('color'),
+                'is_done' => $ws->getAttribute('is_done'),
+                'is_cancelled' => $ws->getAttribute('is_cancelled'),
+                'tasks' => $tasks->where('workflow_status_id', $ws->getAttribute('id'))->values(),
+            ])
+            ->values();
 
         $members = $project->members()
             ->select('users.id', 'users.name')
@@ -354,7 +363,7 @@ final class TaskController extends Controller
             ->with(['assignee:id,name', 'reporter:id,name', 'epic:id,title', 'workflowStatus:id,name,color']);
 
         if ($request->filled('status')) {
-            $query->where('status', $request->input('status'));
+            $query->where('workflow_status_id', $request->input('status'));
         }
 
         if ($request->filled('priority')) {
@@ -378,7 +387,8 @@ final class TaskController extends Controller
             'project' => $project->only('id', 'name', 'key'),
             'tasks' => $tasks,
             'filters' => $request->only(['status', 'priority', 'assignee_id', 'sort', 'dir']),
-            'statuses' => collect(TaskStatus::cases())->map(fn (TaskStatus $s) => ['value' => $s->value, 'label' => $s->label()]),
+            'statuses' => $project->workflowStatuses()->orderBy('position')->get()
+                ->map(fn (Model $s) => ['value' => $s->getAttribute('id'), 'label' => $s->getAttribute('name')]),
             'priorities' => collect(TaskPriority::cases())->map(fn (TaskPriority $p) => ['value' => $p->value, 'label' => $p->label()]),
             'members' => $project->members()
                 ->select('users.id', 'users.name')
@@ -402,48 +412,29 @@ final class TaskController extends Controller
             ], 422);
         }
 
-        $workflowStatuses = $project->workflowStatuses;
+        $validated = $request->validate([
+            'status' => ['required', 'uuid', 'exists:workflow_statuses,id'],
+        ]);
 
-        if ($workflowStatuses->isNotEmpty()) {
-            // Workflow-based transition
-            $validated = $request->validate([
-                'status' => ['required', 'uuid', 'exists:workflow_statuses,id'],
-            ]);
+        /** @var WorkflowStatus|null $currentWs */
+        $currentWs = $task->workflowStatus;
+        /** @var WorkflowStatus|null $targetWs */
+        $targetWs = WorkflowStatus::find($validated['status']);
 
-            $currentWs = $task->workflowStatus;
-            $targetWs = $workflowStatuses->firstWhere('id', $validated['status']);
-
-            if ($currentWs instanceof WorkflowStatus && $targetWs instanceof WorkflowStatus) {
-                if (! $currentWs->canTransitionTo($targetWs)) {
-                    return response()->json([
-                        'error' => "Přechod z '{$currentWs->name}' na '{$targetWs->name}' není povolený.",
-                    ], 422);
-                }
+        if ($currentWs instanceof WorkflowStatus && $targetWs instanceof WorkflowStatus) {
+            if (! $currentWs->canTransitionTo($targetWs)) {
+                return response()->json([
+                    'error' => "Přechod z '{$currentWs->name}' na '{$targetWs->name}' není povolený.",
+                ], 422);
             }
+        }
 
-            $task->update(['workflow_status_id' => $validated['status']]);
-        } else {
-            // Fallback — enum-based transition
-            $validated = $request->validate([
-                'status' => ['required', 'string', 'in:'.implode(',', array_column(TaskStatus::cases(), 'value'))],
-            ]);
+        $oldWs = $currentWs;
+        $task->update(['workflow_status_id' => $validated['status']]);
 
-            $newStatus = TaskStatus::from($validated['status']);
-
-            if (! $task->status->canTransitionTo($newStatus)) {
-                throw ValidationException::withMessages([
-                    'status' => "Přechod z '{$task->status->label()}' na '{$newStatus->label()}' není povolený.",
-                ]);
-            }
-
-            /** @var TaskStatus $oldStatus */
-            $oldStatus = $task->status;
-            $task->update(['status' => $newStatus]);
-
-            $task->load('assignee');
-            if ($task->assignee !== null) {
-                $task->assignee->notify(new TaskStatusChangedNotification($task, $oldStatus, $newStatus));
-            }
+        $task->load('assignee');
+        if ($oldWs && $targetWs && $task->assignee !== null) {
+            $task->assignee->notify(new TaskStatusChangedNotification($task, $oldWs, $targetWs));
         }
 
         return response()->json(['success' => true]);
@@ -456,14 +447,12 @@ final class TaskController extends Controller
         $validated = $request->validate([
             'task_ids' => ['required', 'array', 'min:1'],
             'task_ids.*' => ['uuid'],
-            'status' => ['required', 'string', 'in:'.implode(',', array_column(TaskStatus::cases(), 'value'))],
+            'status' => ['required', 'uuid', 'exists:workflow_statuses,id'],
         ]);
-
-        $newStatus = TaskStatus::from($validated['status']);
 
         Task::where('project_id', $project->id)
             ->whereIn('id', $validated['task_ids'])
-            ->update(['status' => $newStatus]);
+            ->update(['workflow_status_id' => $validated['status']]);
 
         return response()->json(['success' => true, 'count' => count($validated['task_ids'])]);
     }
@@ -484,7 +473,11 @@ final class TaskController extends Controller
 
         $clone = $task->replicate(['id', 'number', 'created_at', 'updated_at']);
         $clone->title = $task->title.' (kopie)';
-        $clone->status = TaskStatus::Backlog->value;
+        /** @var WorkflowStatus|null $initialStatus */
+        $initialStatus = $project->workflowStatuses()->where('is_initial', true)->first();
+        if ($initialStatus) {
+            $clone->workflow_status_id = $initialStatus->id;
+        }
         $clone->save();
 
         return redirect()->route('projects.tasks.show', [$project, $clone])

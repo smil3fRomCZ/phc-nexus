@@ -7,7 +7,9 @@ namespace Tests\Feature\Work;
 use App\Models\User;
 use App\Modules\Audit\Enums\AuditAction;
 use App\Modules\Audit\Models\AuditEntry;
+use App\Modules\Projects\Controllers\WorkflowController;
 use App\Modules\Projects\Models\Project;
+use App\Modules\Projects\Models\WorkflowStatus;
 use App\Modules\Work\Models\Epic;
 use App\Modules\Work\Models\Task;
 use Illuminate\Foundation\Testing\RefreshDatabase;
@@ -45,7 +47,6 @@ class TaskCrudTest extends TestCase
 
         $response = $this->actingAs($user)->post("/projects/{$project->id}/tasks", [
             'title' => 'Implementovat login',
-            'status' => 'backlog',
             'priority' => 'medium',
         ]);
 
@@ -65,7 +66,6 @@ class TaskCrudTest extends TestCase
 
         $response = $this->actingAs($user)->post("/projects/{$project->id}/epics/{$epic->id}/tasks", [
             'title' => 'Úkol v epiku',
-            'status' => 'backlog',
             'priority' => 'high',
         ]);
 
@@ -85,7 +85,6 @@ class TaskCrudTest extends TestCase
 
         $response = $this->actingAs($reader)->post("/projects/{$project->id}/tasks", [
             'title' => 'Nemá projít',
-            'status' => 'backlog',
             'priority' => 'medium',
         ]);
 
@@ -108,11 +107,14 @@ class TaskCrudTest extends TestCase
     {
         $user = User::factory()->create();
         $project = Project::factory()->create(['owner_id' => $user->id]);
+        WorkflowController::seedDefaultWorkflow($project);
+        /** @var WorkflowStatus $inProgress */
+        $inProgress = $project->workflowStatuses()->where('slug', 'in_progress')->firstOrFail();
         $task = Task::factory()->create(['project_id' => $project->id]);
 
         $response = $this->actingAs($user)->put("/projects/{$project->id}/tasks/{$task->id}", [
             'title' => 'Aktualizovaný úkol',
-            'status' => 'in_progress',
+            'workflow_status_id' => $inProgress->id,
             'priority' => 'high',
         ]);
 
@@ -155,11 +157,12 @@ class TaskCrudTest extends TestCase
 
         $this->post("/projects/{$project->id}/tasks", [
             'title' => 'Auditovaný úkol',
-            'status' => 'backlog',
             'priority' => 'medium',
         ]);
 
         $task = Task::where('title', 'Auditovaný úkol')->first();
+        $this->assertNotNull($task, 'Task nebyl vytvořen.');
+
         $entry = AuditEntry::where('entity_type', Task::class)
             ->where('entity_id', $task->id)
             ->where('action', AuditAction::Created->value)

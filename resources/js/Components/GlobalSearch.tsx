@@ -2,7 +2,7 @@ import { router } from '@inertiajs/react';
 import { Search, FolderKanban, CheckSquare } from 'lucide-react';
 import { useState, useEffect, useRef, useCallback } from 'react';
 import StatusBadge from '@/Components/StatusBadge';
-import { PROJECT_STATUS, TASK_STATUS } from '@/constants/status';
+import { PROJECT_STATUS } from '@/constants/status';
 
 interface SearchProject {
     id: string;
@@ -196,14 +196,10 @@ export default function GlobalSearch() {
                                                 </span>
                                             )}
                                         </div>
-                                        {task.workflow_status ? (
-                                            <StatusBadge
-                                                label={task.workflow_status.name}
-                                                color={task.workflow_status.color}
-                                            />
-                                        ) : (
-                                            <StatusBadge statusMap={TASK_STATUS} value={task.status} />
-                                        )}
+                                        <StatusBadge
+                                            label={task.workflow_status?.name ?? task.status}
+                                            color={task.workflow_status?.color ?? null}
+                                        />
                                     </button>
                                 );
                             })}

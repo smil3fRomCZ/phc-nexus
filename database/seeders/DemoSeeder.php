@@ -207,7 +207,7 @@ class DemoSeeder extends Seeder
                 'reporter_id' => $u['pmTech']->id,
                 'workflow_status_id' => $ws[$status],
                 'sort_order' => $i + 1,
-                'due_date' => '2026-02-' . str_pad((string) (10 + $i * 3), 2, '0', STR_PAD_LEFT),
+                'due_date' => '2026-02-'.str_pad((string) (10 + $i * 3), 2, '0', STR_PAD_LEFT),
             ]);
 
             // Time entries pro hotové tasky
@@ -216,7 +216,7 @@ class DemoSeeder extends Seeder
                 'task_id' => $task->id,
                 'epic_id' => $epicKatalog->id,
                 'user_id' => $assignee,
-                'date' => '2026-02-' . str_pad((string) (8 + $i * 3), 2, '0', STR_PAD_LEFT),
+                'date' => '2026-02-'.str_pad((string) (8 + $i * 3), 2, '0', STR_PAD_LEFT),
                 'hours' => round(rand(20, 60) / 10, 1),
                 'note' => 'Implementace a code review',
             ]);

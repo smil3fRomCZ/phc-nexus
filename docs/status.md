@@ -2,7 +2,7 @@
 
 Živý dokument mapující co je **reálně implementováno** vs. plánováno. Aktualizuje se po každém milestone a významné změně.
 
-> Poslední aktualizace: 2026-03-29
+> Poslední aktualizace: 2026-04-01
 
 ---
 
@@ -27,6 +27,7 @@
 | MVP4-I3 | FORPSI Setup Guide | **DONE** | forpsi-setup.md, .env.production.example, finální dokumentace |
 | MVP4 | Production Deploy | **DONE** | FORPSI Standard VPS, Docker prod fixes, Google SSO, live na https://phc-nexus.eu |
 | — | Staging Environment | **DONE** | Staging na dev.phc-nexus.eu, sdílený Caddy, DB sync s anonymizací, deploy workflow (staging auto + prod approve) |
+| — | Workflow & Wiki Sprint | **DONE** | Workflow engine, dynamický StatusBadge, wiki → dokumentace, epic dokumentace, error modal, RichTextEditor fix |
 
 ---
 
@@ -198,12 +199,13 @@
 | Auth | **Aktivní** | Google SSO, login/logout, invite flow (72h expirace), HandleInertiaRequests middleware |
 | Organization | **Aktivní** | Division, Team, Tribe modely, SystemRole + UserStatus enumy, User management stránka, invite UI, org structure view |
 | Projects | **Aktivní** | Project CRUD, membership, comments, attachments, CSV/Excel/HTML/MD export, ProjectPolicy |
-| Work | **Aktivní** | Epic CRUD + edit dialog, Task CRUD + full edit dialog, kanban board (drag&drop), tabulkový view (bulk status change), stavové přechody, task dependencies (blocker/blocked by), recurring tasks, calendar view, activity timeline, inline editace |
-| Approvals | **Aktivní** | Approval request/vote flow, create approval UI, global approvals stránka, approval analytics (statistiky, avg resolution), cancel, expirace |
+| Work | **Aktivní** | Epic CRUD + edit dialog, Task CRUD + full edit dialog, kanban board (drag&drop, per-user card settings, filtry), tabulkový view (bulk status change), workflow engine (custom stavy/přechody, vizuální editor), dynamický StatusBadge, task dependencies, recurring tasks, calendar view, activity timeline, inline editace, time logging, benefit type |
+| Approvals | **Aktivní** | Approval request/vote flow, create approval UI, global approvals stránka, approval analytics (statistiky, avg resolution), cancel, expirace, approval blocking (blokuje status change) |
 | Notifications | **Aktivní** | 4 notification třídy, DB + email kanály, deep links, toast zprávy, TaskAssigned/TaskStatusChanged triggery |
 | Audit | **Aktivní** | AuditEntry (append-only), AuditService, Auditable trait, PHI klasifikace/guard, audit log viewer, PHI access report |
-| Comments | **Aktivní** | Polymorfní threaded komentáře na tasks, projects, epics, sdílená CommentsSection komponenta |
-| Files | **Aktivní** | Polymorfní přílohy na tasks, projects, epics, sdílená AttachmentsSection komponenta, PHI download guard |
+| Comments | **Aktivní** | Polymorfní threaded komentáře na tasks, projects, epics, wiki stránky, sdílená CommentsSection komponenta |
+| Files | **Aktivní** | Polymorfní přílohy na tasks, projects, epics, wiki stránky, sdílená AttachmentsSection komponenta, PHI download guard |
+| Wiki | **Aktivní** | Projektová dokumentace (stromová struktura), epic dokumentace (vlastní stránky), komentáře + přílohy na stránkách, rich text editor (TipTap) |
 
 ---
 
@@ -220,6 +222,36 @@
 | redis-cache | redis:7-alpine | 6379 | Healthy |
 | redis-data | redis:7-alpine | 6380 | Healthy |
 | mailpit | axllent/mailpit | 1025, 8025 | Healthy |
+
+---
+
+## Workflow & Wiki Sprint (DONE)
+
+> 2026-03-31 – 2026-04-01, PR #71–#88
+
+### Workflow Engine
+- `workflow_statuses` + `workflow_transitions` tabulky s CRUD
+- Vizuální workflow editor (React Flow / @xyflow/react) s persistovanými pozicemi uzlů
+- `updateStatus()` validuje přechody přes workflow transitions
+- Dynamický StatusBadge (label + color z workflow) s fallbackem na enum — na Dashboard, MyTasks, Board kartách, GlobalSearch, Epic Show, Task Show
+- Per-user board card settings (`board_settings` JSON na users tabulce)
+- Kanban sloupce řízené workflow statusy (board_columns tabulka dropnuta)
+
+### Dokumentace (Wiki)
+- `wiki_pages` tabulka se stromovou strukturou (parent_id self-reference)
+- Projektová dokumentace: CRUD stránek, podstránek, sidebar navigace
+- Epic dokumentace: vlastní stránky pod epikem (`epic_id` FK), záložka na Epic Show
+- Komentáře + přílohy na wiki stránkách (WikiCommentController, WikiAttachmentController)
+- Rich text editor (TipTap) — fix selekce textu při formátování (preventDefault na toolbar mousedown)
+- Přejmenování Wiki → Dokumentace v celém UI
+
+### Ostatní vylepšení
+- Benefit type (Revenue/Costsave/Legal/Platform/Strategy) na projektech + úkolech
+- Epic: priority, PM, Lead Developer role
+- Time logging: time_entries tabulka, záložka Čas na task/epic/projekt
+- Approval blocking: pending approval blokuje status change
+- Globální ErrorModal pro HTTP chyby (404/422/500) — Inertia `router.on('invalid')`
+- Tiptap rich text editor pro description + komentáře
 
 ---
 
@@ -270,3 +302,6 @@
 | 2026-03-29 | MVP4 | Změna produkční domény na phc-nexus.eu, DNS nastaveno na FORPSI, aktualizace Caddyfile.prod, .env šablon a runbooků |
 | 2026-03-29 | MVP4 | Docker production fix: sdílený `app-public` named volume (app↔Caddy), entrypoint sync skript, PHP-FPM root master (privilege drop přes pool config), sjednocení češtiny v UI, fallback classifications prop |
 | 2026-03-29 | Staging | Staging prostředí na stejném VPS (dev.phc-nexus.eu) — docker-compose.staging.yml, sdílený Caddy (Caddyfile.shared), lehčí FPM pool (5 children), jeden Redis, DB sync skript s PHI anonymizací, deploy workflow přepracován na 3 joby (build → staging auto → prod approve) |
+| 2026-03-31 | Workflow | Workflow engine: workflow_statuses + workflow_transitions tabulky, vizuální editor (React Flow), pozice uzlů, updateStatus() validace přechodů, board_columns dropnuta — 16 PR (#71–#86) |
+| 2026-04-01 | Workflow | Dynamický StatusBadge na všech stránkách (Dashboard, MyTasks, Board karty, GlobalSearch, Epic Show) s fallbackem na enum — PR #87 |
+| 2026-04-01 | Wiki | Wiki → Dokumentace přejmenování, wiki komentáře + přílohy fix (404), epic dokumentace (epic_id FK, CRUD, EpicIndex/EpicShow stránky, záložka na Epic Show), RichTextEditor fix selekce, globální ErrorModal (404/500) — PR #88 |

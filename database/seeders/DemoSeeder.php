@@ -61,6 +61,9 @@ class DemoSeeder extends Seeder
         $teamDoprava = Team::create(['name' => 'Doprava', 'division_id' => $divLogistika->id]);
 
         // Uživatelé (bez factory — Faker není dostupný na staging/prod)
+        // Admin účet — reálný přístup přes Google SSO
+        $admin = $this->createUser('Jan Melicherik', 'melicherikjan84@gmail.com', SystemRole::Executive);
+
         $exec = $this->createUser('Jiří Kratochvíl', 'jiri.kratochvil@example.cz', SystemRole::Executive);
         $pmTech = $this->createUser('Monika Fialová', 'monika.fialova@example.cz', SystemRole::ProjectManager, $teamBackend->id);
         $pmMkt = $this->createUser('David Šťastný', 'david.stastny@example.cz', SystemRole::ProjectManager, $teamMarketing->id);
@@ -86,7 +89,7 @@ class DemoSeeder extends Seeder
 
         // Kontext pro projekty
         $users = compact(
-            'exec', 'pmTech', 'pmMkt', 'devBack1', 'devBack2',
+            'admin', 'exec', 'pmTech', 'pmMkt', 'devBack1', 'devBack2',
             'devFront', 'logistik', 'supportLead', 'marketer', 'reader',
         );
 
@@ -118,6 +121,7 @@ class DemoSeeder extends Seeder
             'benefit_note' => 'Očekávaný nárůst konverzního poměru o 25 % po přechodu na novou platformu.',
         ]);
         $project->members()->attach([
+            $u['admin']->id => ['role' => 'member'],
             $u['devBack1']->id => ['role' => 'member'],
             $u['devBack2']->id => ['role' => 'member'],
             $u['devFront']->id => ['role' => 'member'],
@@ -576,6 +580,7 @@ class DemoSeeder extends Seeder
             'benefit_note' => 'Nárůst organického trafficu → vyšší tržby bez navýšení PPC rozpočtu.',
         ]);
         $project->members()->attach([
+            $u['admin']->id => ['role' => 'member'],
             $u['devBack1']->id => ['role' => 'member'],
             $u['devFront']->id => ['role' => 'member'],
             $u['marketer']->id => ['role' => 'member'],
@@ -752,6 +757,7 @@ class DemoSeeder extends Seeder
             'benefit_note' => 'Zvýšení retence zákazníků a průměrné hodnoty objednávky.',
         ]);
         $project->members()->attach([
+            $u['admin']->id => ['role' => 'member'],
             $u['marketer']->id => ['role' => 'member'],
             $u['devBack2']->id => ['role' => 'member'],
             $u['supportLead']->id => ['role' => 'member'],
@@ -891,6 +897,7 @@ class DemoSeeder extends Seeder
             'benefit_note' => 'Automatizace skladových procesů — úspora 2 FTE na manuální práci.',
         ]);
         $project->members()->attach([
+            $u['admin']->id => ['role' => 'member'],
             $u['logistik']->id => ['role' => 'member'],
             $u['devBack1']->id => ['role' => 'member'],
             $u['devBack2']->id => ['role' => 'member'],

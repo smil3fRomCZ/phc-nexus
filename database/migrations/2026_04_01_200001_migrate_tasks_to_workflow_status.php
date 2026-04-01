@@ -47,17 +47,35 @@ return new class extends Migration
                 }
             }
 
-            // Fallback: tasky bez workflow_status_id dostanou initial status
-            $initialStatus = $project->workflowStatuses->firstWhere('is_initial', true);
-            if ($initialStatus) {
+            // Fallback: tasky bez workflow_status_id dostanou initial nebo první status
+            $fallbackStatus = $project->workflowStatuses->firstWhere('is_initial', true)
+                ?? $project->workflowStatuses->sortBy('position')->first();
+            if ($fallbackStatus) {
                 DB::table('tasks')
                     ->where('project_id', $project->id)
                     ->whereNull('workflow_status_id')
-                    ->update(['workflow_status_id' => $initialStatus->id]);
+                    ->update(['workflow_status_id' => $fallbackStatus->id]);
             }
         }
 
-        // 3. Nastavit workflow_status_id jako NOT NULL
+        // 3. Finální fallback: jakýkoliv task bez workflow_status_id
+        $orphanedTasks = DB::table('tasks')->whereNull('workflow_status_id')->get(['id', 'project_id']);
+        foreach ($orphanedTasks as $task) {
+            $fallbackId = DB::table('workflow_statuses')
+                ->where('project_id', $task->project_id)
+                ->where('is_initial', true)
+                ->value('id')
+                ?? DB::table('workflow_statuses')
+                    ->where('project_id', $task->project_id)
+                    ->orderBy('position')
+                    ->value('id');
+
+            if ($fallbackId) {
+                DB::table('tasks')->where('id', $task->id)->update(['workflow_status_id' => $fallbackId]);
+            }
+        }
+
+        // 4. Nastavit workflow_status_id jako NOT NULL
         Schema::table('tasks', function (Blueprint $table) {
             $table->uuid('workflow_status_id')->nullable(false)->change();
         });

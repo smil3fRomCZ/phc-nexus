@@ -2,7 +2,7 @@ import AppLayout from '@/Layouts/AppLayout';
 import type { Breadcrumb } from '@/Layouts/AppLayout';
 import { router } from '@inertiajs/react';
 import { Plus, Trash2, X } from 'lucide-react';
-import { useState, useCallback, useMemo } from 'react';
+import { useState, useCallback, useMemo, useEffect } from 'react';
 import {
     ReactFlow,
     Background,
@@ -104,21 +104,26 @@ export default function Workflow({ project, statuses, transitions }: Props) {
     const editingStatus = statuses.find((s) => s.id === editingId) ?? null;
 
     // Build React Flow nodes from statuses
-    const initialNodes: Node[] = useMemo(
-        () =>
+    const buildNodes = useCallback(
+        (): Node[] =>
             statuses.map((s, i) => ({
                 id: s.id,
                 type: 'status',
                 position: {
-                    x: s.pos_x || (i % 3) * 200 + 50,
-                    y: s.pos_y || Math.floor(i / 3) * 150 + 50,
+                    x: s.pos_x != null && s.pos_x !== 0 ? s.pos_x : (i % 3) * 250 + 50,
+                    y: s.pos_y != null && s.pos_y !== 0 ? s.pos_y : Math.floor(i / 3) * 150 + 50,
                 },
                 data: { ...s, onEdit: setEditingId },
             })),
         [statuses],
     );
 
-    const [nodes, setNodes] = useState<Node[]>(initialNodes);
+    const [nodes, setNodes] = useState<Node[]>(buildNodes);
+
+    // Sync nodes when statuses prop changes (Inertia navigation)
+    useEffect(() => {
+        setNodes(buildNodes());
+    }, [buildNodes]);
 
     const onNodeDragStop = useCallback(
         (_event: unknown, node: Node) => {

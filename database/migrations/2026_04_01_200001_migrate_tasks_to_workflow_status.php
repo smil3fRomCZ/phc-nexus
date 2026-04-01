@@ -47,13 +47,14 @@ return new class extends Migration
                 }
             }
 
-            // Fallback: tasky bez workflow_status_id dostanou initial status
-            $initialStatus = $project->workflowStatuses->firstWhere('is_initial', true);
-            if ($initialStatus) {
+            // Fallback: tasky bez workflow_status_id dostanou initial nebo první status
+            $fallbackStatus = $project->workflowStatuses->firstWhere('is_initial', true)
+                ?? $project->workflowStatuses->sortBy('position')->first();
+            if ($fallbackStatus) {
                 DB::table('tasks')
                     ->where('project_id', $project->id)
                     ->whereNull('workflow_status_id')
-                    ->update(['workflow_status_id' => $initialStatus->id]);
+                    ->update(['workflow_status_id' => $fallbackStatus->id]);
             }
         }
 

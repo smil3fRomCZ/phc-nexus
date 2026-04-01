@@ -289,10 +289,12 @@ export default function TaskBoard({
                     <div
                         key={col.status}
                         className={`flex w-64 flex-shrink-0 flex-col overflow-hidden rounded-lg border border-border-subtle ${
-                            dropTarget === col.status && !col.color ? 'ring-2 ring-brand-primary' : ''
+                            dropTarget === col.status && !col.color ? 'ring-2 ring-inset ring-brand-primary' : ''
                         }`}
                         style={
-                            dropTarget === col.status && col.color ? { boxShadow: `0 0 0 2px ${col.color}` } : undefined
+                            dropTarget === col.status && col.color
+                                ? { boxShadow: `inset 0 0 0 2px ${col.color}` }
+                                : undefined
                         }
                         onDragOver={(e) => handleDragOver(e, col.status)}
                         onDragLeave={handleDragLeave}
@@ -466,10 +468,10 @@ function TaskCreateDialog({
 
     return (
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50">
-            <div className="w-full max-w-md rounded-lg border border-border-subtle bg-surface-primary p-6 shadow-xl">
+            <div className="mx-4 w-full max-w-md rounded-lg border border-border-subtle bg-surface-primary p-4 sm:p-6 shadow-xl sm:mx-auto">
                 <div className="mb-4 flex items-center justify-between">
                     <h2 className="text-lg font-semibold text-text-strong">Nový úkol</h2>
-                    <button onClick={onClose} className="rounded p-1 text-text-muted hover:bg-surface-hover">
+                    <button onClick={onClose} className="rounded p-2 text-text-muted hover:bg-surface-hover">
                         ✕
                     </button>
                 </div>
@@ -503,7 +505,7 @@ function TaskCreateDialog({
                         />
                     </div>
 
-                    <div className="grid grid-cols-2 gap-3">
+                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
                         <div>
                             <label className="block text-xs font-semibold uppercase tracking-wider text-text-subtle">
                                 Priorita
@@ -538,7 +540,7 @@ function TaskCreateDialog({
                         </div>
                     </div>
 
-                    <div className="grid grid-cols-2 gap-3">
+                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
                         <div>
                             <label className="block text-xs font-semibold uppercase tracking-wider text-text-subtle">
                                 Epic

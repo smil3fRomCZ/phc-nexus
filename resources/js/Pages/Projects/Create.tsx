@@ -125,7 +125,7 @@ export default function ProjectCreate({
     return (
         <AppLayout title="Nový projekt" breadcrumbs={BREADCRUMBS}>
             <div className="mx-auto max-w-2xl">
-                <h1 className="mb-6 text-2xl font-bold leading-tight text-text-strong">Nový projekt</h1>
+                <h1 className="mb-6 text-xl md:text-2xl font-bold leading-tight text-text-strong">Nový projekt</h1>
 
                 <form onSubmit={submit} className="space-y-5">
                     <Field label="Název *" error={errors.name ?? clientErrors.name}>

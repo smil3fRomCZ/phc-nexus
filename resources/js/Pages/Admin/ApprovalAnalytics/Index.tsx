@@ -3,6 +3,7 @@ import type { Breadcrumb } from '@/Layouts/AppLayout';
 import EmptyState from '@/Components/EmptyState';
 import { formatDate } from '@/utils/formatDate';
 import { BarChart3, Clock, CheckCircle, XCircle, Ban } from 'lucide-react';
+import { useState, useMemo } from 'react';
 
 interface Stats {
     total: number;
@@ -19,6 +20,7 @@ interface HistoryItem {
     status: string;
     requester_name: string;
     approvable_title: string;
+    project_id: string | null;
     created_at: string;
     decided_at: string | null;
     resolution_hours: number | null;
@@ -48,7 +50,39 @@ function formatHours(hours: number): string {
     return `${Math.round(hours / 24)}d`;
 }
 
+type SortField = 'approvable_title' | 'requester_name' | 'status' | 'created_at' | 'decided_at' | 'resolution_hours';
+
 export default function ApprovalAnalyticsIndex({ stats, history }: Props) {
+    const [sortField, setSortField] = useState<SortField>('created_at');
+    const [sortDir, setSortDir] = useState<'asc' | 'desc'>('desc');
+
+    function applySort(field: SortField) {
+        if (sortField === field) {
+            setSortDir((d) => (d === 'asc' ? 'desc' : 'asc'));
+        } else {
+            setSortField(field);
+            setSortDir('asc');
+        }
+    }
+
+    function sortIndicator(field: SortField) {
+        if (sortField !== field) return '';
+        return sortDir === 'desc' ? ' ▼' : ' ▲';
+    }
+
+    const sorted = useMemo(() => {
+        return [...history].sort((a, b) => {
+            const dir = sortDir === 'asc' ? 1 : -1;
+            const av = a[sortField];
+            const bv = b[sortField];
+            if (av === null && bv === null) return 0;
+            if (av === null) return 1;
+            if (bv === null) return -1;
+            if (typeof av === 'number' && typeof bv === 'number') return (av - bv) * dir;
+            return String(av).localeCompare(String(bv), 'cs') * dir;
+        });
+    }, [history, sortField, sortDir]);
+
     const tiles = [
         { label: 'Celkem', value: stats.total, icon: BarChart3, color: 'text-text-strong', bg: 'bg-surface-secondary' },
         {
@@ -88,12 +122,21 @@ export default function ApprovalAnalyticsIndex({ stats, history }: Props) {
         },
     ];
 
+    const columns: { field: SortField; label: string }[] = [
+        { field: 'approvable_title', label: 'Žádost' },
+        { field: 'requester_name', label: 'Žadatel' },
+        { field: 'status', label: 'Stav' },
+        { field: 'created_at', label: 'Vytvořeno' },
+        { field: 'decided_at', label: 'Vyřešeno' },
+        { field: 'resolution_hours', label: 'Doba řešení' },
+    ];
+
     return (
         <AppLayout title="Analytika schvalování" breadcrumbs={BREADCRUMBS}>
-            <h1 className="mb-6 text-2xl font-bold leading-tight text-text-strong">Analytika schvalování</h1>
+            <h1 className="mb-6 text-xl md:text-2xl font-bold leading-tight text-text-strong">Analytika schvalování</h1>
 
             {/* Stat Tiles */}
-            <div className="mb-8 grid grid-cols-3 gap-4 md:grid-cols-6">
+            <div className="mb-8 grid grid-cols-2 sm:grid-cols-3 md:grid-cols-6 gap-4">
                 {tiles.map((tile) => {
                     const Icon = tile.icon;
                     return (
@@ -113,25 +156,37 @@ export default function ApprovalAnalyticsIndex({ stats, history }: Props) {
 
             {/* History Table */}
             <h2 className="mb-4 text-lg font-semibold text-text-strong">Historie</h2>
-            <div className="overflow-hidden rounded-lg border border-border-subtle bg-surface-primary">
+            <div className="overflow-x-auto rounded-lg border border-border-subtle bg-surface-primary">
                 <table className="w-full border-collapse">
                     <thead>
                         <tr>
-                            {['Žádost', 'Žadatel', 'Stav', 'Vytvořeno', 'Vyřešeno', 'Doba řešení'].map((h) => (
+                            {columns.map((col) => (
                                 <th
-                                    key={h}
-                                    className="border-b border-border-default bg-surface-secondary px-5 py-3 text-left text-xs font-semibold uppercase tracking-wider text-text-subtle"
+                                    key={col.field}
+                                    className="cursor-pointer border-b border-border-default bg-surface-secondary px-5 py-3 text-left text-xs font-semibold uppercase tracking-wider text-text-subtle hover:text-text-default"
+                                    onClick={() => applySort(col.field)}
                                 >
-                                    {h}
+                                    {col.label}
+                                    {sortIndicator(col.field)}
                                 </th>
                             ))}
                         </tr>
                     </thead>
                     <tbody>
-                        {history.map((item) => {
+                        {sorted.map((item) => {
                             const sc = STATUS_CONFIG[item.status] ?? STATUS_CONFIG.pending;
                             return (
-                                <tr key={item.id} className="transition-colors hover:bg-brand-soft">
+                                <tr
+                                    key={item.id}
+                                    className={`transition-colors hover:bg-brand-soft ${item.project_id ? 'cursor-pointer' : ''}`}
+                                    onClick={
+                                        item.project_id
+                                            ? () => {
+                                                  window.location.href = `/projects/${item.project_id}/approvals/${item.id}`;
+                                              }
+                                            : undefined
+                                    }
+                                >
                                     <td className="border-b border-border-subtle px-5 py-3 text-sm font-medium text-text-strong">
                                         {item.approvable_title || item.description || 'Žádost o schválení'}
                                     </td>

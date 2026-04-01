@@ -127,7 +127,7 @@ export default function TaskTable({ project, tasks, filters, statuses, prioritie
             </div>
 
             {/* Filters */}
-            <div className="mb-5 flex gap-3">
+            <div className="mb-5 flex flex-wrap gap-3">
                 <select
                     value={filters.status ?? ''}
                     onChange={(e) => applyFilter('status', e.target.value)}
@@ -168,7 +168,7 @@ export default function TaskTable({ project, tasks, filters, statuses, prioritie
 
             {/* Bulk Actions */}
             {selected.length > 0 && (
-                <div className="mb-4 flex items-center gap-3 rounded-lg border border-brand-primary/30 bg-brand-soft px-4 py-2">
+                <div className="mb-4 flex flex-wrap items-center gap-3 rounded-lg border border-brand-primary/30 bg-brand-soft px-4 py-2">
                     <span className="text-sm font-medium text-text-strong">{selected.length} vybráno</span>
                     <select
                         value={bulkStatus}

@@ -234,7 +234,7 @@ export default function Workflow({ project, statuses, transitions }: Props) {
         <AppLayout title={`${project.key} — Workflow`} breadcrumbs={breadcrumbs}>
             <div className="mx-auto max-w-6xl">
                 <div className="mb-4 flex items-center justify-between">
-                    <h1 className="text-2xl font-bold text-text-strong">Workflow Editor</h1>
+                    <h1 className="text-xl md:text-2xl font-bold text-text-strong">Workflow Editor</h1>
                     <span className="text-sm text-text-muted">
                         {statuses.length} stavů · {transitions.length} přechodů
                     </span>
@@ -292,7 +292,7 @@ export default function Workflow({ project, statuses, transitions }: Props) {
                                 <span className="text-sm font-semibold text-text-strong">Editace stavu</span>
                                 <button
                                     onClick={() => setEditingId(null)}
-                                    className="rounded p-1 text-text-muted hover:bg-surface-hover"
+                                    className="rounded p-2 text-text-muted hover:bg-surface-hover"
                                 >
                                     <X className="h-3.5 w-3.5" />
                                 </button>

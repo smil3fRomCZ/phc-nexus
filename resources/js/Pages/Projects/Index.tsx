@@ -50,7 +50,7 @@ export default function ProjectsIndex({ projects }: Props) {
         <AppLayout title="Projekty" breadcrumbs={BREADCRUMBS}>
             {/* Page Header */}
             <div className="mb-6 flex items-center justify-between">
-                <h1 className="text-2xl font-bold leading-tight text-text-strong">Projekty</h1>
+                <h1 className="text-xl md:text-2xl font-bold leading-tight text-text-strong">Projekty</h1>
                 <Link
                     href="/projects/create"
                     className="inline-flex items-center justify-center gap-2 rounded-md bg-brand-primary px-5 py-2 text-xs font-medium text-text-inverse no-underline transition-colors hover:bg-brand-hover"

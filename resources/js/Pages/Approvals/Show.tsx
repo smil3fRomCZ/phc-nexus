@@ -89,7 +89,7 @@ export default function ApprovalShow({ project, approvalRequest: req, auth }: Pr
             <div className="mx-auto max-w-4xl">
                 <div className="mb-6">
                     <div className="flex items-center gap-3">
-                        <h1 className="text-2xl font-bold leading-tight text-text-strong">
+                        <h1 className="text-xl md:text-2xl font-bold leading-tight text-text-strong">
                             {req.description ?? 'Žádost o schválení'}
                         </h1>
                         <StatusBadge statusMap={APPROVAL_STATUS} value={req.status} />

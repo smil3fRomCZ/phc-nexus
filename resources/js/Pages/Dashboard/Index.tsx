@@ -82,12 +82,12 @@ export default function DashboardIndex({ stats, myTasks, pendingApprovals }: Pro
         <AppLayout title="Dashboard" breadcrumbs={BREADCRUMBS}>
             {/* Page Header */}
             <div className="mb-8">
-                <h1 className="text-2xl font-bold leading-tight text-text-strong">Dashboard</h1>
+                <h1 className="text-xl md:text-2xl font-bold leading-tight text-text-strong">Dashboard</h1>
                 <p className="mt-1 text-base text-text-muted">Vítejte zpět, {firstName}</p>
             </div>
 
             {/* Stat Tiles */}
-            <div className="mb-8 grid grid-cols-4 gap-5">
+            <div className="mb-8 grid grid-cols-2 lg:grid-cols-4 gap-5">
                 {STAT_TILES.map((tile) => {
                     const colors = TILE_COLORS[tile.color];
                     const Icon = tile.icon;
@@ -111,7 +111,7 @@ export default function DashboardIndex({ stats, myTasks, pendingApprovals }: Pro
 
             {/* My Work Table */}
             <h2 className="mb-4 text-lg font-semibold text-text-strong">Moje práce</h2>
-            <div className="mb-8 overflow-hidden rounded-lg border border-border-subtle bg-surface-primary">
+            <div className="mb-8 overflow-x-auto rounded-lg border border-border-subtle bg-surface-primary">
                 <table className="w-full border-collapse">
                     <thead>
                         <tr>
@@ -175,7 +175,7 @@ export default function DashboardIndex({ stats, myTasks, pendingApprovals }: Pro
             {/* Pending Approvals */}
             <h2 className="mb-4 text-lg font-semibold text-text-strong">Čekající schválení</h2>
             {pendingApprovals.length > 0 ? (
-                <div className="grid grid-cols-3 gap-5">
+                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-5">
                     {pendingApprovals.map((approval) => (
                         <div
                             key={approval.id}

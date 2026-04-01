@@ -12,10 +12,6 @@ import { formatDate } from '@/utils/formatDate';
 import { Link, router } from '@inertiajs/react';
 import { Trash2, FileDown, ChevronDown, CheckCircle2, AlertCircle, Layers, Timer } from 'lucide-react';
 import ProjectTabs from '@/Components/ProjectTabs';
-import TimeLogSection from '@/Components/TimeLogSection';
-import type { TimeEntryData } from '@/Components/TimeLogSection';
-import { usePage } from '@inertiajs/react';
-import type { PageProps } from '@/types';
 import { useState, useRef, useEffect } from 'react';
 
 interface Project {
@@ -45,17 +41,7 @@ interface Project {
     created_at: string;
 }
 
-export default function ProjectShow({
-    project,
-    timeEntries = [],
-    totalHours = 0,
-}: {
-    project: Project;
-    timeEntries: TimeEntryData[];
-    totalHours: number;
-}) {
-    const { auth } = usePage<PageProps>().props;
-    const [activeView, setActiveView] = useState<'overview' | 'time'>('overview');
+export default function ProjectShow({ project, totalHours = 0 }: { project: Project; totalHours: number }) {
     const breadcrumbs: Breadcrumb[] = [
         { label: 'Domů', href: '/' },
         { label: 'Projekty', href: '/projects' },
@@ -67,13 +53,15 @@ export default function ProjectShow({
             <div className="mx-auto max-w-5xl space-y-5">
                 {/* Header card */}
                 <div className="rounded-lg border border-border-subtle bg-surface-primary p-5">
-                    <div className="flex items-start justify-between">
+                    <div className="flex flex-col sm:flex-row items-start justify-between gap-3">
                         <div>
                             <span className="text-xs font-semibold uppercase tracking-wider text-text-subtle">
                                 Projekt
                             </span>
                             <div className="mt-0.5 flex items-center gap-3">
-                                <h1 className="text-2xl font-bold leading-tight text-text-strong">{project.name}</h1>
+                                <h1 className="text-xl md:text-2xl font-bold leading-tight text-text-strong">
+                                    {project.name}
+                                </h1>
                                 <StatusBadge statusMap={PROJECT_STATUS} value={project.status} />
                             </div>
                             <div className="mt-1">
@@ -86,7 +74,7 @@ export default function ProjectShow({
                                 <p className="mt-2 text-base text-text-default">{project.description}</p>
                             )}
                         </div>
-                        <div className="flex gap-2">
+                        <div className="flex flex-wrap gap-2">
                             <Link
                                 href={`/projects/${project.id}/edit`}
                                 className="rounded-md border border-border-default px-5 py-2 text-sm font-medium text-text-default no-underline transition-colors hover:bg-surface-hover"
@@ -107,7 +95,7 @@ export default function ProjectShow({
                     </div>
 
                     {/* Metadata grid */}
-                    <div className="mt-4 grid grid-cols-3 gap-4 border-t border-border-subtle pt-4">
+                    <div className="mt-4 grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 border-t border-border-subtle pt-4">
                         <div>
                             <div className="text-xs font-semibold uppercase tracking-wider text-text-subtle">
                                 Vlastník
@@ -169,84 +157,40 @@ export default function ProjectShow({
                 {/* Metrics */}
                 <ProjectMetrics project={project} totalHours={totalHours} />
 
-                {/* Content tabs */}
-                <div className="flex gap-0 border-b border-border-subtle">
-                    <button
-                        onClick={() => setActiveView('overview')}
-                        className={`flex items-center gap-2 border-b-2 px-4 py-2.5 text-sm font-medium transition-colors ${
-                            activeView === 'overview'
-                                ? 'border-brand-primary text-brand-primary'
-                                : 'border-transparent text-text-muted hover:text-text-default'
-                        }`}
-                    >
-                        Přehled
-                    </button>
-                    <button
-                        onClick={() => setActiveView('time')}
-                        className={`flex items-center gap-2 border-b-2 px-4 py-2.5 text-sm font-medium transition-colors ${
-                            activeView === 'time'
-                                ? 'border-brand-primary text-brand-primary'
-                                : 'border-transparent text-text-muted hover:text-text-default'
-                        }`}
-                    >
-                        <Timer className="h-3.5 w-3.5" />
-                        Čas
-                        <span className="rounded-full bg-status-neutral-subtle px-1.5 py-px text-xs font-medium text-text-muted">
-                            {totalHours}h
-                        </span>
-                    </button>
+                {/* Members */}
+                <div className="rounded-lg border border-border-subtle bg-surface-primary p-5">
+                    <h3 className="mb-3 text-xs font-semibold uppercase tracking-wider text-text-subtle">
+                        Členové ({project.members.length})
+                    </h3>
+                    <div className="flex flex-wrap gap-2">
+                        {project.members.map((member) => (
+                            <div
+                                key={member.id}
+                                className="flex items-center gap-2 rounded-full bg-surface-secondary px-3 py-1"
+                            >
+                                <Avatar name={member.name} />
+                                <span className="text-sm text-text-default">{member.name}</span>
+                            </div>
+                        ))}
+                    </div>
                 </div>
 
-                {activeView === 'overview' && (
-                    <>
-                        {/* Members */}
-                        <div className="rounded-lg border border-border-subtle bg-surface-primary p-5">
-                            <h3 className="mb-3 text-xs font-semibold uppercase tracking-wider text-text-subtle">
-                                Členové ({project.members.length})
-                            </h3>
-                            <div className="flex flex-wrap gap-2">
-                                {project.members.map((member) => (
-                                    <div
-                                        key={member.id}
-                                        className="flex items-center gap-2 rounded-full bg-surface-secondary px-3 py-1"
-                                    >
-                                        <Avatar name={member.name} />
-                                        <span className="text-sm text-text-default">{member.name}</span>
-                                    </div>
-                                ))}
-                            </div>
-                        </div>
+                {/* Attachments */}
+                <div className="rounded-lg border border-border-subtle bg-surface-primary p-5">
+                    <AttachmentsSection
+                        attachments={project.attachments}
+                        uploadUrl={`/projects/${project.id}/attachments`}
+                    />
+                </div>
 
-                        {/* Attachments */}
-                        <div className="rounded-lg border border-border-subtle bg-surface-primary p-5">
-                            <AttachmentsSection
-                                attachments={project.attachments}
-                                uploadUrl={`/projects/${project.id}/attachments`}
-                            />
-                        </div>
-
-                        {/* Comments */}
-                        <div className="rounded-lg border border-border-subtle bg-surface-primary p-5">
-                            <CommentsSection
-                                comments={project.root_comments}
-                                commentsCount={project.comments_count}
-                                postUrl={`/projects/${project.id}/comments`}
-                            />
-                        </div>
-                    </>
-                )}
-
-                {activeView === 'time' && (
-                    <div className="rounded-lg border border-border-subtle bg-surface-primary p-5">
-                        <TimeLogSection
-                            timeEntries={timeEntries}
-                            totalHours={totalHours}
-                            postUrl={`/projects/${project.id}/time-entries`}
-                            currentUserId={auth.user?.id}
-                            showTaskColumn
-                        />
-                    </div>
-                )}
+                {/* Comments */}
+                <div className="rounded-lg border border-border-subtle bg-surface-primary p-5">
+                    <CommentsSection
+                        comments={project.root_comments}
+                        commentsCount={project.comments_count}
+                        postUrl={`/projects/${project.id}/comments`}
+                    />
+                </div>
             </div>
         </AppLayout>
     );
@@ -284,7 +228,7 @@ function ProjectMetrics({ project, totalHours }: { project: Project; totalHours:
             value: `${totalHours} h`,
             icon: Timer,
             color: 'info' as const,
-            href: `/projects/${project.id}`,
+            href: `/projects/${project.id}/time`,
         },
     ];
 
@@ -295,7 +239,7 @@ function ProjectMetrics({ project, totalHours }: { project: Project; totalHours:
     };
 
     return (
-        <div className="grid grid-cols-4 gap-4">
+        <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
             {tiles.map((tile) => {
                 const c = colors[tile.color];
                 const Icon = tile.icon;

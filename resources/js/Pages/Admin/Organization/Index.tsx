@@ -2,9 +2,16 @@ import AppLayout from '@/Layouts/AppLayout';
 import type { Breadcrumb } from '@/Layouts/AppLayout';
 import EmptyState from '@/Components/EmptyState';
 import Avatar from '@/Components/Avatar';
-import { Building2, Users, Crown } from 'lucide-react';
+import { Building2, Users, Crown, Plus, Pencil, Trash2, X } from 'lucide-react';
+import { useState, type FormEvent } from 'react';
+import { router } from '@inertiajs/react';
 
-interface User {
+interface UserOption {
+    id: string;
+    name: string;
+}
+
+interface Member {
     id: string;
     name: string;
     email: string;
@@ -16,8 +23,10 @@ interface Team {
     id: string;
     name: string;
     description: string | null;
+    division_id: string;
     team_lead: { id: string; name: string } | null;
-    members: User[];
+    team_lead_id: string | null;
+    members: Member[];
 }
 
 interface Division {
@@ -29,14 +38,243 @@ interface Division {
 
 interface Props {
     divisions: Division[];
+    users: UserOption[];
+    can: { createDivision: boolean; createTeam: boolean };
 }
 
 const BREADCRUMBS: Breadcrumb[] = [{ label: 'Domů', href: '/' }, { label: 'Administrace' }, { label: 'Organizace' }];
 
-export default function OrganizationIndex({ divisions }: Props) {
+// ── Division Form Modal ──
+function DivisionModal({ division, onClose }: { division?: Division; onClose: () => void }) {
+    const [name, setName] = useState(division?.name ?? '');
+    const [description, setDescription] = useState(division?.description ?? '');
+    const [processing, setProcessing] = useState(false);
+
+    function handleSubmit(e: FormEvent) {
+        e.preventDefault();
+        setProcessing(true);
+        if (division) {
+            router.put(
+                `/admin/divisions/${division.id}`,
+                { name, description },
+                { onFinish: () => setProcessing(false), onSuccess: onClose },
+            );
+        } else {
+            router.post(
+                '/admin/divisions',
+                { name, description },
+                { onFinish: () => setProcessing(false), onSuccess: onClose },
+            );
+        }
+    }
+
+    return (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50" onClick={onClose}>
+            <div
+                className="mx-4 w-full max-w-md rounded-lg border border-border-subtle bg-surface-primary p-4 sm:p-6 shadow-xl sm:mx-auto"
+                onClick={(e) => e.stopPropagation()}
+            >
+                <div className="mb-4 flex items-center justify-between">
+                    <h2 className="text-lg font-semibold text-text-strong">
+                        {division ? 'Upravit divizi' : 'Nová divize'}
+                    </h2>
+                    <button onClick={onClose} className="rounded p-2 text-text-muted hover:bg-surface-hover">
+                        <X className="h-4 w-4" />
+                    </button>
+                </div>
+                <form onSubmit={handleSubmit} className="space-y-4">
+                    <div>
+                        <label htmlFor="div-name" className="mb-1 block text-xs font-semibold text-text-subtle">
+                            Název *
+                        </label>
+                        <input
+                            id="div-name"
+                            value={name}
+                            onChange={(e) => setName(e.target.value)}
+                            required
+                            className="w-full rounded-md border border-border-default bg-surface-primary px-3 py-2 text-sm focus:border-brand-primary focus:outline-none"
+                        />
+                    </div>
+                    <div>
+                        <label htmlFor="div-desc" className="mb-1 block text-xs font-semibold text-text-subtle">
+                            Popis
+                        </label>
+                        <textarea
+                            id="div-desc"
+                            value={description}
+                            onChange={(e) => setDescription(e.target.value)}
+                            rows={2}
+                            className="w-full rounded-md border border-border-default bg-surface-primary px-3 py-2 text-sm focus:border-brand-primary focus:outline-none"
+                        />
+                    </div>
+                    <div className="flex justify-end gap-3 pt-2">
+                        <button
+                            type="button"
+                            onClick={onClose}
+                            className="rounded-md border border-border-default px-4 py-2 text-sm font-medium text-text-muted hover:bg-surface-hover"
+                        >
+                            Zrušit
+                        </button>
+                        <button
+                            type="submit"
+                            disabled={processing}
+                            className="rounded-md bg-brand-primary px-4 py-2 text-sm font-medium text-text-inverse hover:bg-brand-hover disabled:opacity-50"
+                        >
+                            {division ? 'Uložit' : 'Vytvořit'}
+                        </button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    );
+}
+
+// ── Team Form Modal ──
+function TeamModal({
+    team,
+    divisions,
+    users,
+    defaultDivisionId,
+    onClose,
+}: {
+    team?: Team;
+    divisions: Division[];
+    users: UserOption[];
+    defaultDivisionId?: string;
+    onClose: () => void;
+}) {
+    const [name, setName] = useState(team?.name ?? '');
+    const [description, setDescription] = useState(team?.description ?? '');
+    const [divisionId, setDivisionId] = useState(team?.division_id ?? defaultDivisionId ?? divisions[0]?.id ?? '');
+    const [teamLeadId, setTeamLeadId] = useState(team?.team_lead_id ?? '');
+    const [processing, setProcessing] = useState(false);
+
+    function handleSubmit(e: FormEvent) {
+        e.preventDefault();
+        setProcessing(true);
+        const data = { name, description, division_id: divisionId, team_lead_id: teamLeadId || null };
+        if (team) {
+            router.put(`/admin/teams/${team.id}`, data, { onFinish: () => setProcessing(false), onSuccess: onClose });
+        } else {
+            router.post('/admin/teams', data, { onFinish: () => setProcessing(false), onSuccess: onClose });
+        }
+    }
+
+    return (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50" onClick={onClose}>
+            <div
+                className="mx-4 w-full max-w-md rounded-lg border border-border-subtle bg-surface-primary p-4 sm:p-6 shadow-xl sm:mx-auto"
+                onClick={(e) => e.stopPropagation()}
+            >
+                <div className="mb-4 flex items-center justify-between">
+                    <h2 className="text-lg font-semibold text-text-strong">{team ? 'Upravit tým' : 'Nový tým'}</h2>
+                    <button onClick={onClose} className="rounded p-2 text-text-muted hover:bg-surface-hover">
+                        <X className="h-4 w-4" />
+                    </button>
+                </div>
+                <form onSubmit={handleSubmit} className="space-y-4">
+                    <div>
+                        <label htmlFor="team-name" className="mb-1 block text-xs font-semibold text-text-subtle">
+                            Název *
+                        </label>
+                        <input
+                            id="team-name"
+                            value={name}
+                            onChange={(e) => setName(e.target.value)}
+                            required
+                            className="w-full rounded-md border border-border-default bg-surface-primary px-3 py-2 text-sm focus:border-brand-primary focus:outline-none"
+                        />
+                    </div>
+                    <div>
+                        <label htmlFor="team-desc" className="mb-1 block text-xs font-semibold text-text-subtle">
+                            Popis
+                        </label>
+                        <textarea
+                            id="team-desc"
+                            value={description}
+                            onChange={(e) => setDescription(e.target.value)}
+                            rows={2}
+                            className="w-full rounded-md border border-border-default bg-surface-primary px-3 py-2 text-sm focus:border-brand-primary focus:outline-none"
+                        />
+                    </div>
+                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                        <div>
+                            <label htmlFor="team-div" className="mb-1 block text-xs font-semibold text-text-subtle">
+                                Divize *
+                            </label>
+                            <select
+                                id="team-div"
+                                value={divisionId}
+                                onChange={(e) => setDivisionId(e.target.value)}
+                                required
+                                className="w-full rounded-md border border-border-default bg-surface-primary px-3 py-2 text-sm focus:border-brand-primary focus:outline-none"
+                            >
+                                {divisions.map((d) => (
+                                    <option key={d.id} value={d.id}>
+                                        {d.name}
+                                    </option>
+                                ))}
+                            </select>
+                        </div>
+                        <div>
+                            <label htmlFor="team-lead" className="mb-1 block text-xs font-semibold text-text-subtle">
+                                Team Lead
+                            </label>
+                            <select
+                                id="team-lead"
+                                value={teamLeadId}
+                                onChange={(e) => setTeamLeadId(e.target.value)}
+                                className="w-full rounded-md border border-border-default bg-surface-primary px-3 py-2 text-sm focus:border-brand-primary focus:outline-none"
+                            >
+                                <option value="">— žádný —</option>
+                                {users.map((u) => (
+                                    <option key={u.id} value={u.id}>
+                                        {u.name}
+                                    </option>
+                                ))}
+                            </select>
+                        </div>
+                    </div>
+                    <div className="flex justify-end gap-3 pt-2">
+                        <button
+                            type="button"
+                            onClick={onClose}
+                            className="rounded-md border border-border-default px-4 py-2 text-sm font-medium text-text-muted hover:bg-surface-hover"
+                        >
+                            Zrušit
+                        </button>
+                        <button
+                            type="submit"
+                            disabled={processing}
+                            className="rounded-md bg-brand-primary px-4 py-2 text-sm font-medium text-text-inverse hover:bg-brand-hover disabled:opacity-50"
+                        >
+                            {team ? 'Uložit' : 'Vytvořit'}
+                        </button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    );
+}
+
+export default function OrganizationIndex({ divisions, users, can }: Props) {
+    const [divisionModal, setDivisionModal] = useState<{ open: boolean; division?: Division }>({ open: false });
+    const [teamModal, setTeamModal] = useState<{ open: boolean; team?: Team; divisionId?: string }>({ open: false });
+
     return (
         <AppLayout title="Organizace" breadcrumbs={BREADCRUMBS}>
-            <h1 className="mb-6 text-2xl font-bold leading-tight text-text-strong">Organizační struktura</h1>
+            <div className="mb-6 flex items-center justify-between">
+                <h1 className="text-xl md:text-2xl font-bold leading-tight text-text-strong">Organizační struktura</h1>
+                {can.createDivision && (
+                    <button
+                        onClick={() => setDivisionModal({ open: true })}
+                        className="flex items-center gap-2 rounded-md bg-brand-primary px-4 py-2 text-sm font-medium text-text-inverse hover:bg-brand-hover"
+                    >
+                        <Plus className="h-4 w-4" />
+                        Nová divize
+                    </button>
+                )}
+            </div>
 
             {divisions.length === 0 && <EmptyState message="Žádné divize nastaveny." />}
 
@@ -45,21 +283,41 @@ export default function OrganizationIndex({ divisions }: Props) {
                     <div key={division.id} className="rounded-lg border border-border-subtle bg-surface-primary">
                         <div className="flex items-center gap-3 border-b border-border-subtle px-5 py-4">
                             <Building2 className="h-5 w-5 text-brand-primary" />
-                            <div>
+                            <div className="min-w-0 flex-1">
                                 <h2 className="text-base font-semibold text-text-strong">{division.name}</h2>
                                 {division.description && (
                                     <p className="text-sm text-text-muted">{division.description}</p>
                                 )}
                             </div>
-                            <span className="ml-auto rounded-full bg-status-neutral-subtle px-2 py-px text-xs font-medium text-text-muted">
+                            <span className="rounded-full bg-status-neutral-subtle px-2 py-px text-xs font-medium text-text-muted">
                                 {division.teams.length} týmů
                             </span>
+                            {can.createDivision && (
+                                <div className="flex gap-1">
+                                    <button
+                                        onClick={() => setDivisionModal({ open: true, division })}
+                                        className="rounded p-2 text-text-muted hover:bg-surface-hover"
+                                    >
+                                        <Pencil className="h-3.5 w-3.5" />
+                                    </button>
+                                    <button
+                                        onClick={() => {
+                                            if (confirm('Smazat divizi? Tým pod ní musí být prázdný.')) {
+                                                router.delete(`/admin/divisions/${division.id}`);
+                                            }
+                                        }}
+                                        className="rounded p-2 text-text-muted hover:bg-status-danger-subtle hover:text-status-danger"
+                                    >
+                                        <Trash2 className="h-3.5 w-3.5" />
+                                    </button>
+                                </div>
+                            )}
                         </div>
 
                         <div className="divide-y divide-border-subtle">
                             {division.teams.map((team) => (
                                 <div key={team.id} className="px-5 py-4">
-                                    <div className="mb-3 flex items-center gap-2">
+                                    <div className="mb-3 flex flex-wrap items-center gap-2">
                                         <Users className="h-4 w-4 text-text-muted" />
                                         <h3 className="text-sm font-semibold text-text-strong">{team.name}</h3>
                                         {team.team_lead && (
@@ -71,6 +329,28 @@ export default function OrganizationIndex({ divisions }: Props) {
                                         <span className="ml-auto text-xs text-text-muted">
                                             {team.members.length} členů
                                         </span>
+                                        {can.createTeam && (
+                                            <div className="flex gap-1">
+                                                <button
+                                                    onClick={() =>
+                                                        setTeamModal({ open: true, team, divisionId: division.id })
+                                                    }
+                                                    className="rounded p-2 text-text-muted hover:bg-surface-hover"
+                                                >
+                                                    <Pencil className="h-3 w-3" />
+                                                </button>
+                                                <button
+                                                    onClick={() => {
+                                                        if (confirm('Smazat tým?')) {
+                                                            router.delete(`/admin/teams/${team.id}`);
+                                                        }
+                                                    }}
+                                                    className="rounded p-2 text-text-muted hover:bg-status-danger-subtle hover:text-status-danger"
+                                                >
+                                                    <Trash2 className="h-3 w-3" />
+                                                </button>
+                                            </div>
+                                        )}
                                     </div>
                                     {team.members.length > 0 ? (
                                         <div className="flex flex-wrap gap-2 pl-6">
@@ -92,10 +372,37 @@ export default function OrganizationIndex({ divisions }: Props) {
                             {division.teams.length === 0 && (
                                 <p className="px-5 py-4 text-sm text-text-muted">Žádné týmy v této divizi.</p>
                             )}
+
+                            {/* Add team button */}
+                            {can.createTeam && (
+                                <div className="px-5 py-3">
+                                    <button
+                                        onClick={() => setTeamModal({ open: true, divisionId: division.id })}
+                                        className="flex items-center gap-1 text-xs text-text-muted hover:text-brand-primary"
+                                    >
+                                        <Plus className="h-3.5 w-3.5" />
+                                        Přidat tým
+                                    </button>
+                                </div>
+                            )}
                         </div>
                     </div>
                 ))}
             </div>
+
+            {/* Modals */}
+            {divisionModal.open && (
+                <DivisionModal division={divisionModal.division} onClose={() => setDivisionModal({ open: false })} />
+            )}
+            {teamModal.open && (
+                <TeamModal
+                    team={teamModal.team}
+                    divisions={divisions}
+                    users={users}
+                    defaultDivisionId={teamModal.divisionId}
+                    onClose={() => setTeamModal({ open: false })}
+                />
+            )}
         </AppLayout>
     );
 }

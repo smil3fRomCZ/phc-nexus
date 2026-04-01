@@ -1,9 +1,9 @@
 import { Link } from '@inertiajs/react';
-import { Info, LayoutGrid, Table2, Layers, CheckSquare, BookOpen } from 'lucide-react';
+import { Info, LayoutGrid, Table2, Layers, Timer, CheckSquare, BookOpen } from 'lucide-react';
 
 interface ProjectTabsProps {
     projectId: string;
-    active: 'overview' | 'board' | 'table' | 'epics' | 'approvals' | 'wiki';
+    active: 'overview' | 'board' | 'table' | 'epics' | 'time' | 'approvals' | 'wiki';
 }
 
 const TABS = [
@@ -11,6 +11,7 @@ const TABS = [
     { key: 'board', path: '/board', label: 'Kanban', icon: LayoutGrid },
     { key: 'table', path: '/table', label: 'Backlog', icon: Table2 },
     { key: 'epics', path: '/epics', label: 'Epic', icon: Layers },
+    { key: 'time', path: '/time', label: 'Čas', icon: Timer },
     { key: 'approvals', path: '/approvals', label: 'Schvalování', icon: CheckSquare },
     { key: 'wiki', path: '/wiki', label: 'Dokumentace', icon: BookOpen },
 ] as const;

@@ -74,7 +74,7 @@ export default function NotificationsIndex({ notifications, unreadCount }: Props
         <AppLayout title="Notifikace" breadcrumbs={BREADCRUMBS}>
             <div className="mx-auto max-w-3xl">
                 <div className="mb-6 flex items-center justify-between">
-                    <h1 className="text-2xl font-bold leading-tight text-text-strong">
+                    <h1 className="text-xl md:text-2xl font-bold leading-tight text-text-strong">
                         Notifikace
                         {unreadCount > 0 && (
                             <span className="ml-2 inline-flex rounded-full bg-brand-primary px-2 py-px text-xs font-semibold text-text-inverse">

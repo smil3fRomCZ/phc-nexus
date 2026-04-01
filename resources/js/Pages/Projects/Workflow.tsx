@@ -292,7 +292,7 @@ export default function Workflow({ project, statuses, transitions }: Props) {
                                 <span className="text-sm font-semibold text-text-strong">Editace stavu</span>
                                 <button
                                     onClick={() => setEditingId(null)}
-                                    className="rounded p-1 text-text-muted hover:bg-surface-hover"
+                                    className="rounded p-2 text-text-muted hover:bg-surface-hover"
                                 >
                                     <X className="h-3.5 w-3.5" />
                                 </button>

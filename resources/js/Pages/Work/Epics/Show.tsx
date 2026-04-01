@@ -569,7 +569,7 @@ function EpicEditDialog({
             <div className="mx-4 w-full max-w-lg rounded-lg border border-border-subtle bg-surface-primary p-4 sm:p-6 shadow-xl sm:mx-auto">
                 <div className="mb-4 flex items-center justify-between">
                     <h2 className="text-lg font-semibold text-text-strong">Upravit Epic</h2>
-                    <button onClick={onClose} className="rounded p-1 text-text-muted hover:bg-surface-hover">
+                    <button onClick={onClose} className="rounded p-2 text-text-muted hover:bg-surface-hover">
                         <X className="h-4 w-4" />
                     </button>
                 </div>

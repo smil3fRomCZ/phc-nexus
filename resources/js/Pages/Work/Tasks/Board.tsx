@@ -469,7 +469,7 @@ function TaskCreateDialog({
             <div className="mx-4 w-full max-w-md rounded-lg border border-border-subtle bg-surface-primary p-4 sm:p-6 shadow-xl sm:mx-auto">
                 <div className="mb-4 flex items-center justify-between">
                     <h2 className="text-lg font-semibold text-text-strong">Nový úkol</h2>
-                    <button onClick={onClose} className="rounded p-1 text-text-muted hover:bg-surface-hover">
+                    <button onClick={onClose} className="rounded p-2 text-text-muted hover:bg-surface-hover">
                         ✕
                     </button>
                 </div>

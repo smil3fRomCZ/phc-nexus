@@ -1,8 +1,9 @@
 import AppLayout from '@/Layouts/AppLayout';
 import type { Breadcrumb } from '@/Layouts/AppLayout';
 import EmptyState from '@/Components/EmptyState';
-import { router, useForm } from '@inertiajs/react';
-import { UserPlus, X } from 'lucide-react';
+import { router, useForm, usePage } from '@inertiajs/react';
+import type { PageProps } from '@/types';
+import { UserPlus, X, Shield, Ban, CheckCircle } from 'lucide-react';
 import { useState, type FormEvent } from 'react';
 
 interface User {
@@ -36,8 +37,13 @@ const STATUS_COLORS: Record<string, string> = {
 };
 
 export default function UsersIndex({ users, filters, roles, statuses }: Props) {
+    const { auth } = usePage<PageProps>().props;
+    const currentUser = auth.user;
+    const isExecutive = currentUser?.system_role === 'executive';
+
     const [search, setSearch] = useState(filters.search ?? '');
     const [inviting, setInviting] = useState(false);
+    const [selectedUser, setSelectedUser] = useState<User | null>(null);
 
     function applyFilter(key: string, value: string) {
         const params = new URLSearchParams(window.location.search);
@@ -129,7 +135,7 @@ export default function UsersIndex({ users, filters, roles, statuses }: Props) {
                     </thead>
                     <tbody>
                         {users.map((user) => (
-                            <tr key={user.id} className="transition-colors hover:bg-brand-soft">
+                            <tr key={user.id} className="cursor-pointer transition-colors hover:bg-brand-soft" onClick={() => setSelectedUser(user)}>
                                 <td className="border-b border-border-subtle px-5 py-3 text-sm font-medium text-text-strong">
                                     {user.name}
                                 </td>
@@ -155,7 +161,138 @@ export default function UsersIndex({ users, filters, roles, statuses }: Props) {
                     </tbody>
                 </table>
             </div>
+            {/* User Detail Modal */}
+            {selectedUser && (
+                <UserDetailModal
+                    user={selectedUser}
+                    roles={roles}
+                    statuses={statuses}
+                    isExecutive={isExecutive}
+                    currentUserId={currentUser?.id}
+                    onClose={() => setSelectedUser(null)}
+                />
+            )}
         </AppLayout>
+    );
+}
+
+function UserDetailModal({
+    user,
+    roles,
+    statuses,
+    isExecutive,
+    currentUserId,
+    onClose,
+}: {
+    user: User;
+    roles: SelectOption[];
+    statuses: SelectOption[];
+    isExecutive: boolean;
+    currentUserId?: string;
+    onClose: () => void;
+}) {
+    const [role, setRole] = useState(user.system_role);
+    const isSelf = user.id === currentUserId;
+    const canChangeRole = isExecutive && !isSelf;
+    const canToggleStatus = isExecutive && !isSelf;
+
+    function handleRoleChange() {
+        router.patch(`/admin/users/${user.id}/role`, { system_role: role }, { onSuccess: onClose });
+    }
+
+    function handleToggleStatus() {
+        if (user.status === 'deactivated') {
+            router.post(`/admin/users/${user.id}/activate`, {}, { onSuccess: onClose });
+        } else {
+            if (confirm(`Opravdu deaktivovat uživatele ${user.name}?`)) {
+                router.post(`/admin/users/${user.id}/deactivate`, {}, { onSuccess: onClose });
+            }
+        }
+    }
+
+    return (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50" onClick={onClose}>
+            <div className="mx-4 w-full max-w-md rounded-lg border border-border-subtle bg-surface-primary p-4 sm:p-6 shadow-xl sm:mx-auto" onClick={(e) => e.stopPropagation()}>
+                <div className="mb-4 flex items-center justify-between">
+                    <h2 className="text-lg font-semibold text-text-strong">Detail uživatele</h2>
+                    <button onClick={onClose} className="rounded p-2 text-text-muted hover:bg-surface-hover"><X className="h-4 w-4" /></button>
+                </div>
+
+                <div className="space-y-4">
+                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                        <div>
+                            <span className="text-xs font-semibold uppercase tracking-wider text-text-subtle">Jméno</span>
+                            <p className="mt-0.5 text-sm font-medium text-text-strong">{user.name}</p>
+                        </div>
+                        <div>
+                            <span className="text-xs font-semibold uppercase tracking-wider text-text-subtle">Email</span>
+                            <p className="mt-0.5 text-sm text-text-default">{user.email}</p>
+                        </div>
+                        <div>
+                            <span className="text-xs font-semibold uppercase tracking-wider text-text-subtle">Tým</span>
+                            <p className="mt-0.5 text-sm text-text-default">{user.team?.name ?? '—'}</p>
+                        </div>
+                        <div>
+                            <span className="text-xs font-semibold uppercase tracking-wider text-text-subtle">Stav</span>
+                            <div className="mt-0.5">
+                                <span className={`inline-flex rounded-[10px] px-2 py-px text-xs font-semibold leading-relaxed ${STATUS_COLORS[user.status] ?? 'bg-status-neutral-subtle text-status-neutral'}`}>
+                                    {statuses.find((s) => s.value === user.status)?.label ?? user.status}
+                                </span>
+                            </div>
+                        </div>
+                    </div>
+
+                    {/* Role management */}
+                    <div className="border-t border-border-subtle pt-4">
+                        <label htmlFor="user-role" className="mb-1 block text-xs font-semibold uppercase tracking-wider text-text-subtle">Role</label>
+                        <div className="flex gap-2">
+                            <select
+                                id="user-role"
+                                value={role}
+                                onChange={(e) => setRole(e.target.value)}
+                                disabled={!canChangeRole}
+                                className="flex-1 rounded-md border border-border-default bg-surface-primary px-3 py-2 text-sm focus:border-brand-primary focus:outline-none disabled:opacity-50"
+                            >
+                                {roles.map((r) => <option key={r.value} value={r.value}>{r.label}</option>)}
+                            </select>
+                            {canChangeRole && role !== user.system_role && (
+                                <button
+                                    onClick={handleRoleChange}
+                                    className="flex items-center gap-1 rounded-md bg-brand-primary px-3 py-2 text-sm font-medium text-text-inverse hover:bg-brand-hover"
+                                >
+                                    <Shield className="h-3.5 w-3.5" />
+                                    Uložit
+                                </button>
+                            )}
+                        </div>
+                        {!canChangeRole && <p className="mt-1 text-xs text-text-muted">{isSelf ? 'Nemůžete měnit vlastní roli.' : 'Pouze Executive může měnit role.'}</p>}
+                    </div>
+
+                    {/* Status toggle */}
+                    {canToggleStatus && (
+                        <div className="border-t border-border-subtle pt-4">
+                            {user.status === 'deactivated' ? (
+                                <button
+                                    onClick={handleToggleStatus}
+                                    className="flex items-center gap-2 rounded-md border border-status-info/30 px-4 py-2 text-sm font-medium text-status-info hover:bg-status-info-subtle"
+                                >
+                                    <CheckCircle className="h-4 w-4" />
+                                    Aktivovat uživatele
+                                </button>
+                            ) : (
+                                <button
+                                    onClick={handleToggleStatus}
+                                    className="flex items-center gap-2 rounded-md border border-status-danger/30 px-4 py-2 text-sm font-medium text-status-danger hover:bg-status-danger-subtle"
+                                >
+                                    <Ban className="h-4 w-4" />
+                                    Deaktivovat uživatele
+                                </button>
+                            )}
+                        </div>
+                    )}
+                </div>
+            </div>
+        </div>
     );
 }
 
@@ -176,7 +313,7 @@ function InviteDialog({ roles, onClose }: { roles: SelectOption[]; onClose: () =
             <div className="w-full max-w-md rounded-lg border border-border-subtle bg-surface-primary p-6 shadow-xl">
                 <div className="mb-4 flex items-center justify-between">
                     <h2 className="text-lg font-semibold text-text-strong">Pozvat uživatele</h2>
-                    <button onClick={onClose} className="rounded p-1 text-text-muted hover:bg-surface-hover">
+                    <button onClick={onClose} className="rounded p-2 text-text-muted hover:bg-surface-hover">
                         <X className="h-4 w-4" />
                     </button>
                 </div>

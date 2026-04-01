@@ -73,14 +73,14 @@ export default function AttachmentsSection({
                         </div>
                         <a
                             href={`/attachments/${att.id}/download`}
-                            className="rounded p-1 text-text-muted hover:bg-surface-hover hover:text-text-default"
+                            className="rounded p-2 text-text-muted hover:bg-surface-hover hover:text-text-default"
                         >
                             <Download className="h-3 w-3" />
                         </a>
                         {att.uploader?.id === auth.user?.id && (
                             <button
                                 onClick={() => handleDelete(att.id)}
-                                className="rounded p-1 text-text-muted hover:bg-status-danger-subtle hover:text-status-danger"
+                                className="rounded p-2 text-text-muted hover:bg-status-danger-subtle hover:text-status-danger"
                             >
                                 <Trash2 className="h-3 w-3" />
                             </button>

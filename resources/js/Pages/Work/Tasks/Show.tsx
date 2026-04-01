@@ -664,7 +664,7 @@ function TaskEditDialog({
             <div className="mx-4 w-full max-w-lg rounded-lg border border-border-subtle bg-surface-primary p-4 sm:p-6 shadow-xl sm:mx-auto">
                 <div className="mb-4 flex items-center justify-between">
                     <h2 className="text-lg font-semibold text-text-strong">Upravit úkol</h2>
-                    <button onClick={onClose} className="rounded p-1 text-text-muted hover:bg-surface-hover">
+                    <button onClick={onClose} className="rounded p-2 text-text-muted hover:bg-surface-hover">
                         <X className="h-4 w-4" />
                     </button>
                 </div>
@@ -834,7 +834,7 @@ function RequestApprovalDialog({
             <div className="mx-4 w-full max-w-lg rounded-lg border border-border-subtle bg-surface-primary p-4 sm:p-6 shadow-xl sm:mx-auto">
                 <div className="mb-4 flex items-center justify-between">
                     <h2 className="text-lg font-semibold text-text-strong">Žádost o schválení</h2>
-                    <button onClick={onClose} className="rounded p-1 text-text-muted hover:bg-surface-hover">
+                    <button onClick={onClose} className="rounded p-2 text-text-muted hover:bg-surface-hover">
                         <X className="h-4 w-4" />
                     </button>
                 </div>
@@ -961,7 +961,7 @@ function DependenciesPanel({
                             </Link>
                             <button
                                 onClick={() => removeBlocker(b.id)}
-                                className="ml-auto rounded p-0.5 text-text-subtle hover:bg-status-danger-subtle hover:text-status-danger"
+                                className="ml-auto rounded p-1.5 text-text-subtle hover:bg-status-danger-subtle hover:text-status-danger"
                             >
                                 <X className="h-3 w-3" />
                             </button>
@@ -1086,14 +1086,14 @@ function CommentItem({
                     <div className="flex gap-1">
                         <button
                             onClick={() => setShowReply(!showReply)}
-                            className="rounded px-2 py-0.5 text-xs text-text-muted hover:bg-surface-hover hover:text-text-default"
+                            className="rounded px-2.5 py-1 text-xs text-text-muted hover:bg-surface-hover hover:text-text-default"
                         >
                             Odpovědět
                         </button>
                         {isOwner && (
                             <button
                                 onClick={handleDelete}
-                                className="rounded px-2 py-0.5 text-xs text-text-muted hover:bg-status-danger-subtle hover:text-status-danger"
+                                className="rounded px-2.5 py-1 text-xs text-text-muted hover:bg-status-danger-subtle hover:text-status-danger"
                             >
                                 Smazat
                             </button>
@@ -1234,14 +1234,14 @@ function AttachmentList({
                     </div>
                     <a
                         href={`/attachments/${att.id}/download`}
-                        className="rounded p-1 text-text-muted hover:bg-surface-hover hover:text-text-default"
+                        className="rounded p-2 text-text-muted hover:bg-surface-hover hover:text-text-default"
                     >
                         <Download className="h-3 w-3" />
                     </a>
                     {att.uploader?.id === currentUserId && (
                         <button
                             onClick={() => handleDelete(att.id)}
-                            className="rounded p-1 text-text-muted hover:bg-status-danger-subtle hover:text-status-danger"
+                            className="rounded p-2 text-text-muted hover:bg-status-danger-subtle hover:text-status-danger"
                         >
                             <Trash2 className="h-3 w-3" />
                         </button>

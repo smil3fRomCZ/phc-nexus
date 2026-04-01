@@ -8,6 +8,7 @@ use App\Http\Controllers\Controller;
 use App\Models\User;
 use App\Modules\Organization\Enums\SystemRole;
 use App\Modules\Organization\Enums\UserStatus;
+use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Gate;
 use Inertia\Inertia;
@@ -48,5 +49,39 @@ final class UserController extends Controller
             'statuses' => collect(UserStatus::cases())
                 ->map(fn (UserStatus $s) => ['value' => $s->value, 'label' => $s->label()]),
         ]);
+    }
+
+    public function updateRole(Request $request, User $user): RedirectResponse
+    {
+        Gate::authorize('updateRole', $user);
+
+        $validated = $request->validate([
+            'system_role' => ['required', 'string', 'in:' . implode(',', array_column(SystemRole::cases(), 'value'))],
+        ]);
+
+        $user->update(['system_role' => $validated['system_role']]);
+
+        return redirect()->route('admin.users.index')
+            ->with('success', "Role uživatele {$user->name} aktualizována.");
+    }
+
+    public function deactivate(User $user): RedirectResponse
+    {
+        Gate::authorize('deactivate', $user);
+
+        $user->update(['status' => UserStatus::Deactivated]);
+
+        return redirect()->route('admin.users.index')
+            ->with('success', "Uživatel {$user->name} deaktivován.");
+    }
+
+    public function activate(User $user): RedirectResponse
+    {
+        Gate::authorize('deactivate', $user);
+
+        $user->update(['status' => UserStatus::Active]);
+
+        return redirect()->route('admin.users.index')
+            ->with('success', "Uživatel {$user->name} aktivován.");
     }
 }

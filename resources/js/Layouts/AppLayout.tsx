@@ -102,7 +102,7 @@ export default function AppLayout({ title, breadcrumbs, children }: AppLayoutPro
                     <div className="flex items-center gap-3">
                         <button
                             onClick={() => setSidebarOpen(!sidebarOpen)}
-                            className="rounded p-1 text-text-muted hover:bg-surface-hover md:hidden"
+                            className="rounded p-2 text-text-muted hover:bg-surface-hover md:hidden"
                         >
                             {sidebarOpen ? <X className="h-5 w-5" /> : <Menu className="h-5 w-5" />}
                         </button>
@@ -206,31 +206,37 @@ export default function AppLayout({ title, breadcrumbs, children }: AppLayoutPro
                     </aside>
 
                     {/* ── Main Content ── */}
-                    <main className="flex-1 overflow-y-auto px-4 py-6 md:px-12 md:py-8">
-                        <div className="mx-auto max-w-screen-2xl">
-                            {/* Breadcrumbs */}
-                            {breadcrumbs && breadcrumbs.length > 0 && (
-                                <nav className="mb-4 flex items-center gap-1 text-sm text-text-subtle">
-                                    {breadcrumbs.map((crumb, i) => (
-                                        <span key={i} className="flex items-center gap-1">
-                                            {i > 0 && <ChevronRight className="h-3 w-3 text-text-subtle" />}
-                                            {crumb.href ? (
-                                                <Link
-                                                    href={crumb.href}
-                                                    className="text-text-subtle no-underline transition-colors hover:text-text-muted hover:underline"
-                                                >
-                                                    {crumb.label}
-                                                </Link>
-                                            ) : (
-                                                <span className="text-text-muted">{crumb.label}</span>
-                                            )}
-                                        </span>
-                                    ))}
-                                </nav>
-                            )}
-                            {children}
-                        </div>
-                    </main>
+                    <div className="flex-1 overflow-y-auto">
+                        {/* Breadcrumbs bar */}
+                        {breadcrumbs && breadcrumbs.length > 0 && (
+                            <div className="border-b border-border-subtle bg-surface-secondary/50 px-4 md:px-12">
+                                <div className="mx-auto max-w-screen-2xl">
+                                    <nav className="flex items-center gap-1 py-2 text-xs text-text-subtle">
+                                        {breadcrumbs.map((crumb, i) => (
+                                            <span key={i} className="flex items-center gap-1">
+                                                {i > 0 && <ChevronRight className="h-3 w-3 text-text-subtle" />}
+                                                {crumb.href ? (
+                                                    <Link
+                                                        href={crumb.href}
+                                                        className="text-text-subtle no-underline transition-colors hover:text-brand-primary hover:underline"
+                                                    >
+                                                        {crumb.label}
+                                                    </Link>
+                                                ) : (
+                                                    <span className="font-medium text-text-default">{crumb.label}</span>
+                                                )}
+                                            </span>
+                                        ))}
+                                    </nav>
+                                </div>
+                            </div>
+                        )}
+                        <main className="px-4 py-6 md:px-12 md:py-8">
+                            <div className="mx-auto max-w-screen-2xl">
+                                {children}
+                            </div>
+                        </main>
+                    </div>
                 </div>
             </div>
         </>

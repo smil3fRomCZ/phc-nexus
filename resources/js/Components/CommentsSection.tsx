@@ -107,14 +107,14 @@ function CommentItem({
                     <div className="flex gap-1">
                         <button
                             onClick={() => setShowReply(!showReply)}
-                            className="rounded px-2 py-0.5 text-xs text-text-muted hover:bg-surface-hover hover:text-text-default"
+                            className="rounded px-2.5 py-1 text-xs text-text-muted hover:bg-surface-hover hover:text-text-default"
                         >
                             Odpovědět
                         </button>
                         {isOwner && (
                             <button
                                 onClick={handleDelete}
-                                className="rounded px-2 py-0.5 text-xs text-text-muted hover:bg-status-danger-subtle hover:text-status-danger"
+                                className="rounded px-2.5 py-1 text-xs text-text-muted hover:bg-status-danger-subtle hover:text-status-danger"
                             >
                                 Smazat
                             </button>

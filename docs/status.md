@@ -28,6 +28,7 @@
 | MVP4 | Production Deploy | **DONE** | FORPSI Standard VPS, Docker prod fixes, Google SSO, live na https://phc-nexus.eu |
 | — | Staging Environment | **DONE** | Staging na dev.phc-nexus.eu, sdílený Caddy, DB sync s anonymizací, deploy workflow (staging auto + prod approve) |
 | — | Workflow & Wiki Sprint | **DONE** | Workflow engine, dynamický StatusBadge, wiki → dokumentace, epic dokumentace, error modal, RichTextEditor fix |
+| — | E-commerce Demo Seed | **DONE** | Nový DemoSeeder s e-commerce daty, 4 vlastní workflow, staging auto-seed |
 
 ---
 
@@ -260,7 +261,7 @@
 1. ~~**Worker nefunguje**~~ — Vyřešeno: Horizon nainstalován, worker běží. Dashboard na `/horizon`.
 2. ~~**Vite HMR v Dockeru**~~ — Vyřešeno: separátní `vite` kontejner (node:22-alpine), Caddy proxy na `vite:5173` včetně WebSocket.
 3. ~~**Testy běží na SQLite in-memory**~~ — Vyřešeno: `phpunit.pgsql.xml` pro opt-in PostgreSQL testy (`composer test:pgsql`). SQLite zůstává default pro rychlý feedback.
-4. ~~**Žádné seed data**~~ — Vyřešeno: DemoSeeder s realistickou org strukturou, uživateli, projekty, epiky, úkoly, approvals a komentáři.
+4. ~~**Žádné seed data**~~ — Vyřešeno: DemoSeeder s e-commerce demo daty — 4 projekty (ESHOP, SEO, LOYAL, WMS), 4 vlastní workflow, 53 tasků, wiki, time entries, approvals, dependencies, recurrence. Staging auto-seed při každém deployi.
 5. ~~**Design tokeny částečně**~~ — Vyřešeno: kompletní token set včetně form states, skeleton, transitions. `docs/design/design-tokens.md` v1.0.
 6. ~~**Produkce servíruje staré CSS/JS**~~ — Vyřešeno: sdílený named volume `app-public` mezi app a Caddy, entrypoint sync skript kopíruje public assets z image při každém startu kontejneru.
 
@@ -305,3 +306,4 @@
 | 2026-03-31 | Workflow | Workflow engine: workflow_statuses + workflow_transitions tabulky, vizuální editor (React Flow), pozice uzlů, updateStatus() validace přechodů, board_columns dropnuta — 16 PR (#71–#86) |
 | 2026-04-01 | Workflow | Dynamický StatusBadge na všech stránkách (Dashboard, MyTasks, Board karty, GlobalSearch, Epic Show) s fallbackem na enum — PR #87 |
 | 2026-04-01 | Wiki | Wiki → Dokumentace přejmenování, wiki komentáře + přílohy fix (404), epic dokumentace (epic_id FK, CRUD, EpicIndex/EpicShow stránky, záložka na Epic Show), RichTextEditor fix selekce, globální ErrorModal (404/500) — PR #88 |
+| 2026-04-01 | Seed | E-commerce DemoSeeder: 4 projekty (ESHOP/SEO/LOYAL/WMS), 4 vlastní workflow (dev/marketing/simple/logistics), 53 tasků, 13 epiků, 11 uživatelů, wiki hierarchie, time entries, approvals, dependencies, recurrence. Production guard. Staging deploy změněn na migrate:fresh --seed — PR #97–#99 |

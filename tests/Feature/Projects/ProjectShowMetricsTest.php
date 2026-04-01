@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace Tests\Feature\Projects;
 
 use App\Models\User;
+use App\Modules\Projects\Controllers\WorkflowController;
 use App\Modules\Projects\Models\Project;
 use App\Modules\Work\Models\Epic;
 use App\Modules\Work\Models\Task;
@@ -20,14 +21,18 @@ class ProjectShowMetricsTest extends TestCase
         $user = User::factory()->executive()->create();
         $project = Project::factory()->create(['owner_id' => $user->id]);
         $project->members()->attach($user->id, ['role' => 'owner']);
+        WorkflowController::seedDefaultWorkflow($project);
+
+        $doneStatus = $project->workflowStatuses()->where('is_done', true)->first();
+        $initialStatus = $project->workflowStatuses()->where('is_initial', true)->first();
 
         // 3 tasks: 1 done, 1 overdue, 1 backlog
-        Task::factory()->for($project)->done()->create();
+        Task::factory()->for($project)->create(['workflow_status_id' => $doneStatus->id]);
         Task::factory()->for($project)->create([
-            'status' => 'in_progress',
+            'workflow_status_id' => $initialStatus->id,
             'due_date' => now()->subDay(),
         ]);
-        Task::factory()->for($project)->create();
+        Task::factory()->for($project)->create(['workflow_status_id' => $initialStatus->id]);
 
         $response = $this->actingAs($user)->get("/projects/{$project->id}");
 

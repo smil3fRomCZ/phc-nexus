@@ -4,6 +4,8 @@ declare(strict_types=1);
 
 namespace App\Modules\Work\Commands;
 
+use App\Modules\Projects\Models\Project;
+use App\Modules\Projects\Models\WorkflowStatus;
 use App\Modules\Work\Enums\RecurrenceRule;
 use App\Modules\Work\Models\Task;
 use Illuminate\Console\Command;
@@ -29,9 +31,9 @@ final class GenerateRecurringTasks extends Command
             $rule = $task->recurrence_rule;
 
             // Najít initial workflow status pro projekt
-            /** @var \App\Modules\Projects\Models\Project $project */
+            /** @var Project $project */
             $project = $task->project;
-            /** @var \App\Modules\Projects\Models\WorkflowStatus|null $initialStatus */
+            /** @var WorkflowStatus|null $initialStatus */
             $initialStatus = $project->workflowStatuses()->where('is_initial', true)->first();
 
             $newTask = Task::create([

@@ -75,7 +75,10 @@ final class TaskController extends Controller
             $validated['epic_id'] = $epic->id;
         }
 
-        // Automaticky přiřadit initial workflow status
+        // Automaticky přiřadit initial workflow status (seed default pokud chybí)
+        if ($project->workflowStatuses()->count() === 0) {
+            \App\Modules\Projects\Controllers\WorkflowController::seedDefaultWorkflow($project);
+        }
         /** @var WorkflowStatus|null $initialStatus */
         $initialStatus = $project->workflowStatuses()->where('is_initial', true)->first();
         /** @var WorkflowStatus $fallbackStatus */

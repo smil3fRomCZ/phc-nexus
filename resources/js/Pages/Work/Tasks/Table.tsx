@@ -1,7 +1,6 @@
 import AppLayout from '@/Layouts/AppLayout';
 import type { Breadcrumb } from '@/Layouts/AppLayout';
 import EmptyState from '@/Components/EmptyState';
-import StatusBadge from '@/Components/StatusBadge';
 import { getPriority } from '@/constants/priority';
 import { displayKey } from '@/utils/displayKey';
 import { formatDate } from '@/utils/formatDate';

@@ -11,7 +11,7 @@ import type { Breadcrumb } from '@/Layouts/AppLayout';
 import { displayKey } from '@/utils/displayKey';
 import { formatDate } from '@/utils/formatDate';
 import { Link, router, useForm } from '@inertiajs/react';
-import { Pencil, Trash2, X, Plus, FileText, Timer } from 'lucide-react';
+import { Pencil, Trash2, X, Plus, FileText, Timer, BookOpen } from 'lucide-react';
 import RichTextDisplay from '@/Components/RichTextDisplay';
 import RichTextEditor from '@/Components/RichTextEditor';
 import TimeLogSection from '@/Components/TimeLogSection';
@@ -47,6 +47,7 @@ interface Epic {
     attachments: Attachment[];
     attachments_count: number;
     comments_count: number;
+    wiki_pages_count: number;
     start_date: string | null;
     target_date: string | null;
     created_at: string;
@@ -216,6 +217,18 @@ export default function EpicShow({
                                 {totalHours}h
                             </span>
                         </button>
+                        <Link
+                            href={`/projects/${project.id}/epics/${epic.id}/wiki`}
+                            className={`flex items-center gap-2 border-b-2 border-transparent px-4 py-2.5 text-sm font-medium no-underline transition-colors text-text-muted hover:text-text-default`}
+                        >
+                            <BookOpen className="h-3.5 w-3.5" />
+                            Dokumentace
+                            {epic.wiki_pages_count > 0 && (
+                                <span className="rounded-full bg-status-neutral-subtle px-1.5 py-px text-xs font-medium text-text-muted">
+                                    {epic.wiki_pages_count}
+                                </span>
+                            )}
+                        </Link>
                     </div>
 
                     {activeTab === 'detail' && (

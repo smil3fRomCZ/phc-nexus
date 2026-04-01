@@ -10,6 +10,7 @@ use App\Models\Concerns\HasComments;
 use App\Models\Concerns\HasUuidV7;
 use App\Models\User;
 use App\Modules\Projects\Models\Project;
+use App\Modules\Work\Models\Epic;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\HasMany;
@@ -21,6 +22,7 @@ class WikiPage extends Model
 
     protected $fillable = [
         'project_id',
+        'epic_id',
         'parent_id',
         'title',
         'content',
@@ -31,6 +33,11 @@ class WikiPage extends Model
     public function project(): BelongsTo
     {
         return $this->belongsTo(Project::class);
+    }
+
+    public function epic(): BelongsTo
+    {
+        return $this->belongsTo(Epic::class);
     }
 
     public function author(): BelongsTo

@@ -12,7 +12,7 @@ const TABS = [
     { key: 'table', path: '/table', label: 'Backlog', icon: Table2 },
     { key: 'epics', path: '/epics', label: 'Epic', icon: Layers },
     { key: 'approvals', path: '/approvals', label: 'Schvalování', icon: CheckSquare },
-    { key: 'wiki', path: '/wiki', label: 'Wiki', icon: BookOpen },
+    { key: 'wiki', path: '/wiki', label: 'Dokumentace', icon: BookOpen },
 ] as const;
 
 export default function ProjectTabs({ projectId, active }: ProjectTabsProps) {

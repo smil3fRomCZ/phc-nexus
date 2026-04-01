@@ -78,7 +78,7 @@ final class WikiPageController extends Controller
         ]);
 
         return redirect()->route('projects.wiki.show', [$project, $page])
-            ->with('success', 'Stránka vytvořena.');
+            ->with('success', 'Stránka dokumentace vytvořena.');
     }
 
     public function update(Request $request, Project $project, WikiPage $wikiPage): RedirectResponse
@@ -93,7 +93,7 @@ final class WikiPageController extends Controller
 
         $wikiPage->update($validated);
 
-        return back()->with('success', 'Stránka aktualizována.');
+        return back()->with('success', 'Stránka dokumentace aktualizována.');
     }
 
     public function destroy(Project $project, WikiPage $wikiPage): RedirectResponse
@@ -103,6 +103,6 @@ final class WikiPageController extends Controller
         $wikiPage->delete();
 
         return redirect()->route('projects.wiki.index', $project)
-            ->with('success', 'Stránka smazána.');
+            ->with('success', 'Stránka dokumentace smazána.');
     }
 }

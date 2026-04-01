@@ -9,6 +9,7 @@ use App\Models\User;
 use App\Modules\Audit\Models\AuditEntry;
 use App\Modules\Notifications\Notifications\TaskAssignedNotification;
 use App\Modules\Notifications\Notifications\TaskStatusChangedNotification;
+use App\Modules\Projects\Controllers\WorkflowController;
 use App\Modules\Projects\Enums\BenefitType;
 use App\Modules\Projects\Models\Project;
 use App\Modules\Projects\Models\WorkflowStatus;
@@ -77,7 +78,7 @@ final class TaskController extends Controller
 
         // Automaticky přiřadit initial workflow status (seed default pokud chybí)
         if ($project->workflowStatuses()->count() === 0) {
-            \App\Modules\Projects\Controllers\WorkflowController::seedDefaultWorkflow($project);
+            WorkflowController::seedDefaultWorkflow($project);
         }
         /** @var WorkflowStatus|null $initialStatus */
         $initialStatus = $project->workflowStatuses()->where('is_initial', true)->first();

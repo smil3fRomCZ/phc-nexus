@@ -76,9 +76,12 @@ final class TaskController extends Controller
         }
 
         // Automaticky přiřadit initial workflow status
+        /** @var WorkflowStatus|null $initialStatus */
         $initialStatus = $project->workflowStatuses()->where('is_initial', true)->first();
-        $validated['workflow_status_id'] = $initialStatus?->id ?? $project->workflowStatuses()->orderBy('position')->first()?->id;
-        $validated['status'] = $initialStatus?->slug ?? 'backlog';
+        /** @var WorkflowStatus|null $fallbackStatus */
+        $fallbackStatus = $initialStatus ?? $project->workflowStatuses()->orderBy('position')->first();
+        $validated['workflow_status_id'] = $fallbackStatus?->id;
+        $validated['status'] = $fallbackStatus?->slug ?? 'backlog';
 
         Task::create($validated);
 
@@ -103,9 +106,11 @@ final class TaskController extends Controller
         $task->loadCount(['attachments', 'comments']);
 
         $allowedTransitions = [];
-        if ($task->workflowStatus) {
-            $allowedTransitions = $task->workflowStatus->allowedTargets()
-                ->map(fn (WorkflowStatus $s) => ['value' => $s->id, 'label' => $s->name, 'color' => $s->color])
+        /** @var WorkflowStatus|null $ws */
+        $ws = $task->workflowStatus;
+        if ($ws) {
+            $allowedTransitions = $ws->allowedTargets()
+                ->map(fn (Model $s) => ['value' => $s->getAttribute('id'), 'label' => $s->getAttribute('name'), 'color' => $s->getAttribute('color')])
                 ->values()
                 ->all();
         }
@@ -120,7 +125,7 @@ final class TaskController extends Controller
         $statuses = $project->workflowStatuses()
             ->orderBy('position')
             ->get()
-            ->map(fn (WorkflowStatus $s) => ['value' => $s->id, 'label' => $s->name, 'color' => $s->color]);
+            ->map(fn (Model $s) => ['value' => $s->getAttribute('id'), 'label' => $s->getAttribute('name'), 'color' => $s->getAttribute('color')]);
 
         $priorities = collect(TaskPriority::cases())
             ->map(fn (TaskPriority $p) => ['value' => $p->value, 'label' => $p->label()]);
@@ -271,7 +276,9 @@ final class TaskController extends Controller
         }
 
         if ($oldWorkflowStatusId !== $task->workflow_status_id && $task->assignee !== null) {
+            /** @var WorkflowStatus|null $oldWs */
             $oldWs = WorkflowStatus::find($oldWorkflowStatusId);
+            /** @var WorkflowStatus|null $newWs */
             $newWs = $task->workflowStatus;
             if ($oldWs && $newWs) {
                 $task->assignee->notify(new TaskStatusChangedNotification($task, $oldWs, $newWs));
@@ -377,7 +384,7 @@ final class TaskController extends Controller
             'tasks' => $tasks,
             'filters' => $request->only(['status', 'priority', 'assignee_id', 'sort', 'dir']),
             'statuses' => $project->workflowStatuses()->orderBy('position')->get()
-                ->map(fn (WorkflowStatus $s) => ['value' => $s->id, 'label' => $s->name]),
+                ->map(fn (Model $s) => ['value' => $s->getAttribute('id'), 'label' => $s->getAttribute('name')]),
             'priorities' => collect(TaskPriority::cases())->map(fn (TaskPriority $p) => ['value' => $p->value, 'label' => $p->label()]),
             'members' => $project->members()
                 ->select('users.id', 'users.name')
@@ -405,7 +412,9 @@ final class TaskController extends Controller
             'status' => ['required', 'uuid', 'exists:workflow_statuses,id'],
         ]);
 
+        /** @var WorkflowStatus|null $currentWs */
         $currentWs = $task->workflowStatus;
+        /** @var WorkflowStatus|null $targetWs */
         $targetWs = WorkflowStatus::find($validated['status']);
 
         if ($currentWs instanceof WorkflowStatus && $targetWs instanceof WorkflowStatus) {
@@ -460,6 +469,7 @@ final class TaskController extends Controller
 
         $clone = $task->replicate(['id', 'number', 'created_at', 'updated_at']);
         $clone->title = $task->title.' (kopie)';
+        /** @var WorkflowStatus|null $initialStatus */
         $initialStatus = $project->workflowStatuses()->where('is_initial', true)->first();
         if ($initialStatus) {
             $clone->workflow_status_id = $initialStatus->id;

@@ -14,8 +14,9 @@ use App\Modules\Organization\Models\Tribe;
 use App\Modules\Projects\Enums\ProjectStatus;
 use App\Modules\Projects\Models\Project;
 use App\Modules\Work\Enums\EpicStatus;
+use App\Modules\Projects\Controllers\WorkflowController;
+use App\Modules\Projects\Models\WorkflowStatus;
 use App\Modules\Work\Enums\TaskPriority;
-use App\Modules\Work\Enums\TaskStatus;
 use App\Modules\Work\Models\Epic;
 use App\Modules\Work\Models\Task;
 use Illuminate\Database\Seeder;
@@ -108,6 +109,8 @@ class DemoSeeder extends Seeder
             'target_date' => '2026-06-30',
         ]);
         $projNexus->members()->attach([$dev1->id, $dev2->id, $qa->id, $infra->id], ['role' => 'member']);
+        WorkflowController::seedDefaultWorkflow($projNexus);
+        $nexusWs = $projNexus->workflowStatuses->pluck('id', 'slug');
 
         $epicAuth = Epic::create([
             'project_id' => $projNexus->id,
@@ -142,7 +145,7 @@ class DemoSeeder extends Seeder
                 'project_id' => $projNexus->id,
                 'epic_id' => $epicAuth->id,
                 'title' => $title,
-                'status' => TaskStatus::Done,
+                'workflow_status_id' => $nexusWs['done'],
                 'priority' => TaskPriority::High,
                 'assignee_id' => $dev1->id,
                 'reporter_id' => $pm->id,
@@ -152,12 +155,12 @@ class DemoSeeder extends Seeder
 
         // Úkoly v epiku Work (různé stavy)
         $workTasks = [
-            ['Kanban board drag&drop', TaskStatus::Done, $dev2->id],
-            ['Tabulkový view s filtry', TaskStatus::Done, $dev2->id],
-            ['Stavové přechody validace', TaskStatus::InReview, $dev1->id],
-            ['Inline editace v tabulce', TaskStatus::InProgress, $dev2->id],
-            ['Bulk akce na úkolech', TaskStatus::Todo, null],
-            ['Export úkolů do CSV', TaskStatus::Backlog, null],
+            ['Kanban board drag&drop', $nexusWs['done'], $dev2->id],
+            ['Tabulkový view s filtry', $nexusWs['done'], $dev2->id],
+            ['Stavové přechody validace', $nexusWs['in_review'], $dev1->id],
+            ['Inline editace v tabulce', $nexusWs['in_progress'], $dev2->id],
+            ['Bulk akce na úkolech', $nexusWs['todo'], null],
+            ['Export úkolů do CSV', $nexusWs['backlog'], null],
         ];
 
         foreach ($workTasks as $i => [$title, $status, $assignee]) {
@@ -165,7 +168,7 @@ class DemoSeeder extends Seeder
                 'project_id' => $projNexus->id,
                 'epic_id' => $epicWork->id,
                 'title' => $title,
-                'status' => $status,
+                'workflow_status_id' => $status,
                 'priority' => $i < 2 ? TaskPriority::High : TaskPriority::Medium,
                 'assignee_id' => $assignee,
                 'reporter_id' => $pm->id,
@@ -178,7 +181,7 @@ class DemoSeeder extends Seeder
             'project_id' => $projNexus->id,
             'epic_id' => $epicApprovals->id,
             'title' => 'Approval flow implementace',
-            'status' => TaskStatus::InReview,
+            'workflow_status_id' => $nexusWs['in_review'],
             'priority' => TaskPriority::High,
             'assignee_id' => $dev1->id,
             'reporter_id' => $pm->id,
@@ -189,7 +192,7 @@ class DemoSeeder extends Seeder
             'project_id' => $projNexus->id,
             'epic_id' => $epicApprovals->id,
             'title' => 'Email notifikace',
-            'status' => TaskStatus::InProgress,
+            'workflow_status_id' => $nexusWs['in_progress'],
             'priority' => TaskPriority::Medium,
             'assignee_id' => $dev2->id,
             'reporter_id' => $pm->id,
@@ -201,7 +204,7 @@ class DemoSeeder extends Seeder
             'project_id' => $projNexus->id,
             'epic_id' => null,
             'title' => 'Aktualizovat README',
-            'status' => TaskStatus::Todo,
+            'workflow_status_id' => $nexusWs['todo'],
             'priority' => TaskPriority::Low,
             'assignee_id' => $dev1->id,
             'reporter_id' => $pm->id,
@@ -268,6 +271,8 @@ class DemoSeeder extends Seeder
             'start_date' => '2026-02-01',
         ]);
         $projPhi->members()->attach([$dev1->id, $dev2->id], ['role' => 'member']);
+        WorkflowController::seedDefaultWorkflow($projPhi);
+        $phiWs = $projPhi->workflowStatuses->pluck('id', 'slug');
 
         $epicPatient = Epic::create([
             'project_id' => $projPhi->id,
@@ -283,7 +288,7 @@ class DemoSeeder extends Seeder
             'project_id' => $projPhi->id,
             'epic_id' => $epicPatient->id,
             'title' => 'Formulář pro registraci pacienta',
-            'status' => TaskStatus::InProgress,
+            'workflow_status_id' => $phiWs['in_progress'],
             'priority' => TaskPriority::Urgent,
             'data_classification' => 'phi',
             'assignee_id' => $dev1->id,
@@ -295,7 +300,7 @@ class DemoSeeder extends Seeder
             'project_id' => $projPhi->id,
             'epic_id' => $epicPatient->id,
             'title' => 'Audit log pro přístupy k PHI datům',
-            'status' => TaskStatus::Todo,
+            'workflow_status_id' => $phiWs['todo'],
             'priority' => TaskPriority::High,
             'data_classification' => 'phi',
             'assignee_id' => $dev2->id,

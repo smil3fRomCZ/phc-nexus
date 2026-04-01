@@ -13,17 +13,6 @@ export const PROJECT_STATUS: Record<string, StatusConfig> = {
     archived: { label: 'Archivovaný', className: 'bg-status-neutral-subtle text-status-neutral' },
 };
 
-// ── Task statuses ──
-
-export const TASK_STATUS: Record<string, StatusConfig> = {
-    backlog: { label: 'Backlog', className: 'bg-status-neutral-subtle text-status-neutral' },
-    todo: { label: 'K zpracování', className: 'bg-status-neutral-subtle text-status-neutral' },
-    in_progress: { label: 'V průběhu', className: 'bg-status-info-subtle text-status-info' },
-    in_review: { label: 'V revizi', className: 'bg-status-review-subtle text-status-review' },
-    done: { label: 'Hotovo', className: 'bg-status-success-subtle text-status-success' },
-    cancelled: { label: 'Zrušeno', className: 'bg-status-neutral-subtle text-text-muted' },
-};
-
 // ── Epic statuses ──
 
 export const EPIC_STATUS: Record<string, StatusConfig> = {

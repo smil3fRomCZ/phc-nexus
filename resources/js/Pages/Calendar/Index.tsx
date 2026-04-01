@@ -7,10 +7,10 @@ import { ChevronLeft, ChevronRight } from 'lucide-react';
 interface Task {
     id: string;
     title: string;
-    status: string;
     priority: string;
     due_date: string;
     project: { id: string; name: string; key: string } | null;
+    workflow_status: { id: string; name: string; color: string | null; is_done: boolean; is_cancelled: boolean } | null;
 }
 
 interface Props {
@@ -27,10 +27,6 @@ const PRIORITY_DOT: Record<string, string> = {
     high: 'bg-status-warning',
     medium: 'bg-brand-primary',
     low: 'bg-status-neutral',
-};
-
-const STATUS_OPACITY: Record<string, string> = {
-    done: 'opacity-50 line-through',
 };
 
 function parseMonth(month: string): Date {
@@ -180,7 +176,7 @@ export default function CalendarIndex({ tasks, month }: Props) {
                                         <Link
                                             key={task.id}
                                             href={task.project ? `/projects/${task.project.id}/tasks/${task.id}` : '#'}
-                                            className={`flex items-center gap-1 rounded px-1 py-0.5 text-xs no-underline transition-colors hover:bg-surface-hover ${STATUS_OPACITY[task.status] ?? 'text-text-default'}`}
+                                            className={`flex items-center gap-1 rounded px-1 py-0.5 text-xs no-underline transition-colors hover:bg-surface-hover ${task.workflow_status?.is_done ? 'opacity-50 line-through' : 'text-text-default'}`}
                                         >
                                             <span
                                                 className={`inline-block h-1.5 w-1.5 flex-shrink-0 rounded-full ${PRIORITY_DOT[task.priority] ?? 'bg-status-neutral'}`}

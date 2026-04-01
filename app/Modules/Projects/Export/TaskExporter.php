@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace App\Modules\Projects\Export;
 
+use App\Modules\Projects\Models\WorkflowStatus;
 use App\Modules\Work\Models\Task;
 use Illuminate\Support\Collection;
 use Symfony\Component\HttpFoundation\StreamedResponse;
@@ -18,16 +19,21 @@ final class TaskExporter
      */
     private static function rows(Collection $tasks): array
     {
-        return $tasks->map(fn (Task $task) => [
-            $task->title,
-            $task->workflowStatus?->name ?? '',
-            is_object($task->priority) ? $task->priority->value : (string) $task->priority,
-            $task->assignee->name ?? '',
-            $task->reporter->name ?? '',
-            $task->epic->title ?? '',
-            $task->due_date instanceof \DateTimeInterface ? $task->due_date->format('Y-m-d') : '',
-            $task->created_at->format('Y-m-d H:i'),
-        ])->all();
+        return $tasks->map(function (Task $task) {
+            /** @var WorkflowStatus|null $ws */
+            $ws = $task->workflowStatus;
+
+            return [
+                $task->title,
+                $ws !== null ? $ws->name : '',
+                is_object($task->priority) ? $task->priority->value : (string) $task->priority,
+                $task->assignee->name ?? '',
+                $task->reporter->name ?? '',
+                $task->epic->title ?? '',
+                $task->due_date instanceof \DateTimeInterface ? $task->due_date->format('Y-m-d') : '',
+                $task->created_at->format('Y-m-d H:i'),
+            ];
+        })->all();
     }
 
     /** @param  Collection<int, Task>  $tasks */

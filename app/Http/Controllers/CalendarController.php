@@ -33,7 +33,7 @@ final class CalendarController extends Controller
             ->whereHas('workflowStatus', fn ($q) => $q->where('is_cancelled', false))
             ->whereBetween('due_date', [$start, $end])
             ->orderBy('due_date')
-            ->get(['id', 'title', 'status', 'priority', 'due_date', 'project_id', 'workflow_status_id']);
+            ->get(['id', 'title', 'priority', 'due_date', 'project_id', 'workflow_status_id']);
 
         return Inertia::render('Calendar/Index', [
             'tasks' => $tasks,

@@ -102,8 +102,8 @@ final class TaskController extends Controller
             'rootComments.author:id,name',
             'rootComments.replies.author:id,name',
             'attachments.uploader:id,name',
-            'blockers:id,title,status,project_id',
-            'blocking:id,title,status,project_id',
+            'blockers:id,title,project_id',
+            'blocking:id,title,project_id',
         ]);
         $task->loadCount(['attachments', 'comments']);
 
@@ -374,7 +374,7 @@ final class TaskController extends Controller
 
         $sortField = $request->input('sort', 'sort_order');
         $sortDir = $request->input('dir', 'asc');
-        $allowedSorts = ['sort_order', 'title', 'status', 'priority', 'due_date', 'created_at'];
+        $allowedSorts = ['sort_order', 'title', 'priority', 'due_date', 'created_at'];
         if (in_array($sortField, $allowedSorts)) {
             $query->orderBy($sortField, $sortDir === 'desc' ? 'desc' : 'asc');
         }

@@ -51,7 +51,7 @@ final class SearchController extends Controller
                 });
             })
             ->limit(5)
-            ->get(['id', 'title', 'status', 'project_id', 'workflow_status_id']);
+            ->get(['id', 'title', 'project_id', 'workflow_status_id']);
 
         return response()->json([
             'projects' => $projects,

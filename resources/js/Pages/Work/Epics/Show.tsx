@@ -287,7 +287,10 @@ export default function EpicShow({
                                                     </td>
                                                     <td className="border-b border-border-subtle px-3 py-2">
                                                         {task.workflow_status ? (
-                                                            <StatusBadge label={task.workflow_status.name} color={task.workflow_status.color} />
+                                                            <StatusBadge
+                                                                label={task.workflow_status.name}
+                                                                color={task.workflow_status.color}
+                                                            />
                                                         ) : (
                                                             <StatusBadge statusMap={TASK_STATUS} value={task.status} />
                                                         )}

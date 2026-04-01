@@ -146,7 +146,10 @@ export default function MyTasksIndex({ tasks, filters, statuses, priorities }: P
                                     </td>
                                     <td className="border-b border-border-subtle px-5 py-3">
                                         {task.workflow_status ? (
-                                            <StatusBadge label={task.workflow_status.name} color={task.workflow_status.color} />
+                                            <StatusBadge
+                                                label={task.workflow_status.name}
+                                                color={task.workflow_status.color}
+                                            />
                                         ) : (
                                             <StatusBadge statusMap={TASK_STATUS} value={task.status} />
                                         )}

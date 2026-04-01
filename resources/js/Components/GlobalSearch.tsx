@@ -197,7 +197,10 @@ export default function GlobalSearch() {
                                             )}
                                         </div>
                                         {task.workflow_status ? (
-                                            <StatusBadge label={task.workflow_status.name} color={task.workflow_status.color} />
+                                            <StatusBadge
+                                                label={task.workflow_status.name}
+                                                color={task.workflow_status.color}
+                                            />
                                         ) : (
                                             <StatusBadge statusMap={TASK_STATUS} value={task.status} />
                                         )}

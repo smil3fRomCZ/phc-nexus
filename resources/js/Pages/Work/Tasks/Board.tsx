@@ -337,7 +337,10 @@ export default function TaskBoard({
                                         {/* Workflow status badge */}
                                         {shows('status') && task.workflow_status && (
                                             <div className="mt-1">
-                                                <StatusBadge label={task.workflow_status.name} color={task.workflow_status.color} />
+                                                <StatusBadge
+                                                    label={task.workflow_status.name}
+                                                    color={task.workflow_status.color}
+                                                />
                                             </div>
                                         )}
 

@@ -56,7 +56,7 @@ final class UserController extends Controller
         Gate::authorize('updateRole', $user);
 
         $validated = $request->validate([
-            'system_role' => ['required', 'string', 'in:' . implode(',', array_column(SystemRole::cases(), 'value'))],
+            'system_role' => ['required', 'string', 'in:'.implode(',', array_column(SystemRole::cases(), 'value'))],
         ]);
 
         $user->update(['system_role' => $validated['system_role']]);

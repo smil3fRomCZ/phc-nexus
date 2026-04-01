@@ -10,6 +10,8 @@ use App\Modules\Approvals\Enums\ApprovalMode;
 use App\Modules\Approvals\Enums\ApprovalStatus;
 use App\Modules\Approvals\Models\ApprovalRequest;
 use App\Modules\Comments\Models\Comment;
+use App\Modules\Organization\Enums\SystemRole;
+use App\Modules\Organization\Enums\UserStatus;
 use App\Modules\Organization\Models\Division;
 use App\Modules\Organization\Models\Team;
 use App\Modules\Organization\Models\Tribe;
@@ -24,6 +26,7 @@ use App\Modules\Work\Models\Epic;
 use App\Modules\Work\Models\Task;
 use App\Modules\Work\Models\TimeEntry;
 use Illuminate\Database\Seeder;
+use Illuminate\Support\Facades\Hash;
 
 class DemoSeeder extends Seeder
 {
@@ -57,66 +60,17 @@ class DemoSeeder extends Seeder
         $teamSklad = Team::create(['name' => 'Sklad & Expedice', 'division_id' => $divLogistika->id]);
         $teamDoprava = Team::create(['name' => 'Doprava', 'division_id' => $divLogistika->id]);
 
-        // Uživatelé
-        $exec = User::factory()->executive()->create([
-            'name' => 'Jiří Kratochvíl',
-            'email' => 'jiri.kratochvil@example.cz',
-            'team_id' => null,
-        ]);
-
-        $pmTech = User::factory()->projectManager()->create([
-            'name' => 'Monika Fialová',
-            'email' => 'monika.fialova@example.cz',
-            'team_id' => $teamBackend->id,
-        ]);
-
-        $pmMkt = User::factory()->projectManager()->create([
-            'name' => 'David Šťastný',
-            'email' => 'david.stastny@example.cz',
-            'team_id' => $teamMarketing->id,
-        ]);
-
-        $devBack1 = User::factory()->create([
-            'name' => 'Ondřej Malý',
-            'email' => 'ondrej.maly@example.cz',
-            'team_id' => $teamBackend->id,
-        ]);
-
-        $devBack2 = User::factory()->create([
-            'name' => 'Klára Veselá',
-            'email' => 'klara.vesela@example.cz',
-            'team_id' => $teamBackend->id,
-        ]);
-
-        $devFront = User::factory()->create([
-            'name' => 'Simona Nová',
-            'email' => 'simona.nova@example.cz',
-            'team_id' => $teamFrontend->id,
-        ]);
-
-        $logistik = User::factory()->create([
-            'name' => 'Radek Průcha',
-            'email' => 'radek.prucha@example.cz',
-            'team_id' => $teamSklad->id,
-        ]);
-
-        $supportLead = User::factory()->create([
-            'name' => 'Jana Pokorná',
-            'email' => 'jana.pokorna@example.cz',
-            'team_id' => $teamSupport->id,
-        ]);
-
-        $marketer = User::factory()->create([
-            'name' => 'Michal Hora',
-            'email' => 'michal.hora@example.cz',
-            'team_id' => $teamMarketing->id,
-        ]);
-
-        $reader = User::factory()->reader()->create([
-            'name' => 'Barbora Tichá',
-            'email' => 'barbora.ticha@example.cz',
-            'team_id' => $teamDoprava->id,
-        ]);
+        // Uživatelé (bez factory — Faker není dostupný na staging/prod)
+        $exec = $this->createUser('Jiří Kratochvíl', 'jiri.kratochvil@example.cz', SystemRole::Executive);
+        $pmTech = $this->createUser('Monika Fialová', 'monika.fialova@example.cz', SystemRole::ProjectManager, $teamBackend->id);
+        $pmMkt = $this->createUser('David Šťastný', 'david.stastny@example.cz', SystemRole::ProjectManager, $teamMarketing->id);
+        $devBack1 = $this->createUser('Ondřej Malý', 'ondrej.maly@example.cz', SystemRole::TeamMember, $teamBackend->id);
+        $devBack2 = $this->createUser('Klára Veselá', 'klara.vesela@example.cz', SystemRole::TeamMember, $teamBackend->id);
+        $devFront = $this->createUser('Simona Nová', 'simona.nova@example.cz', SystemRole::TeamMember, $teamFrontend->id);
+        $logistik = $this->createUser('Radek Průcha', 'radek.prucha@example.cz', SystemRole::TeamMember, $teamSklad->id);
+        $supportLead = $this->createUser('Jana Pokorná', 'jana.pokorna@example.cz', SystemRole::TeamMember, $teamSupport->id);
+        $marketer = $this->createUser('Michal Hora', 'michal.hora@example.cz', SystemRole::TeamMember, $teamMarketing->id);
+        $reader = $this->createUser('Barbora Tichá', 'barbora.ticha@example.cz', SystemRole::Reader, $teamDoprava->id);
 
         // Team leads
         $teamBackend->update(['team_lead_id' => $pmTech->id]);
@@ -1144,5 +1098,18 @@ class DemoSeeder extends Seeder
         }
 
         return $created;
+    }
+
+    private function createUser(string $name, string $email, SystemRole $role, ?string $teamId = null): User
+    {
+        return User::create([
+            'name' => $name,
+            'email' => $email,
+            'email_verified_at' => now(),
+            'password' => Hash::make('password'),
+            'system_role' => $role,
+            'status' => UserStatus::Active,
+            'team_id' => $teamId,
+        ]);
     }
 }

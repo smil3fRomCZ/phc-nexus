@@ -133,10 +133,10 @@ export default function ApprovalAnalyticsIndex({ stats, history }: Props) {
 
     return (
         <AppLayout title="Analytika schvalování" breadcrumbs={BREADCRUMBS}>
-            <h1 className="mb-6 text-2xl font-bold leading-tight text-text-strong">Analytika schvalování</h1>
+            <h1 className="mb-6 text-xl md:text-2xl font-bold leading-tight text-text-strong">Analytika schvalování</h1>
 
             {/* Stat Tiles */}
-            <div className="mb-8 grid grid-cols-3 gap-4 md:grid-cols-6">
+            <div className="mb-8 grid grid-cols-2 sm:grid-cols-3 md:grid-cols-6 gap-4">
                 {tiles.map((tile) => {
                     const Icon = tile.icon;
                     return (
@@ -156,7 +156,7 @@ export default function ApprovalAnalyticsIndex({ stats, history }: Props) {
 
             {/* History Table */}
             <h2 className="mb-4 text-lg font-semibold text-text-strong">Historie</h2>
-            <div className="overflow-hidden rounded-lg border border-border-subtle bg-surface-primary">
+            <div className="overflow-x-auto rounded-lg border border-border-subtle bg-surface-primary">
                 <table className="w-full border-collapse">
                     <thead>
                         <tr>

@@ -62,7 +62,7 @@ export default function ProjectEdit({ project, statuses, classifications, teams 
     return (
         <AppLayout title={`Upravit ${project.name}`} breadcrumbs={breadcrumbs}>
             <div className="mx-auto max-w-2xl">
-                <h1 className="mb-6 text-2xl font-bold leading-tight text-text-strong">
+                <h1 className="mb-6 text-xl md:text-2xl font-bold leading-tight text-text-strong">
                     Upravit projekt <span className="font-mono text-text-muted">{project.key}</span>
                 </h1>
 

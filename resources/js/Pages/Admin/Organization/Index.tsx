@@ -36,7 +36,7 @@ const BREADCRUMBS: Breadcrumb[] = [{ label: 'Domů', href: '/' }, { label: 'Admi
 export default function OrganizationIndex({ divisions }: Props) {
     return (
         <AppLayout title="Organizace" breadcrumbs={BREADCRUMBS}>
-            <h1 className="mb-6 text-2xl font-bold leading-tight text-text-strong">Organizační struktura</h1>
+            <h1 className="mb-6 text-xl md:text-2xl font-bold leading-tight text-text-strong">Organizační struktura</h1>
 
             {divisions.length === 0 && <EmptyState message="Žádné divize nastaveny." />}
 

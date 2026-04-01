@@ -109,7 +109,7 @@ export default function CalendarIndex({ tasks, month }: Props) {
         <AppLayout title="Kalendář" breadcrumbs={BREADCRUMBS}>
             {/* Header */}
             <div className="mb-6 flex items-center justify-between">
-                <h1 className="text-2xl font-bold leading-tight text-text-strong">Kalendář</h1>
+                <h1 className="text-xl md:text-2xl font-bold leading-tight text-text-strong">Kalendář</h1>
                 <div className="flex items-center gap-3">
                     <button
                         onClick={() => navigate(-1)}

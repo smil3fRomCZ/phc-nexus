@@ -65,7 +65,7 @@ export default function MyTasksIndex({ tasks, filters, statuses, priorities }: P
     return (
         <AppLayout title="Moje úkoly" breadcrumbs={BREADCRUMBS}>
             <div className="mb-6 flex items-center justify-between">
-                <h1 className="text-2xl font-bold leading-tight text-text-strong">Moje úkoly</h1>
+                <h1 className="text-xl md:text-2xl font-bold leading-tight text-text-strong">Moje úkoly</h1>
                 <div className="flex gap-3">
                     <select
                         value={filters.status ?? ''}

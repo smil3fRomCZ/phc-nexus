@@ -57,7 +57,7 @@ export default function TasksIndex({ project, epic, tasks }: Props) {
     return (
         <AppLayout title={`${project.key} — Úkoly`} breadcrumbs={breadcrumbs}>
             <div className="mb-6 flex items-center justify-between">
-                <h1 className="text-2xl font-bold leading-tight text-text-strong">
+                <h1 className="text-xl md:text-2xl font-bold leading-tight text-text-strong">
                     Úkoly{epic ? ` — ${epic.title}` : ''}
                 </h1>
             </div>

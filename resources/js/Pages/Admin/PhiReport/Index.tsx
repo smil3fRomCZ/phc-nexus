@@ -52,7 +52,7 @@ export default function PhiReportIndex({ entries, filters, actors }: Props) {
         <AppLayout title="PHI report" breadcrumbs={BREADCRUMBS}>
             <div className="mb-6 flex items-center gap-3">
                 <ShieldAlert className="h-6 w-6 text-status-warning" />
-                <h1 className="text-2xl font-bold leading-tight text-text-strong">PHI report</h1>
+                <h1 className="text-xl md:text-2xl font-bold leading-tight text-text-strong">PHI report</h1>
             </div>
 
             {/* Filters */}

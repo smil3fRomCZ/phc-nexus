@@ -80,7 +80,7 @@ export default function ApprovalsIndex({ project, approvalRequests, filters = {}
             </div>
 
             {/* Grid */}
-            <div className="overflow-hidden rounded-lg border border-border-subtle bg-surface-primary">
+            <div className="overflow-x-auto rounded-lg border border-border-subtle bg-surface-primary">
                 <table className="w-full border-collapse">
                     <thead>
                         <tr>

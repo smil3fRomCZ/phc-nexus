@@ -59,13 +59,13 @@ export default function ProjectShow({
             <div className="mx-auto max-w-5xl space-y-5">
                 {/* Header card */}
                 <div className="rounded-lg border border-border-subtle bg-surface-primary p-5">
-                    <div className="flex items-start justify-between">
+                    <div className="flex flex-col sm:flex-row items-start justify-between gap-3">
                         <div>
                             <span className="text-xs font-semibold uppercase tracking-wider text-text-subtle">
                                 Projekt
                             </span>
                             <div className="mt-0.5 flex items-center gap-3">
-                                <h1 className="text-2xl font-bold leading-tight text-text-strong">{project.name}</h1>
+                                <h1 className="text-xl md:text-2xl font-bold leading-tight text-text-strong">{project.name}</h1>
                                 <StatusBadge statusMap={PROJECT_STATUS} value={project.status} />
                             </div>
                             <div className="mt-1">
@@ -78,7 +78,7 @@ export default function ProjectShow({
                                 <p className="mt-2 text-base text-text-default">{project.description}</p>
                             )}
                         </div>
-                        <div className="flex gap-2">
+                        <div className="flex flex-wrap gap-2">
                             <Link
                                 href={`/projects/${project.id}/edit`}
                                 className="rounded-md border border-border-default px-5 py-2 text-sm font-medium text-text-default no-underline transition-colors hover:bg-surface-hover"
@@ -99,7 +99,7 @@ export default function ProjectShow({
                     </div>
 
                     {/* Metadata grid */}
-                    <div className="mt-4 grid grid-cols-3 gap-4 border-t border-border-subtle pt-4">
+                    <div className="mt-4 grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 border-t border-border-subtle pt-4">
                         <div>
                             <div className="text-xs font-semibold uppercase tracking-wider text-text-subtle">
                                 Vlastník
@@ -243,7 +243,7 @@ function ProjectMetrics({ project, totalHours }: { project: Project; totalHours:
     };
 
     return (
-        <div className="grid grid-cols-4 gap-4">
+        <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
             {tiles.map((tile) => {
                 const c = colors[tile.color];
                 const Icon = tile.icon;

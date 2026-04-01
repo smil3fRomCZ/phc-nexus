@@ -98,7 +98,7 @@ export default function EpicWikiShow({ project, epic, page, pages }: Props) {
                                 <span className="text-xs font-semibold uppercase tracking-wider text-text-subtle">
                                     Dokumentace
                                 </span>
-                                <h1 className="mt-0.5 text-2xl font-bold text-text-strong">{page.title}</h1>
+                                <h1 className="mt-0.5 text-xl md:text-2xl font-bold text-text-strong">{page.title}</h1>
                                 <div className="mt-1 text-xs text-text-muted">
                                     Autor: {page.author.name} · Aktualizováno: {formatDate(page.updated_at)}
                                     {page.parent && (

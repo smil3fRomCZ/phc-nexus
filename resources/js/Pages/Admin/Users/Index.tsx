@@ -57,7 +57,7 @@ export default function UsersIndex({ users, filters, roles, statuses }: Props) {
     return (
         <AppLayout title="Uživatelé" breadcrumbs={BREADCRUMBS}>
             <div className="mb-6 flex items-center justify-between">
-                <h1 className="text-2xl font-bold leading-tight text-text-strong">Uživatelé</h1>
+                <h1 className="text-xl md:text-2xl font-bold leading-tight text-text-strong">Uživatelé</h1>
                 <button
                     onClick={() => setInviting(true)}
                     className="flex items-center gap-2 rounded-md bg-brand-primary px-4 py-2 text-sm font-medium text-text-inverse transition-colors hover:bg-brand-hover"
@@ -70,14 +70,14 @@ export default function UsersIndex({ users, filters, roles, statuses }: Props) {
             {inviting && <InviteDialog roles={roles} onClose={() => setInviting(false)} />}
 
             {/* Filters */}
-            <div className="mb-6 flex gap-3">
+            <div className="mb-6 flex flex-wrap gap-3">
                 <form onSubmit={handleSearch} className="flex gap-2">
                     <input
                         type="text"
                         value={search}
                         onChange={(e) => setSearch(e.target.value)}
                         placeholder="Hledat jméno nebo email..."
-                        className="w-64 rounded-md border border-border-default bg-surface-primary px-3 py-1.5 text-sm focus:border-border-focus focus:outline-none"
+                        className="w-full sm:w-64 rounded-md border border-border-default bg-surface-primary px-3 py-1.5 text-sm focus:border-border-focus focus:outline-none"
                     />
                     <button
                         type="submit"
@@ -113,7 +113,7 @@ export default function UsersIndex({ users, filters, roles, statuses }: Props) {
             </div>
 
             {/* Table */}
-            <div className="overflow-hidden rounded-lg border border-border-subtle bg-surface-primary">
+            <div className="overflow-x-auto rounded-lg border border-border-subtle bg-surface-primary">
                 <table className="w-full border-collapse">
                     <thead>
                         <tr>

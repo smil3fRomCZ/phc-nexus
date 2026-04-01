@@ -41,7 +41,7 @@ export default function GlobalApprovals({ approvals }: Props) {
     return (
         <AppLayout title="Schvalování" breadcrumbs={BREADCRUMBS}>
             <div className="mx-auto max-w-4xl">
-                <h1 className="mb-6 text-2xl font-bold leading-tight text-text-strong">Čekající schválení</h1>
+                <h1 className="mb-6 text-xl md:text-2xl font-bold leading-tight text-text-strong">Čekající schválení</h1>
 
                 {approvals.length > 0 ? (
                     <div className="space-y-3">

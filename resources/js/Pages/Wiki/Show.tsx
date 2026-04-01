@@ -67,10 +67,10 @@ export default function WikiShow({ project, page, pages }: Props) {
                 <ProjectTabs projectId={project.id} active="wiki" />
             </div>
 
-            <div className="flex gap-6">
+            <div className="flex flex-col sm:flex-row gap-4 sm:gap-6">
                 {/* Sidebar — tree */}
-                <div className="w-56 flex-shrink-0">
-                    <div className="sticky top-20 rounded-lg border border-border-subtle bg-surface-primary p-3">
+                <div className="hidden sm:block sm:w-56 sm:flex-shrink-0">
+                    <div className="sm:sticky sm:top-20 rounded-lg border border-border-subtle bg-surface-primary p-3">
                         <div className="mb-2 flex items-center justify-between">
                             <span className="text-xs font-semibold uppercase tracking-wider text-text-subtle">
                                 Stránky
@@ -96,7 +96,7 @@ export default function WikiShow({ project, page, pages }: Props) {
                                 <span className="text-xs font-semibold uppercase tracking-wider text-text-subtle">
                                     Dokumentace
                                 </span>
-                                <h1 className="mt-0.5 text-2xl font-bold text-text-strong">{page.title}</h1>
+                                <h1 className="mt-0.5 text-xl md:text-2xl font-bold text-text-strong">{page.title}</h1>
                                 <div className="mt-1 text-xs text-text-muted">
                                     Autor: {page.author.name} · Aktualizováno: {formatDate(page.updated_at)}
                                     {page.parent && (

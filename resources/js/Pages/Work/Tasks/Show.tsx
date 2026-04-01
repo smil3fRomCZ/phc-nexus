@@ -198,22 +198,24 @@ export default function TaskShow({
 
     return (
         <AppLayout title={`${displayKey(project.key, task.number)} — ${task.title}`} breadcrumbs={breadcrumbs}>
-            <div className="flex items-start gap-8">
+            <div className="flex flex-col lg:flex-row items-start gap-4 lg:gap-8">
                 {/* ── Main Column ── */}
                 <div className="min-w-0 flex-1 space-y-5">
                     {/* Header card */}
                     <div className="rounded-lg border border-border-subtle bg-surface-primary p-5">
                         <span className="text-xs font-semibold uppercase tracking-wider text-text-subtle">Úkol</span>
-                        <div className="mt-0.5 flex items-center gap-3">
-                            <h1 className="text-2xl font-bold leading-tight text-text-strong">
-                                <span className="mr-2 text-text-muted">{displayKey(project.key, task.number)}</span>
-                                {task.title}
-                            </h1>
-                            <StatusBadge
-                                label={task.workflow_status?.name ?? '—'}
-                                color={task.workflow_status?.color ?? null}
-                            />
-                            <div className="ml-auto flex gap-2">
+                        <div className="mt-0.5 flex flex-col sm:flex-row sm:items-center gap-3">
+                            <div className="flex items-center gap-3 min-w-0">
+                                <h1 className="text-xl md:text-2xl font-bold leading-tight text-text-strong">
+                                    <span className="mr-2 text-text-muted">{displayKey(project.key, task.number)}</span>
+                                    {task.title}
+                                </h1>
+                                <StatusBadge
+                                    label={task.workflow_status?.name ?? '—'}
+                                    color={task.workflow_status?.color ?? null}
+                                />
+                            </div>
+                            <div className="sm:ml-auto flex flex-wrap gap-2">
                                 <button
                                     onClick={() => setRequestingApproval(true)}
                                     className="rounded-md border border-border-default px-3 py-1.5 text-xs font-medium text-text-muted transition-colors hover:bg-surface-hover hover:text-text-default"
@@ -388,8 +390,8 @@ export default function TaskShow({
                 </div>
 
                 {/* ── Right Sidebar ── */}
-                <div className="w-72 flex-shrink-0">
-                    <div className="sticky top-20 max-h-[calc(100vh-6rem)] space-y-0 overflow-y-auto rounded-lg border border-border-subtle bg-surface-primary p-5">
+                <div className="w-full lg:w-72 lg:flex-shrink-0">
+                    <div className="lg:sticky lg:top-20 max-h-[calc(100vh-6rem)] space-y-0 overflow-y-auto rounded-lg border border-border-subtle bg-surface-primary p-3 sm:p-5">
                         {/* Group: Status + Priority */}
                         <div className="pb-4 mb-4 border-b border-border-subtle">
                             <SidebarSection label="Stav">
@@ -408,7 +410,7 @@ export default function TaskShow({
                                             <button
                                                 key={t.value}
                                                 onClick={() => handleStatusChange(t.value)}
-                                                className="rounded border border-border-default px-2 py-0.5 text-xs text-text-muted transition-colors hover:bg-surface-hover hover:text-text-default"
+                                                className="rounded border border-border-default px-3 py-1.5 text-xs text-text-muted transition-colors hover:bg-surface-hover hover:text-text-default"
                                             >
                                                 &rarr; {t.label}
                                             </button>
@@ -659,7 +661,7 @@ function TaskEditDialog({
 
     return (
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50">
-            <div className="w-full max-w-lg rounded-lg border border-border-subtle bg-surface-primary p-6 shadow-xl">
+            <div className="mx-4 w-full max-w-lg rounded-lg border border-border-subtle bg-surface-primary p-4 sm:p-6 shadow-xl sm:mx-auto">
                 <div className="mb-4 flex items-center justify-between">
                     <h2 className="text-lg font-semibold text-text-strong">Upravit úkol</h2>
                     <button onClick={onClose} className="rounded p-1 text-text-muted hover:bg-surface-hover">
@@ -687,7 +689,7 @@ function TaskEditDialog({
                         </div>
                     </EditField>
 
-                    <div className="grid grid-cols-2 gap-4">
+                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                         <EditField label="Stav" error={errors.workflow_status_id}>
                             <select
                                 value={data.workflow_status_id}
@@ -717,7 +719,7 @@ function TaskEditDialog({
                         </EditField>
                     </div>
 
-                    <div className="grid grid-cols-2 gap-4">
+                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                         <EditField label="Řešitel" error={errors.assignee_id}>
                             <select
                                 value={data.assignee_id}
@@ -829,7 +831,7 @@ function RequestApprovalDialog({
 
     return (
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50">
-            <div className="w-full max-w-lg rounded-lg border border-border-subtle bg-surface-primary p-6 shadow-xl">
+            <div className="mx-4 w-full max-w-lg rounded-lg border border-border-subtle bg-surface-primary p-4 sm:p-6 shadow-xl sm:mx-auto">
                 <div className="mb-4 flex items-center justify-between">
                     <h2 className="text-lg font-semibold text-text-strong">Žádost o schválení</h2>
                     <button onClick={onClose} className="rounded p-1 text-text-muted hover:bg-surface-hover">
@@ -986,7 +988,7 @@ function DependenciesPanel({
             )}
 
             {adding ? (
-                <div className="flex gap-1">
+                <div className="flex flex-wrap gap-1">
                     <select
                         value={selectedId}
                         onChange={(e) => setSelectedId(e.target.value)}
@@ -1073,7 +1075,7 @@ function CommentItem({
 
     return (
         <div>
-            <div className="rounded-lg border border-border-subtle bg-surface-primary p-4">
+            <div className="rounded-lg border border-border-subtle bg-surface-primary p-3 sm:p-4">
                 <div className="mb-2 flex items-center justify-between">
                     <div className="flex items-center gap-2">
                         <Avatar name={comment.author.name} />
@@ -1103,7 +1105,7 @@ function CommentItem({
 
             {/* Flat replies — all at the same indentation level */}
             {!isReply && allReplies.length > 0 && (
-                <div className="ml-8 border-l-2 border-border-subtle pl-4 space-y-2 mt-2">
+                <div className="ml-4 sm:ml-8 border-l-2 border-border-subtle pl-3 sm:pl-4 space-y-2 mt-2">
                     {allReplies.map((reply) => (
                         <CommentItem
                             key={reply.id}
@@ -1119,7 +1121,7 @@ function CommentItem({
             )}
 
             {showReply && (
-                <div className={isReply ? 'mt-2' : 'ml-8 mt-2'}>
+                <div className={isReply ? 'mt-2' : 'ml-4 sm:ml-8 mt-2'}>
                     <CommentForm
                         projectId={projectId}
                         taskId={taskId}

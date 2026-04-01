@@ -60,10 +60,10 @@ export default function AuditLogIndex({ entries, filters, actions, entityTypes, 
 
     return (
         <AppLayout title="Audit log" breadcrumbs={BREADCRUMBS}>
-            <h1 className="mb-6 text-2xl font-bold leading-tight text-text-strong">Audit log</h1>
+            <h1 className="mb-6 text-xl md:text-2xl font-bold leading-tight text-text-strong">Audit log</h1>
 
             {/* Filters */}
-            <div className="mb-6 flex gap-3">
+            <div className="mb-6 flex flex-wrap gap-3">
                 <select
                     value={filters.action ?? ''}
                     onChange={(e) => applyFilter('action', e.target.value)}
@@ -103,7 +103,7 @@ export default function AuditLogIndex({ entries, filters, actions, entityTypes, 
             </div>
 
             {/* Table */}
-            <div className="overflow-hidden rounded-lg border border-border-subtle bg-surface-primary">
+            <div className="overflow-x-auto rounded-lg border border-border-subtle bg-surface-primary">
                 <table className="w-full border-collapse">
                     <thead>
                         <tr>

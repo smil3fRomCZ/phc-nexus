@@ -5,14 +5,22 @@ declare(strict_types=1);
 namespace App\Modules\Projects\Models;
 
 use App\Models\Concerns\HasUuidV7;
+use Database\Factories\WorkflowStatusFactory;
 use Illuminate\Database\Eloquent\Collection;
+use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\HasMany;
 
 class WorkflowStatus extends Model
 {
-    use HasUuidV7;
+    /** @use HasFactory<WorkflowStatusFactory> */
+    use HasFactory, HasUuidV7;
+
+    protected static function newFactory(): WorkflowStatusFactory
+    {
+        return WorkflowStatusFactory::new();
+    }
 
     protected $fillable = [
         'project_id',

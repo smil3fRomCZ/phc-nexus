@@ -11,6 +11,8 @@ use App\Models\Concerns\HasUuidV7;
 use App\Models\User;
 use App\Modules\Projects\Models\Project;
 use App\Modules\Work\Models\Epic;
+use Database\Factories\WikiPageFactory;
+use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\HasMany;
@@ -18,7 +20,13 @@ use Illuminate\Database\Eloquent\SoftDeletes;
 
 class WikiPage extends Model
 {
-    use Auditable, HasAttachments, HasComments, HasUuidV7, SoftDeletes;
+    /** @use HasFactory<WikiPageFactory> */
+    use Auditable, HasAttachments, HasComments, HasFactory, HasUuidV7, SoftDeletes;
+
+    protected static function newFactory(): WikiPageFactory
+    {
+        return WikiPageFactory::new();
+    }
 
     protected $fillable = [
         'project_id',

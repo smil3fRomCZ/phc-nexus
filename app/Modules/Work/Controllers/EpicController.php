@@ -73,6 +73,7 @@ final class EpicController extends Controller
             'pm:id,name',
             'leadDeveloper:id,name',
             'tasks.assignee:id,name',
+            'tasks.workflowStatus:id,name,color',
             'rootComments.author:id,name',
             'rootComments.replies.author:id,name',
             'attachments.uploader:id,name',

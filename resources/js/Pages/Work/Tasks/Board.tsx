@@ -1,6 +1,7 @@
 import AppLayout from '@/Layouts/AppLayout';
 import type { Breadcrumb } from '@/Layouts/AppLayout';
 import Avatar from '@/Components/Avatar';
+import StatusBadge from '@/Components/StatusBadge';
 import { COLUMN_COLORS } from '@/constants/status';
 import { getPriority } from '@/constants/priority';
 import { displayKey } from '@/utils/displayKey';
@@ -23,6 +24,7 @@ interface Task {
     assignee: { id: string; name: string } | null;
     reporter: { id: string; name: string } | null;
     epic: { id: string; title: string } | null;
+    workflow_status: { id: string; name: string; color: string | null } | null;
 }
 
 interface Column {
@@ -58,6 +60,7 @@ interface Props {
 }
 
 const CARD_FIELD_OPTIONS = [
+    { value: 'status', label: 'Stav' },
     { value: 'priority', label: 'Priorita' },
     { value: 'assignee', label: 'Řešitel' },
     { value: 'epic', label: 'Epic' },
@@ -330,6 +333,13 @@ export default function TaskBoard({
                                             </span>
                                             {task.title}
                                         </Link>
+
+                                        {/* Workflow status badge */}
+                                        {shows('status') && task.workflow_status && (
+                                            <div className="mt-1">
+                                                <StatusBadge label={task.workflow_status.name} color={task.workflow_status.color} />
+                                            </div>
+                                        )}
 
                                         {/* Epic */}
                                         {shows('epic') && task.epic && (

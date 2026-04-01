@@ -18,6 +18,7 @@ interface Task {
     priority: string;
     due_date: string | null;
     project: { id: string; name: string; key: string } | null;
+    workflow_status: { id: string; name: string; color: string | null } | null;
 }
 
 interface ApprovalRequest {
@@ -146,7 +147,11 @@ export default function DashboardIndex({ stats, myTasks, pendingApprovals }: Pro
                                         {task.project?.name ?? '\u2014'}
                                     </td>
                                     <td className="border-b border-border-subtle px-5 py-3">
-                                        <StatusBadge statusMap={TASK_STATUS} value={task.status} />
+                                        {task.workflow_status ? (
+                                            <StatusBadge label={task.workflow_status.name} color={task.workflow_status.color} />
+                                        ) : (
+                                            <StatusBadge statusMap={TASK_STATUS} value={task.status} />
+                                        )}
                                     </td>
                                     <td className="border-b border-border-subtle px-5 py-3">
                                         <span

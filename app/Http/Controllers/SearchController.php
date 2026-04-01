@@ -42,7 +42,7 @@ final class SearchController extends Controller
             ->get(['id', 'name', 'key', 'status']);
 
         $tasks = Task::query()
-            ->with('project:id,name,key')
+            ->with(['project:id,name,key', 'workflowStatus:id,name,color'])
             ->where('title', 'ilike', $like)
             ->whereHas('project', function ($q) use ($user, $isTeamMember) {
                 $q->when($isTeamMember, function ($sub) use ($user) {
@@ -51,7 +51,7 @@ final class SearchController extends Controller
                 });
             })
             ->limit(5)
-            ->get(['id', 'title', 'status', 'project_id']);
+            ->get(['id', 'title', 'status', 'project_id', 'workflow_status_id']);
 
         return response()->json([
             'projects' => $projects,

@@ -18,7 +18,7 @@ final class MyTasksController extends Controller
         $user = $request->user();
 
         $query = Task::query()
-            ->with(['project:id,name,key', 'assignee:id,name', 'epic:id,title'])
+            ->with(['project:id,name,key', 'assignee:id,name', 'epic:id,title', 'workflowStatus:id,name,color'])
             ->where('assignee_id', $user->id);
 
         if ($request->filled('status')) {

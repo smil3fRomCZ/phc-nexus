@@ -18,13 +18,13 @@ final class DashboardController extends Controller
         $user = $request->user();
 
         $myTasks = Task::query()
-            ->with(['project:id,name,key'])
+            ->with(['project:id,name,key', 'workflowStatus:id,name,color'])
             ->where('assignee_id', $user->id)
             ->whereNotIn('status', ['done', 'cancelled'])
             ->orderByRaw('CASE WHEN due_date IS NOT NULL AND due_date < ? THEN 0 ELSE 1 END', [now()])
             ->orderBy('due_date')
             ->limit(10)
-            ->get(['id', 'title', 'status', 'priority', 'due_date', 'project_id']);
+            ->get(['id', 'title', 'status', 'priority', 'due_date', 'project_id', 'workflow_status_id']);
 
         $pendingApprovals = ApprovalRequest::query()
             ->with(['requester:id,name', 'approvable'])

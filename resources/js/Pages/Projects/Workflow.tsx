@@ -7,6 +7,8 @@ import {
     ReactFlow,
     Background,
     Controls,
+    Handle,
+    Position,
     type Node,
     type Edge,
     type Connection,
@@ -55,10 +57,20 @@ function csrfHeaders() {
 function StatusNode({ data }: { data: WorkflowStatus & { onEdit: (id: string) => void } }) {
     return (
         <div
-            className={`rounded-lg border-2 bg-surface-primary shadow-sm ${data.allow_transition_from_any ? 'border-dashed' : ''}`}
+            className={`relative rounded-lg border-2 bg-surface-primary shadow-sm transition-shadow hover:shadow-md ${data.allow_transition_from_any ? 'border-dashed' : ''}`}
             style={{ borderColor: data.color ?? '#dfe1e6', minWidth: 140 }}
             onClick={() => data.onEdit(data.id)}
         >
+            <Handle
+                type="target"
+                position={Position.Left}
+                className="!h-3 !w-3 !border-2 !border-white !bg-brand-primary"
+            />
+            <Handle
+                type="source"
+                position={Position.Right}
+                className="!h-3 !w-3 !border-2 !border-white !bg-brand-primary"
+            />
             <div className="rounded-t-md px-3 py-1.5" style={{ backgroundColor: data.color ?? '#97a0af' }}>
                 <span className="text-xs font-semibold text-white">{data.name}</span>
             </div>

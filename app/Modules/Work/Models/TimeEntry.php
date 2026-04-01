@@ -7,12 +7,20 @@ namespace App\Modules\Work\Models;
 use App\Models\Concerns\HasUuidV7;
 use App\Models\User;
 use App\Modules\Projects\Models\Project;
+use Database\Factories\TimeEntryFactory;
+use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 
 class TimeEntry extends Model
 {
-    use HasUuidV7;
+    /** @use HasFactory<TimeEntryFactory> */
+    use HasFactory, HasUuidV7;
+
+    protected static function newFactory(): TimeEntryFactory
+    {
+        return TimeEntryFactory::new();
+    }
 
     protected $fillable = [
         'project_id',

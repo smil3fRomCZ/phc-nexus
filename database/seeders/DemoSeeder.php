@@ -395,6 +395,60 @@ class DemoSeeder extends Seeder
             'body' => 'Variabilní symbol generujeme z order ID + Luhn check digit. Párování přes FIO API.',
         ]);
 
+        // Approval na bankovní převod — zamítnuto (pro analytics)
+        $approvalBank = ApprovalRequest::create([
+            'approvable_type' => Task::class,
+            'approvable_id' => $taskBankTransfer->id,
+            'requester_id' => $u['devBack2']->id,
+            'status' => ApprovalStatus::Rejected,
+            'mode' => ApprovalMode::AllApprove,
+            'description' => 'Review implementace bankovních převodů — prosím zkontrolujte Luhn validaci.',
+            'decided_at' => '2026-03-28 10:30:00',
+        ]);
+        $approvalBank->votes()->create([
+            'voter_id' => $u['pmTech']->id,
+            'decision' => ApprovalDecision::Rejected,
+            'comment' => 'Luhn check digit je špatně implementovaný — viz issue #42. Opravte a pošlete znovu.',
+            'voted_at' => '2026-03-28 10:30:00',
+        ]);
+
+        // Approval — zrušený
+        $approvalCancelled = ApprovalRequest::create([
+            'approvable_type' => Task::class,
+            'approvable_id' => $taskGpWebpay->id,
+            'requester_id' => $u['devBack1']->id,
+            'status' => ApprovalStatus::Cancelled,
+            'mode' => ApprovalMode::AllApprove,
+            'description' => 'Starý request — nahrazen novým po refaktoru.',
+            'decided_at' => '2026-03-25 09:00:00',
+        ]);
+
+        // Další time entries pro projekt
+        TimeEntry::create([
+            'project_id' => $project->id,
+            'task_id' => $taskGpWebpay->id,
+            'user_id' => $u['devBack1']->id,
+            'date' => '2026-04-01',
+            'hours' => 6.0,
+            'note' => 'GP Webpay integrace — implementace 3DS flow',
+        ]);
+        TimeEntry::create([
+            'project_id' => $project->id,
+            'task_id' => $taskBankTransfer->id,
+            'user_id' => $u['devBack2']->id,
+            'date' => '2026-04-01',
+            'hours' => 4.5,
+            'note' => 'FIO API klient + Luhn validace',
+        ]);
+        TimeEntry::create([
+            'project_id' => $project->id,
+            'task_id' => $taskGpWebpay->id,
+            'user_id' => $u['devBack1']->id,
+            'date' => '2026-04-02',
+            'hours' => 3.0,
+            'note' => 'GP Webpay — testování sandbox environment',
+        ]);
+
         // === Epic 4: Uživatelský účet (Backlog) ===
         $epicAccount = Epic::create([
             'project_id' => $project->id,

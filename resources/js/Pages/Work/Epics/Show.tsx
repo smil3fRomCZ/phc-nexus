@@ -28,6 +28,7 @@ interface Task {
     priority: string;
     due_date: string | null;
     assignee: { id: string; name: string } | null;
+    workflow_status: { id: string; name: string; color: string | null } | null;
 }
 
 interface Epic {
@@ -285,7 +286,14 @@ export default function EpicShow({
                                                         </Link>
                                                     </td>
                                                     <td className="border-b border-border-subtle px-3 py-2">
-                                                        <StatusBadge statusMap={TASK_STATUS} value={task.status} />
+                                                        {task.workflow_status ? (
+                                                            <StatusBadge
+                                                                label={task.workflow_status.name}
+                                                                color={task.workflow_status.color}
+                                                            />
+                                                        ) : (
+                                                            <StatusBadge statusMap={TASK_STATUS} value={task.status} />
+                                                        )}
                                                     </td>
                                                     <td
                                                         className={`border-b border-border-subtle px-3 py-2 text-xs font-semibold ${getPriority(task.priority).textClass}`}

@@ -16,6 +16,7 @@ interface SearchTask {
     title: string;
     status: string;
     project: { id: string; name: string; key: string } | null;
+    workflow_status: { id: string; name: string; color: string | null } | null;
 }
 
 interface SearchResults {
@@ -195,7 +196,14 @@ export default function GlobalSearch() {
                                                 </span>
                                             )}
                                         </div>
-                                        <StatusBadge statusMap={TASK_STATUS} value={task.status} />
+                                        {task.workflow_status ? (
+                                            <StatusBadge
+                                                label={task.workflow_status.name}
+                                                color={task.workflow_status.color}
+                                            />
+                                        ) : (
+                                            <StatusBadge statusMap={TASK_STATUS} value={task.status} />
+                                        )}
                                     </button>
                                 );
                             })}

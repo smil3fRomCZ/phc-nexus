@@ -2,7 +2,7 @@ import AppLayout from '@/Layouts/AppLayout';
 import type { Breadcrumb } from '@/Layouts/AppLayout';
 import { router } from '@inertiajs/react';
 import { Plus, Trash2, X } from 'lucide-react';
-import { useState, useCallback, useMemo } from 'react';
+import { useState, useCallback, useMemo, useEffect } from 'react';
 import {
     ReactFlow,
     Background,
@@ -121,7 +121,7 @@ export default function Workflow({ project, statuses, transitions }: Props) {
     const [nodes, setNodes] = useState<Node[]>(buildNodes);
 
     // Sync nodes when statuses prop changes (Inertia navigation)
-    useMemo(() => {
+    useEffect(() => {
         setNodes(buildNodes());
     }, [buildNodes]);
 

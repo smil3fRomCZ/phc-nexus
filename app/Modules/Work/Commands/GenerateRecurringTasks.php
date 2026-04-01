@@ -29,7 +29,10 @@ final class GenerateRecurringTasks extends Command
             $rule = $task->recurrence_rule;
 
             // Najít initial workflow status pro projekt
-            $initialStatus = $task->project->workflowStatuses()->where('is_initial', true)->first();
+            /** @var \App\Modules\Projects\Models\Project $project */
+            $project = $task->project;
+            /** @var \App\Modules\Projects\Models\WorkflowStatus|null $initialStatus */
+            $initialStatus = $project->workflowStatuses()->where('is_initial', true)->first();
 
             $newTask = Task::create([
                 'project_id' => $task->project_id,
@@ -37,7 +40,7 @@ final class GenerateRecurringTasks extends Command
                 'title' => $task->title,
                 'description' => $task->description,
                 'status' => 'backlog',
-                'workflow_status_id' => $initialStatus?->id ?? $task->workflow_status_id,
+                'workflow_status_id' => $initialStatus->id ?? $task->workflow_status_id,
                 'priority' => is_object($task->priority) ? $task->priority->value : (string) $task->priority,
                 'data_classification' => $task->getRawOriginal('data_classification'),
                 'assignee_id' => $task->assignee_id,

@@ -78,10 +78,10 @@ final class TaskController extends Controller
         // Automaticky přiřadit initial workflow status
         /** @var WorkflowStatus|null $initialStatus */
         $initialStatus = $project->workflowStatuses()->where('is_initial', true)->first();
-        /** @var WorkflowStatus|null $fallbackStatus */
-        $fallbackStatus = $initialStatus ?? $project->workflowStatuses()->orderBy('position')->first();
-        $validated['workflow_status_id'] = $fallbackStatus?->id;
-        $validated['status'] = $fallbackStatus?->slug ?? 'backlog';
+        /** @var WorkflowStatus $fallbackStatus */
+        $fallbackStatus = $initialStatus ?? $project->workflowStatuses()->orderBy('position')->firstOrFail();
+        $validated['workflow_status_id'] = $fallbackStatus->id;
+        $validated['status'] = $fallbackStatus->slug;
 
         Task::create($validated);
 

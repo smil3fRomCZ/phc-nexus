@@ -192,6 +192,11 @@ final class WorkflowController extends Controller
     private function authorizeManage(Project $project): void
     {
         $user = request()->user();
+
+        if ($user->isExecutive()) {
+            return;
+        }
+
         $isOwner = $project->getAttribute('owner_id') === $user->id;
         $isPm = $project->epics()->where('pm_id', $user->id)->exists();
 

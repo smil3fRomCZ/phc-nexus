@@ -102,11 +102,12 @@ class SanityTest extends TestCase
     {
         $user = User::factory()->create();
         $project = Project::factory()->create(['owner_id' => $user->id]);
-        $task = Task::factory()->create(['project_id' => $project->id, 'status' => 'backlog']);
+        $task = Task::factory()->create(['project_id' => $project->id]);
 
+        $todoStatus = $project->workflowStatuses()->where('slug', 'todo')->first();
         $start = microtime(true);
         $this->actingAs($user)->patchJson("/projects/{$project->id}/tasks/{$task->id}/status", [
-            'status' => 'todo',
+            'status' => $todoStatus->id,
         ]);
         $duration = (microtime(true) - $start) * 1000;
 

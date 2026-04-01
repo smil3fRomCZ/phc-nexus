@@ -8,7 +8,6 @@ import RichTextDisplay from '@/Components/RichTextDisplay';
 import RichTextEditor from '@/Components/RichTextEditor';
 import TimeLogSection from '@/Components/TimeLogSection';
 import type { TimeEntryData } from '@/Components/TimeLogSection';
-import { TASK_STATUS } from '@/constants/status';
 import { formatDate, toDateInputValue } from '@/utils/formatDate';
 import { displayKey } from '@/utils/displayKey';
 import { Link, router, useForm, usePage } from '@inertiajs/react';
@@ -172,7 +171,7 @@ export default function TaskShow({
             {
                 title: task.title,
                 description: task.description ?? '',
-                status: task.status,
+                workflow_status_id: task.workflow_status?.id ?? '',
                 priority: task.priority,
                 assignee_id: task.assignee?.id ?? '',
                 reporter_id: task.reporter?.id ?? '',
@@ -210,11 +209,10 @@ export default function TaskShow({
                                 <span className="mr-2 text-text-muted">{displayKey(project.key, task.number)}</span>
                                 {task.title}
                             </h1>
-                            {task.workflow_status ? (
-                                <StatusBadge label={task.workflow_status.name} color={task.workflow_status.color} />
-                            ) : (
-                                <StatusBadge statusMap={TASK_STATUS} value={task.status} />
-                            )}
+                            <StatusBadge
+                                label={task.workflow_status?.name ?? '—'}
+                                color={task.workflow_status?.color ?? null}
+                            />
                             <div className="ml-auto flex gap-2">
                                 <button
                                     onClick={() => setRequestingApproval(true)}
@@ -395,11 +393,10 @@ export default function TaskShow({
                         {/* Group: Status + Priority */}
                         <div className="pb-4 mb-4 border-b border-border-subtle">
                             <SidebarSection label="Stav">
-                                {task.workflow_status ? (
-                                    <StatusBadge label={task.workflow_status.name} color={task.workflow_status.color} />
-                                ) : (
-                                    <StatusBadge statusMap={TASK_STATUS} value={task.status} />
-                                )}
+                                <StatusBadge
+                                    label={task.workflow_status?.name ?? '—'}
+                                    color={task.workflow_status?.color ?? null}
+                                />
                                 {hasPendingApproval && (
                                     <p className="mt-2 rounded bg-status-warning-subtle px-2 py-1 text-xs text-status-warning">
                                         Čeká na schválení — změna stavu blokována
@@ -646,7 +643,7 @@ function TaskEditDialog({
     const { data, setData, put, processing, errors } = useForm({
         title: task.title,
         description: task.description ?? '',
-        status: task.status,
+        workflow_status_id: task.workflow_status?.id ?? '',
         priority: task.priority,
         assignee_id: task.assignee?.id ?? '',
         reporter_id: task.reporter?.id ?? '',
@@ -691,10 +688,10 @@ function TaskEditDialog({
                     </EditField>
 
                     <div className="grid grid-cols-2 gap-4">
-                        <EditField label="Stav" error={errors.status}>
+                        <EditField label="Stav" error={errors.workflow_status_id}>
                             <select
-                                value={data.status}
-                                onChange={(e) => setData('status', e.target.value)}
+                                value={data.workflow_status_id}
+                                onChange={(e) => setData('workflow_status_id', e.target.value)}
                                 className="mt-1 w-full rounded-md border border-border-default bg-surface-primary px-3 py-2 text-sm focus:border-border-focus focus:outline-none focus:shadow-[0_0_0_2px_var(--color-brand-soft)]"
                             >
                                 {statuses.map((s) => (

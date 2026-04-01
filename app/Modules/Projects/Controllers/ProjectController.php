@@ -23,7 +23,7 @@ final class ProjectController extends Controller
     {
         $projects = Project::query()
             ->with(['owner:id,name', 'team:id,name'])
-            ->withCount(['members', 'tasks', 'tasks as tasks_completed_count' => fn ($q) => $q->where('status', 'done')])
+            ->withCount(['members', 'tasks', 'tasks as tasks_completed_count' => fn ($q) => $q->whereHas('workflowStatus', fn ($ws) => $ws->where('is_done', true))])
             ->when($request->user()->system_role->value === 'team_member', function ($query) use ($request) {
                 $query->where(function ($q) use ($request) {
                     $q->where('owner_id', $request->user()->id)
@@ -107,8 +107,8 @@ final class ProjectController extends Controller
             'attachments',
             'comments',
             'tasks',
-            'tasks as tasks_completed_count' => fn ($q) => $q->where('status', 'done'),
-            'tasks as tasks_overdue_count' => fn ($q) => $q->whereNotIn('status', ['done', 'cancelled'])->whereNotNull('due_date')->where('due_date', '<', now()),
+            'tasks as tasks_completed_count' => fn ($q) => $q->whereHas('workflowStatus', fn ($ws) => $ws->where('is_done', true)),
+            'tasks as tasks_overdue_count' => fn ($q) => $q->whereHas('workflowStatus', fn ($ws) => $ws->where('is_done', false)->where('is_cancelled', false))->whereNotNull('due_date')->where('due_date', '<', now()),
             'epics',
             'members',
         ]);

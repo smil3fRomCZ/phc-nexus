@@ -8,7 +8,6 @@ use App\Modules\Projects\Controllers\WorkflowController;
 use App\Modules\Projects\Models\Project;
 use App\Modules\Projects\Models\WorkflowStatus;
 use App\Modules\Work\Enums\TaskPriority;
-use App\Modules\Work\Enums\TaskStatus;
 use App\Modules\Work\Models\Task;
 use Illuminate\Database\Eloquent\Factories\Factory;
 
@@ -26,7 +25,6 @@ class TaskFactory extends Factory
             'epic_id' => null,
             'title' => fake()->sentence(4),
             'description' => fake()->optional()->paragraph(),
-            'status' => TaskStatus::Backlog,
             'priority' => TaskPriority::Medium,
             'data_classification' => 'non_phi',
             'assignee_id' => null,
@@ -51,7 +49,6 @@ class TaskFactory extends Factory
                 return;
             }
 
-            // Seed default workflow pokud projekt nemá žádné statuses
             if ($project->workflowStatuses()->count() === 0) {
                 WorkflowController::seedDefaultWorkflow($project);
             }
@@ -60,16 +57,6 @@ class TaskFactory extends Factory
             $initialStatus = $project->workflowStatuses()->where('is_initial', true)->first();
             $task->workflow_status_id = $initialStatus?->id ?? $project->workflowStatuses()->orderBy('position')->value('id');
         });
-    }
-
-    public function inProgress(): static
-    {
-        return $this->state(fn () => ['status' => TaskStatus::InProgress]);
-    }
-
-    public function done(): static
-    {
-        return $this->state(fn () => ['status' => TaskStatus::Done]);
     }
 
     public function highPriority(): static

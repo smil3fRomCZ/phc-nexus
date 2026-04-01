@@ -20,7 +20,7 @@ final class TaskExporter
     {
         return $tasks->map(fn (Task $task) => [
             $task->title,
-            is_object($task->status) ? $task->status->value : (string) $task->status,
+            $task->workflowStatus?->name ?? '',
             is_object($task->priority) ? $task->priority->value : (string) $task->priority,
             $task->assignee->name ?? '',
             $task->reporter->name ?? '',

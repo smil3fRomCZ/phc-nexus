@@ -15,7 +15,6 @@ use App\Modules\Projects\Models\Project;
 use App\Modules\Projects\Models\WorkflowStatus;
 use App\Modules\Work\Enums\RecurrenceRule;
 use App\Modules\Work\Enums\TaskPriority;
-use App\Modules\Work\Enums\TaskStatus;
 use App\Modules\Work\Models\Epic;
 use App\Modules\Work\Models\Task;
 use Carbon\Carbon;
@@ -85,7 +84,6 @@ final class TaskController extends Controller
         /** @var WorkflowStatus $fallbackStatus */
         $fallbackStatus = $initialStatus ?? $project->workflowStatuses()->orderBy('position')->firstOrFail();
         $validated['workflow_status_id'] = $fallbackStatus->id;
-        $validated['status'] = $fallbackStatus->slug;
 
         Task::create($validated);
 
@@ -160,7 +158,7 @@ final class TaskController extends Controller
             ? User::whereIn('id', $userIds->unique())->pluck('name', 'id')
             : collect();
 
-        $statusLabels = collect(TaskStatus::cases())->mapWithKeys(fn (TaskStatus $s) => [$s->value => $s->label()]);
+        $statusLabels = WorkflowStatus::where('project_id', $project->id)->pluck('name', 'id');
         $priorityLabels = collect(TaskPriority::cases())->mapWithKeys(fn (TaskPriority $p) => [$p->value => $p->label()]);
 
         $activity->transform(function (Model $entry) use ($userNames, $statusLabels, $priorityLabels) {
@@ -177,8 +175,8 @@ final class TaskController extends Controller
                         $values[$field] = null;
                     }
                 }
-                if (! empty($values['status']) && $statusLabels->has($values['status'])) {
-                    $values['status'] = $statusLabels[$values['status']];
+                if (! empty($values['workflow_status_id']) && $statusLabels->has($values['workflow_status_id'])) {
+                    $values['workflow_status_id'] = $statusLabels[$values['workflow_status_id']];
                 }
                 if (! empty($values['priority']) && $priorityLabels->has($values['priority'])) {
                     $values['priority'] = $priorityLabels[$values['priority']];

@@ -41,7 +41,6 @@ final class GenerateRecurringTasks extends Command
                 'epic_id' => $task->epic_id,
                 'title' => $task->title,
                 'description' => $task->description,
-                'status' => 'backlog',
                 'workflow_status_id' => $initialStatus->id ?? $task->workflow_status_id,
                 'priority' => is_object($task->priority) ? $task->priority->value : (string) $task->priority,
                 'data_classification' => $task->getRawOriginal('data_classification'),

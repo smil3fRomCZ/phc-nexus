@@ -1,7 +1,6 @@
 import AppLayout from '@/Layouts/AppLayout';
 import type { Breadcrumb } from '@/Layouts/AppLayout';
 import EmptyState from '@/Components/EmptyState';
-import { TASK_STATUS, getStatus } from '@/constants/status';
 import { getPriority } from '@/constants/priority';
 import { displayKey } from '@/utils/displayKey';
 import { formatDate } from '@/utils/formatDate';
@@ -20,6 +19,7 @@ interface Task {
     assignee: { id: string; name: string } | null;
     reporter: { id: string; name: string } | null;
     epic: { id: string; title: string } | null;
+    workflow_status: { id: string; name: string; color: string | null } | null;
 }
 
 interface Option {
@@ -256,9 +256,17 @@ export default function TaskTable({ project, tasks, filters, statuses, prioritie
                                 </td>
                                 <td className="border-b border-border-subtle px-5 py-3">
                                     <select
-                                        value={task.status}
+                                        value={task.workflow_status?.id ?? ''}
                                         onChange={(e) => handleStatusChange(task.id, e.target.value)}
-                                        className={`rounded-[10px] border-0 px-2 py-px text-xs font-semibold ${getStatus(TASK_STATUS, task.status).className}`}
+                                        className="rounded-[10px] border-0 px-2 py-px text-xs font-semibold"
+                                        style={
+                                            task.workflow_status?.color
+                                                ? {
+                                                      backgroundColor: `${task.workflow_status.color}20`,
+                                                      color: task.workflow_status.color,
+                                                  }
+                                                : undefined
+                                        }
                                     >
                                         {statuses.map((s) => (
                                             <option key={s.value} value={s.value}>

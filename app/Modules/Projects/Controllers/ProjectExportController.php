@@ -31,7 +31,7 @@ final class ProjectExportController extends Controller
         $tasks = Task::query()
             ->where('project_id', $project->id)
             ->where('data_classification', 'non_phi')
-            ->with(['assignee:id,name', 'reporter:id,name', 'epic:id,title'])
+            ->with(['assignee:id,name', 'reporter:id,name', 'epic:id,title', 'workflowStatus:id,name'])
             ->orderBy('created_at')
             ->get();
 

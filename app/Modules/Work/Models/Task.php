@@ -16,7 +16,6 @@ use App\Modules\Projects\Models\Project;
 use App\Modules\Projects\Models\WorkflowStatus;
 use App\Modules\Work\Enums\RecurrenceRule;
 use App\Modules\Work\Enums\TaskPriority;
-use App\Modules\Work\Enums\TaskStatus;
 use Database\Factories\TaskFactory;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
@@ -37,7 +36,6 @@ class Task extends Model
         'epic_id',
         'title',
         'description',
-        'status',
         'priority',
         'data_classification',
         'assignee_id',
@@ -56,7 +54,6 @@ class Task extends Model
     protected function casts(): array
     {
         return [
-            'status' => TaskStatus::class,
             'priority' => TaskPriority::class,
             'due_date' => 'date',
             'recurrence_rule' => RecurrenceRule::class,

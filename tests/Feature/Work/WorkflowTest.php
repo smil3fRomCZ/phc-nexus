@@ -41,17 +41,16 @@ class WorkflowTest extends TestCase
         $user = User::factory()->create();
         $project = Project::factory()->create(['owner_id' => $user->id]);
 
-        $response = $this->actingAs($user)->post("/projects/{$project->id}/workflow/statuses", [
+        $response = $this->actingAs($user)->postJson("/projects/{$project->id}/workflow/statuses", [
             'name' => 'In Review',
-            'slug' => 'in_review',
             'color' => '#ff9900',
         ]);
 
-        $response->assertRedirect();
+        $response->assertCreated();
         $this->assertDatabaseHas('workflow_statuses', [
             'project_id' => $project->id,
             'name' => 'In Review',
-            'slug' => 'in_review',
+            'slug' => 'in-review',
         ]);
     }
 
@@ -61,14 +60,13 @@ class WorkflowTest extends TestCase
         $project = Project::factory()->create(['owner_id' => $user->id]);
         $status = WorkflowStatus::factory()->create(['project_id' => $project->id, 'name' => 'Old']);
 
-        $response = $this->actingAs($user)->put("/projects/{$project->id}/workflow/statuses/{$status->id}", [
+        $response = $this->actingAs($user)->putJson("/projects/{$project->id}/workflow/statuses/{$status->id}", [
             'name' => 'New Name',
-            'slug' => 'new_name',
             'color' => '#00ff00',
             'is_initial' => true,
         ]);
 
-        $response->assertRedirect();
+        $response->assertOk();
         $this->assertDatabaseHas('workflow_statuses', [
             'id' => $status->id,
             'name' => 'New Name',
@@ -82,9 +80,9 @@ class WorkflowTest extends TestCase
         $project = Project::factory()->create(['owner_id' => $user->id]);
         $status = WorkflowStatus::factory()->create(['project_id' => $project->id]);
 
-        $response = $this->actingAs($user)->delete("/projects/{$project->id}/workflow/statuses/{$status->id}");
+        $response = $this->actingAs($user)->deleteJson("/projects/{$project->id}/workflow/statuses/{$status->id}");
 
-        $response->assertRedirect();
+        $response->assertOk();
         $this->assertDatabaseMissing('workflow_statuses', ['id' => $status->id]);
     }
 
@@ -95,12 +93,12 @@ class WorkflowTest extends TestCase
         $from = WorkflowStatus::factory()->create(['project_id' => $project->id]);
         $to = WorkflowStatus::factory()->create(['project_id' => $project->id]);
 
-        $response = $this->actingAs($user)->post("/projects/{$project->id}/workflow/transitions", [
+        $response = $this->actingAs($user)->postJson("/projects/{$project->id}/workflow/transitions", [
             'from_status_id' => $from->id,
             'to_status_id' => $to->id,
         ]);
 
-        $response->assertRedirect();
+        $response->assertCreated();
         $this->assertDatabaseHas('workflow_transitions', [
             'project_id' => $project->id,
             'from_status_id' => $from->id,
@@ -120,9 +118,9 @@ class WorkflowTest extends TestCase
             'to_status_id' => $to->id,
         ]);
 
-        $response = $this->actingAs($user)->delete("/projects/{$project->id}/workflow/transitions/{$transition->id}");
+        $response = $this->actingAs($user)->deleteJson("/projects/{$project->id}/workflow/transitions/{$transition->id}");
 
-        $response->assertRedirect();
+        $response->assertOk();
         $this->assertDatabaseMissing('workflow_transitions', ['id' => $transition->id]);
     }
 

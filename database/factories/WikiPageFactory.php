@@ -23,7 +23,7 @@ class WikiPageFactory extends Factory
             'epic_id' => null,
             'parent_id' => null,
             'title' => fake()->sentence(3),
-            'content' => fake()->optional()->paragraphs(2, true),
+            'content' => fake()->paragraphs(2, true),
             'author_id' => User::factory(),
             'position' => 0,
         ];

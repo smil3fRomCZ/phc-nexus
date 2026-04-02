@@ -22,4 +22,8 @@ Route::middleware('auth')->prefix('admin')->group(function () {
     Route::post('teams', [OrganizationController::class, 'storeTeam'])->name('admin.teams.store');
     Route::put('teams/{team}', [OrganizationController::class, 'updateTeam'])->name('admin.teams.update');
     Route::delete('teams/{team}', [OrganizationController::class, 'destroyTeam'])->name('admin.teams.destroy');
+
+    // Team members
+    Route::post('teams/{team}/members', [OrganizationController::class, 'addMember'])->name('admin.teams.members.add');
+    Route::delete('teams/{team}/members/{user}', [OrganizationController::class, 'removeMember'])->name('admin.teams.members.remove');
 });

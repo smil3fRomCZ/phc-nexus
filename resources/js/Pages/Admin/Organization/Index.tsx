@@ -257,9 +257,109 @@ function TeamModal({
     );
 }
 
+// ── Members Modal ──
+function MembersModal({ team, users, onClose }: { team: Team; users: UserOption[]; onClose: () => void }) {
+    const [selectedUserId, setSelectedUserId] = useState('');
+    const available = users.filter((u) => !team.members.some((m) => m.id === u.id));
+
+    function addMember() {
+        if (!selectedUserId) return;
+        router.post(
+            `/admin/teams/${team.id}/members`,
+            { user_id: selectedUserId },
+            { onSuccess: () => setSelectedUserId('') },
+        );
+    }
+
+    function removeMember(userId: string) {
+        router.delete(`/admin/teams/${team.id}/members/${userId}`);
+    }
+
+    return (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50" onClick={onClose}>
+            <div
+                className="mx-4 w-full max-w-md rounded-lg border border-border-subtle bg-surface-primary p-4 sm:p-6 shadow-xl sm:mx-auto"
+                onClick={(e) => e.stopPropagation()}
+            >
+                <div className="mb-4 flex items-center justify-between">
+                    <h2 className="text-lg font-semibold text-text-strong">Členové — {team.name}</h2>
+                    <button onClick={onClose} className="rounded p-2 text-text-muted hover:bg-surface-hover">
+                        <X className="h-4 w-4" />
+                    </button>
+                </div>
+
+                {/* Current members */}
+                <div className="mb-4">
+                    <span className="text-xs font-semibold uppercase tracking-wider text-text-subtle">
+                        Aktuální členové ({team.members.length})
+                    </span>
+                    <div className="mt-1.5 space-y-1.5">
+                        {team.members.map((member) => (
+                            <div
+                                key={member.id}
+                                className="flex items-center justify-between rounded-md bg-surface-secondary px-3 py-2"
+                            >
+                                <div className="flex items-center gap-2">
+                                    <Avatar name={member.name} />
+                                    <span className="text-sm text-text-default">{member.name}</span>
+                                    {team.team_lead?.id === member.id && (
+                                        <span className="rounded-full bg-status-warning-subtle px-1.5 py-px text-[0.65rem] font-medium text-status-warning">
+                                            Lead
+                                        </span>
+                                    )}
+                                </div>
+                                {team.team_lead?.id !== member.id && (
+                                    <button
+                                        onClick={() => removeMember(member.id)}
+                                        className="rounded p-1.5 text-text-muted hover:bg-status-danger-subtle hover:text-status-danger"
+                                    >
+                                        <X className="h-3.5 w-3.5" />
+                                    </button>
+                                )}
+                            </div>
+                        ))}
+                        {team.members.length === 0 && <p className="text-xs text-text-muted py-2">Žádní členové</p>}
+                    </div>
+                </div>
+
+                {/* Add member */}
+                {available.length > 0 && (
+                    <div>
+                        <span className="text-xs font-semibold uppercase tracking-wider text-text-subtle">
+                            Přidat člena
+                        </span>
+                        <div className="mt-1 flex gap-2">
+                            <select
+                                value={selectedUserId}
+                                onChange={(e) => setSelectedUserId(e.target.value)}
+                                className="flex-1 rounded-md border border-border-default bg-surface-primary px-3 py-2 text-sm focus:border-brand-primary focus:outline-none"
+                            >
+                                <option value="">Vyberte uživatele...</option>
+                                {available.map((u) => (
+                                    <option key={u.id} value={u.id}>
+                                        {u.name}
+                                    </option>
+                                ))}
+                            </select>
+                            <button
+                                onClick={addMember}
+                                disabled={!selectedUserId}
+                                className="rounded-md bg-brand-primary px-4 py-2 text-sm font-medium text-text-inverse hover:bg-brand-hover disabled:opacity-50"
+                            >
+                                Přidat
+                            </button>
+                        </div>
+                    </div>
+                )}
+            </div>
+        </div>
+    );
+}
+
 export default function OrganizationIndex({ divisions, users, can }: Props) {
     const [divisionModal, setDivisionModal] = useState<{ open: boolean; division?: Division }>({ open: false });
     const [teamModal, setTeamModal] = useState<{ open: boolean; team?: Team; divisionId?: string }>({ open: false });
+    const [membersModal, setMembersModal] = useState<{ open: boolean; team?: Team }>({ open: false });
 
     return (
         <AppLayout title="Organizace" breadcrumbs={BREADCRUMBS}>
@@ -332,6 +432,12 @@ export default function OrganizationIndex({ divisions, users, can }: Props) {
                                         {can.createTeam && (
                                             <div className="flex gap-1">
                                                 <button
+                                                    onClick={() => setMembersModal({ open: true, team })}
+                                                    className="rounded-md border border-border-default px-2.5 py-1 text-xs font-medium text-text-muted hover:bg-surface-hover hover:text-text-default"
+                                                >
+                                                    Členové
+                                                </button>
+                                                <button
                                                     onClick={() =>
                                                         setTeamModal({ open: true, team, divisionId: division.id })
                                                     }
@@ -402,6 +508,9 @@ export default function OrganizationIndex({ divisions, users, can }: Props) {
                     defaultDivisionId={teamModal.divisionId}
                     onClose={() => setTeamModal({ open: false })}
                 />
+            )}
+            {membersModal.open && membersModal.team && (
+                <MembersModal team={membersModal.team} users={users} onClose={() => setMembersModal({ open: false })} />
             )}
         </AppLayout>
     );

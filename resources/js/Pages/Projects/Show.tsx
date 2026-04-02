@@ -62,10 +62,34 @@ interface StatusUpdate {
     created_at: string;
 }
 
-const HEALTH_CONFIG: Record<string, { label: string; badgeBg: string }> = {
-    on_track: { label: 'Na trati', badgeBg: 'bg-green-600' },
-    at_risk: { label: 'Ohrožen', badgeBg: 'bg-amber-500' },
-    blocked: { label: 'Blokován', badgeBg: 'bg-red-600' },
+const HEALTH_CONFIG: Record<
+    string,
+    { label: string; badgeBg: string; border: string; bg: string; text: string; icon: string }
+> = {
+    on_track: {
+        label: 'Na trati',
+        badgeBg: 'bg-green-600',
+        border: 'border-green-600/20',
+        bg: 'bg-green-50',
+        text: 'text-green-800',
+        icon: 'text-green-600',
+    },
+    at_risk: {
+        label: 'Ohrožen',
+        badgeBg: 'bg-amber-500',
+        border: 'border-amber-500/20',
+        bg: 'bg-amber-50',
+        text: 'text-amber-800',
+        icon: 'text-amber-500',
+    },
+    blocked: {
+        label: 'Blokován',
+        badgeBg: 'bg-red-600',
+        border: 'border-red-600/20',
+        bg: 'bg-red-50',
+        text: 'text-red-800',
+        icon: 'text-red-600',
+    },
 };
 
 export default function ProjectShow({
@@ -399,16 +423,26 @@ function ExportDropdown({ projectId }: { projectId: string }) {
 function StatusUpdateBanner({ update }: { update: StatusUpdate }) {
     const cfg = HEALTH_CONFIG[update.health] ?? HEALTH_CONFIG.on_track;
     return (
-        <div className={`mt-3 flex items-center gap-3 rounded-md ${cfg.badgeBg} px-4 py-2.5 text-sm text-white`}>
+        <div
+            className={`mt-3 flex items-center gap-3 rounded-md border ${cfg.border} ${cfg.bg} px-4 py-2.5`}
+        >
             {update.health === 'on_track' ? (
-                <CheckCircle2 className="h-4 w-4 shrink-0" />
+                <CheckCircle2 className={`h-4 w-4 shrink-0 ${cfg.icon}`} />
             ) : (
-                <AlertTriangle className="h-4 w-4 shrink-0" />
+                <AlertTriangle className={`h-4 w-4 shrink-0 ${cfg.icon}`} />
             )}
-            <span className="font-semibold">{cfg.label}</span>
-            <span className="opacity-80">&middot;</span>
-            <span className="flex-1 truncate opacity-90">{update.body}</span>
-            <span className="shrink-0 text-xs opacity-70">{formatDate(update.created_at)}</span>
+            <div className="min-w-0 flex-1">
+                <span className={`text-xs font-semibold uppercase tracking-wider ${cfg.icon}`}>
+                    Status
+                </span>
+                <p className={`mt-0.5 text-sm ${cfg.text} truncate`}>{update.body}</p>
+            </div>
+            <span className="shrink-0 text-xs text-text-muted">{formatDate(update.created_at)}</span>
+            <span
+                className={`shrink-0 rounded-full ${cfg.badgeBg} px-2.5 py-0.5 text-xs font-semibold text-white`}
+            >
+                {cfg.label}
+            </span>
         </div>
     );
 }
@@ -435,17 +469,33 @@ function StatusUpdateForm({ projectId }: { projectId: string }) {
         );
     }
 
-    const healthOptions: Array<{ value: 'on_track' | 'at_risk' | 'blocked'; label: string }> = [
-        { value: 'on_track', label: '✓ Na trati' },
-        { value: 'at_risk', label: '⚠ Ohrožen' },
-        { value: 'blocked', label: '✕ Blokován' },
+    const healthOptions: Array<{
+        value: 'on_track' | 'at_risk' | 'blocked';
+        label: string;
+        active: string;
+    }> = [
+        {
+            value: 'on_track',
+            label: '✓ Na trati',
+            active: 'border-green-600 bg-green-50 text-green-700',
+        },
+        {
+            value: 'at_risk',
+            label: '⚠ Ohrožen',
+            active: 'border-amber-500 bg-amber-50 text-amber-700',
+        },
+        {
+            value: 'blocked',
+            label: '✕ Blokován',
+            active: 'border-red-600 bg-red-50 text-red-700',
+        },
     ];
 
     return (
         <>
             <button
                 onClick={() => setOpen(true)}
-                className="flex items-center gap-1.5 rounded-md bg-brand-primary px-3 py-2 text-sm font-medium text-text-inverse transition-colors hover:bg-brand-hover"
+                className="flex items-center gap-1.5 rounded-md border border-border-default px-3 py-2 text-sm font-medium text-text-default transition-colors hover:bg-surface-hover"
             >
                 <Info className="h-3.5 w-3.5" />
                 Update
@@ -481,7 +531,7 @@ function StatusUpdateForm({ projectId }: { projectId: string }) {
                                             onClick={() => setHealth(opt.value)}
                                             className={`flex-1 rounded-md border px-3 py-2 text-sm font-medium transition-colors ${
                                                 health === opt.value
-                                                    ? 'border-brand-primary bg-brand-soft text-brand-primary'
+                                                    ? opt.active
                                                     : 'border-border-default text-text-muted hover:bg-surface-hover'
                                             }`}
                                         >

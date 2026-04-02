@@ -20,7 +20,6 @@ use App\Modules\Projects\Enums\ProjectStatus;
 use App\Modules\Projects\Models\Project;
 use App\Modules\Projects\Models\ProjectUpdate;
 use App\Modules\Wiki\Models\WikiPage;
-use Illuminate\Notifications\DatabaseNotification;
 use App\Modules\Work\Enums\EpicStatus;
 use App\Modules\Work\Enums\RecurrenceRule;
 use App\Modules\Work\Enums\TaskPriority;
@@ -28,6 +27,7 @@ use App\Modules\Work\Models\Epic;
 use App\Modules\Work\Models\Task;
 use App\Modules\Work\Models\TimeEntry;
 use Illuminate\Database\Seeder;
+use Illuminate\Notifications\DatabaseNotification;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Str;
 

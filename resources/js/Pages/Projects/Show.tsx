@@ -12,6 +12,7 @@ import { formatDate } from '@/utils/formatDate';
 import { Link, router } from '@inertiajs/react';
 import {
     Trash2,
+    Pencil,
     FileDown,
     ChevronDown,
     CheckCircle2,
@@ -125,10 +126,12 @@ export default function ProjectShow({
                             )}
                         </div>
                         <div className="flex flex-wrap gap-2">
+                            <StatusUpdateForm projectId={project.id} />
                             <Link
                                 href={`/projects/${project.id}/edit`}
-                                className="rounded-md border border-border-default px-5 py-2 text-sm font-medium text-text-default no-underline transition-colors hover:bg-surface-hover"
+                                className="flex items-center gap-1.5 rounded-md border border-border-default px-4 py-2 text-sm font-medium text-text-default no-underline transition-colors hover:bg-surface-hover"
                             >
+                                <Pencil className="h-3.5 w-3.5" />
                                 Upravit
                             </Link>
                             <button
@@ -200,9 +203,6 @@ export default function ProjectShow({
 
                 {/* Status Update Banner */}
                 {latestUpdate && <StatusUpdateBanner update={latestUpdate} />}
-
-                {/* Add Status Update */}
-                <StatusUpdateForm projectId={project.id} />
 
                 {/* Tab navigation */}
                 <div className="flex items-center justify-between">

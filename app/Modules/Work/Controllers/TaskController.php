@@ -98,7 +98,7 @@ final class TaskController extends Controller
             'assignee:id,name',
             'reporter:id,name',
             'epic:id,title',
-            'workflowStatus:id,name,color',
+            'workflowStatus:id,name,color,is_done,is_cancelled',
             'rootComments.author:id,name',
             'rootComments.replies.author:id,name',
             'attachments.uploader:id,name',

@@ -423,24 +423,18 @@ function ExportDropdown({ projectId }: { projectId: string }) {
 function StatusUpdateBanner({ update }: { update: StatusUpdate }) {
     const cfg = HEALTH_CONFIG[update.health] ?? HEALTH_CONFIG.on_track;
     return (
-        <div
-            className={`mt-3 flex items-center gap-3 rounded-md border ${cfg.border} ${cfg.bg} px-4 py-2.5`}
-        >
+        <div className={`mt-3 flex items-center gap-3 rounded-md border ${cfg.border} ${cfg.bg} px-4 py-2.5`}>
             {update.health === 'on_track' ? (
                 <CheckCircle2 className={`h-4 w-4 shrink-0 ${cfg.icon}`} />
             ) : (
                 <AlertTriangle className={`h-4 w-4 shrink-0 ${cfg.icon}`} />
             )}
             <div className="min-w-0 flex-1">
-                <span className={`text-xs font-semibold uppercase tracking-wider ${cfg.icon}`}>
-                    Status
-                </span>
+                <span className={`text-xs font-semibold uppercase tracking-wider ${cfg.icon}`}>Status</span>
                 <p className={`mt-0.5 text-sm ${cfg.text} truncate`}>{update.body}</p>
             </div>
             <span className="shrink-0 text-xs text-text-muted">{formatDate(update.created_at)}</span>
-            <span
-                className={`shrink-0 rounded-full ${cfg.badgeBg} px-2.5 py-0.5 text-xs font-semibold text-white`}
-            >
+            <span className={`shrink-0 rounded-full ${cfg.badgeBg} px-2.5 py-0.5 text-xs font-semibold text-white`}>
                 {cfg.label}
             </span>
         </div>

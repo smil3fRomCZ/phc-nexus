@@ -232,7 +232,7 @@ export default function Workflow({ project, statuses, transitions }: Props) {
 
     return (
         <AppLayout title={`${project.key} — Workflow`} breadcrumbs={breadcrumbs}>
-            <div className="mx-auto max-w-6xl">
+            <div className="max-w-screen-xl">
                 <div className="mb-4 flex items-center justify-between">
                     <h1 className="text-xl md:text-2xl font-bold text-text-strong">Workflow Editor</h1>
                     <span className="text-sm text-text-muted">

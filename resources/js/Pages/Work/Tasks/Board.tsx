@@ -288,7 +288,7 @@ export default function TaskBoard({
                 {columns.map((col) => (
                     <div
                         key={col.status}
-                        className={`flex w-64 flex-shrink-0 flex-col overflow-hidden rounded-lg border border-border-subtle ${
+                        className={`flex min-w-[14rem] flex-1 flex-col overflow-hidden rounded-lg border border-border-subtle ${
                             dropTarget === col.status && !col.color ? 'ring-2 ring-inset ring-brand-primary' : ''
                         }`}
                         style={

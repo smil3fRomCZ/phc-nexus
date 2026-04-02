@@ -11,6 +11,7 @@ use App\Modules\Projects\Actions\SeedDefaultWorkflow;
 use App\Modules\Projects\Enums\BenefitType;
 use App\Modules\Projects\Enums\ProjectStatus;
 use App\Modules\Projects\Models\Project;
+use App\Modules\Projects\Models\ProjectUpdate;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Gate;
@@ -115,9 +116,56 @@ final class ProjectController extends Controller
 
         $totalHours = (float) $project->timeEntries()->sum('hours');
 
+        $latestUpdate = ProjectUpdate::where('project_id', $project->id)
+            ->with('author:id,name')
+            ->latest()
+            ->first();
+
         return Inertia::render('Projects/Show', [
             'project' => $project,
             'totalHours' => $totalHours,
+            'latestUpdate' => $latestUpdate,
+        ]);
+    }
+
+    public function storeUpdate(Request $request, Project $project): RedirectResponse
+    {
+        Gate::authorize('update', $project);
+
+        $validated = $request->validate([
+            'health' => ['required', 'string', 'in:on_track,at_risk,blocked'],
+            'body' => ['required', 'string', 'max:1000'],
+        ]);
+
+        ProjectUpdate::create([
+            'project_id' => $project->id,
+            'author_id' => $request->user()->id,
+            ...$validated,
+        ]);
+
+        return redirect()->route('projects.show', $project)
+            ->with('success', 'Status update přidán.');
+    }
+
+    public function gantt(Project $project): Response
+    {
+        Gate::authorize('view', $project);
+
+        $tasks = $project->tasks()
+            ->with(['assignee:id,name', 'epic:id,title', 'workflowStatus:id,name,is_done'])
+            ->whereNotNull('due_date')
+            ->orderBy('due_date')
+            ->get(['id', 'title', 'number', 'due_date', 'created_at', 'assignee_id', 'epic_id', 'workflow_status_id']);
+
+        $epics = $project->epics()
+            ->whereNotNull('target_date')
+            ->orderBy('target_date')
+            ->get(['id', 'title', 'number', 'target_date', 'start_date', 'status']);
+
+        return Inertia::render('Projects/Gantt', [
+            'project' => $project->only('id', 'name', 'key'),
+            'tasks' => $tasks,
+            'epics' => $epics,
         ]);
     }
 

@@ -12,8 +12,12 @@ use Illuminate\Support\Facades\Route;
 Route::middleware('auth')->group(function () {
     Route::resource('projects', ProjectController::class);
 
-    // Project time
+    // Project time & gantt
     Route::get('projects/{project}/time', [ProjectController::class, 'time'])->name('projects.time');
+    Route::get('projects/{project}/gantt', [ProjectController::class, 'gantt'])->name('projects.gantt');
+
+    // Project updates
+    Route::post('projects/{project}/updates', [ProjectController::class, 'storeUpdate'])->name('projects.updates.store');
 
     // Project exports
     Route::get('projects/{project}/export/tasks', [ProjectExportController::class, 'tasks'])->name('projects.export.tasks');

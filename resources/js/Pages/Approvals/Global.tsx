@@ -60,7 +60,7 @@ export default function GlobalApprovals({ approvals }: Props) {
 
     return (
         <AppLayout title="Schvalování" breadcrumbs={BREADCRUMBS}>
-            <div className="mx-auto max-w-4xl">
+            <div className="max-w-screen-xl">
                 <h1 className="mb-6 text-xl md:text-2xl font-bold leading-tight text-text-strong">Schvalování</h1>
 
                 {/* Stats */}

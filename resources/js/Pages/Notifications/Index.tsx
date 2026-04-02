@@ -72,7 +72,7 @@ export default function NotificationsIndex({ notifications, unreadCount }: Props
 
     return (
         <AppLayout title="Notifikace" breadcrumbs={BREADCRUMBS}>
-            <div className="mx-auto max-w-3xl">
+            <div className="max-w-screen-lg">
                 <div className="mb-6 flex items-center justify-between">
                     <h1 className="text-xl md:text-2xl font-bold leading-tight text-text-strong">
                         Notifikace

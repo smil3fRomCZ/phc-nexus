@@ -124,4 +124,30 @@ final class OrganizationController extends Controller
         return redirect()->route('admin.organization')
             ->with('success', 'Tým smazán.');
     }
+
+    public function addMember(Request $request, Team $team): RedirectResponse
+    {
+        Gate::authorize('manageMembers', $team);
+
+        $validated = $request->validate([
+            'user_id' => ['required', 'uuid', 'exists:users,id'],
+        ]);
+
+        User::where('id', $validated['user_id'])->update(['team_id' => $team->id]);
+
+        return redirect()->route('admin.organization')
+            ->with('success', 'Člen přidán do týmu.');
+    }
+
+    public function removeMember(Team $team, User $user): RedirectResponse
+    {
+        Gate::authorize('manageMembers', $team);
+
+        if ($user->team_id === $team->id) {
+            $user->update(['team_id' => null]);
+        }
+
+        return redirect()->route('admin.organization')
+            ->with('success', 'Člen odebrán z týmu.');
+    }
 }

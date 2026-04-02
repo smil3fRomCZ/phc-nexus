@@ -10,7 +10,17 @@ import type { Attachment } from '@/Components/AttachmentsSection';
 import { PROJECT_STATUS } from '@/constants/status';
 import { formatDate } from '@/utils/formatDate';
 import { Link, router } from '@inertiajs/react';
-import { Trash2, FileDown, ChevronDown, CheckCircle2, AlertCircle, Layers, Timer } from 'lucide-react';
+import {
+    Trash2,
+    FileDown,
+    ChevronDown,
+    CheckCircle2,
+    AlertCircle,
+    Layers,
+    Timer,
+    Info,
+    AlertTriangle,
+} from 'lucide-react';
 import ProjectTabs from '@/Components/ProjectTabs';
 import { useState, useRef, useEffect } from 'react';
 
@@ -41,7 +51,47 @@ interface Project {
     created_at: string;
 }
 
-export default function ProjectShow({ project, totalHours = 0 }: { project: Project; totalHours: number }) {
+interface StatusUpdate {
+    id: string;
+    health: 'on_track' | 'at_risk' | 'blocked';
+    body: string;
+    author: { id: string; name: string };
+    created_at: string;
+}
+
+const HEALTH_CONFIG = {
+    on_track: {
+        label: 'Na trati',
+        border: 'border-green-500/20',
+        bg: 'bg-green-50',
+        dot: 'bg-green-500/10',
+        dotText: 'text-green-600',
+    },
+    at_risk: {
+        label: 'Ohrožen',
+        border: 'border-amber-500/20',
+        bg: 'bg-amber-50',
+        dot: 'bg-amber-500/10',
+        dotText: 'text-amber-600',
+    },
+    blocked: {
+        label: 'Blokován',
+        border: 'border-red-500/20',
+        bg: 'bg-red-50',
+        dot: 'bg-red-500/10',
+        dotText: 'text-red-600',
+    },
+};
+
+export default function ProjectShow({
+    project,
+    totalHours = 0,
+    latestUpdate,
+}: {
+    project: Project;
+    totalHours: number;
+    latestUpdate?: StatusUpdate | null;
+}) {
     const breadcrumbs: Breadcrumb[] = [
         { label: 'Domů', href: '/' },
         { label: 'Projekty', href: '/projects' },
@@ -50,7 +100,7 @@ export default function ProjectShow({ project, totalHours = 0 }: { project: Proj
 
     return (
         <AppLayout title={project.name} breadcrumbs={breadcrumbs}>
-            <div className="mx-auto max-w-5xl space-y-5">
+            <div className="max-w-screen-xl space-y-5">
                 {/* Header card */}
                 <div className="rounded-lg border border-border-subtle bg-surface-primary p-5">
                     <div className="flex flex-col sm:flex-row items-start justify-between gap-3">
@@ -147,6 +197,12 @@ export default function ProjectShow({ project, totalHours = 0 }: { project: Proj
                         />
                     )}
                 </div>
+
+                {/* Status Update Banner */}
+                {latestUpdate && <StatusUpdateBanner update={latestUpdate} />}
+
+                {/* Add Status Update */}
+                <StatusUpdateForm projectId={project.id} />
 
                 {/* Tab navigation */}
                 <div className="flex items-center justify-between">
@@ -352,6 +408,122 @@ function ExportDropdown({ projectId }: { projectId: string }) {
                     </a>
                 </div>
             )}
+        </div>
+    );
+}
+
+function StatusUpdateBanner({ update }: { update: StatusUpdate }) {
+    const cfg = HEALTH_CONFIG[update.health] ?? HEALTH_CONFIG.on_track;
+    return (
+        <div className={`rounded-lg border ${cfg.border} ${cfg.bg} px-5 py-3`}>
+            <div className="flex items-start gap-3">
+                <div className={`mt-0.5 flex h-6 w-6 shrink-0 items-center justify-center rounded-full ${cfg.dot}`}>
+                    {update.health === 'on_track' ? (
+                        <Info className={`h-3.5 w-3.5 ${cfg.dotText}`} />
+                    ) : (
+                        <AlertTriangle className={`h-3.5 w-3.5 ${cfg.dotText}`} />
+                    )}
+                </div>
+                <div className="flex-1 min-w-0">
+                    <div className="flex flex-wrap items-center gap-2">
+                        <span className="text-sm font-semibold text-text-strong">Status update</span>
+                        <span
+                            className={`inline-flex rounded-[10px] ${cfg.bg} px-1.5 py-px text-[0.65rem] font-semibold ${cfg.dotText}`}
+                        >
+                            {cfg.label}
+                        </span>
+                        <span className="text-xs text-text-muted">
+                            {formatDate(update.created_at)} · {update.author.name}
+                        </span>
+                    </div>
+                    <p className="mt-0.5 text-sm text-text-default">{update.body}</p>
+                </div>
+            </div>
+        </div>
+    );
+}
+
+function StatusUpdateForm({ projectId }: { projectId: string }) {
+    const [open, setOpen] = useState(false);
+    const [health, setHealth] = useState<'on_track' | 'at_risk' | 'blocked'>('on_track');
+    const [body, setBody] = useState('');
+    const [processing, setProcessing] = useState(false);
+
+    function submit() {
+        if (!body.trim()) return;
+        setProcessing(true);
+        router.post(
+            `/projects/${projectId}/updates`,
+            { health, body },
+            {
+                onFinish: () => setProcessing(false),
+                onSuccess: () => {
+                    setOpen(false);
+                    setBody('');
+                },
+            },
+        );
+    }
+
+    if (!open) {
+        return (
+            <button
+                onClick={() => setOpen(true)}
+                className="flex items-center gap-2 text-xs font-medium text-text-muted hover:text-brand-primary"
+            >
+                <Info className="h-3.5 w-3.5" />
+                Přidat status update
+            </button>
+        );
+    }
+
+    const healthOptions: Array<{ value: typeof health; label: string }> = [
+        { value: 'on_track', label: '✓ Na trati' },
+        { value: 'at_risk', label: '⚠ Ohrožen' },
+        { value: 'blocked', label: '✕ Blokován' },
+    ];
+
+    return (
+        <div className="rounded-lg border border-border-subtle bg-surface-primary p-4">
+            <div className="space-y-3">
+                <div className="flex gap-2">
+                    {healthOptions.map((opt) => (
+                        <button
+                            key={opt.value}
+                            onClick={() => setHealth(opt.value)}
+                            className={`rounded-md border px-3 py-1.5 text-xs font-medium transition-colors ${
+                                health === opt.value
+                                    ? 'border-brand-primary bg-brand-soft text-brand-primary'
+                                    : 'border-border-default text-text-muted hover:bg-surface-hover'
+                            }`}
+                        >
+                            {opt.label}
+                        </button>
+                    ))}
+                </div>
+                <textarea
+                    value={body}
+                    onChange={(e) => setBody(e.target.value)}
+                    rows={2}
+                    placeholder="Co se změnilo..."
+                    className="w-full rounded-md border border-border-default bg-surface-primary px-3 py-2 text-sm focus:border-brand-primary focus:outline-none"
+                />
+                <div className="flex gap-2">
+                    <button
+                        onClick={submit}
+                        disabled={processing || !body.trim()}
+                        className="rounded-md bg-brand-primary px-4 py-2 text-sm font-medium text-text-inverse hover:bg-brand-hover disabled:opacity-50"
+                    >
+                        Přidat update
+                    </button>
+                    <button
+                        onClick={() => setOpen(false)}
+                        className="rounded-md border border-border-default px-4 py-2 text-sm font-medium text-text-muted hover:bg-surface-hover"
+                    >
+                        Zrušit
+                    </button>
+                </div>
+            </div>
         </div>
     );
 }

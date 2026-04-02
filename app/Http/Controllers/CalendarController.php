@@ -29,7 +29,10 @@ final class CalendarController extends Controller
 
         $tasks = Task::query()
             ->with(['project:id,name,key', 'workflowStatus:id,name,color,is_done,is_cancelled'])
-            ->whereIn('project_id', $projectIds)
+            ->where(function ($q) use ($user, $projectIds) {
+                $q->whereIn('project_id', $projectIds)
+                    ->orWhere('assignee_id', $user->id);
+            })
             ->whereNotNull('due_date')
             ->where(function ($q) {
                 $q->whereDoesntHave('workflowStatus')
@@ -37,7 +40,7 @@ final class CalendarController extends Controller
             })
             ->whereBetween('due_date', [$start->toDateString(), $end->toDateString()])
             ->orderBy('due_date')
-            ->get(['id', 'title', 'number', 'priority', 'due_date', 'project_id', 'workflow_status_id']);
+            ->get(['id', 'title', 'number', 'priority', 'due_date', 'project_id', 'workflow_status_id', 'assignee_id']);
 
         return Inertia::render('Calendar/Index', [
             'tasks' => $tasks,

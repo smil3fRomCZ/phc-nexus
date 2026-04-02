@@ -35,7 +35,7 @@ class GoogleSsoTest extends TestCase
     {
         $this->mockSocialiteUser('jan@pearshealthcare.cz', 'Jan Novák');
 
-        $response = $this->get('/auth/google/callback');
+        $response = $this->get('/auth/google/callback?code=mock-code');
 
         $response->assertRedirect(route('dashboard'));
         $this->assertAuthenticated();
@@ -54,7 +54,7 @@ class GoogleSsoTest extends TestCase
 
         $this->mockSocialiteUser('jan@pearshealthcare.cz', 'Jan Novák');
 
-        $response = $this->get('/auth/google/callback');
+        $response = $this->get('/auth/google/callback?code=mock-code');
 
         $response->assertRedirect(route('dashboard'));
         $this->assertAuthenticatedAs($user->fresh());

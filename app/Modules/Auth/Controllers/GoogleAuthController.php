@@ -7,6 +7,7 @@ namespace App\Modules\Auth\Controllers;
 use App\Http\Controllers\Controller;
 use App\Modules\Auth\Actions\AuthenticateGoogleUser;
 use Illuminate\Http\RedirectResponse;
+use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Laravel\Socialite\Facades\Socialite;
 
@@ -17,8 +18,13 @@ final class GoogleAuthController extends Controller
         return Socialite::driver('google')->redirect();
     }
 
-    public function callback(AuthenticateGoogleUser $authenticateUser): RedirectResponse
+    public function callback(Request $request, AuthenticateGoogleUser $authenticateUser): RedirectResponse
     {
+        if (! $request->has('code')) {
+            return redirect()->route('login')
+                ->with('error', 'Přihlášení bylo zrušeno.');
+        }
+
         $socialiteUser = Socialite::driver('google')->user();
 
         $invitationToken = session()->pull('pending_invitation');

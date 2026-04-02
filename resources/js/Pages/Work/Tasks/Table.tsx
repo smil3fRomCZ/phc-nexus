@@ -89,14 +89,7 @@ export default function TaskTable({ project, tasks, filters, statuses, prioritie
 
     function applySort(field: string) {
         const dir = filters.sort === field && filters.dir !== 'desc' ? 'desc' : 'asc';
-        router.get(
-            `/projects/${project.id}/table`,
-            { ...filters, sort: field, dir },
-            {
-                preserveState: true,
-                replace: true,
-            },
-        );
+        router.get(`/projects/${project.id}/table`, { ...filters, sort: field, dir }, { replace: true });
     }
 
     function sortIndicator(field: string) {

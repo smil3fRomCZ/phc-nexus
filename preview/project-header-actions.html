@@ -1,0 +1,247 @@
+<!DOCTYPE html>
+<html lang="cs">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Preview — Project Header Actions + Status Update Redesign</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script>
+        tailwindcss.config = {
+            theme: {
+                extend: {
+                    colors: {
+                        brand: { primary: '#2563eb', hover: '#1d4ed8', soft: '#eff6ff', muted: '#93c5fd' },
+                        surface: { primary: '#ffffff', secondary: '#f8fafc', canvas: '#f1f5f9', hover: '#f1f5f9' },
+                        text: { strong: '#0f172a', default: '#334155', muted: '#64748b', subtle: '#94a3b8', inverse: '#ffffff' },
+                        border: { default: '#e2e8f0', subtle: '#f1f5f9' },
+                        status: { info: '#2563eb', 'info-subtle': '#eff6ff', warning: '#d97706', 'warning-subtle': '#fffbeb', danger: '#dc2626', 'danger-subtle': '#fef2f2', neutral: '#64748b', 'neutral-subtle': '#f8fafc' },
+                    },
+                },
+            },
+        };
+    </script>
+</head>
+<body class="bg-surface-canvas p-8">
+
+    <!-- ========== SECTION 1: Header Actions — Options Menu ========== -->
+    <h1 class="mb-2 text-2xl font-bold text-text-strong">1. Header Actions — Responsive Options</h1>
+    <p class="mb-6 text-sm text-text-muted">Tlačítka seskupena: primární akce viditelné, sekundární v "..." menu na malých obrazovkách.</p>
+
+    <div class="max-w-screen-xl">
+        <div class="rounded-lg border border-border-subtle bg-surface-primary p-5">
+            <div class="flex flex-col sm:flex-row items-start justify-between gap-3">
+                <div>
+                    <span class="text-xs font-semibold uppercase tracking-wider text-text-subtle">Projekt</span>
+                    <div class="mt-0.5 flex items-center gap-3">
+                        <h1 class="text-xl font-bold text-text-strong">Replatform E-shop</h1>
+                        <span class="inline-flex rounded-[10px] bg-status-info-subtle px-2 py-px text-xs font-semibold text-status-info">Aktivní</span>
+                    </div>
+                </div>
+                <!-- Actions: desktop = all visible, mobile = options menu -->
+                <div class="flex flex-wrap items-center gap-2">
+                    <!-- Primary: Status Update (vždy viditelný) -->
+                    <button class="flex items-center gap-1.5 rounded-md bg-brand-primary px-3 py-2 text-sm font-medium text-white hover:bg-brand-hover">
+                        <svg class="h-3.5 w-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
+                        Status update
+                    </button>
+                    <!-- Secondary: visible on sm+, in options on mobile -->
+                    <div class="hidden sm:flex items-center gap-2">
+                        <button class="flex items-center gap-1.5 rounded-md border border-border-default px-3 py-2 text-sm font-medium text-text-default hover:bg-surface-hover">
+                            <svg class="h-3.5 w-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15.232 5.232l3.536 3.536m-2.036-5.036a2.5 2.5 0 113.536 3.536L6.5 21.036H3v-3.572L16.732 3.732z"/></svg>
+                            Upravit
+                        </button>
+                        <button class="flex items-center gap-1.5 rounded-md border border-border-default px-3 py-2 text-sm font-medium text-text-default hover:bg-surface-hover">
+                            <svg class="h-3.5 w-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4"/></svg>
+                            Export
+                        </button>
+                        <button class="rounded-md border border-red-200 px-2.5 py-2 text-red-500 hover:bg-red-50">
+                            <svg class="h-3.5 w-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"/></svg>
+                        </button>
+                    </div>
+                    <!-- Options menu (mobile) -->
+                    <div class="relative sm:hidden">
+                        <button class="rounded-md border border-border-default px-2.5 py-2 text-text-muted hover:bg-surface-hover">
+                            <svg class="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 5v.01M12 12v.01M12 19v.01"/></svg>
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- ========== SECTION 2: Status Update Banner Redesign ========== -->
+    <h1 class="mt-12 mb-2 text-2xl font-bold text-text-strong">2. Status Update Banner — Redesign</h1>
+    <p class="mb-6 text-sm text-text-muted">Badge vpravo s tmavším kontrastem, lepší hierarchie informací. Pozice: v header card pod benefit/metadata.</p>
+
+    <div class="max-w-screen-xl space-y-4">
+        <!-- Varianta A: Badge vpravo, čistý layout -->
+        <h3 class="text-sm font-semibold text-text-muted">Varianta A: Badge vpravo, kompaktní</h3>
+        <div class="rounded-lg border border-border-subtle bg-surface-primary">
+            <!-- V header card, pod metadata -->
+            <div class="flex items-stretch">
+                <div class="flex-1 px-5 py-3">
+                    <div class="flex items-center gap-2 text-xs text-text-muted">
+                        <svg class="h-3.5 w-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
+                        <span class="font-medium text-text-default">Poslední update</span>
+                        <span>·</span>
+                        <span>1. 4. 2026</span>
+                        <span>·</span>
+                        <span>Jan Melicherik</span>
+                    </div>
+                    <p class="mt-1 text-sm text-text-default">Checkout flow dokončen a v QA. GP Webpay integrace schválena. Zbývá bankovní převod.</p>
+                </div>
+                <!-- Health badge — right side, full height -->
+                <div class="flex w-24 shrink-0 items-center justify-center rounded-r-lg bg-green-600 text-white">
+                    <div class="text-center">
+                        <svg class="mx-auto h-5 w-5 mb-0.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
+                        <span class="text-xs font-bold">Na trati</span>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- At risk variant -->
+        <div class="rounded-lg border border-border-subtle bg-surface-primary">
+            <div class="flex items-stretch">
+                <div class="flex-1 px-5 py-3">
+                    <div class="flex items-center gap-2 text-xs text-text-muted">
+                        <svg class="h-3.5 w-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-2.5L13.732 4c-.77-.833-1.964-.833-2.732 0L3.34 16.5c-.77.833.192 2.5 1.732 2.5z"/></svg>
+                        <span class="font-medium text-text-default">Poslední update</span>
+                        <span>·</span>
+                        <span>30. 3. 2026</span>
+                        <span>·</span>
+                        <span>PM Tech</span>
+                    </div>
+                    <p class="mt-1 text-sm text-text-default">Core Web Vitals stále nad limitem — LCP 3.2s, cíl &lt;2.5s. Potřeba optimalizace obrázků.</p>
+                </div>
+                <div class="flex w-24 shrink-0 items-center justify-center rounded-r-lg bg-amber-500 text-white">
+                    <div class="text-center">
+                        <svg class="mx-auto h-5 w-5 mb-0.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-2.5L13.732 4c-.77-.833-1.964-.833-2.732 0L3.34 16.5c-.77.833.192 2.5 1.732 2.5z"/></svg>
+                        <span class="text-xs font-bold">Ohrožen</span>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Blocked variant -->
+        <div class="rounded-lg border border-border-subtle bg-surface-primary">
+            <div class="flex items-stretch">
+                <div class="flex-1 px-5 py-3">
+                    <div class="flex items-center gap-2 text-xs text-text-muted">
+                        <svg class="h-3.5 w-3.5 text-red-500" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M18.364 18.364A9 9 0 005.636 5.636m12.728 12.728A9 9 0 015.636 5.636m12.728 12.728L5.636 5.636"/></svg>
+                        <span class="font-medium text-text-default">Poslední update</span>
+                        <span>·</span>
+                        <span>20. 3. 2026</span>
+                    </div>
+                    <p class="mt-1 text-sm text-text-default">Projekt pozastaven — dodavatel WMS nedodal API v3 dokumentaci.</p>
+                </div>
+                <div class="flex w-24 shrink-0 items-center justify-center rounded-r-lg bg-red-600 text-white">
+                    <div class="text-center">
+                        <svg class="mx-auto h-5 w-5 mb-0.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M18.364 18.364A9 9 0 005.636 5.636m12.728 12.728A9 9 0 015.636 5.636m12.728 12.728L5.636 5.636"/></svg>
+                        <span class="text-xs font-bold">Blokován</span>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- ========== SECTION 3: Status Update Position in Header ========== -->
+    <h1 class="mt-12 mb-2 text-2xl font-bold text-text-strong">3. Pozice v header card</h1>
+    <p class="mb-6 text-sm text-text-muted">Status update banner jako poslední sekce v header card, pod benefit/metadata.</p>
+
+    <div class="max-w-screen-xl">
+        <div class="rounded-lg border border-border-subtle bg-surface-primary">
+            <!-- Header top -->
+            <div class="p-5">
+                <div class="flex items-start justify-between gap-3">
+                    <div>
+                        <span class="text-xs font-semibold uppercase tracking-wider text-text-subtle">Projekt</span>
+                        <div class="mt-0.5 flex items-center gap-3">
+                            <h1 class="text-xl font-bold text-text-strong">Replatform E-shop</h1>
+                            <span class="inline-flex rounded-[10px] bg-status-info-subtle px-2 py-px text-xs font-semibold text-status-info">Aktivní</span>
+                        </div>
+                        <p class="mt-1 text-sm text-text-muted">Kompletní přestavba e-shopu na Laravel + React.</p>
+                    </div>
+                    <div class="flex items-center gap-2">
+                        <button class="flex items-center gap-1.5 rounded-md bg-brand-primary px-3 py-2 text-sm font-medium text-white">
+                            <svg class="h-3.5 w-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
+                            Update
+                        </button>
+                        <button class="flex items-center gap-1.5 rounded-md border border-border-default px-3 py-2 text-sm text-text-default">
+                            <svg class="h-3.5 w-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15.232 5.232l3.536 3.536m-2.036-5.036a2.5 2.5 0 113.536 3.536L6.5 21.036H3v-3.572L16.732 3.732z"/></svg>
+                            Upravit
+                        </button>
+                        <button class="rounded-md border border-border-default px-2.5 py-2 text-text-muted">
+                            <svg class="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 5v.01M12 12v.01M12 19v.01"/></svg>
+                        </button>
+                    </div>
+                </div>
+                <!-- Metadata grid -->
+                <div class="mt-4 grid grid-cols-3 gap-4 border-t border-border-subtle pt-4">
+                    <div><span class="text-xs font-semibold uppercase text-text-subtle">Vlastník</span><p class="mt-0.5 text-sm font-medium text-text-strong">Jan Melicherik</p></div>
+                    <div><span class="text-xs font-semibold uppercase text-text-subtle">Tým</span><p class="mt-0.5 text-sm text-text-strong">Backend tým</p></div>
+                    <div><span class="text-xs font-semibold uppercase text-text-subtle">Klasifikace</span><p class="mt-0.5 text-sm text-text-strong">Non-PHI</p></div>
+                </div>
+                <!-- Benefit -->
+                <div class="mt-3 flex items-center gap-3 rounded-md bg-brand-soft px-4 py-2.5 text-sm text-brand-primary">
+                    <span class="font-semibold">Přínos:</span> Zvýšení tržeb · <span class="font-bold">500 000 Kč</span>
+                </div>
+            </div>
+            <!-- Status update — bottom section of header card -->
+            <div class="border-t border-border-subtle">
+                <div class="flex items-stretch">
+                    <div class="flex-1 px-5 py-3">
+                        <div class="flex items-center gap-2 text-xs text-text-muted">
+                            <svg class="h-3.5 w-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
+                            <span class="font-medium text-text-default">Poslední update</span>
+                            <span>·</span>
+                            <span>1. 4. 2026 · Jan Melicherik</span>
+                        </div>
+                        <p class="mt-1 text-sm text-text-default">Checkout flow dokončen a v QA. GP Webpay integrace schválena.</p>
+                    </div>
+                    <div class="flex w-24 shrink-0 items-center justify-center rounded-br-lg bg-green-600 text-white">
+                        <div class="text-center">
+                            <svg class="mx-auto h-5 w-5 mb-0.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
+                            <span class="text-xs font-bold">Na trati</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- ========== SECTION 4: Status Update Modal ========== -->
+    <h1 class="mt-12 mb-2 text-2xl font-bold text-text-strong">4. Status Update — Modal (ne inline form)</h1>
+    <p class="mb-6 text-sm text-text-muted">Klik na "Status update" tlačítko otevře modal přes celou stránku.</p>
+
+    <div class="max-w-lg mx-auto">
+        <div class="rounded-lg border border-border-subtle bg-surface-primary p-6 shadow-xl">
+            <div class="mb-4 flex items-center justify-between">
+                <h2 class="text-lg font-semibold text-text-strong">Status update</h2>
+                <button class="rounded p-2 text-text-muted hover:bg-surface-hover">
+                    <svg class="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/></svg>
+                </button>
+            </div>
+            <div class="space-y-4">
+                <div>
+                    <label class="mb-1.5 block text-xs font-semibold uppercase tracking-wider text-text-subtle">Stav projektu</label>
+                    <div class="flex gap-2">
+                        <button class="flex-1 rounded-md border-2 border-green-500 bg-green-50 px-3 py-2 text-sm font-medium text-green-700">✓ Na trati</button>
+                        <button class="flex-1 rounded-md border border-border-default px-3 py-2 text-sm font-medium text-text-muted hover:bg-surface-hover">⚠ Ohrožen</button>
+                        <button class="flex-1 rounded-md border border-border-default px-3 py-2 text-sm font-medium text-text-muted hover:bg-surface-hover">✕ Blokován</button>
+                    </div>
+                </div>
+                <div>
+                    <label class="mb-1.5 block text-xs font-semibold uppercase tracking-wider text-text-subtle">Zpráva</label>
+                    <textarea rows="3" placeholder="Co se změnilo od posledního updatu..." class="w-full rounded-md border border-border-default bg-surface-primary px-3 py-2 text-sm focus:border-brand-primary focus:outline-none"></textarea>
+                </div>
+                <div class="flex justify-end gap-3 pt-2">
+                    <button class="rounded-md border border-border-default px-4 py-2 text-sm font-medium text-text-muted">Zrušit</button>
+                    <button class="rounded-md bg-brand-primary px-4 py-2 text-sm font-medium text-white">Přidat update</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+</body>
+</html>

@@ -22,18 +22,22 @@ final class CalendarController extends Controller
         $end = $start->copy()->endOfMonth();
 
         // Projekty kde je uživatel členem nebo vlastníkem
-        $projectIds = Project::where('owner_id', $user->id)
-            ->orWhereHas('members', fn ($q) => $q->where('user_id', $user->id))
-            ->pluck('id');
+        $projectIds = Project::where(function ($q) use ($user) {
+            $q->where('owner_id', $user->id)
+                ->orWhereHas('members', fn ($m) => $m->where('user_id', $user->id));
+        })->pluck('id');
 
         $tasks = Task::query()
             ->with(['project:id,name,key', 'workflowStatus:id,name,color,is_done,is_cancelled'])
             ->whereIn('project_id', $projectIds)
             ->whereNotNull('due_date')
-            ->whereHas('workflowStatus', fn ($q) => $q->where('is_cancelled', false))
-            ->whereBetween('due_date', [$start, $end])
+            ->where(function ($q) {
+                $q->whereDoesntHave('workflowStatus')
+                    ->orWhereHas('workflowStatus', fn ($ws) => $ws->where('is_cancelled', false));
+            })
+            ->whereBetween('due_date', [$start->toDateString(), $end->toDateString()])
             ->orderBy('due_date')
-            ->get(['id', 'title', 'priority', 'due_date', 'project_id', 'workflow_status_id']);
+            ->get(['id', 'title', 'number', 'priority', 'due_date', 'project_id', 'workflow_status_id']);
 
         return Inertia::render('Calendar/Index', [
             'tasks' => $tasks,

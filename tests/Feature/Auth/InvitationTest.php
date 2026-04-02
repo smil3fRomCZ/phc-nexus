@@ -146,7 +146,7 @@ class InvitationTest extends TestCase
         $this->mockSocialiteUser($invitation->email, 'Nový Uživatel');
 
         $response = $this->withSession(['pending_invitation' => $invitation->token])
-            ->get('/auth/google/callback');
+            ->get('/auth/google/callback?code=mock-code');
 
         $response->assertRedirect(route('dashboard'));
 
@@ -160,7 +160,7 @@ class InvitationTest extends TestCase
     {
         $this->mockSocialiteUser('random@example.com', 'Random User');
 
-        $response = $this->get('/auth/google/callback');
+        $response = $this->get('/auth/google/callback?code=mock-code');
 
         $response->assertRedirect(route('dashboard'));
 

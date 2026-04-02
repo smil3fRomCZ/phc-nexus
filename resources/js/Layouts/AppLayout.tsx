@@ -20,8 +20,6 @@ import {
     X,
     PanelLeftClose,
     PanelLeftOpen,
-    Settings,
-    User as UserIcon,
 } from 'lucide-react';
 import GlobalSearch from '@/Components/GlobalSearch';
 import useNotificationCount from '@/hooks/useNotificationCount';

@@ -1,3 +1,5 @@
+declare module 'frappe-gantt-css';
+
 declare module 'frappe-gantt' {
     interface GanttTask {
         id: string;

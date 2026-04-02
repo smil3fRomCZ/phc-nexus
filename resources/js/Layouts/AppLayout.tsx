@@ -1,6 +1,6 @@
 import { Head, Link, router, usePage } from '@inertiajs/react';
-import { useState, useEffect, type ReactNode } from 'react';
-import type { PageProps } from '@/types';
+import { useState, useEffect, useRef, type ReactNode } from 'react';
+import type { PageProps, User } from '@/types';
 import Toast from '@/Components/Toast';
 import {
     LayoutDashboard,
@@ -20,6 +20,8 @@ import {
     X,
     PanelLeftClose,
     PanelLeftOpen,
+    Settings,
+    User as UserIcon,
 } from 'lucide-react';
 import GlobalSearch from '@/Components/GlobalSearch';
 import useNotificationCount from '@/hooks/useNotificationCount';
@@ -142,14 +144,7 @@ export default function AppLayout({ title, breadcrumbs, children }: AppLayoutPro
                                 </span>
                             )}
                         </button>
-                        {auth.user && (
-                            <div className="flex items-center gap-2 cursor-pointer">
-                                <div className="flex h-7 w-7 items-center justify-center rounded-full bg-brand-primary text-xs font-semibold text-text-inverse">
-                                    {getInitials(auth.user.name)}
-                                </div>
-                                <span className="text-sm font-medium text-text-default">{auth.user.name}</span>
-                            </div>
-                        )}
+                        {auth.user && <UserMenu user={auth.user} />}
                     </div>
                 </header>
 
@@ -208,21 +203,11 @@ export default function AppLayout({ title, breadcrumbs, children }: AppLayoutPro
                             ))}
                         </nav>
 
-                        <div className="border-t border-border-default p-3">
-                            {auth.user && (
-                                <button
-                                    onClick={() => router.post('/logout')}
-                                    title={collapsed ? 'Odhlásit' : undefined}
-                                    className={`flex w-full items-center gap-2 rounded-sm px-3 py-2 text-sm text-text-muted transition-colors hover:bg-surface-hover hover:text-text-default ${collapsed ? 'justify-center' : ''}`}
-                                >
-                                    <LogOut className="h-4 w-4 flex-shrink-0" />
-                                    {!collapsed && 'Odhlásit'}
-                                </button>
-                            )}
+                        <div className="border-t border-border-default p-3 space-y-1">
                             {/* Collapse toggle — desktop only */}
                             <button
                                 onClick={() => setCollapsed(!collapsed)}
-                                className="mt-1 hidden w-full items-center gap-2 rounded-sm px-3 py-2 text-sm text-text-muted transition-colors hover:bg-surface-hover hover:text-text-default md:flex justify-center"
+                                className={`hidden w-full items-center gap-2 rounded-sm px-3 py-2 text-sm text-text-muted transition-colors hover:bg-surface-hover hover:text-text-default md:flex ${collapsed ? 'justify-center' : ''}`}
                                 title={collapsed ? 'Rozbalit menu' : 'Sbalit menu'}
                             >
                                 {collapsed ? (
@@ -234,6 +219,16 @@ export default function AppLayout({ title, breadcrumbs, children }: AppLayoutPro
                                     </>
                                 )}
                             </button>
+                            {auth.user && (
+                                <button
+                                    onClick={() => router.post('/logout')}
+                                    title={collapsed ? 'Odhlásit' : undefined}
+                                    className={`flex w-full items-center gap-2 rounded-sm px-3 py-2 text-sm text-text-muted transition-colors hover:bg-surface-hover hover:text-text-default ${collapsed ? 'justify-center' : ''}`}
+                                >
+                                    <LogOut className="h-4 w-4 flex-shrink-0" />
+                                    {!collapsed && 'Odhlásit'}
+                                </button>
+                            )}
                         </div>
                     </aside>
 
@@ -270,5 +265,61 @@ export default function AppLayout({ title, breadcrumbs, children }: AppLayoutPro
                 </div>
             </div>
         </>
+    );
+}
+
+function UserMenu({ user }: { user: User }) {
+    const [open, setOpen] = useState(false);
+    const ref = useRef<HTMLDivElement>(null);
+
+    useEffect(() => {
+        function handleClick(e: MouseEvent) {
+            if (ref.current && !ref.current.contains(e.target as Node)) setOpen(false);
+        }
+        document.addEventListener('mousedown', handleClick);
+        return () => document.removeEventListener('mousedown', handleClick);
+    }, []);
+
+    const ROLE_LABELS: Record<string, string> = {
+        executive: 'Executive',
+        project_manager: 'Project Manager',
+        team_member: 'Team Member',
+        service_desk_agent: 'Service Desk',
+        reader: 'Reader',
+    };
+
+    return (
+        <div ref={ref} className="relative">
+            <button
+                onClick={() => setOpen(!open)}
+                className="flex items-center gap-2 rounded-md px-1 py-1 transition-colors hover:bg-surface-hover"
+            >
+                <div className="flex h-7 w-7 items-center justify-center rounded-full bg-brand-primary text-xs font-semibold text-text-inverse">
+                    {getInitials(user.name)}
+                </div>
+                <span className="hidden text-sm font-medium text-text-default sm:inline">{user.name}</span>
+            </button>
+
+            {open && (
+                <div className="absolute right-0 top-full z-50 mt-1 w-56 rounded-lg border border-border-subtle bg-surface-primary py-2 shadow-xl">
+                    <div className="px-4 py-2 border-b border-border-subtle">
+                        <p className="text-sm font-medium text-text-strong">{user.name}</p>
+                        <p className="text-xs text-text-muted">{user.email}</p>
+                        {user.system_role && (
+                            <span className="mt-1 inline-flex rounded-[10px] bg-brand-soft px-2 py-px text-[0.65rem] font-semibold text-brand-primary">
+                                {ROLE_LABELS[user.system_role] ?? user.system_role}
+                            </span>
+                        )}
+                    </div>
+                    <button
+                        onClick={() => router.post('/logout')}
+                        className="flex w-full items-center gap-2 px-4 py-2 text-sm text-text-muted transition-colors hover:bg-surface-hover hover:text-text-default"
+                    >
+                        <LogOut className="h-4 w-4" />
+                        Odhlásit se
+                    </button>
+                </div>
+            )}
+        </div>
     );
 }

@@ -7,7 +7,7 @@ import { getPriority } from '@/constants/priority';
 import { displayKey } from '@/utils/displayKey';
 import { formatDate } from '@/utils/formatDate';
 import { Link, router, useForm } from '@inertiajs/react';
-import { MessageSquare, Plus, ShieldAlert, Settings2, Layers } from 'lucide-react';
+import { MessageSquare, Plus, ShieldAlert, Settings2, Layers, X } from 'lucide-react';
 import ProjectTabs from '@/Components/ProjectTabs';
 import ConfirmModal from '@/Components/ConfirmModal';
 import { useState, useRef, useEffect, type DragEvent } from 'react';
@@ -206,30 +206,40 @@ export default function TaskBoard({
 
             {/* Filter + controls bar */}
             <div className="mb-4 flex flex-wrap items-center gap-3">
-                <select
-                    value={filters.assignee_id ?? ''}
-                    onChange={(e) => applyFilter('assignee_id', e.target.value)}
-                    className="h-8 rounded-md border border-border-default bg-surface-primary px-3 text-sm focus:border-brand-primary focus:outline-none focus:shadow-[0_0_0_2px_var(--color-brand-soft)]"
-                >
-                    <option value="">Všichni řešitelé</option>
-                    {members.map((m) => (
-                        <option key={m.id} value={m.id}>
-                            {m.name}
-                        </option>
-                    ))}
-                </select>
-                <select
-                    value={filters.epic_id ?? ''}
-                    onChange={(e) => applyFilter('epic_id', e.target.value)}
-                    className="h-8 rounded-md border border-border-default bg-surface-primary px-3 text-sm focus:border-brand-primary focus:outline-none focus:shadow-[0_0_0_2px_var(--color-brand-soft)]"
-                >
-                    <option value="">Všechny epicy</option>
-                    {epics.map((ep) => (
-                        <option key={ep.id} value={ep.id}>
-                            {ep.title}
-                        </option>
-                    ))}
-                </select>
+                <div className="relative">
+                    <label className="absolute -top-2 left-2 z-10 bg-surface-primary px-1 text-[0.6rem] font-semibold uppercase tracking-wider text-text-subtle">
+                        Řešitel
+                    </label>
+                    <select
+                        value={filters.assignee_id ?? ''}
+                        onChange={(e) => applyFilter('assignee_id', e.target.value)}
+                        className="h-8 rounded-md border border-border-default bg-surface-primary px-3 pr-8 text-sm focus:border-brand-primary focus:outline-none focus:shadow-[0_0_0_2px_var(--color-brand-soft)]"
+                    >
+                        <option value="">Všichni</option>
+                        {members.map((m) => (
+                            <option key={m.id} value={m.id}>
+                                {m.name}
+                            </option>
+                        ))}
+                    </select>
+                </div>
+                <div className="relative">
+                    <label className="absolute -top-2 left-2 z-10 bg-surface-primary px-1 text-[0.6rem] font-semibold uppercase tracking-wider text-text-subtle">
+                        Epic
+                    </label>
+                    <select
+                        value={filters.epic_id ?? ''}
+                        onChange={(e) => applyFilter('epic_id', e.target.value)}
+                        className="h-8 rounded-md border border-border-default bg-surface-primary px-3 pr-8 text-sm focus:border-brand-primary focus:outline-none focus:shadow-[0_0_0_2px_var(--color-brand-soft)]"
+                    >
+                        <option value="">Všechny</option>
+                        {epics.map((ep) => (
+                            <option key={ep.id} value={ep.id}>
+                                {ep.title}
+                            </option>
+                        ))}
+                    </select>
+                </div>
 
                 {/* Settings popover */}
                 <div ref={settingsRef} className="relative ml-auto">
@@ -283,6 +293,44 @@ export default function TaskBoard({
                 </button>
             </div>
 
+            {/* Active filter chips */}
+            {(filters.assignee_id || filters.epic_id) && (
+                <div className="mb-3 flex flex-wrap items-center gap-2">
+                    <span className="text-xs text-text-muted">Filtry:</span>
+                    {filters.assignee_id && (
+                        <span className="inline-flex items-center gap-1.5 rounded-full bg-brand-soft px-2.5 py-0.5 text-xs font-medium text-brand-primary">
+                            {members.find((m) => m.id === filters.assignee_id)?.name ?? 'Řešitel'}
+                            <button
+                                onClick={() => applyFilter('assignee_id', '')}
+                                className="rounded-full p-0.5 hover:bg-brand-primary/10"
+                            >
+                                <X className="h-3 w-3" />
+                            </button>
+                        </span>
+                    )}
+                    {filters.epic_id && (
+                        <span className="inline-flex items-center gap-1.5 rounded-full bg-brand-soft px-2.5 py-0.5 text-xs font-medium text-brand-primary">
+                            {epics.find((e) => e.id === filters.epic_id)?.title ?? 'Epic'}
+                            <button
+                                onClick={() => applyFilter('epic_id', '')}
+                                className="rounded-full p-0.5 hover:bg-brand-primary/10"
+                            >
+                                <X className="h-3 w-3" />
+                            </button>
+                        </span>
+                    )}
+                    <button
+                        onClick={() => {
+                            applyFilter('assignee_id', '');
+                            applyFilter('epic_id', '');
+                        }}
+                        className="text-xs text-text-muted underline hover:text-text-default"
+                    >
+                        Zrušit vše
+                    </button>
+                </div>
+            )}
+
             {/* Board columns */}
             <div className="flex gap-3 overflow-x-auto pb-4">
                 {columns.map((col) => (
@@ -330,6 +378,7 @@ export default function TaskBoard({
                                     >
                                         <Link
                                             href={`/projects/${project.id}/tasks/${task.id}`}
+                                            draggable={false}
                                             className="line-clamp-2 text-sm font-medium leading-snug text-text-strong no-underline hover:text-brand-primary"
                                         >
                                             <span className="mr-1 text-xs font-semibold text-text-muted">

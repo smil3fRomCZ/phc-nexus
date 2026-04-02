@@ -1,0 +1,98 @@
+<!DOCTYPE html>
+<html lang="cs">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Preview — Kanban Filter UX</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script>
+        tailwindcss.config = {
+            theme: {
+                extend: {
+                    colors: {
+                        brand: { primary: '#2563eb', hover: '#1d4ed8', soft: '#eff6ff', muted: '#93c5fd' },
+                        surface: { primary: '#ffffff', secondary: '#f8fafc', canvas: '#f1f5f9', hover: '#f1f5f9' },
+                        text: { strong: '#0f172a', default: '#334155', muted: '#64748b', subtle: '#94a3b8', inverse: '#ffffff' },
+                        border: { default: '#e2e8f0', subtle: '#f1f5f9' },
+                    },
+                },
+            },
+        };
+    </script>
+</head>
+<body class="bg-surface-canvas p-8">
+    <h1 class="mb-2 text-2xl font-bold text-text-strong">Kanban Filter — Vylepšené UX</h1>
+    <p class="mb-8 text-sm text-text-muted">Filtry mají stále viditelný label + aktivní filtry jako chip badges pod select barem.</p>
+
+    <!-- BEFORE (current) -->
+    <h2 class="mb-3 text-lg font-semibold text-text-strong">Před (aktuální stav)</h2>
+    <div class="mb-10 flex gap-3">
+        <select class="h-8 rounded-md border border-border-default bg-surface-primary px-3 text-sm">
+            <option>Tomáš Dvořák</option>
+        </select>
+        <select class="h-8 rounded-md border border-border-default bg-surface-primary px-3 text-sm">
+            <option>Checkout flow</option>
+        </select>
+        <span class="text-xs text-red-500 mt-2">← Po výběru zmizí label "Všichni řešitelé" / "Všechny epicy"</span>
+    </div>
+
+    <!-- AFTER (improved) -->
+    <h2 class="mb-3 text-lg font-semibold text-text-strong">Po (vylepšený UX)</h2>
+    <div class="max-w-4xl space-y-3">
+        <!-- Filter selects with persistent labels -->
+        <div class="flex flex-wrap items-center gap-3">
+            <div class="relative">
+                <label class="absolute -top-2 left-2 bg-surface-primary px-1 text-[0.6rem] font-semibold uppercase tracking-wider text-text-subtle">Řešitel</label>
+                <select class="h-8 rounded-md border border-border-default bg-surface-primary px-3 pr-8 text-sm">
+                    <option>Všichni</option>
+                    <option selected>Tomáš Dvořák</option>
+                    <option>Petr Krejčí</option>
+                </select>
+            </div>
+            <div class="relative">
+                <label class="absolute -top-2 left-2 bg-surface-primary px-1 text-[0.6rem] font-semibold uppercase tracking-wider text-text-subtle">Epic</label>
+                <select class="h-8 rounded-md border border-border-default bg-surface-primary px-3 pr-8 text-sm">
+                    <option>Všechny</option>
+                    <option selected>Checkout flow</option>
+                </select>
+            </div>
+            <button class="h-8 rounded-md bg-brand-primary px-4 text-sm font-medium text-white">+ Přidat úkol</button>
+        </div>
+
+        <!-- Active filter chips -->
+        <div class="flex flex-wrap items-center gap-2">
+            <span class="text-xs text-text-muted">Aktivní filtry:</span>
+            <div class="inline-flex items-center gap-1.5 rounded-full bg-brand-soft px-2.5 py-0.5 text-xs font-medium text-brand-primary">
+                Řešitel: Tomáš Dvořák
+                <button class="ml-0.5 rounded-full hover:bg-brand-primary/10 p-0.5">
+                    <svg class="h-3 w-3" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/></svg>
+                </button>
+            </div>
+            <div class="inline-flex items-center gap-1.5 rounded-full bg-brand-soft px-2.5 py-0.5 text-xs font-medium text-brand-primary">
+                Epic: Checkout flow
+                <button class="ml-0.5 rounded-full hover:bg-brand-primary/10 p-0.5">
+                    <svg class="h-3 w-3" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/></svg>
+                </button>
+            </div>
+            <button class="text-xs text-text-muted underline hover:text-text-default">Zrušit vše</button>
+        </div>
+    </div>
+
+    <!-- Sorting indicator -->
+    <h2 class="mt-12 mb-3 text-lg font-semibold text-text-strong">Grid Sort — Třístavový cyklus</h2>
+    <p class="mb-4 text-sm text-text-muted">1. klik = ASC ▲, 2. klik = DESC ▼, 3. klik = reset (bez šipky)</p>
+    <div class="max-w-2xl overflow-hidden rounded-lg border border-border-subtle bg-surface-primary">
+        <table class="w-full">
+            <thead>
+                <tr>
+                    <th class="cursor-pointer border-b bg-surface-secondary px-5 py-3 text-left text-xs font-semibold uppercase text-text-subtle hover:text-text-default">Jméno ▲</th>
+                    <th class="cursor-pointer border-b bg-surface-secondary px-5 py-3 text-left text-xs font-semibold uppercase text-text-subtle hover:text-text-default">Email</th>
+                    <th class="cursor-pointer border-b bg-surface-secondary px-5 py-3 text-left text-xs font-semibold uppercase text-brand-primary hover:text-text-default">Role ▼</th>
+                    <th class="border-b bg-surface-secondary px-5 py-3 text-left text-xs font-semibold uppercase text-text-subtle">Tým</th>
+                    <th class="cursor-pointer border-b bg-surface-secondary px-5 py-3 text-left text-xs font-semibold uppercase text-text-subtle hover:text-text-default">Stav</th>
+                </tr>
+            </thead>
+        </table>
+    </div>
+</body>
+</html>

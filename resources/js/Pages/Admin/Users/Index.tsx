@@ -57,7 +57,7 @@ export default function UsersIndex({ users, filters, roles, statuses }: Props) {
 
     function applySort(field: string) {
         const dir = filters.sort === field && filters.dir !== 'desc' ? 'desc' : 'asc';
-        router.get('/admin/users', { ...filters, sort: field, dir }, { preserveState: true, replace: true });
+        router.get('/admin/users', { ...filters, sort: field, dir }, { replace: true });
     }
 
     function sortIndicator(field: string) {

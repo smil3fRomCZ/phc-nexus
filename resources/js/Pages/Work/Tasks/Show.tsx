@@ -61,7 +61,7 @@ interface Task {
     title: string;
     description: string | null;
     status: string;
-    workflow_status: { id: string; name: string; color: string | null } | null;
+    workflow_status: { id: string; name: string; color: string | null; is_done: boolean; is_cancelled: boolean } | null;
     priority: string;
     assignee: { id: string; name: string } | null;
     reporter: { id: string; name: string } | null;
@@ -156,6 +156,7 @@ export default function TaskShow({
     const [editing, setEditing] = useState(false);
     const [requestingApproval, setRequestingApproval] = useState(false);
     const [activeTab, setActiveTab] = useState<'detail' | 'activity' | 'time'>('detail');
+    const isDone = task.workflow_status?.is_done || task.workflow_status?.is_cancelled || false;
 
     const breadcrumbs: Breadcrumb[] = [
         { label: 'Domů', href: '/' },
@@ -215,50 +216,51 @@ export default function TaskShow({
                                     color={task.workflow_status?.color ?? null}
                                 />
                             </div>
-                            <div className="sm:ml-auto flex flex-wrap gap-2">
-                                <button
-                                    onClick={() => setRequestingApproval(true)}
-                                    className="rounded-md border border-border-default px-3 py-1.5 text-xs font-medium text-text-muted transition-colors hover:bg-surface-hover hover:text-text-default"
-                                >
-                                    <ShieldCheck className="mr-1 inline-block h-3 w-3" />
-                                    Žádost o schválení
-                                </button>
-                                <button
-                                    onClick={() => setEditing(true)}
-                                    className="rounded-md border border-border-default px-3 py-1.5 text-xs font-medium text-text-muted transition-colors hover:bg-surface-hover hover:text-text-default"
-                                >
-                                    <Pencil className="mr-1 inline-block h-3 w-3" />
-                                    Upravit
-                                </button>
-                                <button
-                                    onClick={() => router.post(`/projects/${project.id}/tasks/${task.id}/duplicate`)}
-                                    className="rounded-md border border-border-default px-3 py-1.5 text-xs font-medium text-text-muted transition-colors hover:bg-surface-hover hover:text-text-default"
-                                >
-                                    <Copy className="mr-1 inline-block h-3 w-3" />
-                                    Duplikovat
-                                </button>
-                                <button
-                                    onClick={() => {
-                                        if (confirm('Opravdu chcete smazat tento úkol? Tuto akci nelze vrátit.')) {
-                                            router.delete(`/projects/${project.id}/tasks/${task.id}`);
+                            {!isDone && (
+                                <div className="sm:ml-auto flex flex-wrap gap-2">
+                                    <button
+                                        onClick={() => setRequestingApproval(true)}
+                                        className="rounded-md border border-border-default px-3 py-1.5 text-xs font-medium text-text-muted transition-colors hover:bg-surface-hover hover:text-text-default"
+                                    >
+                                        <ShieldCheck className="mr-1 inline-block h-3 w-3" />
+                                        Žádost o schválení
+                                    </button>
+                                    <button
+                                        onClick={() => setEditing(true)}
+                                        className="rounded-md border border-border-default px-3 py-1.5 text-xs font-medium text-text-muted transition-colors hover:bg-surface-hover hover:text-text-default"
+                                    >
+                                        <Pencil className="mr-1 inline-block h-3 w-3" />
+                                        Upravit
+                                    </button>
+                                    <button
+                                        onClick={() =>
+                                            router.post(`/projects/${project.id}/tasks/${task.id}/duplicate`)
                                         }
-                                    }}
-                                    className="rounded-md border border-status-danger/30 px-3 py-1.5 text-xs font-medium text-status-danger transition-colors hover:bg-status-danger-subtle"
-                                >
-                                    <Trash2 className="h-3 w-3" />
-                                </button>
-                            </div>
+                                        className="rounded-md border border-border-default px-3 py-1.5 text-xs font-medium text-text-muted transition-colors hover:bg-surface-hover hover:text-text-default"
+                                    >
+                                        <Copy className="mr-1 inline-block h-3 w-3" />
+                                        Duplikovat
+                                    </button>
+                                    <button
+                                        onClick={() => {
+                                            if (confirm('Opravdu chcete smazat tento úkol? Tuto akci nelze vrátit.')) {
+                                                router.delete(`/projects/${project.id}/tasks/${task.id}`);
+                                            }
+                                        }}
+                                        className="rounded-md border border-status-danger/30 px-3 py-1.5 text-xs font-medium text-status-danger transition-colors hover:bg-status-danger-subtle"
+                                    >
+                                        <Trash2 className="h-3 w-3" />
+                                    </button>
+                                </div>
+                            )}
                         </div>
 
-                        {/* Description */}
-                        {task.description && (
-                            <div className="mt-4 rounded-md border border-border-subtle bg-surface-secondary px-4 py-3">
-                                <span className="mb-1 block text-xs font-semibold uppercase tracking-wider text-text-subtle">
-                                    Popis
-                                </span>
-                                <RichTextDisplay content={task.description} />
-                            </div>
-                        )}
+                        {/* Description — inline editable */}
+                        <InlineDescription
+                            content={task.description}
+                            updateUrl={`/projects/${project.id}/tasks/${task.id}`}
+                            readonly={isDone}
+                        />
 
                         {/* Metadata strip */}
                         <div className="mt-4 flex flex-wrap gap-x-6 gap-y-1 border-t border-border-subtle pt-4 text-xs text-text-muted">
@@ -988,11 +990,11 @@ function DependenciesPanel({
             )}
 
             {adding ? (
-                <div className="flex flex-wrap gap-1">
+                <div className="space-y-1">
                     <select
                         value={selectedId}
                         onChange={(e) => setSelectedId(e.target.value)}
-                        className="flex-1 rounded border border-border-default bg-surface-primary px-2 py-1 text-xs focus:border-border-focus focus:outline-none"
+                        className="w-full rounded border border-border-default bg-surface-primary px-2 py-1 text-xs focus:border-border-focus focus:outline-none"
                     >
                         <option value="">Vyberte blokaci...</option>
                         {available.map((t) => (
@@ -1001,19 +1003,21 @@ function DependenciesPanel({
                             </option>
                         ))}
                     </select>
-                    <button
-                        onClick={addBlocker}
-                        disabled={!selectedId}
-                        className="rounded bg-brand-primary px-2 py-1 text-xs text-text-inverse disabled:opacity-50"
-                    >
-                        Přidat
-                    </button>
-                    <button
-                        onClick={() => setAdding(false)}
-                        className="rounded px-1 py-1 text-xs text-text-muted hover:bg-surface-hover"
-                    >
-                        <X className="h-3 w-3" />
-                    </button>
+                    <div className="flex gap-1">
+                        <button
+                            onClick={addBlocker}
+                            disabled={!selectedId}
+                            className="rounded bg-brand-primary px-2 py-1 text-xs text-text-inverse disabled:opacity-50"
+                        >
+                            Přidat
+                        </button>
+                        <button
+                            onClick={() => setAdding(false)}
+                            className="rounded px-1 py-1 text-xs text-text-muted hover:bg-surface-hover"
+                        >
+                            <X className="h-3 w-3" />
+                        </button>
+                    </div>
                 </div>
             ) : (
                 <button
@@ -1254,6 +1258,83 @@ function AttachmentList({
                 {uploading ? 'Nahrávání...' : 'Nahrát soubor'}
                 <input type="file" className="hidden" onChange={handleUpload} disabled={uploading} />
             </label>
+        </div>
+    );
+}
+
+function InlineDescription({
+    content,
+    updateUrl,
+    readonly,
+}: {
+    content: string | null;
+    updateUrl: string;
+    readonly: boolean;
+}) {
+    const [editing, setEditing] = useState(false);
+    const [value, setValue] = useState(content ?? '');
+    const [saving, setSaving] = useState(false);
+
+    function save() {
+        setSaving(true);
+        router.patch(
+            updateUrl,
+            { description: value },
+            {
+                onFinish: () => setSaving(false),
+                onSuccess: () => setEditing(false),
+                preserveScroll: true,
+            },
+        );
+    }
+
+    if (editing && !readonly) {
+        return (
+            <div className="mt-4 rounded-md border border-brand-primary bg-surface-primary px-4 py-3">
+                <span className="mb-1 block text-xs font-semibold uppercase tracking-wider text-text-subtle">
+                    Popis
+                </span>
+                <RichTextEditor content={value} onChange={setValue} />
+                <div className="mt-2 flex gap-2">
+                    <button
+                        onClick={save}
+                        disabled={saving}
+                        className="rounded-md bg-brand-primary px-3 py-1.5 text-xs font-medium text-text-inverse hover:bg-brand-hover disabled:opacity-50"
+                    >
+                        {saving ? 'Ukládání...' : 'Uložit'}
+                    </button>
+                    <button
+                        onClick={() => {
+                            setEditing(false);
+                            setValue(content ?? '');
+                        }}
+                        className="rounded-md border border-border-default px-3 py-1.5 text-xs font-medium text-text-muted hover:bg-surface-hover"
+                    >
+                        Zrušit
+                    </button>
+                </div>
+            </div>
+        );
+    }
+
+    return (
+        <div
+            className={`mt-4 rounded-md border border-border-subtle bg-surface-secondary px-4 py-3 group ${!readonly ? 'cursor-pointer hover:border-brand-muted' : ''}`}
+            onClick={!readonly ? () => setEditing(true) : undefined}
+        >
+            <div className="mb-1 flex items-center justify-between">
+                <span className="text-xs font-semibold uppercase tracking-wider text-text-subtle">Popis</span>
+                {!readonly && (
+                    <Pencil className="h-3 w-3 text-text-subtle opacity-0 transition-opacity group-hover:opacity-100" />
+                )}
+            </div>
+            {content ? (
+                <RichTextDisplay content={content} />
+            ) : (
+                <p className="text-sm text-text-muted italic">
+                    {readonly ? 'Žádný popis' : 'Klikněte pro přidání popisu...'}
+                </p>
+            )}
         </div>
     );
 }

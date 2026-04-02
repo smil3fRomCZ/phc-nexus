@@ -20,6 +20,7 @@ final class HandleInertiaRequests extends Middleware
                     'id' => $request->user()->id,
                     'name' => $request->user()->name,
                     'email' => $request->user()->email,
+                    /** @phpstan-ignore-next-line */
                     'system_role' => $request->user()->system_role->value,
                 ] : null,
             ],

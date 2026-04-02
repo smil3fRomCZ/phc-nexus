@@ -16,7 +16,6 @@ import {
     BarChart3,
     LogOut,
     ChevronRight,
-    ChevronLeft,
     Menu,
     X,
     PanelLeftClose,

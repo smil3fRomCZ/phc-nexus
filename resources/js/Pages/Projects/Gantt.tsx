@@ -33,7 +33,6 @@ interface Props {
 export default function ProjectGantt({ project, tasks, epics }: Props) {
     const containerRef = useRef<HTMLDivElement>(null);
     const [viewMode, setViewMode] = useState<'Day' | 'Week' | 'Month'>('Week');
-    const [loaded, setLoaded] = useState(false);
 
     const breadcrumbs: Breadcrumb[] = [
         { label: 'Domů', href: '/' },
@@ -82,13 +81,12 @@ export default function ProjectGantt({ project, tasks, epics }: Props) {
                 language: 'cs',
                 readonly: true,
             });
-
-            setLoaded(true);
         });
 
         return () => {
             mounted = false;
         };
+        // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [viewMode, ganttItems.length]);
 
     const hasData = ganttItems.length > 0;

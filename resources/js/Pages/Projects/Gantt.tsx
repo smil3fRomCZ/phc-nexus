@@ -1,4 +1,4 @@
-import 'frappe-gantt/dist/frappe-gantt.css';
+import 'frappe-gantt-css';
 import AppLayout from '@/Layouts/AppLayout';
 import type { Breadcrumb } from '@/Layouts/AppLayout';
 import ProjectTabs from '@/Components/ProjectTabs';

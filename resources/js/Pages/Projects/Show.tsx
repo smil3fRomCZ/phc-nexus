@@ -21,6 +21,8 @@ import {
     Timer,
     Info,
     AlertTriangle,
+    X,
+    MoreVertical,
 } from 'lucide-react';
 import ProjectTabs from '@/Components/ProjectTabs';
 import { useState, useRef, useEffect } from 'react';
@@ -60,28 +62,10 @@ interface StatusUpdate {
     created_at: string;
 }
 
-const HEALTH_CONFIG = {
-    on_track: {
-        label: 'Na trati',
-        border: 'border-green-500/20',
-        bg: 'bg-green-50',
-        dot: 'bg-green-500/10',
-        dotText: 'text-green-600',
-    },
-    at_risk: {
-        label: 'Ohrožen',
-        border: 'border-amber-500/20',
-        bg: 'bg-amber-50',
-        dot: 'bg-amber-500/10',
-        dotText: 'text-amber-600',
-    },
-    blocked: {
-        label: 'Blokován',
-        border: 'border-red-500/20',
-        bg: 'bg-red-50',
-        dot: 'bg-red-500/10',
-        dotText: 'text-red-600',
-    },
+const HEALTH_CONFIG: Record<string, { label: string; badgeBg: string }> = {
+    on_track: { label: 'Na trati', badgeBg: 'bg-green-600' },
+    at_risk: { label: 'Ohrožen', badgeBg: 'bg-amber-500' },
+    blocked: { label: 'Blokován', badgeBg: 'bg-red-600' },
 };
 
 export default function ProjectShow({
@@ -125,25 +109,30 @@ export default function ProjectShow({
                                 <p className="mt-2 text-base text-text-default">{project.description}</p>
                             )}
                         </div>
-                        <div className="flex flex-wrap gap-2">
+                        <div className="flex items-center gap-2">
                             <StatusUpdateForm projectId={project.id} />
-                            <Link
-                                href={`/projects/${project.id}/edit`}
-                                className="flex items-center gap-1.5 rounded-md border border-border-default px-4 py-2 text-sm font-medium text-text-default no-underline transition-colors hover:bg-surface-hover"
-                            >
-                                <Pencil className="h-3.5 w-3.5" />
-                                Upravit
-                            </Link>
-                            <button
-                                onClick={() => {
-                                    if (confirm('Opravdu chcete smazat tento projekt? Tuto akci nelze vrátit.')) {
-                                        router.delete(`/projects/${project.id}`);
-                                    }
-                                }}
-                                className="rounded-md border border-status-danger/30 px-3 py-2 text-sm font-medium text-status-danger transition-colors hover:bg-status-danger-subtle"
-                            >
-                                <Trash2 className="h-4 w-4" />
-                            </button>
+                            <div className="hidden sm:flex items-center gap-2">
+                                <Link
+                                    href={`/projects/${project.id}/edit`}
+                                    className="flex items-center gap-1.5 rounded-md border border-border-default px-3 py-2 text-sm font-medium text-text-default no-underline transition-colors hover:bg-surface-hover"
+                                >
+                                    <Pencil className="h-3.5 w-3.5" />
+                                    Upravit
+                                </Link>
+                                <ExportDropdown projectId={project.id} />
+                                <button
+                                    onClick={() => {
+                                        if (confirm('Opravdu chcete smazat tento projekt? Tuto akci nelze vrátit.')) {
+                                            router.delete(`/projects/${project.id}`);
+                                        }
+                                    }}
+                                    className="rounded-md border border-status-danger/30 px-2.5 py-2 text-status-danger transition-colors hover:bg-status-danger-subtle"
+                                >
+                                    <Trash2 className="h-3.5 w-3.5" />
+                                </button>
+                            </div>
+                            {/* Mobile options */}
+                            <ProjectOptionsMenu projectId={project.id} />
                         </div>
                     </div>
 
@@ -199,16 +188,11 @@ export default function ProjectShow({
                             note={project.benefit_note}
                         />
                     )}
+                    {latestUpdate && <StatusUpdateBanner update={latestUpdate} />}
                 </div>
-
-                {/* Status Update Banner */}
-                {latestUpdate && <StatusUpdateBanner update={latestUpdate} />}
 
                 {/* Tab navigation */}
-                <div className="flex items-center justify-between">
-                    <ProjectTabs projectId={project.id} active="overview" />
-                    <ExportDropdown projectId={project.id} />
-                </div>
+                <ProjectTabs projectId={project.id} active="overview" />
 
                 {/* Metrics */}
                 <ProjectMetrics project={project} totalHours={totalHours} />
@@ -415,30 +399,16 @@ function ExportDropdown({ projectId }: { projectId: string }) {
 function StatusUpdateBanner({ update }: { update: StatusUpdate }) {
     const cfg = HEALTH_CONFIG[update.health] ?? HEALTH_CONFIG.on_track;
     return (
-        <div className={`rounded-lg border ${cfg.border} ${cfg.bg} px-5 py-3`}>
-            <div className="flex items-start gap-3">
-                <div className={`mt-0.5 flex h-6 w-6 shrink-0 items-center justify-center rounded-full ${cfg.dot}`}>
-                    {update.health === 'on_track' ? (
-                        <Info className={`h-3.5 w-3.5 ${cfg.dotText}`} />
-                    ) : (
-                        <AlertTriangle className={`h-3.5 w-3.5 ${cfg.dotText}`} />
-                    )}
-                </div>
-                <div className="flex-1 min-w-0">
-                    <div className="flex flex-wrap items-center gap-2">
-                        <span className="text-sm font-semibold text-text-strong">Status update</span>
-                        <span
-                            className={`inline-flex rounded-[10px] ${cfg.bg} px-1.5 py-px text-[0.65rem] font-semibold ${cfg.dotText}`}
-                        >
-                            {cfg.label}
-                        </span>
-                        <span className="text-xs text-text-muted">
-                            {formatDate(update.created_at)} · {update.author.name}
-                        </span>
-                    </div>
-                    <p className="mt-0.5 text-sm text-text-default">{update.body}</p>
-                </div>
-            </div>
+        <div className={`mt-3 flex items-center gap-3 rounded-md ${cfg.badgeBg} px-4 py-2.5 text-sm text-white`}>
+            {update.health === 'on_track' ? (
+                <CheckCircle2 className="h-4 w-4 shrink-0" />
+            ) : (
+                <AlertTriangle className="h-4 w-4 shrink-0" />
+            )}
+            <span className="font-semibold">{cfg.label}</span>
+            <span className="opacity-80">&middot;</span>
+            <span className="flex-1 truncate opacity-90">{update.body}</span>
+            <span className="shrink-0 text-xs opacity-70">{formatDate(update.created_at)}</span>
         </div>
     );
 }
@@ -465,65 +435,145 @@ function StatusUpdateForm({ projectId }: { projectId: string }) {
         );
     }
 
-    if (!open) {
-        return (
-            <button
-                onClick={() => setOpen(true)}
-                className="flex items-center gap-2 text-xs font-medium text-text-muted hover:text-brand-primary"
-            >
-                <Info className="h-3.5 w-3.5" />
-                Přidat status update
-            </button>
-        );
-    }
-
-    const healthOptions: Array<{ value: typeof health; label: string }> = [
+    const healthOptions: Array<{ value: 'on_track' | 'at_risk' | 'blocked'; label: string }> = [
         { value: 'on_track', label: '✓ Na trati' },
         { value: 'at_risk', label: '⚠ Ohrožen' },
         { value: 'blocked', label: '✕ Blokován' },
     ];
 
     return (
-        <div className="rounded-lg border border-border-subtle bg-surface-primary p-4">
-            <div className="space-y-3">
-                <div className="flex gap-2">
-                    {healthOptions.map((opt) => (
-                        <button
-                            key={opt.value}
-                            onClick={() => setHealth(opt.value)}
-                            className={`rounded-md border px-3 py-1.5 text-xs font-medium transition-colors ${
-                                health === opt.value
-                                    ? 'border-brand-primary bg-brand-soft text-brand-primary'
-                                    : 'border-border-default text-text-muted hover:bg-surface-hover'
-                            }`}
-                        >
-                            {opt.label}
-                        </button>
-                    ))}
-                </div>
-                <textarea
-                    value={body}
-                    onChange={(e) => setBody(e.target.value)}
-                    rows={2}
-                    placeholder="Co se změnilo..."
-                    className="w-full rounded-md border border-border-default bg-surface-primary px-3 py-2 text-sm focus:border-brand-primary focus:outline-none"
-                />
-                <div className="flex gap-2">
-                    <button
-                        onClick={submit}
-                        disabled={processing || !body.trim()}
-                        className="rounded-md bg-brand-primary px-4 py-2 text-sm font-medium text-text-inverse hover:bg-brand-hover disabled:opacity-50"
+        <>
+            <button
+                onClick={() => setOpen(true)}
+                className="flex items-center gap-1.5 rounded-md bg-brand-primary px-3 py-2 text-sm font-medium text-text-inverse transition-colors hover:bg-brand-hover"
+            >
+                <Info className="h-3.5 w-3.5" />
+                Update
+            </button>
+
+            {open && (
+                <div
+                    className="fixed inset-0 z-50 flex items-center justify-center bg-black/50"
+                    onClick={() => setOpen(false)}
+                >
+                    <div
+                        className="mx-4 w-full max-w-lg rounded-lg border border-border-subtle bg-surface-primary p-4 sm:p-6 shadow-xl sm:mx-auto"
+                        onClick={(e) => e.stopPropagation()}
                     >
-                        Přidat update
-                    </button>
-                    <button
-                        onClick={() => setOpen(false)}
-                        className="rounded-md border border-border-default px-4 py-2 text-sm font-medium text-text-muted hover:bg-surface-hover"
+                        <div className="mb-4 flex items-center justify-between">
+                            <h2 className="text-lg font-semibold text-text-strong">Status update</h2>
+                            <button
+                                onClick={() => setOpen(false)}
+                                className="rounded p-2 text-text-muted hover:bg-surface-hover"
+                            >
+                                <X className="h-4 w-4" />
+                            </button>
+                        </div>
+                        <div className="space-y-4">
+                            <div>
+                                <label className="mb-1.5 block text-xs font-semibold uppercase tracking-wider text-text-subtle">
+                                    Stav projektu
+                                </label>
+                                <div className="flex gap-2">
+                                    {healthOptions.map((opt) => (
+                                        <button
+                                            key={opt.value}
+                                            onClick={() => setHealth(opt.value)}
+                                            className={`flex-1 rounded-md border px-3 py-2 text-sm font-medium transition-colors ${
+                                                health === opt.value
+                                                    ? 'border-brand-primary bg-brand-soft text-brand-primary'
+                                                    : 'border-border-default text-text-muted hover:bg-surface-hover'
+                                            }`}
+                                        >
+                                            {opt.label}
+                                        </button>
+                                    ))}
+                                </div>
+                            </div>
+                            <div>
+                                <label className="mb-1.5 block text-xs font-semibold uppercase tracking-wider text-text-subtle">
+                                    Zpráva
+                                </label>
+                                <textarea
+                                    value={body}
+                                    onChange={(e) => setBody(e.target.value)}
+                                    rows={3}
+                                    placeholder="Co se změnilo od posledního updatu..."
+                                    className="w-full rounded-md border border-border-default bg-surface-primary px-3 py-2 text-sm focus:border-brand-primary focus:outline-none"
+                                />
+                            </div>
+                            <div className="flex justify-end gap-3 pt-2">
+                                <button
+                                    onClick={() => setOpen(false)}
+                                    className="rounded-md border border-border-default px-4 py-2 text-sm font-medium text-text-muted hover:bg-surface-hover"
+                                >
+                                    Zrušit
+                                </button>
+                                <button
+                                    onClick={submit}
+                                    disabled={processing || !body.trim()}
+                                    className="rounded-md bg-brand-primary px-4 py-2 text-sm font-medium text-text-inverse hover:bg-brand-hover disabled:opacity-50"
+                                >
+                                    Přidat update
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            )}
+        </>
+    );
+}
+
+function ProjectOptionsMenu({ projectId }: { projectId: string }) {
+    const [open, setOpen] = useState(false);
+    const ref = useRef<HTMLDivElement>(null);
+
+    useEffect(() => {
+        function handleClick(e: MouseEvent) {
+            if (ref.current && !ref.current.contains(e.target as Node)) setOpen(false);
+        }
+        document.addEventListener('mousedown', handleClick);
+        return () => document.removeEventListener('mousedown', handleClick);
+    }, []);
+
+    return (
+        <div ref={ref} className="relative sm:hidden">
+            <button
+                onClick={() => setOpen(!open)}
+                className="rounded-md border border-border-default px-2.5 py-2 text-text-muted transition-colors hover:bg-surface-hover"
+            >
+                <MoreVertical className="h-4 w-4" />
+            </button>
+            {open && (
+                <div className="absolute right-0 top-full z-20 mt-1 w-44 rounded-lg border border-border-subtle bg-surface-primary py-1 shadow-xl">
+                    <Link
+                        href={`/projects/${projectId}/edit`}
+                        className="flex w-full items-center gap-2 px-4 py-2 text-sm text-text-default no-underline hover:bg-surface-hover"
                     >
-                        Zrušit
+                        <Pencil className="h-3.5 w-3.5" />
+                        Upravit
+                    </Link>
+                    <a
+                        href={`/projects/${projectId}/export/tasks?format=csv`}
+                        className="flex w-full items-center gap-2 px-4 py-2 text-sm text-text-default no-underline hover:bg-surface-hover"
+                    >
+                        <FileDown className="h-3.5 w-3.5" />
+                        Export CSV
+                    </a>
+                    <button
+                        onClick={() => {
+                            if (confirm('Opravdu chcete smazat tento projekt?')) {
+                                router.delete(`/projects/${projectId}`);
+                            }
+                        }}
+                        className="flex w-full items-center gap-2 px-4 py-2 text-sm text-status-danger hover:bg-status-danger-subtle"
+                    >
+                        <Trash2 className="h-3.5 w-3.5" />
+                        Smazat
                     </button>
                 </div>
-            </div>
+            )}
         </div>
     );
 }

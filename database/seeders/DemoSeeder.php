@@ -29,6 +29,7 @@ use App\Modules\Work\Models\Task;
 use App\Modules\Work\Models\TimeEntry;
 use Illuminate\Database\Seeder;
 use Illuminate\Support\Facades\Hash;
+use Illuminate\Support\Str;
 
 class DemoSeeder extends Seeder
 {
@@ -1255,7 +1256,7 @@ class DemoSeeder extends Seeder
         // Task assigned notification
         if ($task) {
             DatabaseNotification::create([
-                'id' => \Illuminate\Support\Str::uuid()->toString(),
+                'id' => Str::uuid()->toString(),
                 'type' => 'App\\Modules\\Notifications\\Notifications\\TaskAssignedNotification',
                 'notifiable_type' => User::class,
                 'notifiable_id' => $u['devBack1']->id,
@@ -1272,7 +1273,7 @@ class DemoSeeder extends Seeder
 
             // Task status changed
             DatabaseNotification::create([
-                'id' => \Illuminate\Support\Str::uuid()->toString(),
+                'id' => Str::uuid()->toString(),
                 'type' => 'App\\Modules\\Notifications\\Notifications\\TaskStatusChangedNotification',
                 'notifiable_type' => User::class,
                 'notifiable_id' => $u['pmTech']->id,
@@ -1292,7 +1293,7 @@ class DemoSeeder extends Seeder
         // Approval requested notification
         if ($approval) {
             DatabaseNotification::create([
-                'id' => \Illuminate\Support\Str::uuid()->toString(),
+                'id' => Str::uuid()->toString(),
                 'type' => 'App\\Modules\\Notifications\\Notifications\\ApprovalRequestedNotification',
                 'notifiable_type' => User::class,
                 'notifiable_id' => $u['pmTech']->id,
@@ -1309,7 +1310,7 @@ class DemoSeeder extends Seeder
 
         // Read notification (older)
         DatabaseNotification::create([
-            'id' => \Illuminate\Support\Str::uuid()->toString(),
+            'id' => Str::uuid()->toString(),
             'type' => 'App\\Modules\\Notifications\\Notifications\\TaskAssignedNotification',
             'notifiable_type' => User::class,
             'notifiable_id' => $u['admin']->id,
@@ -1324,7 +1325,7 @@ class DemoSeeder extends Seeder
 
         // Notification for admin (unread)
         DatabaseNotification::create([
-            'id' => \Illuminate\Support\Str::uuid()->toString(),
+            'id' => Str::uuid()->toString(),
             'type' => 'App\\Modules\\Notifications\\Notifications\\ApprovalVoteCastNotification',
             'notifiable_type' => User::class,
             'notifiable_id' => $u['admin']->id,

@@ -378,7 +378,7 @@ final class TaskController extends Controller
         $allowedSorts = ['sort_order', 'title', 'priority', 'due_date', 'created_at'];
         if ($sortField === 'status') {
             $query->orderBy(
-                \App\Modules\Work\Models\WorkflowStatus::select('position')
+                WorkflowStatus::select('position')
                     ->whereColumn('workflow_statuses.id', 'tasks.workflow_status_id')
                     ->limit(1),
                 $sortDir === 'desc' ? 'desc' : 'asc'

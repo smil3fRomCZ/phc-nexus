@@ -39,11 +39,18 @@ final class UserController extends Controller
             $query->where('status', $request->input('status'));
         }
 
-        $users = $query->orderBy('name')->get();
+        $sortField = $request->input('sort', 'name');
+        $sortDir = $request->input('dir', 'asc');
+        $allowedSorts = ['name', 'email', 'system_role', 'status', 'created_at'];
+        if (! in_array($sortField, $allowedSorts, true)) {
+            $sortField = 'name';
+        }
+
+        $users = $query->orderBy($sortField, $sortDir === 'desc' ? 'desc' : 'asc')->get();
 
         return Inertia::render('Admin/Users/Index', [
             'users' => $users,
-            'filters' => $request->only(['search', 'role', 'status']),
+            'filters' => $request->only(['search', 'role', 'status', 'sort', 'dir']),
             'roles' => collect(SystemRole::cases())
                 ->map(fn (SystemRole $r) => ['value' => $r->value, 'label' => $r->label()]),
             'statuses' => collect(UserStatus::cases())

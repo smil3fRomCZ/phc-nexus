@@ -24,7 +24,7 @@ export default function ProjectTime({ project, timeEntries = [], totalHours = 0 
 
     return (
         <AppLayout title={`${project.key} — Čas`} breadcrumbs={breadcrumbs}>
-            <div className="mx-auto max-w-5xl space-y-5">
+            <div className="max-w-screen-xl space-y-5">
                 <div className="flex items-center justify-between">
                     <ProjectTabs projectId={project.id} active="time" />
                 </div>

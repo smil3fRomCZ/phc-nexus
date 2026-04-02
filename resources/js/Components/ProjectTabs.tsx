@@ -18,7 +18,7 @@ const TABS = [
 
 export default function ProjectTabs({ projectId, active }: ProjectTabsProps) {
     return (
-        <nav className="flex gap-0 border-b border-border-subtle">
+        <nav className="-mb-px flex overflow-x-auto border-b border-border-subtle scrollbar-hide">
             {TABS.map((tab) => {
                 const Icon = tab.icon;
                 const isActive = tab.key === active;
@@ -26,14 +26,14 @@ export default function ProjectTabs({ projectId, active }: ProjectTabsProps) {
                     <Link
                         key={tab.key}
                         href={`/projects/${projectId}${tab.path}`}
-                        className={`flex items-center gap-2 border-b-2 px-4 py-2.5 text-sm font-medium no-underline transition-colors ${
+                        className={`flex shrink-0 items-center gap-2 border-b-2 px-3 py-2.5 text-sm font-medium no-underline whitespace-nowrap transition-colors sm:px-4 ${
                             isActive
                                 ? 'border-brand-primary text-brand-primary'
                                 : 'border-transparent text-text-muted hover:text-text-default'
                         }`}
                     >
                         <Icon className="h-3.5 w-3.5" />
-                        {tab.label}
+                        <span className="hidden sm:inline">{tab.label}</span>
                     </Link>
                 );
             })}

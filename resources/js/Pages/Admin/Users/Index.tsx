@@ -23,7 +23,7 @@ interface SelectOption {
 
 interface Props {
     users: User[];
-    filters: { search?: string; role?: string; status?: string };
+    filters: { search?: string; role?: string; status?: string; sort?: string; dir?: string };
     roles: SelectOption[];
     statuses: SelectOption[];
 }
@@ -53,6 +53,16 @@ export default function UsersIndex({ users, filters, roles, statuses }: Props) {
             params.delete(key);
         }
         router.get('/admin/users', Object.fromEntries(params), { preserveState: true });
+    }
+
+    function applySort(field: string) {
+        const dir = filters.sort === field && filters.dir !== 'desc' ? 'desc' : 'asc';
+        router.get('/admin/users', { ...filters, sort: field, dir }, { preserveState: true, replace: true });
+    }
+
+    function sortIndicator(field: string) {
+        if (filters.sort !== field) return '';
+        return filters.dir === 'desc' ? ' ▼' : ' ▲';
     }
 
     function handleSearch(e: FormEvent) {
@@ -123,12 +133,20 @@ export default function UsersIndex({ users, filters, roles, statuses }: Props) {
                 <table className="w-full border-collapse">
                     <thead>
                         <tr>
-                            {['Jméno', 'Email', 'Role', 'Tým', 'Stav'].map((h) => (
+                            {[
+                                { field: 'name', label: 'Jméno', sortable: true },
+                                { field: 'email', label: 'Email', sortable: true },
+                                { field: 'system_role', label: 'Role', sortable: true },
+                                { field: 'team', label: 'Tým', sortable: false },
+                                { field: 'status', label: 'Stav', sortable: true },
+                            ].map((col) => (
                                 <th
-                                    key={h}
-                                    className="border-b border-border-default bg-surface-secondary px-5 py-3 text-left text-xs font-semibold uppercase tracking-wider text-text-subtle"
+                                    key={col.field}
+                                    className={`border-b border-border-default bg-surface-secondary px-5 py-3 text-left text-xs font-semibold uppercase tracking-wider text-text-subtle ${col.sortable ? 'cursor-pointer hover:text-text-default' : ''}`}
+                                    onClick={col.sortable ? () => applySort(col.field) : undefined}
                                 >
-                                    {h}
+                                    {col.label}
+                                    {col.sortable ? sortIndicator(col.field) : ''}
                                 </th>
                             ))}
                         </tr>

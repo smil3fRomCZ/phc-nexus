@@ -1,0 +1,141 @@
+<!DOCTYPE html>
+<html lang="cs">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Preview — Organizace: Správa členů týmu</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script>
+        tailwindcss.config = {
+            theme: {
+                extend: {
+                    colors: {
+                        brand: { primary: '#2563eb', hover: '#1d4ed8', soft: '#eff6ff' },
+                        surface: { primary: '#ffffff', secondary: '#f8fafc', canvas: '#f1f5f9', hover: '#f1f5f9' },
+                        text: { strong: '#0f172a', default: '#334155', muted: '#64748b', subtle: '#94a3b8', inverse: '#ffffff' },
+                        border: { default: '#e2e8f0', subtle: '#f1f5f9' },
+                        status: {
+                            info: '#2563eb', 'info-subtle': '#eff6ff',
+                            warning: '#d97706', 'warning-subtle': '#fffbeb',
+                            danger: '#dc2626', 'danger-subtle': '#fef2f2',
+                            neutral: '#64748b', 'neutral-subtle': '#f8fafc',
+                        },
+                    },
+                },
+            },
+        };
+    </script>
+</head>
+<body class="bg-surface-canvas p-8">
+    <h1 class="mb-6 text-2xl font-bold text-text-strong">Organizace — Správa členů týmu</h1>
+    <p class="mb-8 text-sm text-text-muted">Preview: Po kliknutí na "Spravovat členy" se otevře modal s možností přidávat/odebírat členy týmu.</p>
+
+    <!-- Team card with manage button -->
+    <div class="max-w-4xl rounded-lg border border-border-subtle bg-surface-primary">
+        <div class="flex items-center gap-3 border-b border-border-subtle px-5 py-4">
+            <svg class="h-5 w-5 text-brand-primary" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4"/></svg>
+            <div class="min-w-0 flex-1">
+                <h2 class="text-base font-semibold text-text-strong">Engineering</h2>
+                <p class="text-sm text-text-muted">Technické oddělení</p>
+            </div>
+        </div>
+
+        <div class="divide-y divide-border-subtle">
+            <div class="px-5 py-4">
+                <div class="mb-3 flex flex-wrap items-center gap-2">
+                    <svg class="h-4 w-4 text-text-muted" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4.354a4 4 0 110 5.292M15 21H3v-1a6 6 0 0112 0v1zm0 0h6v-1a6 6 0 00-9-5.197M13 7a4 4 0 11-8 0 4 4 0 018 0z"/></svg>
+                    <h3 class="text-sm font-semibold text-text-strong">Backend tým</h3>
+                    <span class="flex items-center gap-1 rounded-full bg-status-warning-subtle px-2 py-px text-xs text-status-warning">
+                        <svg class="h-3 w-3" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 3v4M3 5h4M6 17v4m-2-2h4m5-16l2.286 6.857L21 12l-5.714 2.143L13 21l-2.286-6.857L5 12l5.714-2.143L13 3z"/></svg>
+                        Tomáš Dvořák
+                    </span>
+                    <span class="text-xs text-text-muted">4 členů</span>
+                    <button class="ml-auto flex items-center gap-1 rounded-md border border-border-default px-3 py-1.5 text-xs font-medium text-text-muted hover:bg-surface-hover hover:text-text-default">
+                        <svg class="h-3.5 w-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4.354a4 4 0 110 5.292M15 21H3v-1a6 6 0 0112 0v1zm0 0h6v-1a6 6 0 00-9-5.197M13 7a4 4 0 11-8 0 4 4 0 018 0z"/></svg>
+                        Spravovat členy
+                    </button>
+                </div>
+                <div class="flex flex-wrap gap-2 pl-6">
+                    <div class="flex items-center gap-2 rounded-full bg-surface-secondary px-3 py-1">
+                        <div class="flex h-5 w-5 items-center justify-center rounded-full bg-brand-primary text-[0.5rem] font-semibold text-white">TD</div>
+                        <span class="text-xs text-text-default">Tomáš Dvořák</span>
+                    </div>
+                    <div class="flex items-center gap-2 rounded-full bg-surface-secondary px-3 py-1">
+                        <div class="flex h-5 w-5 items-center justify-center rounded-full bg-emerald-500 text-[0.5rem] font-semibold text-white">PK</div>
+                        <span class="text-xs text-text-default">Petr Krejčí</span>
+                    </div>
+                    <div class="flex items-center gap-2 rounded-full bg-surface-secondary px-3 py-1">
+                        <div class="flex h-5 w-5 items-center justify-center rounded-full bg-violet-500 text-[0.5rem] font-semibold text-white">JN</div>
+                        <span class="text-xs text-text-default">Jana Nováková</span>
+                    </div>
+                    <div class="flex items-center gap-2 rounded-full bg-surface-secondary px-3 py-1">
+                        <div class="flex h-5 w-5 items-center justify-center rounded-full bg-orange-500 text-[0.5rem] font-semibold text-white">MV</div>
+                        <span class="text-xs text-text-default">Martin Veselý</span>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Modal: Manage Members -->
+    <div class="mt-12">
+        <h2 class="mb-4 text-lg font-semibold text-text-strong">Modal: Spravovat členy týmu</h2>
+        <div class="max-w-md rounded-lg border border-border-subtle bg-surface-primary p-6 shadow-xl">
+            <div class="mb-4 flex items-center justify-between">
+                <h3 class="text-lg font-semibold text-text-strong">Členové — Backend tým</h3>
+                <button class="rounded p-2 text-text-muted hover:bg-surface-hover">
+                    <svg class="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/></svg>
+                </button>
+            </div>
+
+            <!-- Current members -->
+            <div class="mb-4 space-y-2">
+                <span class="text-xs font-semibold uppercase tracking-wider text-text-subtle">Aktuální členové</span>
+                <div class="space-y-1.5">
+                    <div class="flex items-center justify-between rounded-md bg-surface-secondary px-3 py-2">
+                        <div class="flex items-center gap-2">
+                            <div class="flex h-6 w-6 items-center justify-center rounded-full bg-brand-primary text-[0.55rem] font-semibold text-white">TD</div>
+                            <span class="text-sm text-text-default">Tomáš Dvořák</span>
+                            <span class="rounded-full bg-status-warning-subtle px-1.5 py-px text-[0.65rem] text-status-warning">Lead</span>
+                        </div>
+                    </div>
+                    <div class="flex items-center justify-between rounded-md bg-surface-secondary px-3 py-2">
+                        <div class="flex items-center gap-2">
+                            <div class="flex h-6 w-6 items-center justify-center rounded-full bg-emerald-500 text-[0.55rem] font-semibold text-white">PK</div>
+                            <span class="text-sm text-text-default">Petr Krejčí</span>
+                        </div>
+                        <button class="rounded p-1.5 text-text-muted hover:bg-status-danger-subtle hover:text-status-danger">
+                            <svg class="h-3.5 w-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/></svg>
+                        </button>
+                    </div>
+                    <div class="flex items-center justify-between rounded-md bg-surface-secondary px-3 py-2">
+                        <div class="flex items-center gap-2">
+                            <div class="flex h-6 w-6 items-center justify-center rounded-full bg-violet-500 text-[0.55rem] font-semibold text-white">JN</div>
+                            <span class="text-sm text-text-default">Jana Nováková</span>
+                        </div>
+                        <button class="rounded p-1.5 text-text-muted hover:bg-status-danger-subtle hover:text-status-danger">
+                            <svg class="h-3.5 w-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/></svg>
+                        </button>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Add member -->
+            <div>
+                <span class="text-xs font-semibold uppercase tracking-wider text-text-subtle">Přidat člena</span>
+                <div class="mt-1 flex gap-2">
+                    <select class="flex-1 rounded-md border border-border-default bg-surface-primary px-3 py-2 text-sm focus:border-brand-primary focus:outline-none">
+                        <option value="">Vyberte uživatele...</option>
+                        <option>Lukáš Procházka</option>
+                        <option>Eva Svobodová</option>
+                        <option>Michal Černý</option>
+                    </select>
+                    <button class="rounded-md bg-brand-primary px-4 py-2 text-sm font-medium text-white hover:bg-brand-hover">
+                        Přidat
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+</body>
+</html>

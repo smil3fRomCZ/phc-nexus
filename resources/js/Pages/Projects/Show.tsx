@@ -50,7 +50,7 @@ export default function ProjectShow({ project, totalHours = 0 }: { project: Proj
 
     return (
         <AppLayout title={project.name} breadcrumbs={breadcrumbs}>
-            <div className="mx-auto max-w-5xl space-y-5">
+            <div className="max-w-screen-xl space-y-5">
                 {/* Header card */}
                 <div className="rounded-lg border border-border-subtle bg-surface-primary p-5">
                     <div className="flex flex-col sm:flex-row items-start justify-between gap-3">

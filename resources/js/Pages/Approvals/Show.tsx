@@ -86,7 +86,7 @@ export default function ApprovalShow({ project, approvalRequest: req, auth }: Pr
 
     return (
         <AppLayout title={`${project.key} — Approval`} breadcrumbs={breadcrumbs}>
-            <div className="mx-auto max-w-4xl">
+            <div className="max-w-screen-xl">
                 <div className="mb-6">
                     <div className="flex items-center gap-3">
                         <h1 className="text-xl md:text-2xl font-bold leading-tight text-text-strong">

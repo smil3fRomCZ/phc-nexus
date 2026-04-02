@@ -1,5 +1,5 @@
 import { Head, Link, router, usePage } from '@inertiajs/react';
-import { useState, type ReactNode } from 'react';
+import { useState, useEffect, type ReactNode } from 'react';
 import type { PageProps } from '@/types';
 import Toast from '@/Components/Toast';
 import {
@@ -16,8 +16,11 @@ import {
     BarChart3,
     LogOut,
     ChevronRight,
+    ChevronLeft,
     Menu,
     X,
+    PanelLeftClose,
+    PanelLeftOpen,
 } from 'lucide-react';
 import GlobalSearch from '@/Components/GlobalSearch';
 import useNotificationCount from '@/hooks/useNotificationCount';
@@ -82,6 +85,14 @@ export default function AppLayout({ title, breadcrumbs, children }: AppLayoutPro
     const notificationCount = useNotificationCount(initialCount);
     const currentPath = typeof window !== 'undefined' ? window.location.pathname : '';
     const [sidebarOpen, setSidebarOpen] = useState(false);
+    const [collapsed, setCollapsed] = useState(() => {
+        if (typeof window === 'undefined') return false;
+        return localStorage.getItem('sidebar-collapsed') === '1';
+    });
+
+    useEffect(() => {
+        localStorage.setItem('sidebar-collapsed', collapsed ? '1' : '0');
+    }, [collapsed]);
 
     function isActive(href: string): boolean {
         if (href === '/') return currentPath === '/';
@@ -154,16 +165,19 @@ export default function AppLayout({ title, breadcrumbs, children }: AppLayoutPro
 
                     {/* ── Sidebar ── */}
                     <aside
-                        className={`fixed inset-y-0 left-0 z-40 flex w-64 flex-shrink-0 flex-col border-r border-border-default bg-surface-primary overflow-y-auto pt-12 transition-transform md:static md:z-auto md:pt-0 md:translate-x-0 ${
-                            sidebarOpen ? 'translate-x-0' : '-translate-x-full'
-                        }`}
+                        className={`fixed inset-y-0 left-0 z-40 flex flex-shrink-0 flex-col border-r border-border-default bg-surface-primary overflow-y-auto pt-12 transition-all md:static md:z-auto md:pt-0 md:translate-x-0 ${
+                            collapsed ? 'md:w-16' : 'md:w-64'
+                        } w-64 ${sidebarOpen ? 'translate-x-0' : '-translate-x-full'}`}
                     >
                         <nav className="flex-1 py-4">
                             {NAV_SECTIONS.map((section) => (
                                 <div key={section.label} className="mb-4">
-                                    <div className="px-6 pb-1 pt-2 text-xs font-semibold uppercase tracking-[0.05em] text-text-subtle">
-                                        {section.label}
-                                    </div>
+                                    {!collapsed && (
+                                        <div className="px-6 pb-1 pt-2 text-xs font-semibold uppercase tracking-[0.05em] text-text-subtle">
+                                            {section.label}
+                                        </div>
+                                    )}
+                                    {collapsed && <div className="mb-1 border-b border-border-subtle mx-2" />}
                                     {section.items.map((item) => {
                                         const active = isActive(item.href);
                                         const Icon = item.icon;
@@ -172,7 +186,10 @@ export default function AppLayout({ title, breadcrumbs, children }: AppLayoutPro
                                                 key={item.href + item.label}
                                                 href={item.href}
                                                 onClick={() => setSidebarOpen(false)}
-                                                className={`flex items-center gap-3 border-l-[3px] px-6 py-2 text-sm transition-colors ${
+                                                title={collapsed ? item.label : undefined}
+                                                className={`flex items-center gap-3 border-l-[3px] py-2 text-sm transition-colors ${
+                                                    collapsed ? 'justify-center px-2' : 'px-6'
+                                                } ${
                                                     active
                                                         ? 'border-l-brand-hover bg-brand-soft font-medium text-brand-hover'
                                                         : 'border-l-transparent text-text-default hover:bg-surface-hover'
@@ -184,7 +201,7 @@ export default function AppLayout({ title, breadcrumbs, children }: AppLayoutPro
                                                     }`}
                                                     strokeWidth={2}
                                                 />
-                                                {item.label}
+                                                {!collapsed && item.label}
                                             </Link>
                                         );
                                     })}
@@ -192,17 +209,33 @@ export default function AppLayout({ title, breadcrumbs, children }: AppLayoutPro
                             ))}
                         </nav>
 
-                        {auth.user && (
-                            <div className="border-t border-border-default p-3">
+                        <div className="border-t border-border-default p-3">
+                            {auth.user && (
                                 <button
                                     onClick={() => router.post('/logout')}
-                                    className="flex w-full items-center gap-2 rounded-sm px-3 py-2 text-sm text-text-muted transition-colors hover:bg-surface-hover hover:text-text-default"
+                                    title={collapsed ? 'Odhlásit' : undefined}
+                                    className={`flex w-full items-center gap-2 rounded-sm px-3 py-2 text-sm text-text-muted transition-colors hover:bg-surface-hover hover:text-text-default ${collapsed ? 'justify-center' : ''}`}
                                 >
-                                    <LogOut className="h-4 w-4" />
-                                    Odhlásit
+                                    <LogOut className="h-4 w-4 flex-shrink-0" />
+                                    {!collapsed && 'Odhlásit'}
                                 </button>
-                            </div>
-                        )}
+                            )}
+                            {/* Collapse toggle — desktop only */}
+                            <button
+                                onClick={() => setCollapsed(!collapsed)}
+                                className="mt-1 hidden w-full items-center gap-2 rounded-sm px-3 py-2 text-sm text-text-muted transition-colors hover:bg-surface-hover hover:text-text-default md:flex justify-center"
+                                title={collapsed ? 'Rozbalit menu' : 'Sbalit menu'}
+                            >
+                                {collapsed ? (
+                                    <PanelLeftOpen className="h-4 w-4" />
+                                ) : (
+                                    <>
+                                        <PanelLeftClose className="h-4 w-4" />
+                                        <span>Sbalit</span>
+                                    </>
+                                )}
+                            </button>
+                        </div>
                     </aside>
 
                     {/* ── Main Content ── */}

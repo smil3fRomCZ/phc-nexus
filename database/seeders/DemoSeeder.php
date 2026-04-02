@@ -18,7 +18,9 @@ use App\Modules\Organization\Models\Tribe;
 use App\Modules\Projects\Enums\BenefitType;
 use App\Modules\Projects\Enums\ProjectStatus;
 use App\Modules\Projects\Models\Project;
+use App\Modules\Projects\Models\ProjectUpdate;
 use App\Modules\Wiki\Models\WikiPage;
+use Illuminate\Notifications\DatabaseNotification;
 use App\Modules\Work\Enums\EpicStatus;
 use App\Modules\Work\Enums\RecurrenceRule;
 use App\Modules\Work\Enums\TaskPriority;
@@ -97,6 +99,9 @@ class DemoSeeder extends Seeder
         $this->seedProjectSeo($users);
         $this->seedProjectLoyalty($users);
         $this->seedProjectWms($users);
+        $this->seedProjectUpdates($users);
+        $this->seedNotifications($users);
+        $this->seedTaskDependencies();
     }
 
     // ──────────────────────────────────────────────
@@ -1172,5 +1177,188 @@ class DemoSeeder extends Seeder
             'status' => UserStatus::Active,
             'team_id' => $teamId,
         ]);
+    }
+
+    // ──────────────────────────────────────────────
+    // Project Updates — status health updates
+    // ──────────────────────────────────────────────
+
+    private function seedProjectUpdates(array $u): void
+    {
+        $eshop = Project::where('key', 'ESHOP')->first();
+        $seo = Project::where('key', 'SEO')->first();
+        $wms = Project::where('key', 'WMS')->first();
+        $loyal = Project::where('key', 'LOYAL')->first();
+
+        if ($eshop) {
+            ProjectUpdate::create([
+                'project_id' => $eshop->id,
+                'author_id' => $u['pmTech']->id,
+                'health' => 'on_track',
+                'body' => 'Checkout flow dokončen a v QA. GP Webpay integrace schválena. Zbývá bankovní převod — blokováno na FIO API credentials.',
+                'created_at' => '2026-04-01 09:00:00',
+            ]);
+            ProjectUpdate::create([
+                'project_id' => $eshop->id,
+                'author_id' => $u['pmTech']->id,
+                'health' => 'on_track',
+                'body' => 'Epic Katalog a Košík dokončeny. Sprint 4 zahájen — focus na platby a checkout.',
+                'created_at' => '2026-03-25 14:00:00',
+            ]);
+        }
+
+        if ($seo) {
+            ProjectUpdate::create([
+                'project_id' => $seo->id,
+                'author_id' => $u['pmMkt']->id,
+                'health' => 'at_risk',
+                'body' => 'Core Web Vitals stále nad limitem — LCP 3.2s, cíl <2.5s. Potřeba optimalizace obrázků a lazy loading.',
+                'created_at' => '2026-03-30 11:00:00',
+            ]);
+        }
+
+        if ($wms) {
+            ProjectUpdate::create([
+                'project_id' => $wms->id,
+                'author_id' => $u['logistik']->id,
+                'health' => 'blocked',
+                'body' => 'Projekt pozastaven — dodavatel WMS nedodal API v3 dokumentaci. Eskalováno na vedení. Čeká se na obnovení.',
+                'created_at' => '2026-03-20 16:00:00',
+            ]);
+        }
+
+        if ($loyal) {
+            ProjectUpdate::create([
+                'project_id' => $loyal->id,
+                'author_id' => $u['pmMkt']->id,
+                'health' => 'on_track',
+                'body' => 'Koncept loyalty programu schválen vedením. Specifikace bodového systému a úrovní hotova. Čeká se na technickou analýzu.',
+                'created_at' => '2026-03-28 10:00:00',
+            ]);
+        }
+    }
+
+    // ──────────────────────────────────────────────
+    // Notifikace — demo notifikace pro uživatele
+    // ──────────────────────────────────────────────
+
+    private function seedNotifications(array $u): void
+    {
+        $eshop = Project::where('key', 'ESHOP')->first();
+        if (! $eshop) {
+            return;
+        }
+
+        $task = Task::where('title', 'GP Webpay integrace')->first();
+        $approval = ApprovalRequest::where('status', ApprovalStatus::Pending)->first();
+
+        // Task assigned notification
+        if ($task) {
+            DatabaseNotification::create([
+                'id' => \Illuminate\Support\Str::uuid()->toString(),
+                'type' => 'App\\Modules\\Notifications\\Notifications\\TaskAssignedNotification',
+                'notifiable_type' => User::class,
+                'notifiable_id' => $u['devBack1']->id,
+                'data' => json_encode([
+                    'title' => 'Úkol přiřazen',
+                    'body' => 'Byl vám přiřazen úkol: GP Webpay integrace',
+                    'task_id' => $task->id,
+                    'project_id' => $eshop->id,
+                    'assigned_by_name' => $u['pmTech']->name,
+                    'type' => 'task_assigned',
+                ]),
+                'created_at' => '2026-03-30 09:00:00',
+            ]);
+
+            // Task status changed
+            DatabaseNotification::create([
+                'id' => \Illuminate\Support\Str::uuid()->toString(),
+                'type' => 'App\\Modules\\Notifications\\Notifications\\TaskStatusChangedNotification',
+                'notifiable_type' => User::class,
+                'notifiable_id' => $u['pmTech']->id,
+                'data' => json_encode([
+                    'title' => 'Stav úkolu změněn',
+                    'body' => 'GP Webpay integrace: In Progress → Code Review',
+                    'task_id' => $task->id,
+                    'project_id' => $eshop->id,
+                    'old_status' => 'in_progress',
+                    'new_status' => 'code_review',
+                    'type' => 'task_status_changed',
+                ]),
+                'created_at' => '2026-03-31 11:00:00',
+            ]);
+        }
+
+        // Approval requested notification
+        if ($approval) {
+            DatabaseNotification::create([
+                'id' => \Illuminate\Support\Str::uuid()->toString(),
+                'type' => 'App\\Modules\\Notifications\\Notifications\\ApprovalRequestedNotification',
+                'notifiable_type' => User::class,
+                'notifiable_id' => $u['pmTech']->id,
+                'data' => json_encode([
+                    'title' => 'Žádost o schválení',
+                    'body' => 'Nová žádost o schválení: UX review checkout flow',
+                    'approval_request_id' => $approval->id,
+                    'requester_name' => $u['devFront']->name,
+                    'type' => 'approval_requested',
+                ]),
+                'created_at' => '2026-03-29 14:00:00',
+            ]);
+        }
+
+        // Read notification (older)
+        DatabaseNotification::create([
+            'id' => \Illuminate\Support\Str::uuid()->toString(),
+            'type' => 'App\\Modules\\Notifications\\Notifications\\TaskAssignedNotification',
+            'notifiable_type' => User::class,
+            'notifiable_id' => $u['admin']->id,
+            'data' => json_encode([
+                'title' => 'Úkol přiřazen',
+                'body' => 'Byli jste přidáni jako člen projektu Replatform E-shop.',
+                'type' => 'task_assigned',
+            ]),
+            'read_at' => '2026-03-25 10:00:00',
+            'created_at' => '2026-03-25 08:00:00',
+        ]);
+
+        // Notification for admin (unread)
+        DatabaseNotification::create([
+            'id' => \Illuminate\Support\Str::uuid()->toString(),
+            'type' => 'App\\Modules\\Notifications\\Notifications\\ApprovalVoteCastNotification',
+            'notifiable_type' => User::class,
+            'notifiable_id' => $u['admin']->id,
+            'data' => json_encode([
+                'title' => 'Hlasování o schválení',
+                'body' => 'Code review GP Webpay integrace bylo schváleno.',
+                'approval_request_id' => $approval?->id,
+                'voter_name' => $u['pmTech']->name,
+                'decision' => 'approved',
+                'type' => 'approval_vote_cast',
+            ]),
+            'created_at' => '2026-03-31 14:30:00',
+        ]);
+    }
+
+    // ──────────────────────────────────────────────
+    // Task dependencies — blokovací závislosti
+    // ──────────────────────────────────────────────
+
+    private function seedTaskDependencies(): void
+    {
+        $gpWebpay = Task::where('title', 'GP Webpay integrace')->first();
+        $bankTransfer = Task::where('title', 'Bankovní převod — generování VS, párování')->first();
+        $applePay = Task::where('title', 'Apple Pay / Google Pay')->first();
+        $checkoutWizard = Task::where('title', 'Checkout wizard — multi-step formulář')->first();
+
+        if ($gpWebpay && $applePay) {
+            // Apple Pay závisí na GP Webpay (sdílí payment gateway)
+            $applePay->blockers()->syncWithoutDetaching([$gpWebpay->id]);
+        }
+
+        if ($checkoutWizard && $gpWebpay && $bankTransfer) {
+            // Checkout wizard závisí na obou platebních metodách
+            $checkoutWizard->blockers()->syncWithoutDetaching([$gpWebpay->id, $bankTransfer->id]);
+        }
     }
 }

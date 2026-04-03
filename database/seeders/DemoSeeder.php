@@ -1229,9 +1229,6 @@ class DemoSeeder extends Seeder
         return $created;
     }
 
-    /**
-     * @param  array{job_title?: string, phone?: string, bio?: string, capacity_h_week?: float, status?: UserStatus}  $extra
-     */
     private function createUser(string $name, string $email, SystemRole $role, ?string $teamId = null, array $extra = []): User
     {
         return User::create([

@@ -1,9 +1,12 @@
 import AppLayout from '@/Layouts/AppLayout';
 import type { Breadcrumb } from '@/Layouts/AppLayout';
 import EmptyState from '@/Components/EmptyState';
+import SortableHeader, { PlainHeader } from '@/Components/SortableHeader';
+import { useFilterRouter } from '@/hooks/useFilterRouter';
+import { useClientSort } from '@/hooks/useSortable';
 import { formatDateTime } from '@/utils/formatDate';
-import { router } from '@inertiajs/react';
 import { ShieldAlert } from 'lucide-react';
+import { useCallback } from 'react';
 
 interface AuditEntry {
     id: string;
@@ -37,16 +40,22 @@ function entityLabel(type: string): string {
     return type.split('\\').pop() ?? type;
 }
 
-export default function PhiReportIndex({ entries, filters, actors }: Props) {
-    function applyFilter(key: string, value: string) {
-        const params = new URLSearchParams(window.location.search);
-        if (value) {
-            params.set(key, value);
-        } else {
-            params.delete(key);
-        }
-        router.get('/admin/phi-report', Object.fromEntries(params), { preserveState: true });
+const compareEntries = (a: AuditEntry, b: AuditEntry, field: string): number => {
+    switch (field) {
+        case 'created_at':
+            return a.created_at.localeCompare(b.created_at);
+        case 'actor':
+            return (a.actor?.name ?? '').localeCompare(b.actor?.name ?? '', 'cs');
+        case 'entity_type':
+            return a.entity_type.localeCompare(b.entity_type, 'cs');
+        default:
+            return 0;
     }
+};
+
+export default function PhiReportIndex({ entries, filters, actors }: Props) {
+    const { sorted: sortedEntries, sortField, sortDir, toggle } = useClientSort(entries, useCallback(compareEntries, []), 'created_at', 'desc');
+    const applyFilter = useFilterRouter('/admin/phi-report');
 
     return (
         <AppLayout title="PHI report" breadcrumbs={BREADCRUMBS}>
@@ -56,7 +65,7 @@ export default function PhiReportIndex({ entries, filters, actors }: Props) {
             </div>
 
             {/* Filters */}
-            <div className="mb-6 flex gap-3">
+            <div className="mb-6 flex flex-wrap gap-3">
                 <select
                     value={filters.actor_id ?? ''}
                     onChange={(e) => applyFilter('actor_id', e.target.value)}
@@ -84,22 +93,18 @@ export default function PhiReportIndex({ entries, filters, actors }: Props) {
             </div>
 
             {/* Table */}
-            <div className="overflow-hidden rounded-lg border border-border-subtle bg-surface-primary">
+            <div className="overflow-x-auto rounded-lg border border-border-subtle bg-surface-primary">
                 <table className="w-full border-collapse">
                     <thead>
                         <tr>
-                            {['Čas', 'Uživatel', 'Entita', 'IP adresa'].map((h) => (
-                                <th
-                                    key={h}
-                                    className="border-b border-border-default bg-surface-secondary px-5 py-3 text-left text-xs font-semibold uppercase tracking-wider text-text-subtle"
-                                >
-                                    {h}
-                                </th>
-                            ))}
+                            <SortableHeader field="created_at" label="Čas" sortField={sortField} sortDir={sortDir} onSort={toggle} />
+                            <SortableHeader field="actor" label="Uživatel" sortField={sortField} sortDir={sortDir} onSort={toggle} />
+                            <SortableHeader field="entity_type" label="Entita" sortField={sortField} sortDir={sortDir} onSort={toggle} />
+                            <PlainHeader label="IP adresa" />
                         </tr>
                     </thead>
                     <tbody>
-                        {entries.map((entry) => (
+                        {sortedEntries.map((entry) => (
                             <tr key={entry.id} className="transition-colors hover:bg-brand-soft">
                                 <td className="border-b border-border-subtle px-5 py-3 text-xs text-text-muted whitespace-nowrap">
                                     {formatTime(entry.created_at)}

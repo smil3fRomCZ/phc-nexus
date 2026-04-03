@@ -6,6 +6,8 @@ import ActivityTimeline from '@/Components/ActivityTimeline';
 import type { ActivityEntry } from '@/Components/ActivityTimeline';
 import RichTextDisplay from '@/Components/RichTextDisplay';
 import RichTextEditor from '@/Components/RichTextEditor';
+import DeleteButton from '@/Components/DeleteButton';
+import Modal from '@/Components/Modal';
 import TimeLogSection from '@/Components/TimeLogSection';
 import type { TimeEntryData } from '@/Components/TimeLogSection';
 import { formatDate, toDateInputValue } from '@/utils/formatDate';
@@ -28,6 +30,7 @@ import {
     Copy,
 } from 'lucide-react';
 import type { PageProps } from '@/types';
+import ConfirmModal from '@/Components/ConfirmModal';
 import { useState, type FormEvent } from 'react';
 
 interface Comment {
@@ -156,6 +159,7 @@ export default function TaskShow({
     const [editing, setEditing] = useState(false);
     const [requestingApproval, setRequestingApproval] = useState(false);
     const [activeTab, setActiveTab] = useState<'detail' | 'activity' | 'time'>('detail');
+    const [showDeleteModal, setShowDeleteModal] = useState(false);
     const isDone = task.workflow_status?.is_done || task.workflow_status?.is_cancelled || false;
 
     const breadcrumbs: Breadcrumb[] = [
@@ -241,16 +245,7 @@ export default function TaskShow({
                                         <Copy className="mr-1 inline-block h-3 w-3" />
                                         Duplikovat
                                     </button>
-                                    <button
-                                        onClick={() => {
-                                            if (confirm('Opravdu chcete smazat tento úkol? Tuto akci nelze vrátit.')) {
-                                                router.delete(`/projects/${project.id}/tasks/${task.id}`);
-                                            }
-                                        }}
-                                        className="rounded-md border border-status-danger/30 px-3 py-1.5 text-xs font-medium text-status-danger transition-colors hover:bg-status-danger-subtle"
-                                    >
-                                        <Trash2 className="h-3 w-3" />
-                                    </button>
+                                    <DeleteButton onClick={() => setShowDeleteModal(true)} />
                                 </div>
                             )}
                         </div>
@@ -625,6 +620,15 @@ export default function TaskShow({
                     </div>
                 </div>
             </div>
+            <ConfirmModal
+                open={showDeleteModal}
+                variant="danger"
+                title="Smazat úkol"
+                message="Opravdu chcete smazat tento úkol? Tuto akci nelze vrátit."
+                confirmLabel="Smazat"
+                onConfirm={() => router.delete(`/projects/${project.id}/tasks/${task.id}`)}
+                onCancel={() => setShowDeleteModal(false)}
+            />
         </AppLayout>
     );
 }
@@ -662,8 +666,7 @@ function TaskEditDialog({
     }
 
     return (
-        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50">
-            <div className="mx-4 w-full max-w-lg rounded-lg border border-border-subtle bg-surface-primary p-4 sm:p-6 shadow-xl sm:mx-auto">
+        <Modal open onClose={onClose} size="max-w-lg" showClose={false}>
                 <div className="mb-4 flex items-center justify-between">
                     <h2 className="text-lg font-semibold text-text-strong">Upravit úkol</h2>
                     <button onClick={onClose} className="rounded p-2 text-text-muted hover:bg-surface-hover">
@@ -779,8 +782,7 @@ function TaskEditDialog({
                         </button>
                     </div>
                 </form>
-            </div>
-        </div>
+        </Modal>
     );
 }
 
@@ -832,8 +834,7 @@ function RequestApprovalDialog({
     }
 
     return (
-        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50">
-            <div className="mx-4 w-full max-w-lg rounded-lg border border-border-subtle bg-surface-primary p-4 sm:p-6 shadow-xl sm:mx-auto">
+        <Modal open onClose={onClose} size="max-w-lg" showClose={false}>
                 <div className="mb-4 flex items-center justify-between">
                     <h2 className="text-lg font-semibold text-text-strong">Žádost o schválení</h2>
                     <button onClick={onClose} className="rounded p-2 text-text-muted hover:bg-surface-hover">
@@ -901,8 +902,7 @@ function RequestApprovalDialog({
                         </button>
                     </div>
                 </form>
-            </div>
-        </div>
+        </Modal>
     );
 }
 
@@ -1067,14 +1067,13 @@ function CommentItem({
     rootId?: string;
 }) {
     const [showReply, setShowReply] = useState(false);
+    const [showDeleteModal, setShowDeleteModal] = useState(false);
     const isOwner = comment.author.id === currentUserId;
     const effectiveRootId = rootId ?? comment.id;
     const allReplies = !isReply ? flattenTaskReplies(comment) : [];
 
     function handleDelete() {
-        if (confirm('Smazat tento komentář?')) {
-            router.delete(`/comments/${comment.id}`);
-        }
+        setShowDeleteModal(true);
     }
 
     return (
@@ -1134,6 +1133,18 @@ function CommentItem({
                     />
                 </div>
             )}
+            <ConfirmModal
+                open={showDeleteModal}
+                variant="danger"
+                title="Smazat komentář"
+                message="Opravdu chcete smazat tento komentář?"
+                confirmLabel="Smazat"
+                onConfirm={() => {
+                    setShowDeleteModal(false);
+                    router.delete(`/comments/${comment.id}`);
+                }}
+                onCancel={() => setShowDeleteModal(false)}
+            />
         </div>
     );
 }
@@ -1196,6 +1207,7 @@ function AttachmentList({
     currentUserId?: string;
 }) {
     const [uploading, setUploading] = useState(false);
+    const [deleteTarget, setDeleteTarget] = useState<string | null>(null);
 
     function handleUpload(e: React.ChangeEvent<HTMLInputElement>) {
         const file = e.target.files?.[0];
@@ -1219,9 +1231,7 @@ function AttachmentList({
     }
 
     function handleDelete(attachmentId: string) {
-        if (confirm('Smazat tuto přílohu?')) {
-            router.delete(`/attachments/${attachmentId}`);
-        }
+        setDeleteTarget(attachmentId);
     }
 
     return (
@@ -1258,6 +1268,18 @@ function AttachmentList({
                 {uploading ? 'Nahrávání...' : 'Nahrát soubor'}
                 <input type="file" className="hidden" onChange={handleUpload} disabled={uploading} />
             </label>
+            <ConfirmModal
+                open={!!deleteTarget}
+                variant="danger"
+                title="Smazat přílohu"
+                message="Opravdu chcete smazat tuto přílohu?"
+                confirmLabel="Smazat"
+                onConfirm={() => {
+                    if (deleteTarget) router.delete(`/attachments/${deleteTarget}`);
+                    setDeleteTarget(null);
+                }}
+                onCancel={() => setDeleteTarget(null)}
+            />
         </div>
     );
 }

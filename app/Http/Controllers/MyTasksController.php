@@ -31,10 +31,20 @@ final class MyTasksController extends Controller
             $query->where('priority', $request->input('priority'));
         }
 
+        $allowedSorts = ['title', 'status', 'priority', 'due_date'];
+        $sort = $request->input('sort');
+        $dir = $request->input('dir') === 'desc' ? 'desc' : 'asc';
+
+        if ($sort && in_array($sort, $allowedSorts, true)) {
+            $query->orderBy($sort, $dir);
+        } else {
+            $query
+                ->orderByRaw('CASE WHEN due_date IS NOT NULL AND due_date < ? THEN 0 ELSE 1 END', [now()])
+                ->orderBy('due_date')
+                ->orderBy('created_at', 'desc');
+        }
+
         $tasks = $query
-            ->orderByRaw('CASE WHEN due_date IS NOT NULL AND due_date < ? THEN 0 ELSE 1 END', [now()])
-            ->orderBy('due_date')
-            ->orderBy('created_at', 'desc')
             ->paginate(20)
             ->withQueryString();
 
@@ -51,7 +61,7 @@ final class MyTasksController extends Controller
 
         return Inertia::render('MyTasks/Index', [
             'tasks' => $tasks,
-            'filters' => $request->only(['status', 'priority']),
+            'filters' => $request->only(['status', 'priority', 'sort', 'dir']),
             'statuses' => $statuses,
             'priorities' => collect(TaskPriority::cases())
                 ->map(fn (TaskPriority $p) => ['value' => $p->value, 'label' => $p->label()]),

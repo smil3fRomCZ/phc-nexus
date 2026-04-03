@@ -1,6 +1,8 @@
 import AppLayout from '@/Layouts/AppLayout';
 import type { Breadcrumb } from '@/Layouts/AppLayout';
+import ConfirmModal from '@/Components/ConfirmModal';
 import EmptyState from '@/Components/EmptyState';
+import Modal from '@/Components/Modal';
 import Avatar from '@/Components/Avatar';
 import { Building2, Users, Crown, Plus, Pencil, Trash2, X } from 'lucide-react';
 import { useState, type FormEvent } from 'react';
@@ -69,11 +71,7 @@ function DivisionModal({ division, onClose }: { division?: Division; onClose: ()
     }
 
     return (
-        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50" onClick={onClose}>
-            <div
-                className="mx-4 w-full max-w-md rounded-lg border border-border-subtle bg-surface-primary p-4 sm:p-6 shadow-xl sm:mx-auto"
-                onClick={(e) => e.stopPropagation()}
-            >
+        <Modal open onClose={onClose} showClose={false}>
                 <div className="mb-4 flex items-center justify-between">
                     <h2 className="text-lg font-semibold text-text-strong">
                         {division ? 'Upravit divizi' : 'Nová divize'}
@@ -124,8 +122,7 @@ function DivisionModal({ division, onClose }: { division?: Division; onClose: ()
                         </button>
                     </div>
                 </form>
-            </div>
-        </div>
+        </Modal>
     );
 }
 
@@ -161,11 +158,7 @@ function TeamModal({
     }
 
     return (
-        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50" onClick={onClose}>
-            <div
-                className="mx-4 w-full max-w-md rounded-lg border border-border-subtle bg-surface-primary p-4 sm:p-6 shadow-xl sm:mx-auto"
-                onClick={(e) => e.stopPropagation()}
-            >
+        <Modal open onClose={onClose} showClose={false}>
                 <div className="mb-4 flex items-center justify-between">
                     <h2 className="text-lg font-semibold text-text-strong">{team ? 'Upravit tým' : 'Nový tým'}</h2>
                     <button onClick={onClose} className="rounded p-2 text-text-muted hover:bg-surface-hover">
@@ -252,8 +245,7 @@ function TeamModal({
                         </button>
                     </div>
                 </form>
-            </div>
-        </div>
+        </Modal>
     );
 }
 
@@ -276,11 +268,7 @@ function MembersModal({ team, users, onClose }: { team: Team; users: UserOption[
     }
 
     return (
-        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50" onClick={onClose}>
-            <div
-                className="mx-4 w-full max-w-md rounded-lg border border-border-subtle bg-surface-primary p-4 sm:p-6 shadow-xl sm:mx-auto"
-                onClick={(e) => e.stopPropagation()}
-            >
+        <Modal open onClose={onClose} showClose={false}>
                 <div className="mb-4 flex items-center justify-between">
                     <h2 className="text-lg font-semibold text-text-strong">Členové — {team.name}</h2>
                     <button onClick={onClose} className="rounded p-2 text-text-muted hover:bg-surface-hover">
@@ -351,8 +339,7 @@ function MembersModal({ team, users, onClose }: { team: Team; users: UserOption[
                         </div>
                     </div>
                 )}
-            </div>
-        </div>
+        </Modal>
     );
 }
 
@@ -360,6 +347,7 @@ export default function OrganizationIndex({ divisions, users, can }: Props) {
     const [divisionModal, setDivisionModal] = useState<{ open: boolean; division?: Division }>({ open: false });
     const [teamModal, setTeamModal] = useState<{ open: boolean; team?: Team; divisionId?: string }>({ open: false });
     const [membersModal, setMembersModal] = useState<{ open: boolean; team?: Team }>({ open: false });
+    const [deleteTarget, setDeleteTarget] = useState<{ type: 'division' | 'team'; id: string; name: string } | null>(null);
 
     return (
         <AppLayout title="Organizace" breadcrumbs={BREADCRUMBS}>
@@ -401,11 +389,7 @@ export default function OrganizationIndex({ divisions, users, can }: Props) {
                                         <Pencil className="h-3.5 w-3.5" />
                                     </button>
                                     <button
-                                        onClick={() => {
-                                            if (confirm('Smazat divizi? Tým pod ní musí být prázdný.')) {
-                                                router.delete(`/admin/divisions/${division.id}`);
-                                            }
-                                        }}
+                                        onClick={() => setDeleteTarget({ type: 'division', id: division.id, name: division.name })}
                                         className="rounded p-2 text-text-muted hover:bg-status-danger-subtle hover:text-status-danger"
                                     >
                                         <Trash2 className="h-3.5 w-3.5" />
@@ -446,11 +430,7 @@ export default function OrganizationIndex({ divisions, users, can }: Props) {
                                                     <Pencil className="h-3 w-3" />
                                                 </button>
                                                 <button
-                                                    onClick={() => {
-                                                        if (confirm('Smazat tým?')) {
-                                                            router.delete(`/admin/teams/${team.id}`);
-                                                        }
-                                                    }}
+                                                    onClick={() => setDeleteTarget({ type: 'team', id: team.id, name: team.name })}
                                                     className="rounded p-2 text-text-muted hover:bg-status-danger-subtle hover:text-status-danger"
                                                 >
                                                     <Trash2 className="h-3 w-3" />
@@ -512,6 +492,27 @@ export default function OrganizationIndex({ divisions, users, can }: Props) {
             {membersModal.open && membersModal.team && (
                 <MembersModal team={membersModal.team} users={users} onClose={() => setMembersModal({ open: false })} />
             )}
+            <ConfirmModal
+                open={!!deleteTarget}
+                variant="danger"
+                title={deleteTarget?.type === 'division' ? 'Smazat divizi' : 'Smazat tým'}
+                message={
+                    deleteTarget?.type === 'division'
+                        ? `Opravdu chcete smazat divizi „${deleteTarget?.name}"? Týmy pod ní musí být prázdné.`
+                        : `Opravdu chcete smazat tým „${deleteTarget?.name}"?`
+                }
+                confirmLabel="Smazat"
+                onConfirm={() => {
+                    if (deleteTarget) {
+                        const url = deleteTarget.type === 'division'
+                            ? `/admin/divisions/${deleteTarget.id}`
+                            : `/admin/teams/${deleteTarget.id}`;
+                        router.delete(url);
+                    }
+                    setDeleteTarget(null);
+                }}
+                onCancel={() => setDeleteTarget(null)}
+            />
         </AppLayout>
     );
 }

@@ -1,6 +1,8 @@
 import EmptyState from '@/Components/EmptyState';
+import SortableHeader, { PlainHeader } from '@/Components/SortableHeader';
 import StatusBadge from '@/Components/StatusBadge';
 import { APPROVAL_STATUS } from '@/constants/status';
+import { useFilterRouter } from '@/hooks/useFilterRouter';
 import { formatDate } from '@/utils/formatDate';
 import AppLayout from '@/Layouts/AppLayout';
 import type { Breadcrumb } from '@/Layouts/AppLayout';
@@ -39,10 +41,7 @@ export default function ApprovalsIndex({ project, approvalRequests, filters = {}
         { label: 'Schvalování' },
     ];
 
-    function applyFilter(key: string, value: string) {
-        const params = { ...filters, [key]: value || undefined };
-        router.get(`/projects/${project.id}/approvals`, params, { preserveState: true, replace: true });
-    }
+    const applyFilter = useFilterRouter(`/projects/${project.id}/approvals`, filters, { replace: true });
 
     function applySort(field: string) {
         const dir = filters.sort === field && filters.dir !== 'desc' ? 'desc' : 'asc';
@@ -51,11 +50,6 @@ export default function ApprovalsIndex({ project, approvalRequests, filters = {}
             { ...filters, sort: field, dir },
             { preserveState: true, replace: true },
         );
-    }
-
-    function sortIndicator(field: string) {
-        if (filters.sort !== field) return '';
-        return filters.dir === 'desc' ? ' \u25BC' : ' \u25B2';
     }
 
     return (
@@ -91,16 +85,25 @@ export default function ApprovalsIndex({ project, approvalRequests, filters = {}
                                 { field: 'votes', label: 'Hlasy', sortable: false },
                                 { field: 'created_at', label: 'Vytvořeno', sortable: true },
                                 { field: 'expires_at', label: 'Vyprší', sortable: true },
-                            ].map((col) => (
-                                <th
-                                    key={col.field}
-                                    className={`border-b-2 border-border-subtle px-4 py-2 text-left text-xs font-semibold uppercase tracking-wider text-text-subtle ${col.sortable ? 'cursor-pointer hover:text-text-default' : ''}`}
-                                    onClick={col.sortable ? () => applySort(col.field) : undefined}
-                                >
-                                    {col.label}
-                                    {col.sortable ? sortIndicator(col.field) : ''}
-                                </th>
-                            ))}
+                            ].map((col) =>
+                                col.sortable ? (
+                                    <SortableHeader
+                                        key={col.field}
+                                        field={col.field}
+                                        label={col.label}
+                                        sortField={filters.sort}
+                                        sortDir={filters.dir === 'desc' ? 'desc' : 'asc'}
+                                        onSort={applySort}
+                                        className="cursor-pointer select-none border-b-2 border-border-subtle px-4 py-2 text-left text-xs font-semibold uppercase tracking-wider text-text-subtle hover:text-text-default"
+                                    />
+                                ) : (
+                                    <PlainHeader
+                                        key={col.field}
+                                        label={col.label}
+                                        className="border-b-2 border-border-subtle px-4 py-2 text-left text-xs font-semibold uppercase tracking-wider text-text-subtle"
+                                    />
+                                ),
+                            )}
                         </tr>
                     </thead>
                     <tbody>

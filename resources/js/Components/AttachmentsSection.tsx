@@ -1,3 +1,4 @@
+import ConfirmModal from '@/Components/ConfirmModal';
 import { router, usePage } from '@inertiajs/react';
 import { Paperclip, Download, Trash2, Upload } from 'lucide-react';
 import type { PageProps } from '@/types';
@@ -27,6 +28,7 @@ export default function AttachmentsSection({
 }) {
     const { auth } = usePage<PageProps>().props;
     const [uploading, setUploading] = useState(false);
+    const [deleteTarget, setDeleteTarget] = useState<string | null>(null);
 
     function handleUpload(e: React.ChangeEvent<HTMLInputElement>) {
         const file = e.target.files?.[0];
@@ -50,9 +52,7 @@ export default function AttachmentsSection({
     }
 
     function handleDelete(attachmentId: string) {
-        if (confirm('Smazat tuto přílohu?')) {
-            router.delete(`/attachments/${attachmentId}`);
-        }
+        setDeleteTarget(attachmentId);
     }
 
     return (
@@ -94,6 +94,18 @@ export default function AttachmentsSection({
                     <input type="file" className="hidden" onChange={handleUpload} disabled={uploading} />
                 </label>
             </div>
+            <ConfirmModal
+                open={!!deleteTarget}
+                variant="danger"
+                title="Smazat přílohu"
+                message="Opravdu chcete smazat tuto přílohu?"
+                confirmLabel="Smazat"
+                onConfirm={() => {
+                    if (deleteTarget) router.delete(`/attachments/${deleteTarget}`);
+                    setDeleteTarget(null);
+                }}
+                onCancel={() => setDeleteTarget(null)}
+            />
         </div>
     );
 }

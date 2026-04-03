@@ -1,4 +1,5 @@
 import { AlertTriangle, Trash2, Info } from 'lucide-react';
+import type { ReactNode } from 'react';
 
 type ModalVariant = 'warning' | 'danger' | 'info';
 
@@ -9,8 +10,10 @@ interface Props {
     message: string;
     confirmLabel?: string;
     cancelLabel?: string;
+    confirmDisabled?: boolean;
     onConfirm: () => void;
     onCancel?: () => void;
+    children?: ReactNode;
 }
 
 const VARIANT_CONFIG: Record<ModalVariant, { icon: typeof Info; iconBg: string; iconColor: string; btnClass: string }> =
@@ -42,8 +45,10 @@ export default function ConfirmModal({
     message,
     confirmLabel,
     cancelLabel,
+    confirmDisabled,
     onConfirm,
     onCancel,
+    children,
 }: Props) {
     if (!open) return null;
 
@@ -61,6 +66,7 @@ export default function ConfirmModal({
                 </div>
                 <h3 className="mb-2 text-lg font-semibold text-text-strong">{title}</h3>
                 <p className="mb-5 text-sm leading-relaxed text-text-muted">{message}</p>
+                {children && <div className="mb-5">{children}</div>}
                 <div className="flex justify-center gap-3">
                     {showCancel && (
                         <button
@@ -72,7 +78,8 @@ export default function ConfirmModal({
                     )}
                     <button
                         onClick={onConfirm}
-                        className={`rounded-md px-5 py-2 text-sm font-medium transition-colors ${config.btnClass}`}
+                        disabled={confirmDisabled}
+                        className={`rounded-md px-5 py-2 text-sm font-medium transition-colors ${config.btnClass} ${confirmDisabled ? 'cursor-not-allowed opacity-50' : ''}`}
                     >
                         {confirmLabel ?? (showCancel ? 'Potvrdit' : 'Rozumím')}
                     </button>

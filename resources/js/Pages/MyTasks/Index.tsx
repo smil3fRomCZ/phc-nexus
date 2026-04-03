@@ -5,6 +5,8 @@ import EmptyState from '@/Components/EmptyState';
 import Pagination from '@/Components/Pagination';
 import type { PaginationLink } from '@/Components/Pagination';
 
+import SortableHeader, { PlainHeader } from '@/Components/SortableHeader';
+import { useFilterRouter } from '@/hooks/useFilterRouter';
 import { getPriority } from '@/constants/priority';
 import { formatDate } from '@/utils/formatDate';
 import { displayKey } from '@/utils/displayKey';
@@ -34,7 +36,7 @@ interface Paginated<T> {
 
 interface Props {
     tasks: Paginated<Task>;
-    filters: { status?: string; priority?: string };
+    filters: { status?: string; priority?: string; sort?: string; dir?: string };
     statuses: SelectOption[];
     priorities: SelectOption[];
 }
@@ -52,21 +54,18 @@ function formatDueDate(dateStr: string | null): { text: string; overdue: boolean
 }
 
 export default function MyTasksIndex({ tasks, filters, statuses, priorities }: Props) {
-    function applyFilter(key: string, value: string) {
-        const params = new URLSearchParams(window.location.search);
-        if (value) {
-            params.set(key, value);
-        } else {
-            params.delete(key);
-        }
-        router.get('/my-tasks', Object.fromEntries(params), { preserveState: true });
+    const applyFilter = useFilterRouter('/my-tasks');
+
+    function toggleSort(field: string) {
+        const dir = filters.sort === field && filters.dir !== 'desc' ? 'desc' : 'asc';
+        router.get('/my-tasks', { ...filters, sort: field, dir }, { preserveState: true });
     }
 
     return (
         <AppLayout title="Moje úkoly" breadcrumbs={BREADCRUMBS}>
-            <div className="mb-6 flex items-center justify-between">
+            <div className="mb-6 flex flex-wrap items-center justify-between gap-3">
                 <h1 className="text-xl md:text-2xl font-bold leading-tight text-text-strong">Moje úkoly</h1>
-                <div className="flex gap-3">
+                <div className="flex flex-wrap gap-3">
                     <select
                         value={filters.status ?? ''}
                         onChange={(e) => applyFilter('status', e.target.value)}
@@ -94,18 +93,16 @@ export default function MyTasksIndex({ tasks, filters, statuses, priorities }: P
                 </div>
             </div>
 
-            <div className="overflow-hidden rounded-lg border border-border-subtle bg-surface-primary">
+            <div className="overflow-x-auto rounded-lg border border-border-subtle bg-surface-primary">
                 <table className="w-full border-collapse">
                     <thead>
                         <tr>
-                            {['Úkol', 'Projekt', 'Epic', 'Stav', 'Priorita', 'Termín'].map((header) => (
-                                <th
-                                    key={header}
-                                    className="border-b border-border-default bg-surface-secondary px-5 py-3 text-left text-xs font-semibold uppercase tracking-wider text-text-subtle"
-                                >
-                                    {header}
-                                </th>
-                            ))}
+                            <SortableHeader field="title" label="Úkol" sortField={filters.sort} sortDir={filters.dir === 'desc' ? 'desc' : 'asc'} onSort={toggleSort} />
+                            <PlainHeader label="Projekt" />
+                            <PlainHeader label="Epic" />
+                            <SortableHeader field="status" label="Stav" sortField={filters.sort} sortDir={filters.dir === 'desc' ? 'desc' : 'asc'} onSort={toggleSort} />
+                            <SortableHeader field="priority" label="Priorita" sortField={filters.sort} sortDir={filters.dir === 'desc' ? 'desc' : 'asc'} onSort={toggleSort} />
+                            <SortableHeader field="due_date" label="Termín" sortField={filters.sort} sortDir={filters.dir === 'desc' ? 'desc' : 'asc'} onSort={toggleSort} />
                         </tr>
                     </thead>
                     <tbody>

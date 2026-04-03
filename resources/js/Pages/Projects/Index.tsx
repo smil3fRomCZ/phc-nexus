@@ -5,9 +5,11 @@ import EmptyState from '@/Components/EmptyState';
 import StatusBadge from '@/Components/StatusBadge';
 import { PROJECT_STATUS } from '@/constants/status';
 import { formatDate } from '@/utils/formatDate';
+import SortableHeader, { PlainHeader } from '@/Components/SortableHeader';
+import { useClientSort } from '@/hooks/useSortable';
 import { Link } from '@inertiajs/react';
 import { Plus, Search } from 'lucide-react';
-import { useState } from 'react';
+import { useState, useCallback } from 'react';
 
 const BREADCRUMBS: Breadcrumb[] = [{ label: 'Domů', href: '/' }, { label: 'Projekty' }];
 
@@ -36,15 +38,34 @@ function getProgress(completed: number, total: number): number {
     return Math.round((completed / total) * 100);
 }
 
+const compareProjects = (a: Project, b: Project, field: string): number => {
+    switch (field) {
+        case 'name':
+            return a.name.localeCompare(b.name, 'cs');
+        case 'status':
+            return a.status.localeCompare(b.status, 'cs');
+        case 'tasks_count':
+            return a.tasks_count - b.tasks_count;
+        case 'progress':
+            return getProgress(a.tasks_completed_count, a.tasks_count) - getProgress(b.tasks_completed_count, b.tasks_count);
+        case 'updated_at':
+            return a.updated_at.localeCompare(b.updated_at);
+        default:
+            return 0;
+    }
+};
+
 export default function ProjectsIndex({ projects }: Props) {
     const [statusFilter, setStatusFilter] = useState('');
     const [searchQuery, setSearchQuery] = useState('');
 
-    const filteredProjects = projects.data.filter((project) => {
+    const filtered = projects.data.filter((project) => {
         const matchesStatus = !statusFilter || project.status === statusFilter;
         const matchesSearch = !searchQuery || project.name.toLowerCase().includes(searchQuery.toLowerCase());
         return matchesStatus && matchesSearch;
     });
+
+    const { sorted: filteredProjects, sortField, sortDir, toggle } = useClientSort(filtered, useCallback(compareProjects, []));
 
     return (
         <AppLayout title="Projekty" breadcrumbs={BREADCRUMBS}>
@@ -61,7 +82,7 @@ export default function ProjectsIndex({ projects }: Props) {
             </div>
 
             {/* Filter Bar */}
-            <div className="mb-5 flex items-center gap-3">
+            <div className="mb-5 flex flex-wrap items-center gap-3">
                 <select
                     value={statusFilter}
                     onChange={(e) => setStatusFilter(e.target.value)}
@@ -82,40 +103,23 @@ export default function ProjectsIndex({ projects }: Props) {
                         placeholder="Hledat projekty..."
                         value={searchQuery}
                         onChange={(e) => setSearchQuery(e.target.value)}
-                        className="h-8 w-56 rounded-md border border-border-default bg-surface-primary pl-8 pr-3 text-xs text-text-default placeholder:text-text-subtle outline-none transition-colors focus:border-brand-primary focus:ring-2 focus:ring-brand-soft"
+                        className="h-8 w-full sm:w-56 rounded-md border border-border-default bg-surface-primary pl-8 pr-3 text-xs text-text-default placeholder:text-text-subtle outline-none transition-colors focus:border-brand-primary focus:ring-2 focus:ring-brand-soft"
                     />
                 </div>
             </div>
 
             {/* Projects Table */}
-            <div className="overflow-hidden rounded-lg border border-border-subtle bg-surface-primary">
+            <div className="overflow-x-auto rounded-lg border border-border-subtle bg-surface-primary">
                 <table className="w-full border-collapse">
                     <thead>
                         <tr>
-                            <th className="border-b border-border-default bg-surface-secondary px-5 py-3 text-left text-[11px] font-semibold uppercase tracking-wider text-text-subtle">
-                                Název projektu
-                            </th>
-                            <th className="border-b border-border-default bg-surface-secondary px-5 py-3 text-left text-[11px] font-semibold uppercase tracking-wider text-text-subtle">
-                                Stav
-                            </th>
-                            <th className="border-b border-border-default bg-surface-secondary px-5 py-3 text-left text-[11px] font-semibold uppercase tracking-wider text-text-subtle">
-                                Vlastník
-                            </th>
-                            <th className="border-b border-border-default bg-surface-secondary px-5 py-3 text-left text-[11px] font-semibold uppercase tracking-wider text-text-subtle">
-                                Tým
-                            </th>
-                            <th className="border-b border-border-default bg-surface-secondary px-5 py-3 text-left text-[11px] font-semibold uppercase tracking-wider text-text-subtle">
-                                Úkoly
-                            </th>
-                            <th
-                                className="border-b border-border-default bg-surface-secondary px-5 py-3 text-left text-[11px] font-semibold uppercase tracking-wider text-text-subtle"
-                                style={{ minWidth: 130 }}
-                            >
-                                Průběh
-                            </th>
-                            <th className="border-b border-border-default bg-surface-secondary px-5 py-3 text-left text-[11px] font-semibold uppercase tracking-wider text-text-subtle">
-                                Aktualizováno
-                            </th>
+                            <SortableHeader field="name" label="Název projektu" sortField={sortField} sortDir={sortDir} onSort={toggle} />
+                            <SortableHeader field="status" label="Stav" sortField={sortField} sortDir={sortDir} onSort={toggle} />
+                            <PlainHeader label="Vlastník" />
+                            <PlainHeader label="Tým" />
+                            <SortableHeader field="tasks_count" label="Úkoly" sortField={sortField} sortDir={sortDir} onSort={toggle} />
+                            <SortableHeader field="progress" label="Průběh" sortField={sortField} sortDir={sortDir} onSort={toggle} />
+                            <SortableHeader field="updated_at" label="Aktualizováno" sortField={sortField} sortDir={sortDir} onSort={toggle} />
                         </tr>
                     </thead>
                     <tbody>

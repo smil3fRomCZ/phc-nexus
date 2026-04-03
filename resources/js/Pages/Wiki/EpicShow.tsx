@@ -9,7 +9,9 @@ import type { Attachment } from '@/Components/AttachmentsSection';
 import { displayKey } from '@/utils/displayKey';
 import { formatDate } from '@/utils/formatDate';
 import { Link, router, useForm } from '@inertiajs/react';
-import { ChevronRight, Pencil, Trash2, Plus } from 'lucide-react';
+import { ChevronRight, Pencil, Plus } from 'lucide-react';
+import ConfirmModal from '@/Components/ConfirmModal';
+import DeleteButton from '@/Components/DeleteButton';
 import { useState, type FormEvent } from 'react';
 
 interface WikiPageTree {
@@ -41,6 +43,7 @@ interface Props {
 export default function EpicWikiShow({ project, epic, page, pages }: Props) {
     const [editing, setEditing] = useState(false);
     const [addingChild, setAddingChild] = useState(false);
+    const [showDeleteModal, setShowDeleteModal] = useState(false);
 
     const epicKey = displayKey(project.key, epic.number);
     const basePath = `/projects/${project.id}/epics/${epic.id}/wiki`;
@@ -130,16 +133,7 @@ export default function EpicWikiShow({ project, epic, page, pages }: Props) {
                                     <Plus className="mr-1 inline-block h-3 w-3" />
                                     Podstránka
                                 </button>
-                                <button
-                                    onClick={() => {
-                                        if (confirm('Smazat stránku?')) {
-                                            router.delete(`${basePath}/${page.id}`);
-                                        }
-                                    }}
-                                    className="rounded-md border border-status-danger/30 px-3 py-1.5 text-xs font-medium text-status-danger transition-colors hover:bg-status-danger-subtle"
-                                >
-                                    <Trash2 className="h-3 w-3" />
-                                </button>
+                                <DeleteButton onClick={() => setShowDeleteModal(true)} />
                             </div>
                         </div>
 
@@ -202,6 +196,15 @@ export default function EpicWikiShow({ project, epic, page, pages }: Props) {
                     </div>
                 </div>
             </div>
+            <ConfirmModal
+                open={showDeleteModal}
+                variant="danger"
+                title="Smazat stránku"
+                message="Opravdu chcete smazat tuto stránku? Tuto akci nelze vrátit."
+                confirmLabel="Smazat"
+                onConfirm={() => router.delete(`${basePath}/${page.id}`)}
+                onCancel={() => setShowDeleteModal(false)}
+            />
         </AppLayout>
     );
 }

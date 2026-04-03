@@ -1,3 +1,4 @@
+import ConfirmModal from '@/Components/ConfirmModal';
 import { Trash2 } from 'lucide-react';
 import { formatDate } from '@/utils/formatDate';
 import { router } from '@inertiajs/react';
@@ -39,6 +40,7 @@ export default function TimeLogSection({
     const [hours, setHours] = useState('');
     const [note, setNote] = useState('');
     const [submitting, setSubmitting] = useState(false);
+    const [deleteTarget, setDeleteTarget] = useState<string | null>(null);
 
     const defaultSummary: SummaryItem[] = [
         { label: 'Celkem', value: `${totalHours} h`, variant: 'info' },
@@ -69,8 +71,12 @@ export default function TimeLogSection({
     }
 
     function handleDelete(id: string) {
-        if (!confirm('Smazat záznam?')) return;
-        fetch(`/time-entries/${id}`, {
+        setDeleteTarget(id);
+    }
+
+    function confirmDelete() {
+        if (!deleteTarget) return;
+        fetch(`/time-entries/${deleteTarget}`, {
             method: 'DELETE',
             headers: {
                 'X-CSRF-TOKEN': document.querySelector<HTMLMetaElement>('meta[name="csrf-token"]')?.content ?? '',
@@ -79,6 +85,7 @@ export default function TimeLogSection({
         }).then((res) => {
             if (res.ok) router.reload();
         });
+        setDeleteTarget(null);
     }
 
     const headers = ['Datum', 'Hodiny', ...(showTaskColumn ? ['Úkol'] : []), 'Uživatel', 'Poznámka', ''];
@@ -107,7 +114,7 @@ export default function TimeLogSection({
             </div>
 
             {/* Add form */}
-            <form onSubmit={handleSubmit} className="mb-4 flex items-end gap-2">
+            <form onSubmit={handleSubmit} className="mb-4 flex flex-wrap items-end gap-2">
                 <div className="flex flex-col gap-1">
                     <label className="text-xs font-semibold uppercase tracking-wider text-text-subtle">Datum</label>
                     <input
@@ -151,6 +158,7 @@ export default function TimeLogSection({
 
             {/* Entries table */}
             {timeEntries.length > 0 ? (
+                <div className="overflow-x-auto">
                 <table className="w-full border-collapse">
                     <thead>
                         <tr>
@@ -202,9 +210,19 @@ export default function TimeLogSection({
                         ))}
                     </tbody>
                 </table>
+                </div>
             ) : (
                 <p className="text-sm text-text-muted">Zatím žádné záznamy. Přidejte první výše.</p>
             )}
+            <ConfirmModal
+                open={!!deleteTarget}
+                variant="danger"
+                title="Smazat záznam"
+                message="Opravdu chcete smazat tento časový záznam?"
+                confirmLabel="Smazat"
+                onConfirm={confirmDelete}
+                onCancel={() => setDeleteTarget(null)}
+            />
         </div>
     );
 }

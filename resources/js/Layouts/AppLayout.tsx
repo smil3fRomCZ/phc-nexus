@@ -1,5 +1,6 @@
 import { Head, Link, router, usePage } from '@inertiajs/react';
-import { useState, useEffect, useRef, type ReactNode } from 'react';
+import { useClickOutside } from '@/hooks/useClickOutside';
+import { useState, useEffect, type ReactNode } from 'react';
 import type { PageProps, User } from '@/types';
 import Toast from '@/Components/Toast';
 import {
@@ -15,6 +16,7 @@ import {
     ShieldAlert,
     BarChart3,
     LogOut,
+    UserCircle,
     ChevronRight,
     Menu,
     X,
@@ -268,15 +270,7 @@ export default function AppLayout({ title, breadcrumbs, children }: AppLayoutPro
 
 function UserMenu({ user }: { user: User }) {
     const [open, setOpen] = useState(false);
-    const ref = useRef<HTMLDivElement>(null);
-
-    useEffect(() => {
-        function handleClick(e: MouseEvent) {
-            if (ref.current && !ref.current.contains(e.target as Node)) setOpen(false);
-        }
-        document.addEventListener('mousedown', handleClick);
-        return () => document.removeEventListener('mousedown', handleClick);
-    }, []);
+    const ref = useClickOutside(() => setOpen(false));
 
     const ROLE_LABELS: Record<string, string> = {
         executive: 'Executive',
@@ -309,6 +303,14 @@ function UserMenu({ user }: { user: User }) {
                             </span>
                         )}
                     </div>
+                    <Link
+                        href="/profile"
+                        className="flex w-full items-center gap-2 px-4 py-2 text-sm text-text-default no-underline transition-colors hover:bg-surface-hover"
+                        onClick={() => setOpen(false)}
+                    >
+                        <UserCircle className="h-4 w-4" />
+                        Můj profil
+                    </Link>
                     <button
                         onClick={() => router.post('/logout')}
                         className="flex w-full items-center gap-2 px-4 py-2 text-sm text-text-muted transition-colors hover:bg-surface-hover hover:text-text-default"

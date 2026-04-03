@@ -11,13 +11,16 @@ import type { Breadcrumb } from '@/Layouts/AppLayout';
 import { displayKey } from '@/utils/displayKey';
 import { formatDate } from '@/utils/formatDate';
 import { Link, router, useForm } from '@inertiajs/react';
-import { Pencil, Trash2, X, Plus, FileText, Timer, BookOpen } from 'lucide-react';
+import DeleteButton from '@/Components/DeleteButton';
+import { Pencil, X, Plus, FileText, Timer, BookOpen } from 'lucide-react';
+import Modal from '@/Components/Modal';
 import RichTextDisplay from '@/Components/RichTextDisplay';
 import RichTextEditor from '@/Components/RichTextEditor';
 import TimeLogSection from '@/Components/TimeLogSection';
 import type { TimeEntryData } from '@/Components/TimeLogSection';
 import { usePage } from '@inertiajs/react';
 import type { PageProps } from '@/types';
+import ConfirmModal from '@/Components/ConfirmModal';
 import { useState, type FormEvent } from 'react';
 
 interface Task {
@@ -90,6 +93,7 @@ export default function EpicShow({
     const { auth } = usePage<PageProps>().props;
     const [editing, setEditing] = useState(false);
     const [activeTab, setActiveTab] = useState<'detail' | 'time'>('detail');
+    const [showDeleteModal, setShowDeleteModal] = useState(false);
 
     function inlineUpdate(fields: Record<string, unknown>) {
         router.put(
@@ -143,16 +147,7 @@ export default function EpicShow({
                                     <Pencil className="mr-1 inline-block h-3 w-3" />
                                     Upravit
                                 </button>
-                                <button
-                                    onClick={() => {
-                                        if (confirm('Opravdu chcete smazat tento Epic? Tuto akci nelze vrátit.')) {
-                                            router.delete(`/projects/${project.id}/epics/${epic.id}`);
-                                        }
-                                    }}
-                                    className="rounded-md border border-status-danger/30 px-3 py-1.5 text-xs font-medium text-status-danger transition-colors hover:bg-status-danger-subtle"
-                                >
-                                    <Trash2 className="h-3 w-3" />
-                                </button>
+                                <DeleteButton onClick={() => setShowDeleteModal(true)} />
                             </div>
                         </div>
 
@@ -495,6 +490,15 @@ export default function EpicShow({
                     </div>
                 </div>
             </div>
+            <ConfirmModal
+                open={showDeleteModal}
+                variant="danger"
+                title="Smazat Epic"
+                message="Opravdu chcete smazat tento Epic? Tuto akci nelze vrátit."
+                confirmLabel="Smazat"
+                onConfirm={() => router.delete(`/projects/${project.id}/epics/${epic.id}`)}
+                onCancel={() => setShowDeleteModal(false)}
+            />
         </AppLayout>
     );
 }
@@ -569,8 +573,7 @@ function EpicEditDialog({
     }
 
     return (
-        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50">
-            <div className="mx-4 w-full max-w-lg rounded-lg border border-border-subtle bg-surface-primary p-4 sm:p-6 shadow-xl sm:mx-auto">
+        <Modal open onClose={onClose} size="max-w-lg" showClose={false}>
                 <div className="mb-4 flex items-center justify-between">
                     <h2 className="text-lg font-semibold text-text-strong">Upravit Epic</h2>
                     <button onClick={onClose} className="rounded p-2 text-text-muted hover:bg-surface-hover">
@@ -702,7 +705,6 @@ function EpicEditDialog({
                         </button>
                     </div>
                 </form>
-            </div>
-        </div>
+        </Modal>
     );
 }

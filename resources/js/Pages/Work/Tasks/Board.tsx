@@ -10,7 +10,10 @@ import { Link, router, useForm } from '@inertiajs/react';
 import { MessageSquare, Plus, ShieldAlert, Settings2, Layers, X } from 'lucide-react';
 import ProjectTabs from '@/Components/ProjectTabs';
 import ConfirmModal from '@/Components/ConfirmModal';
-import { useState, useRef, useEffect, type DragEvent } from 'react';
+import Modal from '@/Components/Modal';
+import { useClickOutside } from '@/hooks/useClickOutside';
+import { useFilterRouter } from '@/hooks/useFilterRouter';
+import { useState, type DragEvent } from 'react';
 
 interface Task {
     id: string;
@@ -90,7 +93,7 @@ export default function TaskBoard({
     const [cardFields, setCardFields] = useState<string[]>(
         boardSettings?.card_fields ?? ['priority', 'assignee', 'comments_count'],
     );
-    const settingsRef = useRef<HTMLDivElement>(null);
+    const settingsRef = useClickOutside(() => setSettingsOpen(false));
 
     const breadcrumbs: Breadcrumb[] = [
         { label: 'Domů', href: '/' },
@@ -99,18 +102,7 @@ export default function TaskBoard({
         { label: 'Kanban' },
     ];
 
-    useEffect(() => {
-        function handleClick(e: MouseEvent) {
-            if (settingsRef.current && !settingsRef.current.contains(e.target as Node)) setSettingsOpen(false);
-        }
-        document.addEventListener('mousedown', handleClick);
-        return () => document.removeEventListener('mousedown', handleClick);
-    }, []);
-
-    function applyFilter(key: string, value: string) {
-        const params = { ...filters, [key]: value || undefined };
-        router.get(`/projects/${project.id}/board`, params, { preserveState: true, replace: true });
-    }
+    const applyFilter = useFilterRouter(`/projects/${project.id}/board`, filters, { replace: true });
 
     function toggleCardField(field: string) {
         const next = cardFields.includes(field) ? cardFields.filter((f) => f !== field) : [...cardFields, field];
@@ -516,8 +508,7 @@ function TaskCreateDialog({
     }
 
     return (
-        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50">
-            <div className="mx-4 w-full max-w-md rounded-lg border border-border-subtle bg-surface-primary p-4 sm:p-6 shadow-xl sm:mx-auto">
+        <Modal open onClose={onClose} size="max-w-md" showClose={false}>
                 <div className="mb-4 flex items-center justify-between">
                     <h2 className="text-lg font-semibold text-text-strong">Nový úkol</h2>
                     <button onClick={onClose} className="rounded p-2 text-text-muted hover:bg-surface-hover">
@@ -637,7 +628,6 @@ function TaskCreateDialog({
                         </button>
                     </div>
                 </form>
-            </div>
-        </div>
+        </Modal>
     );
 }

@@ -1,5 +1,7 @@
 import AppLayout from '@/Layouts/AppLayout';
 import type { Breadcrumb } from '@/Layouts/AppLayout';
+import ConfirmModal from '@/Components/ConfirmModal';
+import DeleteButton from '@/Components/DeleteButton';
 import { router } from '@inertiajs/react';
 import { Plus, Trash2, X } from 'lucide-react';
 import { useState, useCallback, useMemo, useEffect } from 'react';
@@ -105,6 +107,7 @@ const nodeTypes = { status: StatusNode };
 export default function Workflow({ project, statuses, transitions }: Props) {
     const [editingId, setEditingId] = useState<string | null>(null);
     const [newName, setNewName] = useState('');
+    const [deleteTarget, setDeleteTarget] = useState<{ id: string; name: string } | null>(null);
 
     const breadcrumbs: Breadcrumb[] = [
         { label: 'Domů', href: '/' },
@@ -209,8 +212,12 @@ export default function Workflow({ project, statuses, transitions }: Props) {
     }
 
     function deleteStatus(id: string, name: string) {
-        if (!confirm(`Smazat stav "${name}"? Úkoly budou přesunuty do předchozího stavu.`)) return;
-        fetch(`/projects/${project.id}/workflow/statuses/${id}`, {
+        setDeleteTarget({ id, name });
+    }
+
+    function confirmDeleteStatus() {
+        if (!deleteTarget) return;
+        fetch(`/projects/${project.id}/workflow/statuses/${deleteTarget.id}`, {
             method: 'DELETE',
             headers: csrfHeaders(),
         }).then((res) => {
@@ -219,6 +226,7 @@ export default function Workflow({ project, statuses, transitions }: Props) {
                 router.reload();
             }
         });
+        setDeleteTarget(null);
     }
 
     function deleteTransition(id: string) {
@@ -241,14 +249,14 @@ export default function Workflow({ project, statuses, transitions }: Props) {
                 </div>
 
                 {/* Toolbar */}
-                <div className="mb-4 flex items-center gap-3 rounded-lg border border-border-subtle bg-surface-secondary px-4 py-2">
+                <div className="mb-4 flex flex-wrap items-center gap-3 rounded-lg border border-border-subtle bg-surface-secondary px-4 py-2">
                     <input
                         type="text"
                         value={newName}
                         onChange={(e) => setNewName(e.target.value)}
                         placeholder="Název nového stavu..."
                         onKeyDown={(e) => e.key === 'Enter' && addStatus()}
-                        className="w-48 rounded-md border border-border-default bg-surface-primary px-3 py-1.5 text-sm focus:border-border-focus focus:outline-none focus:shadow-[0_0_0_2px_var(--color-brand-soft)]"
+                        className="w-full sm:w-48 rounded-md border border-border-default bg-surface-primary px-3 py-1.5 text-sm focus:border-border-focus focus:outline-none focus:shadow-[0_0_0_2px_var(--color-brand-soft)]"
                     />
                     <button
                         onClick={addStatus}
@@ -258,17 +266,17 @@ export default function Workflow({ project, statuses, transitions }: Props) {
                         <Plus className="h-3 w-3" />
                         Přidat stav
                     </button>
-                    <span className="ml-auto text-xs text-text-subtle">
+                    <span className="hidden text-xs text-text-subtle sm:ml-auto sm:block">
                         Táhnutím z uzlu na uzel vytvoříte přechod. Kliknutím na uzel ho editujte.
                     </span>
                 </div>
 
                 {/* Canvas + Detail panel */}
-                <div className="flex gap-4">
+                <div className="flex flex-col gap-4 md:flex-row">
                     {/* React Flow canvas */}
                     <div
                         className="flex-1 overflow-hidden rounded-lg border border-border-subtle"
-                        style={{ height: 500 }}
+                        style={{ height: 400, minHeight: 300 }}
                     >
                         <ReactFlow
                             nodes={nodes}
@@ -287,7 +295,7 @@ export default function Workflow({ project, statuses, transitions }: Props) {
 
                     {/* Detail panel */}
                     {editingStatus && (
-                        <div className="w-64 flex-shrink-0 rounded-lg border border-border-subtle bg-surface-primary p-4">
+                        <div className="w-full flex-shrink-0 rounded-lg border border-border-subtle bg-surface-primary p-4 md:w-64">
                             <div className="mb-3 flex items-center justify-between">
                                 <span className="text-sm font-semibold text-text-strong">Editace stavu</span>
                                 <button
@@ -396,17 +404,26 @@ export default function Workflow({ project, statuses, transitions }: Props) {
                                     </div>
                                 </div>
 
-                                <button
+                                <DeleteButton
                                     onClick={() => deleteStatus(editingStatus.id, editingStatus.name)}
                                     className="w-full rounded-md border border-status-danger/30 px-3 py-1.5 text-xs font-medium text-status-danger transition-colors hover:bg-status-danger-subtle"
                                 >
                                     Smazat stav
-                                </button>
+                                </DeleteButton>
                             </div>
                         </div>
                     )}
                 </div>
             </div>
+            <ConfirmModal
+                open={!!deleteTarget}
+                variant="danger"
+                title="Smazat stav"
+                message={`Smazat stav „${deleteTarget?.name}"? Úkoly budou přesunuty do předchozího stavu.`}
+                confirmLabel="Smazat"
+                onConfirm={confirmDeleteStatus}
+                onCancel={() => setDeleteTarget(null)}
+            />
         </AppLayout>
     );
 }

@@ -16,12 +16,12 @@ class UserPolicyTest extends TestCase
     protected function setUp(): void
     {
         parent::setUp();
-        $this->policy = new UserPolicy();
+        $this->policy = new UserPolicy;
     }
 
     private function makeUser(SystemRole $role, ?string $id = null): User
     {
-        $user = new User();
+        $user = new User;
         $user->id = $id ?? fake()->uuid();
         $user->system_role = $role;
 

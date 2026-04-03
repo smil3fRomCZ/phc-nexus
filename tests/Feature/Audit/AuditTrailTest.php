@@ -14,6 +14,7 @@ use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Schema\Blueprint;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Support\Facades\Schema;
+use Illuminate\Support\Str;
 use Tests\TestCase;
 
 class AuditTrailTest extends TestCase
@@ -183,7 +184,7 @@ class AuditTrailTest extends TestCase
         $exec = User::factory()->executive()->create();
 
         AuditEntry::forceCreate([
-            'id' => \Illuminate\Support\Str::uuid7()->toString(),
+            'id' => Str::uuid7()->toString(),
             'action' => AuditAction::LoggedIn,
             'entity_type' => User::class,
             'entity_id' => $exec->id,
@@ -191,7 +192,7 @@ class AuditTrailTest extends TestCase
             'created_at' => now()->subDays(5),
         ]);
         AuditEntry::forceCreate([
-            'id' => \Illuminate\Support\Str::uuid7()->toString(),
+            'id' => Str::uuid7()->toString(),
             'action' => AuditAction::LoggedIn,
             'entity_type' => User::class,
             'entity_id' => $exec->id,
@@ -211,7 +212,7 @@ class AuditTrailTest extends TestCase
         $exec = User::factory()->executive()->create();
 
         AuditEntry::forceCreate([
-            'id' => \Illuminate\Support\Str::uuid7()->toString(),
+            'id' => Str::uuid7()->toString(),
             'action' => AuditAction::Created,
             'entity_type' => User::class,
             'entity_id' => $exec->id,
@@ -219,7 +220,7 @@ class AuditTrailTest extends TestCase
             'created_at' => now()->subDays(5),
         ]);
         AuditEntry::forceCreate([
-            'id' => \Illuminate\Support\Str::uuid7()->toString(),
+            'id' => Str::uuid7()->toString(),
             'action' => AuditAction::Created,
             'entity_type' => User::class,
             'entity_id' => $exec->id,
@@ -239,7 +240,7 @@ class AuditTrailTest extends TestCase
         $exec = User::factory()->executive()->create();
 
         AuditEntry::forceCreate([
-            'id' => \Illuminate\Support\Str::uuid7()->toString(),
+            'id' => Str::uuid7()->toString(),
             'action' => AuditAction::Updated,
             'entity_type' => User::class,
             'entity_id' => $exec->id,
@@ -247,7 +248,7 @@ class AuditTrailTest extends TestCase
             'created_at' => now()->subDays(10),
         ]);
         AuditEntry::forceCreate([
-            'id' => \Illuminate\Support\Str::uuid7()->toString(),
+            'id' => Str::uuid7()->toString(),
             'action' => AuditAction::Updated,
             'entity_type' => User::class,
             'entity_id' => $exec->id,
@@ -255,7 +256,7 @@ class AuditTrailTest extends TestCase
             'created_at' => now()->subDays(5),
         ]);
         AuditEntry::forceCreate([
-            'id' => \Illuminate\Support\Str::uuid7()->toString(),
+            'id' => Str::uuid7()->toString(),
             'action' => AuditAction::Updated,
             'entity_type' => User::class,
             'entity_id' => $exec->id,

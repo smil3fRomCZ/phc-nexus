@@ -17,12 +17,12 @@ class DivisionPolicyTest extends TestCase
     protected function setUp(): void
     {
         parent::setUp();
-        $this->policy = new DivisionPolicy();
+        $this->policy = new DivisionPolicy;
     }
 
     private function makeUser(SystemRole $role): User
     {
-        $user = new User();
+        $user = new User;
         $user->id = fake()->uuid();
         $user->system_role = $role;
 
@@ -46,16 +46,16 @@ class DivisionPolicyTest extends TestCase
 
     public function test_executive_can_update(): void
     {
-        $this->assertTrue($this->policy->update($this->makeUser(SystemRole::Executive), new Division()));
+        $this->assertTrue($this->policy->update($this->makeUser(SystemRole::Executive), new Division));
     }
 
     public function test_team_member_cannot_update(): void
     {
-        $this->assertFalse($this->policy->update($this->makeUser(SystemRole::TeamMember), new Division()));
+        $this->assertFalse($this->policy->update($this->makeUser(SystemRole::TeamMember), new Division));
     }
 
     public function test_executive_can_delete(): void
     {
-        $this->assertTrue($this->policy->delete($this->makeUser(SystemRole::Executive), new Division()));
+        $this->assertTrue($this->policy->delete($this->makeUser(SystemRole::Executive), new Division));
     }
 }

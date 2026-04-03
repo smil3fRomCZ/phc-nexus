@@ -35,11 +35,11 @@ final class AuditLogController extends Controller
         }
 
         if ($request->filled('date_from')) {
-            $query->where('created_at', '>=', $request->input('date_from') . ' 00:00:00');
+            $query->where('created_at', '>=', $request->input('date_from').' 00:00:00');
         }
 
         if ($request->filled('date_to')) {
-            $query->where('created_at', '<=', $request->input('date_to') . ' 23:59:59');
+            $query->where('created_at', '<=', $request->input('date_to').' 23:59:59');
         }
 
         $allowedSorts = ['created_at', 'action', 'entity_type'];

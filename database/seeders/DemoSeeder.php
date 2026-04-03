@@ -1497,7 +1497,7 @@ class DemoSeeder extends Seeder
                 'new_values' => $entry['new_values'] ?? null,
                 'ip_address' => $entry['ip'] ?? null,
                 'user_agent' => 'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36',
-                'created_at' => now()->subDays($entry['days_ago'])->subHours(rand(0, 12))->subMinutes(rand(0, 59)),
+                'created_at' => now()->subDays($entry['days_ago'])->subHours(random_int(0, 12))->subMinutes(random_int(0, 59)),
             ]);
         }
     }

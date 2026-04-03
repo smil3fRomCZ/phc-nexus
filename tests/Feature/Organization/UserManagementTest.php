@@ -7,6 +7,8 @@ namespace Tests\Feature\Organization;
 use App\Models\User;
 use App\Modules\Organization\Enums\SystemRole;
 use App\Modules\Organization\Enums\UserStatus;
+use App\Modules\Organization\Models\Division;
+use App\Modules\Organization\Models\Team;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Tests\TestCase;
 
@@ -163,8 +165,8 @@ class UserManagementTest extends TestCase
     public function test_users_can_be_filtered_by_team(): void
     {
         $exec = User::factory()->executive()->create();
-        $division = \App\Modules\Organization\Models\Division::factory()->create();
-        $team = \App\Modules\Organization\Models\Team::factory()->create(['division_id' => $division->id]);
+        $division = Division::factory()->create();
+        $team = Team::factory()->create(['division_id' => $division->id]);
         User::factory()->create(['team_id' => $team->id]);
         User::factory()->create(); // no team
 
@@ -176,8 +178,8 @@ class UserManagementTest extends TestCase
     public function test_users_can_be_filtered_by_no_team(): void
     {
         $exec = User::factory()->executive()->create();
-        $division = \App\Modules\Organization\Models\Division::factory()->create();
-        $team = \App\Modules\Organization\Models\Team::factory()->create(['division_id' => $division->id]);
+        $division = Division::factory()->create();
+        $team = Team::factory()->create(['division_id' => $division->id]);
         User::factory()->create(['team_id' => $team->id]);
 
         // exec is without team — should be in the result

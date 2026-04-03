@@ -17,12 +17,12 @@ class TeamPolicyTest extends TestCase
     protected function setUp(): void
     {
         parent::setUp();
-        $this->policy = new TeamPolicy();
+        $this->policy = new TeamPolicy;
     }
 
     private function makeUser(SystemRole $role, ?string $id = null): User
     {
-        $user = new User();
+        $user = new User;
         $user->id = $id ?? fake()->uuid();
         $user->system_role = $role;
 
@@ -31,7 +31,7 @@ class TeamPolicyTest extends TestCase
 
     private function makeTeam(?string $leadId = null): Team
     {
-        $team = new Team();
+        $team = new Team;
         $team->team_lead_id = $leadId;
 
         return $team;

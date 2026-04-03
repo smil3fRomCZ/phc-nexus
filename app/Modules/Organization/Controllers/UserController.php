@@ -85,7 +85,6 @@ final class UserController extends Controller
             ->load('team:id,name');
 
         $teams = Team::query()->orderBy('name')->get(['id', 'name']);
-        $auth = auth()->user();
 
         return Inertia::render('Admin/Users/Show', [
             'user' => $user,
@@ -107,7 +106,7 @@ final class UserController extends Controller
         Gate::authorize('updateUser', $user);
 
         $validated = $request->validate([
-            'system_role' => ['sometimes', 'string', 'in:' . implode(',', array_column(SystemRole::cases(), 'value'))],
+            'system_role' => ['sometimes', 'string', 'in:'.implode(',', array_column(SystemRole::cases(), 'value'))],
             'team_id' => ['sometimes', 'nullable', 'exists:teams,id'],
             'capacity_h_week' => ['sometimes', 'nullable', 'numeric', 'min:0', 'max:168'],
             'job_title' => ['sometimes', 'nullable', 'string', 'max:255'],
@@ -126,7 +125,7 @@ final class UserController extends Controller
         Gate::authorize('updateRole', $user);
 
         $validated = $request->validate([
-            'system_role' => ['required', 'string', 'in:' . implode(',', array_column(SystemRole::cases(), 'value'))],
+            'system_role' => ['required', 'string', 'in:'.implode(',', array_column(SystemRole::cases(), 'value'))],
         ]);
 
         $user->update(['system_role' => $validated['system_role']]);

@@ -1,12 +1,11 @@
 import AppLayout from '@/Layouts/AppLayout';
 import type { Breadcrumb } from '@/Layouts/AppLayout';
-import Avatar from '@/Components/Avatar';
 import Button from '@/Components/Button';
 import FormInput from '@/Components/FormInput';
 import FormTextarea from '@/Components/FormTextarea';
 import PersonChip from '@/Components/PersonChip';
 import { router } from '@inertiajs/react';
-import { Mail, Shield, Users, Calendar, Briefcase, Phone, Save } from 'lucide-react';
+import { Mail, Shield, Users, Calendar, Save } from 'lucide-react';
 import { useState } from 'react';
 import { formatDate } from '@/utils/formatDate';
 

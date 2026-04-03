@@ -9,7 +9,7 @@ import FormTextarea from '@/Components/FormTextarea';
 import Modal from '@/Components/Modal';
 import PageHeader from '@/Components/PageHeader';
 import PersonChip from '@/Components/PersonChip';
-import { Building2, Plus, Pencil, Trash2, ArrowRight, X } from 'lucide-react';
+import { Plus, Pencil, Trash2, ArrowRight, X } from 'lucide-react';
 import { useState, type FormEvent } from 'react';
 import { router } from '@inertiajs/react';
 

@@ -47,7 +47,7 @@ interface Props {
 
 const BREADCRUMBS: Breadcrumb[] = [{ label: 'Domů', href: '/' }, { label: 'Administrace' }, { label: 'Organizace' }];
 
-export default function OrganizationIndex({ divisions, stats, users, can }: Props) {
+export default function OrganizationIndex({ divisions, stats, can }: Props) {
     const [divisionModal, setDivisionModal] = useState(false);
     const [deleteTarget, setDeleteTarget] = useState<{ id: string; name: string } | null>(null);
 

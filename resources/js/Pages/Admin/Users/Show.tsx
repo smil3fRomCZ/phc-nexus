@@ -6,7 +6,6 @@ import ConfirmModal from '@/Components/ConfirmModal';
 import FormInput from '@/Components/FormInput';
 import FormSelect from '@/Components/FormSelect';
 import FormTextarea from '@/Components/FormTextarea';
-import PersonChip from '@/Components/PersonChip';
 import { router } from '@inertiajs/react';
 import { Ban, CheckCircle, Mail, Briefcase, Phone, Users, Calendar, Save } from 'lucide-react';
 import { useState } from 'react';

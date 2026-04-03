@@ -11,13 +11,16 @@ import type { Breadcrumb } from '@/Layouts/AppLayout';
 import { displayKey } from '@/utils/displayKey';
 import { formatDate } from '@/utils/formatDate';
 import { Link, router, useForm } from '@inertiajs/react';
-import { Pencil, Trash2, X, Plus, FileText, Timer, BookOpen } from 'lucide-react';
+import DeleteButton from '@/Components/DeleteButton';
+import { Pencil, X, Plus, FileText, Timer, BookOpen } from 'lucide-react';
+import Modal from '@/Components/Modal';
 import RichTextDisplay from '@/Components/RichTextDisplay';
 import RichTextEditor from '@/Components/RichTextEditor';
 import TimeLogSection from '@/Components/TimeLogSection';
 import type { TimeEntryData } from '@/Components/TimeLogSection';
 import { usePage } from '@inertiajs/react';
 import type { PageProps } from '@/types';
+import ConfirmModal from '@/Components/ConfirmModal';
 import { useState, type FormEvent } from 'react';
 
 interface Task {
@@ -90,6 +93,7 @@ export default function EpicShow({
     const { auth } = usePage<PageProps>().props;
     const [editing, setEditing] = useState(false);
     const [activeTab, setActiveTab] = useState<'detail' | 'time'>('detail');
+    const [showDeleteModal, setShowDeleteModal] = useState(false);
 
     function inlineUpdate(fields: Record<string, unknown>) {
         router.put(
@@ -143,16 +147,7 @@ export default function EpicShow({
                                     <Pencil className="mr-1 inline-block h-3 w-3" />
                                     Upravit
                                 </button>
-                                <button
-                                    onClick={() => {
-                                        if (confirm('Opravdu chcete smazat tento Epic? Tuto akci nelze vrátit.')) {
-                                            router.delete(`/projects/${project.id}/epics/${epic.id}`);
-                                        }
-                                    }}
-                                    className="rounded-md border border-status-danger/30 px-3 py-1.5 text-xs font-medium text-status-danger transition-colors hover:bg-status-danger-subtle"
-                                >
-                                    <Trash2 className="h-3 w-3" />
-                                </button>
+                                <DeleteButton onClick={() => setShowDeleteModal(true)} />
                             </div>
                         </div>
 
@@ -495,6 +490,15 @@ export default function EpicShow({
                     </div>
                 </div>
             </div>
+            <ConfirmModal
+                open={showDeleteModal}
+                variant="danger"
+                title="Smazat Epic"
+                message="Opravdu chcete smazat tento Epic? Tuto akci nelze vrátit."
+                confirmLabel="Smazat"
+                onConfirm={() => router.delete(`/projects/${project.id}/epics/${epic.id}`)}
+                onCancel={() => setShowDeleteModal(false)}
+            />
         </AppLayout>
     );
 }
@@ -569,140 +573,138 @@ function EpicEditDialog({
     }
 
     return (
-        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50">
-            <div className="mx-4 w-full max-w-lg rounded-lg border border-border-subtle bg-surface-primary p-4 sm:p-6 shadow-xl sm:mx-auto">
-                <div className="mb-4 flex items-center justify-between">
-                    <h2 className="text-lg font-semibold text-text-strong">Upravit Epic</h2>
-                    <button onClick={onClose} className="rounded p-2 text-text-muted hover:bg-surface-hover">
-                        <X className="h-4 w-4" />
-                    </button>
+        <Modal open onClose={onClose} size="max-w-lg" showClose={false}>
+            <div className="mb-4 flex items-center justify-between">
+                <h2 className="text-lg font-semibold text-text-strong">Upravit Epic</h2>
+                <button onClick={onClose} className="rounded p-2 text-text-muted hover:bg-surface-hover">
+                    <X className="h-4 w-4" />
+                </button>
+            </div>
+
+            <form onSubmit={submit} className="space-y-4">
+                <div>
+                    <label className="block text-xs font-medium text-text-default">Název *</label>
+                    <input
+                        type="text"
+                        value={data.title}
+                        onChange={(e) => setData('title', e.target.value)}
+                        className="mt-1 w-full rounded-md border border-border-default bg-surface-primary px-3 py-2 text-sm focus:border-border-focus focus:outline-none focus:shadow-[0_0_0_2px_var(--color-brand-soft)]"
+                    />
+                    {errors.title && <p className="mt-1 text-xs text-status-danger">{errors.title}</p>}
                 </div>
 
-                <form onSubmit={submit} className="space-y-4">
-                    <div>
-                        <label className="block text-xs font-medium text-text-default">Název *</label>
-                        <input
-                            type="text"
-                            value={data.title}
-                            onChange={(e) => setData('title', e.target.value)}
-                            className="mt-1 w-full rounded-md border border-border-default bg-surface-primary px-3 py-2 text-sm focus:border-border-focus focus:outline-none focus:shadow-[0_0_0_2px_var(--color-brand-soft)]"
+                <div>
+                    <label className="block text-xs font-medium text-text-default">Popis</label>
+                    <div className="mt-1">
+                        <RichTextEditor
+                            content={data.description}
+                            onChange={(html) => setData('description', html)}
+                            placeholder="Popis epicu..."
                         />
-                        {errors.title && <p className="mt-1 text-xs text-status-danger">{errors.title}</p>}
+                    </div>
+                    {errors.description && <p className="mt-1 text-xs text-status-danger">{errors.description}</p>}
+                </div>
+
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                    <div>
+                        <label className="block text-xs font-medium text-text-default">Stav</label>
+                        <select
+                            value={data.status}
+                            onChange={(e) => setData('status', e.target.value)}
+                            className="mt-1 w-full rounded-md border border-border-default bg-surface-primary px-3 py-2 text-sm focus:border-border-focus focus:outline-none focus:shadow-[0_0_0_2px_var(--color-brand-soft)]"
+                        >
+                            {statuses.map((s) => (
+                                <option key={s.value} value={s.value}>
+                                    {s.label}
+                                </option>
+                            ))}
+                        </select>
+                        {errors.status && <p className="mt-1 text-xs text-status-danger">{errors.status}</p>}
                     </div>
 
                     <div>
-                        <label className="block text-xs font-medium text-text-default">Popis</label>
-                        <div className="mt-1">
-                            <RichTextEditor
-                                content={data.description}
-                                onChange={(html) => setData('description', html)}
-                                placeholder="Popis epicu..."
-                            />
-                        </div>
-                        {errors.description && <p className="mt-1 text-xs text-status-danger">{errors.description}</p>}
-                    </div>
-
-                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                        <div>
-                            <label className="block text-xs font-medium text-text-default">Stav</label>
-                            <select
-                                value={data.status}
-                                onChange={(e) => setData('status', e.target.value)}
-                                className="mt-1 w-full rounded-md border border-border-default bg-surface-primary px-3 py-2 text-sm focus:border-border-focus focus:outline-none focus:shadow-[0_0_0_2px_var(--color-brand-soft)]"
-                            >
-                                {statuses.map((s) => (
-                                    <option key={s.value} value={s.value}>
-                                        {s.label}
-                                    </option>
-                                ))}
-                            </select>
-                            {errors.status && <p className="mt-1 text-xs text-status-danger">{errors.status}</p>}
-                        </div>
-
-                        <div>
-                            <label className="block text-xs font-medium text-text-default">Priorita</label>
-                            <select
-                                value={data.priority}
-                                onChange={(e) => setData('priority', e.target.value)}
-                                className="mt-1 w-full rounded-md border border-border-default bg-surface-primary px-3 py-2 text-sm focus:border-border-focus focus:outline-none focus:shadow-[0_0_0_2px_var(--color-brand-soft)]"
-                            >
-                                {priorities.map((p) => (
-                                    <option key={p.value} value={p.value}>
-                                        {p.label}
-                                    </option>
-                                ))}
-                            </select>
-                        </div>
-                    </div>
-
-                    <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
-                        <div>
-                            <label className="block text-xs font-medium text-text-default">Vlastník</label>
-                            <select
-                                value={data.owner_id}
-                                onChange={(e) => setData('owner_id', e.target.value)}
-                                className="mt-1 w-full rounded-md border border-border-default bg-surface-primary px-3 py-2 text-sm focus:border-border-focus focus:outline-none focus:shadow-[0_0_0_2px_var(--color-brand-soft)]"
-                            >
-                                <option value="">—</option>
-                                {members.map((m) => (
-                                    <option key={m.id} value={m.id}>
-                                        {m.name}
-                                    </option>
-                                ))}
-                            </select>
-                        </div>
-
-                        <div>
-                            <label className="block text-xs font-medium text-text-default">PM</label>
-                            <select
-                                value={data.pm_id}
-                                onChange={(e) => setData('pm_id', e.target.value)}
-                                className="mt-1 w-full rounded-md border border-border-default bg-surface-primary px-3 py-2 text-sm focus:border-border-focus focus:outline-none focus:shadow-[0_0_0_2px_var(--color-brand-soft)]"
-                            >
-                                <option value="">—</option>
-                                {members.map((m) => (
-                                    <option key={m.id} value={m.id}>
-                                        {m.name}
-                                    </option>
-                                ))}
-                            </select>
-                        </div>
-
-                        <div>
-                            <label className="block text-xs font-medium text-text-default">Lead Developer</label>
-                            <select
-                                value={data.lead_developer_id}
-                                onChange={(e) => setData('lead_developer_id', e.target.value)}
-                                className="mt-1 w-full rounded-md border border-border-default bg-surface-primary px-3 py-2 text-sm focus:border-border-focus focus:outline-none focus:shadow-[0_0_0_2px_var(--color-brand-soft)]"
-                            >
-                                <option value="">—</option>
-                                {members.map((m) => (
-                                    <option key={m.id} value={m.id}>
-                                        {m.name}
-                                    </option>
-                                ))}
-                            </select>
-                        </div>
-                    </div>
-
-                    <div className="flex justify-end gap-3 pt-2">
-                        <button
-                            type="button"
-                            onClick={onClose}
-                            className="rounded-md border border-border-default px-4 py-2 text-sm font-medium text-text-muted transition-colors hover:bg-surface-hover"
+                        <label className="block text-xs font-medium text-text-default">Priorita</label>
+                        <select
+                            value={data.priority}
+                            onChange={(e) => setData('priority', e.target.value)}
+                            className="mt-1 w-full rounded-md border border-border-default bg-surface-primary px-3 py-2 text-sm focus:border-border-focus focus:outline-none focus:shadow-[0_0_0_2px_var(--color-brand-soft)]"
                         >
-                            Zrušit
-                        </button>
-                        <button
-                            type="submit"
-                            disabled={processing}
-                            className="rounded-md bg-brand-primary px-4 py-2 text-sm font-medium text-text-inverse transition-colors hover:bg-brand-hover disabled:opacity-50"
-                        >
-                            Uložit změny
-                        </button>
+                            {priorities.map((p) => (
+                                <option key={p.value} value={p.value}>
+                                    {p.label}
+                                </option>
+                            ))}
+                        </select>
                     </div>
-                </form>
-            </div>
-        </div>
+                </div>
+
+                <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
+                    <div>
+                        <label className="block text-xs font-medium text-text-default">Vlastník</label>
+                        <select
+                            value={data.owner_id}
+                            onChange={(e) => setData('owner_id', e.target.value)}
+                            className="mt-1 w-full rounded-md border border-border-default bg-surface-primary px-3 py-2 text-sm focus:border-border-focus focus:outline-none focus:shadow-[0_0_0_2px_var(--color-brand-soft)]"
+                        >
+                            <option value="">—</option>
+                            {members.map((m) => (
+                                <option key={m.id} value={m.id}>
+                                    {m.name}
+                                </option>
+                            ))}
+                        </select>
+                    </div>
+
+                    <div>
+                        <label className="block text-xs font-medium text-text-default">PM</label>
+                        <select
+                            value={data.pm_id}
+                            onChange={(e) => setData('pm_id', e.target.value)}
+                            className="mt-1 w-full rounded-md border border-border-default bg-surface-primary px-3 py-2 text-sm focus:border-border-focus focus:outline-none focus:shadow-[0_0_0_2px_var(--color-brand-soft)]"
+                        >
+                            <option value="">—</option>
+                            {members.map((m) => (
+                                <option key={m.id} value={m.id}>
+                                    {m.name}
+                                </option>
+                            ))}
+                        </select>
+                    </div>
+
+                    <div>
+                        <label className="block text-xs font-medium text-text-default">Lead Developer</label>
+                        <select
+                            value={data.lead_developer_id}
+                            onChange={(e) => setData('lead_developer_id', e.target.value)}
+                            className="mt-1 w-full rounded-md border border-border-default bg-surface-primary px-3 py-2 text-sm focus:border-border-focus focus:outline-none focus:shadow-[0_0_0_2px_var(--color-brand-soft)]"
+                        >
+                            <option value="">—</option>
+                            {members.map((m) => (
+                                <option key={m.id} value={m.id}>
+                                    {m.name}
+                                </option>
+                            ))}
+                        </select>
+                    </div>
+                </div>
+
+                <div className="flex justify-end gap-3 pt-2">
+                    <button
+                        type="button"
+                        onClick={onClose}
+                        className="rounded-md border border-border-default px-4 py-2 text-sm font-medium text-text-muted transition-colors hover:bg-surface-hover"
+                    >
+                        Zrušit
+                    </button>
+                    <button
+                        type="submit"
+                        disabled={processing}
+                        className="rounded-md bg-brand-primary px-4 py-2 text-sm font-medium text-text-inverse transition-colors hover:bg-brand-hover disabled:opacity-50"
+                    >
+                        Uložit změny
+                    </button>
+                </div>
+            </form>
+        </Modal>
     );
 }

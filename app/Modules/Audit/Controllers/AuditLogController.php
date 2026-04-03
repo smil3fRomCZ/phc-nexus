@@ -34,8 +34,17 @@ final class AuditLogController extends Controller
             $query->where('actor_id', $request->input('actor_id'));
         }
 
+        $allowedSorts = ['created_at', 'action', 'entity_type'];
+        $sort = $request->input('sort');
+        $dir = $request->input('dir') === 'asc' ? 'asc' : 'desc';
+
+        if ($sort && in_array($sort, $allowedSorts, true)) {
+            $query->orderBy($sort, $dir);
+        } else {
+            $query->latest('created_at');
+        }
+
         $entries = $query
-            ->latest('created_at')
             ->paginate(50)
             ->withQueryString();
 
@@ -58,7 +67,7 @@ final class AuditLogController extends Controller
 
         return Inertia::render('Admin/AuditLog/Index', [
             'entries' => $entries,
-            'filters' => $request->only(['action', 'entity_type', 'actor_id']),
+            'filters' => $request->only(['action', 'entity_type', 'actor_id', 'sort', 'dir']),
             'actions' => $actions,
             'entityTypes' => $entityTypes,
             'actors' => $actors,

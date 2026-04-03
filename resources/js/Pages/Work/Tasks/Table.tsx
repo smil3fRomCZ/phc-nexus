@@ -1,6 +1,8 @@
 import AppLayout from '@/Layouts/AppLayout';
 import type { Breadcrumb } from '@/Layouts/AppLayout';
 import EmptyState from '@/Components/EmptyState';
+import SortableHeader, { PlainHeader } from '@/Components/SortableHeader';
+import { useFilterRouter } from '@/hooks/useFilterRouter';
 import { getPriority } from '@/constants/priority';
 import { displayKey } from '@/utils/displayKey';
 import { formatDate } from '@/utils/formatDate';
@@ -79,22 +81,11 @@ export default function TaskTable({ project, tasks, filters, statuses, prioritie
         { label: 'Backlog' },
     ];
 
-    function applyFilter(key: string, value: string) {
-        const params = { ...filters, [key]: value || undefined };
-        router.get(`/projects/${project.id}/table`, params, {
-            preserveState: true,
-            replace: true,
-        });
-    }
+    const applyFilter = useFilterRouter(`/projects/${project.id}/table`, filters, { replace: true });
 
     function applySort(field: string) {
         const dir = filters.sort === field && filters.dir !== 'desc' ? 'desc' : 'asc';
         router.get(`/projects/${project.id}/table`, { ...filters, sort: field, dir }, { replace: true });
-    }
-
-    function sortIndicator(field: string) {
-        if (filters.sort !== field) return '';
-        return filters.dir === 'desc' ? ' \u25BC' : ' \u25B2';
     }
 
     function handleStatusChange(taskId: string, newStatus: string) {
@@ -208,18 +199,20 @@ export default function TaskTable({ project, tasks, filters, statuses, prioritie
                                 { field: 'assignee', label: 'Řešitel', sortable: false },
                                 { field: 'epic', label: 'Epic', sortable: false },
                                 { field: 'due_date', label: 'Termín', sortable: true },
-                            ].map((col) => (
-                                <th
-                                    key={col.field}
-                                    className={`border-b border-border-default bg-surface-secondary px-5 py-3 text-left text-xs font-semibold uppercase tracking-wider text-text-subtle ${
-                                        col.sortable ? 'cursor-pointer' : ''
-                                    }`}
-                                    onClick={col.sortable ? () => applySort(col.field) : undefined}
-                                >
-                                    {col.label}
-                                    {col.sortable ? sortIndicator(col.field) : ''}
-                                </th>
-                            ))}
+                            ].map((col) =>
+                                col.sortable ? (
+                                    <SortableHeader
+                                        key={col.field}
+                                        field={col.field}
+                                        label={col.label}
+                                        sortField={filters.sort}
+                                        sortDir={filters.dir === 'desc' ? 'desc' : 'asc'}
+                                        onSort={applySort}
+                                    />
+                                ) : (
+                                    <PlainHeader key={col.field} label={col.label} />
+                                ),
+                            )}
                         </tr>
                     </thead>
                     <tbody>

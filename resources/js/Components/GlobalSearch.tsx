@@ -1,3 +1,4 @@
+import { useClickOutside } from '@/hooks/useClickOutside';
 import { router } from '@inertiajs/react';
 import { Search, FolderKanban, CheckSquare } from 'lucide-react';
 import { useState, useEffect, useRef, useCallback } from 'react';
@@ -29,7 +30,7 @@ export default function GlobalSearch() {
     const [results, setResults] = useState<SearchResults | null>(null);
     const [open, setOpen] = useState(false);
     const [selectedIndex, setSelectedIndex] = useState(-1);
-    const wrapperRef = useRef<HTMLDivElement>(null);
+    const wrapperRef = useClickOutside(() => setOpen(false));
     const inputRef = useRef<HTMLInputElement>(null);
 
     const allItems = results
@@ -78,17 +79,6 @@ export default function GlobalSearch() {
         }
         document.addEventListener('keydown', handleKeyDown);
         return () => document.removeEventListener('keydown', handleKeyDown);
-    }, []);
-
-    // Close on outside click
-    useEffect(() => {
-        function handleClick(e: MouseEvent) {
-            if (wrapperRef.current && !wrapperRef.current.contains(e.target as Node)) {
-                setOpen(false);
-            }
-        }
-        document.addEventListener('mousedown', handleClick);
-        return () => document.removeEventListener('mousedown', handleClick);
     }, []);
 
     const navigate = useCallback((item: (typeof allItems)[number]) => {

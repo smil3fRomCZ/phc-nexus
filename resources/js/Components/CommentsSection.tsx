@@ -1,4 +1,5 @@
 import Avatar from '@/Components/Avatar';
+import ConfirmModal from '@/Components/ConfirmModal';
 import Spinner from '@/Components/Spinner';
 import { router, useForm, usePage } from '@inertiajs/react';
 import { MessageSquare, Send } from 'lucide-react';
@@ -81,14 +82,13 @@ function CommentItem({
     rootId?: string;
 }) {
     const [showReply, setShowReply] = useState(false);
+    const [showDeleteModal, setShowDeleteModal] = useState(false);
     const isOwner = comment.author.id === currentUserId;
     // Root comment ID for threading — replies always point to the root
     const effectiveRootId = rootId ?? comment.id;
 
     function handleDelete() {
-        if (confirm('Smazat tento komentář?')) {
-            router.delete(`/comments/${comment.id}`);
-        }
+        setShowDeleteModal(true);
     }
 
     // For root comments, collect all replies (flat, not nested)
@@ -145,6 +145,18 @@ function CommentItem({
                     <CommentForm postUrl={postUrl} parentId={effectiveRootId} onDone={() => setShowReply(false)} />
                 </div>
             )}
+            <ConfirmModal
+                open={showDeleteModal}
+                variant="danger"
+                title="Smazat komentář"
+                message="Opravdu chcete smazat tento komentář?"
+                confirmLabel="Smazat"
+                onConfirm={() => {
+                    setShowDeleteModal(false);
+                    router.delete(`/comments/${comment.id}`);
+                }}
+                onCancel={() => setShowDeleteModal(false)}
+            />
         </div>
     );
 }

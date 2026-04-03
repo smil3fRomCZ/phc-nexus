@@ -1,6 +1,11 @@
 import AppLayout from '@/Layouts/AppLayout';
 import type { Breadcrumb } from '@/Layouts/AppLayout';
+import ConfirmModal from '@/Components/ConfirmModal';
+import DeleteButton from '@/Components/DeleteButton';
 import EmptyState from '@/Components/EmptyState';
+import Modal from '@/Components/Modal';
+import SortableHeader, { PlainHeader } from '@/Components/SortableHeader';
+import { useFilterRouter } from '@/hooks/useFilterRouter';
 import { router, useForm, usePage } from '@inertiajs/react';
 import type { PageProps } from '@/types';
 import { UserPlus, X, Shield, Ban, CheckCircle } from 'lucide-react';
@@ -45,24 +50,11 @@ export default function UsersIndex({ users, filters, roles, statuses }: Props) {
     const [inviting, setInviting] = useState(false);
     const [selectedUser, setSelectedUser] = useState<User | null>(null);
 
-    function applyFilter(key: string, value: string) {
-        const params = new URLSearchParams(window.location.search);
-        if (value) {
-            params.set(key, value);
-        } else {
-            params.delete(key);
-        }
-        router.get('/admin/users', Object.fromEntries(params), { preserveState: true });
-    }
+    const applyFilter = useFilterRouter('/admin/users');
 
     function applySort(field: string) {
         const dir = filters.sort === field && filters.dir !== 'desc' ? 'desc' : 'asc';
         router.get('/admin/users', { ...filters, sort: field, dir }, { replace: true });
-    }
-
-    function sortIndicator(field: string) {
-        if (filters.sort !== field) return '';
-        return filters.dir === 'desc' ? ' ▼' : ' ▲';
     }
 
     function handleSearch(e: FormEvent) {
@@ -139,16 +131,20 @@ export default function UsersIndex({ users, filters, roles, statuses }: Props) {
                                 { field: 'system_role', label: 'Role', sortable: true },
                                 { field: 'team', label: 'Tým', sortable: false },
                                 { field: 'status', label: 'Stav', sortable: true },
-                            ].map((col) => (
-                                <th
-                                    key={col.field}
-                                    className={`border-b border-border-default bg-surface-secondary px-5 py-3 text-left text-xs font-semibold uppercase tracking-wider text-text-subtle ${col.sortable ? 'cursor-pointer hover:text-text-default' : ''}`}
-                                    onClick={col.sortable ? () => applySort(col.field) : undefined}
-                                >
-                                    {col.label}
-                                    {col.sortable ? sortIndicator(col.field) : ''}
-                                </th>
-                            ))}
+                            ].map((col) =>
+                                col.sortable ? (
+                                    <SortableHeader
+                                        key={col.field}
+                                        field={col.field}
+                                        label={col.label}
+                                        sortField={filters.sort}
+                                        sortDir={filters.dir === 'desc' ? 'desc' : 'asc'}
+                                        onSort={applySort}
+                                    />
+                                ) : (
+                                    <PlainHeader key={col.field} label={col.label} />
+                                ),
+                            )}
                         </tr>
                     </thead>
                     <tbody>
@@ -214,6 +210,7 @@ function UserDetailModal({
     onClose: () => void;
 }) {
     const [role, setRole] = useState(user.system_role);
+    const [showDeactivateModal, setShowDeactivateModal] = useState(false);
     const isSelf = user.id === currentUserId;
     const canChangeRole = isExecutive && !isSelf;
     const canToggleStatus = isExecutive && !isSelf;
@@ -226,18 +223,13 @@ function UserDetailModal({
         if (user.status === 'deactivated') {
             router.post(`/admin/users/${user.id}/activate`, {}, { onSuccess: onClose });
         } else {
-            if (confirm(`Opravdu deaktivovat uživatele ${user.name}?`)) {
-                router.post(`/admin/users/${user.id}/deactivate`, {}, { onSuccess: onClose });
-            }
+            setShowDeactivateModal(true);
         }
     }
 
     return (
-        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50" onClick={onClose}>
-            <div
-                className="mx-4 w-full max-w-md rounded-lg border border-border-subtle bg-surface-primary p-4 sm:p-6 shadow-xl sm:mx-auto"
-                onClick={(e) => e.stopPropagation()}
-            >
+        <Modal open onClose={onClose} showClose={false}>
+            <div>
                 <div className="mb-4 flex items-center justify-between">
                     <h2 className="text-lg font-semibold text-text-strong">Detail uživatele</h2>
                     <button onClick={onClose} className="rounded p-2 text-text-muted hover:bg-surface-hover">
@@ -328,19 +320,31 @@ function UserDetailModal({
                                     Aktivovat uživatele
                                 </button>
                             ) : (
-                                <button
+                                <DeleteButton
                                     onClick={handleToggleStatus}
                                     className="flex items-center gap-2 rounded-md border border-status-danger/30 px-4 py-2 text-sm font-medium text-status-danger hover:bg-status-danger-subtle"
                                 >
                                     <Ban className="h-4 w-4" />
                                     Deaktivovat uživatele
-                                </button>
+                                </DeleteButton>
                             )}
                         </div>
                     )}
                 </div>
             </div>
-        </div>
+            <ConfirmModal
+                open={showDeactivateModal}
+                variant="warning"
+                title="Deaktivovat uživatele"
+                message={`Opravdu chcete deaktivovat uživatele ${user.name}?`}
+                confirmLabel="Deaktivovat"
+                onConfirm={() => {
+                    setShowDeactivateModal(false);
+                    router.post(`/admin/users/${user.id}/deactivate`, {}, { onSuccess: onClose });
+                }}
+                onCancel={() => setShowDeactivateModal(false)}
+            />
+        </Modal>
     );
 }
 
@@ -357,62 +361,60 @@ function InviteDialog({ roles, onClose }: { roles: SelectOption[]; onClose: () =
     }
 
     return (
-        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50">
-            <div className="w-full max-w-md rounded-lg border border-border-subtle bg-surface-primary p-6 shadow-xl">
-                <div className="mb-4 flex items-center justify-between">
-                    <h2 className="text-lg font-semibold text-text-strong">Pozvat uživatele</h2>
-                    <button onClick={onClose} className="rounded p-2 text-text-muted hover:bg-surface-hover">
-                        <X className="h-4 w-4" />
-                    </button>
+        <Modal open onClose={onClose} showClose={false}>
+            <div className="mb-4 flex items-center justify-between">
+                <h2 className="text-lg font-semibold text-text-strong">Pozvat uživatele</h2>
+                <button onClick={onClose} className="rounded p-2 text-text-muted hover:bg-surface-hover">
+                    <X className="h-4 w-4" />
+                </button>
+            </div>
+
+            <form onSubmit={submit} className="space-y-4">
+                <div>
+                    <label className="block text-xs font-medium text-text-default">Email *</label>
+                    <input
+                        type="email"
+                        value={data.email}
+                        onChange={(e) => setData('email', e.target.value)}
+                        placeholder="user@pearshealthcare.com"
+                        className="mt-1 w-full rounded-md border border-border-default bg-surface-primary px-3 py-2 text-sm focus:border-border-focus focus:outline-none focus:shadow-[0_0_0_2px_var(--color-brand-soft)]"
+                    />
+                    {errors.email && <p className="mt-1 text-xs text-status-danger">{errors.email}</p>}
                 </div>
 
-                <form onSubmit={submit} className="space-y-4">
-                    <div>
-                        <label className="block text-xs font-medium text-text-default">Email *</label>
-                        <input
-                            type="email"
-                            value={data.email}
-                            onChange={(e) => setData('email', e.target.value)}
-                            placeholder="user@pearshealthcare.com"
-                            className="mt-1 w-full rounded-md border border-border-default bg-surface-primary px-3 py-2 text-sm focus:border-border-focus focus:outline-none focus:shadow-[0_0_0_2px_var(--color-brand-soft)]"
-                        />
-                        {errors.email && <p className="mt-1 text-xs text-status-danger">{errors.email}</p>}
-                    </div>
+                <div>
+                    <label className="block text-xs font-medium text-text-default">Role</label>
+                    <select
+                        value={data.system_role}
+                        onChange={(e) => setData('system_role', e.target.value)}
+                        className="mt-1 w-full rounded-md border border-border-default bg-surface-primary px-3 py-2 text-sm focus:border-border-focus focus:outline-none focus:shadow-[0_0_0_2px_var(--color-brand-soft)]"
+                    >
+                        {roles.map((r) => (
+                            <option key={r.value} value={r.value}>
+                                {r.label}
+                            </option>
+                        ))}
+                    </select>
+                    {errors.system_role && <p className="mt-1 text-xs text-status-danger">{errors.system_role}</p>}
+                </div>
 
-                    <div>
-                        <label className="block text-xs font-medium text-text-default">Role</label>
-                        <select
-                            value={data.system_role}
-                            onChange={(e) => setData('system_role', e.target.value)}
-                            className="mt-1 w-full rounded-md border border-border-default bg-surface-primary px-3 py-2 text-sm focus:border-border-focus focus:outline-none focus:shadow-[0_0_0_2px_var(--color-brand-soft)]"
-                        >
-                            {roles.map((r) => (
-                                <option key={r.value} value={r.value}>
-                                    {r.label}
-                                </option>
-                            ))}
-                        </select>
-                        {errors.system_role && <p className="mt-1 text-xs text-status-danger">{errors.system_role}</p>}
-                    </div>
-
-                    <div className="flex justify-end gap-3 pt-2">
-                        <button
-                            type="button"
-                            onClick={onClose}
-                            className="rounded-md border border-border-default px-4 py-2 text-sm font-medium text-text-muted transition-colors hover:bg-surface-hover"
-                        >
-                            Zrušit
-                        </button>
-                        <button
-                            type="submit"
-                            disabled={processing}
-                            className="rounded-md bg-brand-primary px-4 py-2 text-sm font-medium text-text-inverse transition-colors hover:bg-brand-hover disabled:opacity-50"
-                        >
-                            Odeslat pozvánku
-                        </button>
-                    </div>
-                </form>
-            </div>
-        </div>
+                <div className="flex justify-end gap-3 pt-2">
+                    <button
+                        type="button"
+                        onClick={onClose}
+                        className="rounded-md border border-border-default px-4 py-2 text-sm font-medium text-text-muted transition-colors hover:bg-surface-hover"
+                    >
+                        Zrušit
+                    </button>
+                    <button
+                        type="submit"
+                        disabled={processing}
+                        className="rounded-md bg-brand-primary px-4 py-2 text-sm font-medium text-text-inverse transition-colors hover:bg-brand-hover disabled:opacity-50"
+                    >
+                        Odeslat pozvánku
+                    </button>
+                </div>
+            </form>
+        </Modal>
     );
 }

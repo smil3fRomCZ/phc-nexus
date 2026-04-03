@@ -12,6 +12,7 @@ use App\Models\User;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Route;
+use Inertia\Inertia;
 
 Route::middleware('auth')->group(function () {
     Route::get('/', DashboardController::class)->name('dashboard');
@@ -20,6 +21,22 @@ Route::middleware('auth')->group(function () {
     Route::get('/approvals', GlobalApprovalsController::class)->name('approvals.global');
     Route::get('/calendar', CalendarController::class)->name('calendar');
     Route::get('/admin/approval-analytics', ApprovalAnalyticsController::class)->name('admin.approval-analytics');
+
+    Route::get('/profile', function (Request $request) {
+        $user = $request->user();
+
+        return Inertia::render('Profile/Index', [
+            'user' => [
+                'id' => $user->id,
+                'name' => $user->name,
+                'email' => $user->email,
+                'system_role' => $user->system_role,
+                'status' => $user->status,
+                'team' => $user->team ? ['id' => $user->team->id, 'name' => $user->team->name] : null,
+                'created_at' => $user->created_at->toIso8601String(),
+            ],
+        ]);
+    })->name('profile');
 
     Route::patch('/user/board-settings', function (Request $request) {
         $validated = $request->validate([

@@ -1,3 +1,4 @@
+import ConfirmModal from '@/Components/ConfirmModal';
 import { Trash2 } from 'lucide-react';
 import { formatDate } from '@/utils/formatDate';
 import { router } from '@inertiajs/react';
@@ -39,6 +40,7 @@ export default function TimeLogSection({
     const [hours, setHours] = useState('');
     const [note, setNote] = useState('');
     const [submitting, setSubmitting] = useState(false);
+    const [deleteTarget, setDeleteTarget] = useState<string | null>(null);
 
     const defaultSummary: SummaryItem[] = [
         { label: 'Celkem', value: `${totalHours} h`, variant: 'info' },
@@ -69,8 +71,12 @@ export default function TimeLogSection({
     }
 
     function handleDelete(id: string) {
-        if (!confirm('Smazat záznam?')) return;
-        fetch(`/time-entries/${id}`, {
+        setDeleteTarget(id);
+    }
+
+    function confirmDelete() {
+        if (!deleteTarget) return;
+        fetch(`/time-entries/${deleteTarget}`, {
             method: 'DELETE',
             headers: {
                 'X-CSRF-TOKEN': document.querySelector<HTMLMetaElement>('meta[name="csrf-token"]')?.content ?? '',
@@ -79,6 +85,7 @@ export default function TimeLogSection({
         }).then((res) => {
             if (res.ok) router.reload();
         });
+        setDeleteTarget(null);
     }
 
     const headers = ['Datum', 'Hodiny', ...(showTaskColumn ? ['Úkol'] : []), 'Uživatel', 'Poznámka', ''];
@@ -107,7 +114,7 @@ export default function TimeLogSection({
             </div>
 
             {/* Add form */}
-            <form onSubmit={handleSubmit} className="mb-4 flex items-end gap-2">
+            <form onSubmit={handleSubmit} className="mb-4 flex flex-wrap items-end gap-2">
                 <div className="flex flex-col gap-1">
                     <label className="text-xs font-semibold uppercase tracking-wider text-text-subtle">Datum</label>
                     <input
@@ -151,60 +158,73 @@ export default function TimeLogSection({
 
             {/* Entries table */}
             {timeEntries.length > 0 ? (
-                <table className="w-full border-collapse">
-                    <thead>
-                        <tr>
-                            {headers.map((h) => (
-                                <th
-                                    key={h}
-                                    className="border-b-2 border-border-subtle px-3 py-2 text-left text-xs font-semibold uppercase tracking-wider text-text-subtle"
-                                >
-                                    {h}
-                                </th>
-                            ))}
-                        </tr>
-                    </thead>
-                    <tbody>
-                        {timeEntries.map((entry) => (
-                            <tr key={entry.id} className="transition-colors hover:bg-brand-soft">
-                                <td className="border-b border-border-subtle px-3 py-2 text-sm">
-                                    {formatDate(entry.date)}
-                                </td>
-                                <td className="border-b border-border-subtle px-3 py-2 text-sm font-bold text-text-strong">
-                                    {entry.hours} h
-                                </td>
-                                {showTaskColumn && (
+                <div className="overflow-x-auto">
+                    <table className="w-full border-collapse">
+                        <thead>
+                            <tr>
+                                {headers.map((h) => (
+                                    <th
+                                        key={h}
+                                        className="border-b-2 border-border-subtle px-3 py-2 text-left text-xs font-semibold uppercase tracking-wider text-text-subtle"
+                                    >
+                                        {h}
+                                    </th>
+                                ))}
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {timeEntries.map((entry) => (
+                                <tr key={entry.id} className="transition-colors hover:bg-brand-soft">
+                                    <td className="border-b border-border-subtle px-3 py-2 text-sm">
+                                        {formatDate(entry.date)}
+                                    </td>
+                                    <td className="border-b border-border-subtle px-3 py-2 text-sm font-bold text-text-strong">
+                                        {entry.hours} h
+                                    </td>
+                                    {showTaskColumn && (
+                                        <td className="border-b border-border-subtle px-3 py-2 text-sm text-text-muted">
+                                            {entry.task ? (
+                                                <span className="font-medium text-brand-primary">
+                                                    {entry.task.title}
+                                                </span>
+                                            ) : (
+                                                <em className="text-text-subtle">Epic</em>
+                                            )}
+                                        </td>
+                                    )}
                                     <td className="border-b border-border-subtle px-3 py-2 text-sm text-text-muted">
-                                        {entry.task ? (
-                                            <span className="font-medium text-brand-primary">{entry.task.title}</span>
-                                        ) : (
-                                            <em className="text-text-subtle">Epic</em>
+                                        {entry.user.name}
+                                    </td>
+                                    <td className="border-b border-border-subtle px-3 py-2 text-sm text-text-muted">
+                                        {entry.note ?? '\u2014'}
+                                    </td>
+                                    <td className="border-b border-border-subtle px-3 py-2 text-right">
+                                        {entry.user.id === currentUserId && (
+                                            <button
+                                                onClick={() => handleDelete(entry.id)}
+                                                className="text-xs text-text-subtle transition-colors hover:text-status-danger"
+                                            >
+                                                <Trash2 className="h-3.5 w-3.5" />
+                                            </button>
                                         )}
                                     </td>
-                                )}
-                                <td className="border-b border-border-subtle px-3 py-2 text-sm text-text-muted">
-                                    {entry.user.name}
-                                </td>
-                                <td className="border-b border-border-subtle px-3 py-2 text-sm text-text-muted">
-                                    {entry.note ?? '\u2014'}
-                                </td>
-                                <td className="border-b border-border-subtle px-3 py-2 text-right">
-                                    {entry.user.id === currentUserId && (
-                                        <button
-                                            onClick={() => handleDelete(entry.id)}
-                                            className="text-xs text-text-subtle transition-colors hover:text-status-danger"
-                                        >
-                                            <Trash2 className="h-3.5 w-3.5" />
-                                        </button>
-                                    )}
-                                </td>
-                            </tr>
-                        ))}
-                    </tbody>
-                </table>
+                                </tr>
+                            ))}
+                        </tbody>
+                    </table>
+                </div>
             ) : (
                 <p className="text-sm text-text-muted">Zatím žádné záznamy. Přidejte první výše.</p>
             )}
+            <ConfirmModal
+                open={!!deleteTarget}
+                variant="danger"
+                title="Smazat záznam"
+                message="Opravdu chcete smazat tento časový záznam?"
+                confirmLabel="Smazat"
+                onConfirm={confirmDelete}
+                onCancel={() => setDeleteTarget(null)}
+            />
         </div>
     );
 }

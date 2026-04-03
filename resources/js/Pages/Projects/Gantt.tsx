@@ -101,7 +101,7 @@ export default function ProjectGantt({ project, tasks, epics }: Props) {
 
                 {hasData ? (
                     <>
-                        <div className="flex gap-2">
+                        <div className="flex flex-wrap gap-2">
                             {(['Day', 'Week', 'Month'] as const).map((mode) => (
                                 <button
                                     key={mode}
@@ -118,7 +118,7 @@ export default function ProjectGantt({ project, tasks, epics }: Props) {
                         </div>
 
                         <div className="overflow-x-auto rounded-lg border border-border-subtle bg-surface-primary">
-                            <div ref={containerRef} className="min-h-[300px]" />
+                            <div ref={containerRef} className="min-h-[200px] sm:min-h-[300px]" />
                         </div>
                     </>
                 ) : (

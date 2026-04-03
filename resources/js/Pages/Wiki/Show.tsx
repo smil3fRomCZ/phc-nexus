@@ -9,7 +9,9 @@ import AttachmentsSection from '@/Components/AttachmentsSection';
 import type { Attachment } from '@/Components/AttachmentsSection';
 import { formatDate } from '@/utils/formatDate';
 import { Link, router, useForm } from '@inertiajs/react';
-import { ChevronRight, Pencil, Trash2, Plus } from 'lucide-react';
+import { ChevronRight, Pencil, Plus } from 'lucide-react';
+import ConfirmModal from '@/Components/ConfirmModal';
+import DeleteButton from '@/Components/DeleteButton';
 import { useState, type FormEvent } from 'react';
 
 interface WikiPageTree {
@@ -40,6 +42,7 @@ interface Props {
 export default function WikiShow({ project, page, pages }: Props) {
     const [editing, setEditing] = useState(false);
     const [addingChild, setAddingChild] = useState(false);
+    const [showDeleteModal, setShowDeleteModal] = useState(false);
 
     const breadcrumbs: Breadcrumb[] = [
         { label: 'Domů', href: '/' },
@@ -128,16 +131,7 @@ export default function WikiShow({ project, page, pages }: Props) {
                                     <Plus className="mr-1 inline-block h-3 w-3" />
                                     Podstránka
                                 </button>
-                                <button
-                                    onClick={() => {
-                                        if (confirm('Smazat stránku?')) {
-                                            router.delete(`/projects/${project.id}/wiki/${page.id}`);
-                                        }
-                                    }}
-                                    className="rounded-md border border-status-danger/30 px-3 py-1.5 text-xs font-medium text-status-danger transition-colors hover:bg-status-danger-subtle"
-                                >
-                                    <Trash2 className="h-3 w-3" />
-                                </button>
+                                <DeleteButton onClick={() => setShowDeleteModal(true)} />
                             </div>
                         </div>
 
@@ -200,6 +194,15 @@ export default function WikiShow({ project, page, pages }: Props) {
                     </div>
                 </div>
             </div>
+            <ConfirmModal
+                open={showDeleteModal}
+                variant="danger"
+                title="Smazat stránku"
+                message="Opravdu chcete smazat tuto stránku? Tuto akci nelze vrátit."
+                confirmLabel="Smazat"
+                onConfirm={() => router.delete(`/projects/${project.id}/wiki/${page.id}`)}
+                onCancel={() => setShowDeleteModal(false)}
+            />
         </AppLayout>
     );
 }

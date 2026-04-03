@@ -6,6 +6,8 @@ import ActivityTimeline from '@/Components/ActivityTimeline';
 import type { ActivityEntry } from '@/Components/ActivityTimeline';
 import RichTextDisplay from '@/Components/RichTextDisplay';
 import RichTextEditor from '@/Components/RichTextEditor';
+import DeleteButton from '@/Components/DeleteButton';
+import Modal from '@/Components/Modal';
 import TimeLogSection from '@/Components/TimeLogSection';
 import type { TimeEntryData } from '@/Components/TimeLogSection';
 import { formatDate, toDateInputValue } from '@/utils/formatDate';
@@ -28,6 +30,7 @@ import {
     Copy,
 } from 'lucide-react';
 import type { PageProps } from '@/types';
+import ConfirmModal from '@/Components/ConfirmModal';
 import { useState, type FormEvent } from 'react';
 
 interface Comment {
@@ -156,6 +159,7 @@ export default function TaskShow({
     const [editing, setEditing] = useState(false);
     const [requestingApproval, setRequestingApproval] = useState(false);
     const [activeTab, setActiveTab] = useState<'detail' | 'activity' | 'time'>('detail');
+    const [showDeleteModal, setShowDeleteModal] = useState(false);
     const isDone = task.workflow_status?.is_done || task.workflow_status?.is_cancelled || false;
 
     const breadcrumbs: Breadcrumb[] = [
@@ -241,16 +245,7 @@ export default function TaskShow({
                                         <Copy className="mr-1 inline-block h-3 w-3" />
                                         Duplikovat
                                     </button>
-                                    <button
-                                        onClick={() => {
-                                            if (confirm('Opravdu chcete smazat tento úkol? Tuto akci nelze vrátit.')) {
-                                                router.delete(`/projects/${project.id}/tasks/${task.id}`);
-                                            }
-                                        }}
-                                        className="rounded-md border border-status-danger/30 px-3 py-1.5 text-xs font-medium text-status-danger transition-colors hover:bg-status-danger-subtle"
-                                    >
-                                        <Trash2 className="h-3 w-3" />
-                                    </button>
+                                    <DeleteButton onClick={() => setShowDeleteModal(true)} />
                                 </div>
                             )}
                         </div>
@@ -625,6 +620,15 @@ export default function TaskShow({
                     </div>
                 </div>
             </div>
+            <ConfirmModal
+                open={showDeleteModal}
+                variant="danger"
+                title="Smazat úkol"
+                message="Opravdu chcete smazat tento úkol? Tuto akci nelze vrátit."
+                confirmLabel="Smazat"
+                onConfirm={() => router.delete(`/projects/${project.id}/tasks/${task.id}`)}
+                onCancel={() => setShowDeleteModal(false)}
+            />
         </AppLayout>
     );
 }
@@ -662,125 +666,123 @@ function TaskEditDialog({
     }
 
     return (
-        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50">
-            <div className="mx-4 w-full max-w-lg rounded-lg border border-border-subtle bg-surface-primary p-4 sm:p-6 shadow-xl sm:mx-auto">
-                <div className="mb-4 flex items-center justify-between">
-                    <h2 className="text-lg font-semibold text-text-strong">Upravit úkol</h2>
-                    <button onClick={onClose} className="rounded p-2 text-text-muted hover:bg-surface-hover">
-                        <X className="h-4 w-4" />
-                    </button>
+        <Modal open onClose={onClose} size="max-w-lg" showClose={false}>
+            <div className="mb-4 flex items-center justify-between">
+                <h2 className="text-lg font-semibold text-text-strong">Upravit úkol</h2>
+                <button onClick={onClose} className="rounded p-2 text-text-muted hover:bg-surface-hover">
+                    <X className="h-4 w-4" />
+                </button>
+            </div>
+
+            <form onSubmit={submit} className="space-y-4">
+                <EditField label="Název *" error={errors.title}>
+                    <input
+                        type="text"
+                        value={data.title}
+                        onChange={(e) => setData('title', e.target.value)}
+                        className="mt-1 w-full rounded-md border border-border-default bg-surface-primary px-3 py-2 text-sm focus:border-border-focus focus:outline-none focus:shadow-[0_0_0_2px_var(--color-brand-soft)]"
+                    />
+                </EditField>
+
+                <EditField label="Popis" error={errors.description}>
+                    <div className="mt-1">
+                        <RichTextEditor
+                            content={data.description}
+                            onChange={(html) => setData('description', html)}
+                            placeholder="Popis úkolu..."
+                        />
+                    </div>
+                </EditField>
+
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                    <EditField label="Stav" error={errors.workflow_status_id}>
+                        <select
+                            value={data.workflow_status_id}
+                            onChange={(e) => setData('workflow_status_id', e.target.value)}
+                            className="mt-1 w-full rounded-md border border-border-default bg-surface-primary px-3 py-2 text-sm focus:border-border-focus focus:outline-none focus:shadow-[0_0_0_2px_var(--color-brand-soft)]"
+                        >
+                            {statuses.map((s) => (
+                                <option key={s.value} value={s.value}>
+                                    {s.label}
+                                </option>
+                            ))}
+                        </select>
+                    </EditField>
+
+                    <EditField label="Priorita" error={errors.priority}>
+                        <select
+                            value={data.priority}
+                            onChange={(e) => setData('priority', e.target.value)}
+                            className="mt-1 w-full rounded-md border border-border-default bg-surface-primary px-3 py-2 text-sm focus:border-border-focus focus:outline-none focus:shadow-[0_0_0_2px_var(--color-brand-soft)]"
+                        >
+                            {priorities.map((p) => (
+                                <option key={p.value} value={p.value}>
+                                    {p.label}
+                                </option>
+                            ))}
+                        </select>
+                    </EditField>
                 </div>
 
-                <form onSubmit={submit} className="space-y-4">
-                    <EditField label="Název *" error={errors.title}>
-                        <input
-                            type="text"
-                            value={data.title}
-                            onChange={(e) => setData('title', e.target.value)}
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                    <EditField label="Řešitel" error={errors.assignee_id}>
+                        <select
+                            value={data.assignee_id}
+                            onChange={(e) => setData('assignee_id', e.target.value)}
                             className="mt-1 w-full rounded-md border border-border-default bg-surface-primary px-3 py-2 text-sm focus:border-border-focus focus:outline-none focus:shadow-[0_0_0_2px_var(--color-brand-soft)]"
-                        />
+                        >
+                            <option value="">Nepřiřazeno</option>
+                            {members.map((m) => (
+                                <option key={m.id} value={m.id}>
+                                    {m.name}
+                                </option>
+                            ))}
+                        </select>
                     </EditField>
 
-                    <EditField label="Popis" error={errors.description}>
-                        <div className="mt-1">
-                            <RichTextEditor
-                                content={data.description}
-                                onChange={(html) => setData('description', html)}
-                                placeholder="Popis úkolu..."
-                            />
-                        </div>
-                    </EditField>
-
-                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                        <EditField label="Stav" error={errors.workflow_status_id}>
-                            <select
-                                value={data.workflow_status_id}
-                                onChange={(e) => setData('workflow_status_id', e.target.value)}
-                                className="mt-1 w-full rounded-md border border-border-default bg-surface-primary px-3 py-2 text-sm focus:border-border-focus focus:outline-none focus:shadow-[0_0_0_2px_var(--color-brand-soft)]"
-                            >
-                                {statuses.map((s) => (
-                                    <option key={s.value} value={s.value}>
-                                        {s.label}
-                                    </option>
-                                ))}
-                            </select>
-                        </EditField>
-
-                        <EditField label="Priorita" error={errors.priority}>
-                            <select
-                                value={data.priority}
-                                onChange={(e) => setData('priority', e.target.value)}
-                                className="mt-1 w-full rounded-md border border-border-default bg-surface-primary px-3 py-2 text-sm focus:border-border-focus focus:outline-none focus:shadow-[0_0_0_2px_var(--color-brand-soft)]"
-                            >
-                                {priorities.map((p) => (
-                                    <option key={p.value} value={p.value}>
-                                        {p.label}
-                                    </option>
-                                ))}
-                            </select>
-                        </EditField>
-                    </div>
-
-                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                        <EditField label="Řešitel" error={errors.assignee_id}>
-                            <select
-                                value={data.assignee_id}
-                                onChange={(e) => setData('assignee_id', e.target.value)}
-                                className="mt-1 w-full rounded-md border border-border-default bg-surface-primary px-3 py-2 text-sm focus:border-border-focus focus:outline-none focus:shadow-[0_0_0_2px_var(--color-brand-soft)]"
-                            >
-                                <option value="">Nepřiřazeno</option>
-                                {members.map((m) => (
-                                    <option key={m.id} value={m.id}>
-                                        {m.name}
-                                    </option>
-                                ))}
-                            </select>
-                        </EditField>
-
-                        <EditField label="Zadavatel" error={errors.reporter_id}>
-                            <select
-                                value={data.reporter_id}
-                                onChange={(e) => setData('reporter_id', e.target.value)}
-                                className="mt-1 w-full rounded-md border border-border-default bg-surface-primary px-3 py-2 text-sm focus:border-border-focus focus:outline-none focus:shadow-[0_0_0_2px_var(--color-brand-soft)]"
-                            >
-                                <option value="">—</option>
-                                {members.map((m) => (
-                                    <option key={m.id} value={m.id}>
-                                        {m.name}
-                                    </option>
-                                ))}
-                            </select>
-                        </EditField>
-                    </div>
-
-                    <EditField label="Termín" error={errors.due_date}>
-                        <input
-                            type="date"
-                            value={data.due_date}
-                            onChange={(e) => setData('due_date', e.target.value)}
+                    <EditField label="Zadavatel" error={errors.reporter_id}>
+                        <select
+                            value={data.reporter_id}
+                            onChange={(e) => setData('reporter_id', e.target.value)}
                             className="mt-1 w-full rounded-md border border-border-default bg-surface-primary px-3 py-2 text-sm focus:border-border-focus focus:outline-none focus:shadow-[0_0_0_2px_var(--color-brand-soft)]"
-                        />
+                        >
+                            <option value="">—</option>
+                            {members.map((m) => (
+                                <option key={m.id} value={m.id}>
+                                    {m.name}
+                                </option>
+                            ))}
+                        </select>
                     </EditField>
+                </div>
 
-                    <div className="flex justify-end gap-3 pt-2">
-                        <button
-                            type="button"
-                            onClick={onClose}
-                            className="rounded-md border border-border-default px-4 py-2 text-sm font-medium text-text-muted transition-colors hover:bg-surface-hover"
-                        >
-                            Zrušit
-                        </button>
-                        <button
-                            type="submit"
-                            disabled={processing}
-                            className="rounded-md bg-brand-primary px-4 py-2 text-sm font-medium text-text-inverse transition-colors hover:bg-brand-hover disabled:opacity-50"
-                        >
-                            Uložit změny
-                        </button>
-                    </div>
-                </form>
-            </div>
-        </div>
+                <EditField label="Termín" error={errors.due_date}>
+                    <input
+                        type="date"
+                        value={data.due_date}
+                        onChange={(e) => setData('due_date', e.target.value)}
+                        className="mt-1 w-full rounded-md border border-border-default bg-surface-primary px-3 py-2 text-sm focus:border-border-focus focus:outline-none focus:shadow-[0_0_0_2px_var(--color-brand-soft)]"
+                    />
+                </EditField>
+
+                <div className="flex justify-end gap-3 pt-2">
+                    <button
+                        type="button"
+                        onClick={onClose}
+                        className="rounded-md border border-border-default px-4 py-2 text-sm font-medium text-text-muted transition-colors hover:bg-surface-hover"
+                    >
+                        Zrušit
+                    </button>
+                    <button
+                        type="submit"
+                        disabled={processing}
+                        className="rounded-md bg-brand-primary px-4 py-2 text-sm font-medium text-text-inverse transition-colors hover:bg-brand-hover disabled:opacity-50"
+                    >
+                        Uložit změny
+                    </button>
+                </div>
+            </form>
+        </Modal>
     );
 }
 
@@ -832,77 +834,73 @@ function RequestApprovalDialog({
     }
 
     return (
-        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50">
-            <div className="mx-4 w-full max-w-lg rounded-lg border border-border-subtle bg-surface-primary p-4 sm:p-6 shadow-xl sm:mx-auto">
-                <div className="mb-4 flex items-center justify-between">
-                    <h2 className="text-lg font-semibold text-text-strong">Žádost o schválení</h2>
-                    <button onClick={onClose} className="rounded p-2 text-text-muted hover:bg-surface-hover">
-                        <X className="h-4 w-4" />
-                    </button>
+        <Modal open onClose={onClose} size="max-w-lg" showClose={false}>
+            <div className="mb-4 flex items-center justify-between">
+                <h2 className="text-lg font-semibold text-text-strong">Žádost o schválení</h2>
+                <button onClick={onClose} className="rounded p-2 text-text-muted hover:bg-surface-hover">
+                    <X className="h-4 w-4" />
+                </button>
+            </div>
+
+            <form onSubmit={submit} className="space-y-4">
+                <EditField label="Popis" error={errors.description}>
+                    <textarea
+                        value={data.description}
+                        onChange={(e) => setData('description', e.target.value)}
+                        rows={2}
+                        placeholder="Co potřebuje schválení?"
+                        className="mt-1 w-full rounded-md border border-border-default bg-surface-primary px-3 py-2 text-sm focus:border-border-focus focus:outline-none focus:shadow-[0_0_0_2px_var(--color-brand-soft)]"
+                    />
+                </EditField>
+
+                <div>
+                    <label className="block text-xs font-medium text-text-default">Schvalovatelé *</label>
+                    {errors.approver_ids && <p className="mt-1 text-xs text-status-danger">{errors.approver_ids}</p>}
+                    <div className="mt-2 max-h-48 space-y-1 overflow-y-auto rounded-md border border-border-default p-2">
+                        {members.map((m) => (
+                            <label
+                                key={m.id}
+                                className="flex cursor-pointer items-center gap-2 rounded px-2 py-1.5 text-sm hover:bg-surface-hover"
+                            >
+                                <input
+                                    type="checkbox"
+                                    checked={data.approver_ids.includes(m.id)}
+                                    onChange={() => toggleApprover(m.id)}
+                                    className="rounded border-border-default"
+                                />
+                                <span className="text-text-default">{m.name}</span>
+                            </label>
+                        ))}
+                    </div>
                 </div>
 
-                <form onSubmit={submit} className="space-y-4">
-                    <EditField label="Popis" error={errors.description}>
-                        <textarea
-                            value={data.description}
-                            onChange={(e) => setData('description', e.target.value)}
-                            rows={2}
-                            placeholder="Co potřebuje schválení?"
-                            className="mt-1 w-full rounded-md border border-border-default bg-surface-primary px-3 py-2 text-sm focus:border-border-focus focus:outline-none focus:shadow-[0_0_0_2px_var(--color-brand-soft)]"
-                        />
-                    </EditField>
+                <EditField label="Platnost do" error={errors.expires_at}>
+                    <input
+                        type="datetime-local"
+                        value={data.expires_at}
+                        onChange={(e) => setData('expires_at', e.target.value)}
+                        className="mt-1 w-full rounded-md border border-border-default bg-surface-primary px-3 py-2 text-sm focus:border-border-focus focus:outline-none focus:shadow-[0_0_0_2px_var(--color-brand-soft)]"
+                    />
+                </EditField>
 
-                    <div>
-                        <label className="block text-xs font-medium text-text-default">Schvalovatelé *</label>
-                        {errors.approver_ids && (
-                            <p className="mt-1 text-xs text-status-danger">{errors.approver_ids}</p>
-                        )}
-                        <div className="mt-2 max-h-48 space-y-1 overflow-y-auto rounded-md border border-border-default p-2">
-                            {members.map((m) => (
-                                <label
-                                    key={m.id}
-                                    className="flex cursor-pointer items-center gap-2 rounded px-2 py-1.5 text-sm hover:bg-surface-hover"
-                                >
-                                    <input
-                                        type="checkbox"
-                                        checked={data.approver_ids.includes(m.id)}
-                                        onChange={() => toggleApprover(m.id)}
-                                        className="rounded border-border-default"
-                                    />
-                                    <span className="text-text-default">{m.name}</span>
-                                </label>
-                            ))}
-                        </div>
-                    </div>
-
-                    <EditField label="Platnost do" error={errors.expires_at}>
-                        <input
-                            type="datetime-local"
-                            value={data.expires_at}
-                            onChange={(e) => setData('expires_at', e.target.value)}
-                            className="mt-1 w-full rounded-md border border-border-default bg-surface-primary px-3 py-2 text-sm focus:border-border-focus focus:outline-none focus:shadow-[0_0_0_2px_var(--color-brand-soft)]"
-                        />
-                    </EditField>
-
-                    <div className="flex justify-end gap-3 pt-2">
-                        <button
-                            type="button"
-                            onClick={onClose}
-                            className="rounded-md border border-border-default px-4 py-2 text-sm font-medium text-text-muted transition-colors hover:bg-surface-hover"
-                        >
-                            Zrušit
-                        </button>
-                        <button
-                            type="submit"
-                            disabled={processing || data.approver_ids.length === 0}
-                            className="rounded-md bg-brand-primary px-4 py-2 text-sm font-medium text-text-inverse transition-colors hover:bg-brand-hover disabled:opacity-50"
-                        >
-                            Odeslat žádost
-                        </button>
-                    </div>
-                </form>
-            </div>
-        </div>
+                <div className="flex justify-end gap-3 pt-2">
+                    <button
+                        type="button"
+                        onClick={onClose}
+                        className="rounded-md border border-border-default px-4 py-2 text-sm font-medium text-text-muted transition-colors hover:bg-surface-hover"
+                    >
+                        Zrušit
+                    </button>
+                    <button
+                        type="submit"
+                        disabled={processing || data.approver_ids.length === 0}
+                        className="rounded-md bg-brand-primary px-4 py-2 text-sm font-medium text-text-inverse transition-colors hover:bg-brand-hover disabled:opacity-50"
+                    >
+                        Odeslat žádost
+                    </button>
+                </div>
+            </form>
+        </Modal>
     );
 }
 
@@ -1067,14 +1065,13 @@ function CommentItem({
     rootId?: string;
 }) {
     const [showReply, setShowReply] = useState(false);
+    const [showDeleteModal, setShowDeleteModal] = useState(false);
     const isOwner = comment.author.id === currentUserId;
     const effectiveRootId = rootId ?? comment.id;
     const allReplies = !isReply ? flattenTaskReplies(comment) : [];
 
     function handleDelete() {
-        if (confirm('Smazat tento komentář?')) {
-            router.delete(`/comments/${comment.id}`);
-        }
+        setShowDeleteModal(true);
     }
 
     return (
@@ -1134,6 +1131,18 @@ function CommentItem({
                     />
                 </div>
             )}
+            <ConfirmModal
+                open={showDeleteModal}
+                variant="danger"
+                title="Smazat komentář"
+                message="Opravdu chcete smazat tento komentář?"
+                confirmLabel="Smazat"
+                onConfirm={() => {
+                    setShowDeleteModal(false);
+                    router.delete(`/comments/${comment.id}`);
+                }}
+                onCancel={() => setShowDeleteModal(false)}
+            />
         </div>
     );
 }
@@ -1196,6 +1205,7 @@ function AttachmentList({
     currentUserId?: string;
 }) {
     const [uploading, setUploading] = useState(false);
+    const [deleteTarget, setDeleteTarget] = useState<string | null>(null);
 
     function handleUpload(e: React.ChangeEvent<HTMLInputElement>) {
         const file = e.target.files?.[0];
@@ -1219,9 +1229,7 @@ function AttachmentList({
     }
 
     function handleDelete(attachmentId: string) {
-        if (confirm('Smazat tuto přílohu?')) {
-            router.delete(`/attachments/${attachmentId}`);
-        }
+        setDeleteTarget(attachmentId);
     }
 
     return (
@@ -1258,6 +1266,18 @@ function AttachmentList({
                 {uploading ? 'Nahrávání...' : 'Nahrát soubor'}
                 <input type="file" className="hidden" onChange={handleUpload} disabled={uploading} />
             </label>
+            <ConfirmModal
+                open={!!deleteTarget}
+                variant="danger"
+                title="Smazat přílohu"
+                message="Opravdu chcete smazat tuto přílohu?"
+                confirmLabel="Smazat"
+                onConfirm={() => {
+                    if (deleteTarget) router.delete(`/attachments/${deleteTarget}`);
+                    setDeleteTarget(null);
+                }}
+                onCancel={() => setDeleteTarget(null)}
+            />
         </div>
     );
 }

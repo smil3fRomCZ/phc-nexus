@@ -1,9 +1,10 @@
 import AppLayout from '@/Layouts/AppLayout';
 import type { Breadcrumb } from '@/Layouts/AppLayout';
 import EmptyState from '@/Components/EmptyState';
+import SortableHeader from '@/Components/SortableHeader';
+import { useClientSort } from '@/hooks/useSortable';
 import { formatDate } from '@/utils/formatDate';
 import { BarChart3, Clock, CheckCircle, XCircle, Ban } from 'lucide-react';
-import { useState, useMemo } from 'react';
 
 interface Stats {
     total: number;
@@ -50,38 +51,18 @@ function formatHours(hours: number): string {
     return `${Math.round(hours / 24)}d`;
 }
 
-type SortField = 'approvable_title' | 'requester_name' | 'status' | 'created_at' | 'decided_at' | 'resolution_hours';
+function compareHistory(a: HistoryItem, b: HistoryItem, field: string): number {
+    const av = a[field as keyof HistoryItem];
+    const bv = b[field as keyof HistoryItem];
+    if (av === null && bv === null) return 0;
+    if (av === null) return 1;
+    if (bv === null) return -1;
+    if (typeof av === 'number' && typeof bv === 'number') return av - bv;
+    return String(av).localeCompare(String(bv), 'cs');
+}
 
 export default function ApprovalAnalyticsIndex({ stats, history }: Props) {
-    const [sortField, setSortField] = useState<SortField>('created_at');
-    const [sortDir, setSortDir] = useState<'asc' | 'desc'>('desc');
-
-    function applySort(field: SortField) {
-        if (sortField === field) {
-            setSortDir((d) => (d === 'asc' ? 'desc' : 'asc'));
-        } else {
-            setSortField(field);
-            setSortDir('asc');
-        }
-    }
-
-    function sortIndicator(field: SortField) {
-        if (sortField !== field) return '';
-        return sortDir === 'desc' ? ' ▼' : ' ▲';
-    }
-
-    const sorted = useMemo(() => {
-        return [...history].sort((a, b) => {
-            const dir = sortDir === 'asc' ? 1 : -1;
-            const av = a[sortField];
-            const bv = b[sortField];
-            if (av === null && bv === null) return 0;
-            if (av === null) return 1;
-            if (bv === null) return -1;
-            if (typeof av === 'number' && typeof bv === 'number') return (av - bv) * dir;
-            return String(av).localeCompare(String(bv), 'cs') * dir;
-        });
-    }, [history, sortField, sortDir]);
+    const { sorted, sortField, sortDir, toggle } = useClientSort(history, compareHistory, 'created_at', 'desc');
 
     const tiles = [
         { label: 'Celkem', value: stats.total, icon: BarChart3, color: 'text-text-strong', bg: 'bg-surface-secondary' },
@@ -122,7 +103,7 @@ export default function ApprovalAnalyticsIndex({ stats, history }: Props) {
         },
     ];
 
-    const columns: { field: SortField; label: string }[] = [
+    const columns: { field: string; label: string }[] = [
         { field: 'approvable_title', label: 'Žádost' },
         { field: 'requester_name', label: 'Žadatel' },
         { field: 'status', label: 'Stav' },
@@ -161,14 +142,14 @@ export default function ApprovalAnalyticsIndex({ stats, history }: Props) {
                     <thead>
                         <tr>
                             {columns.map((col) => (
-                                <th
+                                <SortableHeader
                                     key={col.field}
-                                    className="cursor-pointer border-b border-border-default bg-surface-secondary px-5 py-3 text-left text-xs font-semibold uppercase tracking-wider text-text-subtle hover:text-text-default"
-                                    onClick={() => applySort(col.field)}
-                                >
-                                    {col.label}
-                                    {sortIndicator(col.field)}
-                                </th>
+                                    field={col.field}
+                                    label={col.label}
+                                    sortField={sortField}
+                                    sortDir={sortDir}
+                                    onSort={toggle}
+                                />
                             ))}
                         </tr>
                     </thead>

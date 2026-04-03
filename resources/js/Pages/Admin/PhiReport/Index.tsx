@@ -6,7 +6,6 @@ import { useFilterRouter } from '@/hooks/useFilterRouter';
 import { useClientSort } from '@/hooks/useSortable';
 import { formatDateTime } from '@/utils/formatDate';
 import { ShieldAlert } from 'lucide-react';
-import { useCallback } from 'react';
 
 interface AuditEntry {
     id: string;
@@ -40,21 +39,19 @@ function entityLabel(type: string): string {
     return type.split('\\').pop() ?? type;
 }
 
-const compareEntries = (a: AuditEntry, b: AuditEntry, field: string): number => {
-    switch (field) {
-        case 'created_at':
-            return a.created_at.localeCompare(b.created_at);
-        case 'actor':
-            return (a.actor?.name ?? '').localeCompare(b.actor?.name ?? '', 'cs');
-        case 'entity_type':
-            return a.entity_type.localeCompare(b.entity_type, 'cs');
-        default:
-            return 0;
-    }
-};
-
 export default function PhiReportIndex({ entries, filters, actors }: Props) {
-    const { sorted: sortedEntries, sortField, sortDir, toggle } = useClientSort(entries, useCallback(compareEntries, []), 'created_at', 'desc');
+    const { sorted: sortedEntries, sortField, sortDir, toggle } = useClientSort(entries, (a, b, field) => {
+        switch (field) {
+            case 'created_at':
+                return a.created_at.localeCompare(b.created_at);
+            case 'actor':
+                return (a.actor?.name ?? '').localeCompare(b.actor?.name ?? '', 'cs');
+            case 'entity_type':
+                return a.entity_type.localeCompare(b.entity_type, 'cs');
+            default:
+                return 0;
+        }
+    }, 'created_at', 'desc');
     const applyFilter = useFilterRouter('/admin/phi-report');
 
     return (

@@ -9,7 +9,10 @@ import { useEffect, useRef, type RefObject } from 'react';
 export function useClickOutside<T extends HTMLElement = HTMLDivElement>(onClose: () => void): RefObject<T | null> {
     const containerRef = useRef<T>(null);
     const callbackRef = useRef(onClose);
-    callbackRef.current = onClose;
+
+    useEffect(() => {
+        callbackRef.current = onClose;
+    });
 
     useEffect(() => {
         function handleClick(e: MouseEvent) {

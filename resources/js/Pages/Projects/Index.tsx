@@ -9,7 +9,7 @@ import SortableHeader, { PlainHeader } from '@/Components/SortableHeader';
 import { useClientSort } from '@/hooks/useSortable';
 import { Link } from '@inertiajs/react';
 import { Plus, Search } from 'lucide-react';
-import { useState, useCallback } from 'react';
+import { useState } from 'react';
 
 const BREADCRUMBS: Breadcrumb[] = [{ label: 'Domů', href: '/' }, { label: 'Projekty' }];
 
@@ -38,23 +38,6 @@ function getProgress(completed: number, total: number): number {
     return Math.round((completed / total) * 100);
 }
 
-const compareProjects = (a: Project, b: Project, field: string): number => {
-    switch (field) {
-        case 'name':
-            return a.name.localeCompare(b.name, 'cs');
-        case 'status':
-            return a.status.localeCompare(b.status, 'cs');
-        case 'tasks_count':
-            return a.tasks_count - b.tasks_count;
-        case 'progress':
-            return getProgress(a.tasks_completed_count, a.tasks_count) - getProgress(b.tasks_completed_count, b.tasks_count);
-        case 'updated_at':
-            return a.updated_at.localeCompare(b.updated_at);
-        default:
-            return 0;
-    }
-};
-
 export default function ProjectsIndex({ projects }: Props) {
     const [statusFilter, setStatusFilter] = useState('');
     const [searchQuery, setSearchQuery] = useState('');
@@ -65,7 +48,22 @@ export default function ProjectsIndex({ projects }: Props) {
         return matchesStatus && matchesSearch;
     });
 
-    const { sorted: filteredProjects, sortField, sortDir, toggle } = useClientSort(filtered, useCallback(compareProjects, []));
+    const { sorted: filteredProjects, sortField, sortDir, toggle } = useClientSort(filtered, (a, b, field) => {
+        switch (field) {
+            case 'name':
+                return a.name.localeCompare(b.name, 'cs');
+            case 'status':
+                return a.status.localeCompare(b.status, 'cs');
+            case 'tasks_count':
+                return a.tasks_count - b.tasks_count;
+            case 'progress':
+                return getProgress(a.tasks_completed_count, a.tasks_count) - getProgress(b.tasks_completed_count, b.tasks_count);
+            case 'updated_at':
+                return a.updated_at.localeCompare(b.updated_at);
+            default:
+                return 0;
+        }
+    });
 
     return (
         <AppLayout title="Projekty" breadcrumbs={BREADCRUMBS}>

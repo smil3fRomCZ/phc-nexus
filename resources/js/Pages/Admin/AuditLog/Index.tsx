@@ -1,9 +1,13 @@
 import AppLayout from '@/Layouts/AppLayout';
 import type { Breadcrumb } from '@/Layouts/AppLayout';
+import DateRangePicker from '@/Components/DateRangePicker';
 import EmptyState from '@/Components/EmptyState';
+import FilterBar from '@/Components/FilterBar';
+import FormSelect from '@/Components/FormSelect';
+import Modal from '@/Components/Modal';
+import PageHeader from '@/Components/PageHeader';
 import Pagination from '@/Components/Pagination';
 import type { PaginationLink } from '@/Components/Pagination';
-import Modal from '@/Components/Modal';
 import SortableHeader, { PlainHeader } from '@/Components/SortableHeader';
 import { useFilterRouter } from '@/hooks/useFilterRouter';
 import { formatDateTime } from '@/utils/formatDate';
@@ -36,7 +40,15 @@ interface Actor {
 
 interface Props {
     entries: { data: AuditEntry[]; links: PaginationLink[] };
-    filters: { action?: string; entity_type?: string; actor_id?: string; sort?: string; dir?: string };
+    filters: {
+        action?: string;
+        entity_type?: string;
+        actor_id?: string;
+        date_from?: string;
+        date_to?: string;
+        sort?: string;
+        dir?: string;
+    };
     actions: SelectOption[];
     entityTypes: SelectOption[];
     actors: Actor[];
@@ -75,47 +87,34 @@ export default function AuditLogIndex({ entries, filters, actions, entityTypes, 
 
     return (
         <AppLayout title="Audit log" breadcrumbs={BREADCRUMBS}>
-            <h1 className="mb-6 text-xl md:text-2xl font-bold leading-tight text-text-strong">Audit log</h1>
+            <PageHeader title="Audit log" />
 
-            {/* Filters */}
-            <div className="mb-6 flex flex-wrap gap-3">
-                <select
+            <FilterBar>
+                <FormSelect
                     value={filters.action ?? ''}
                     onChange={(e) => applyFilter('action', e.target.value)}
-                    className="rounded-md border border-border-default bg-surface-primary px-3 py-1.5 text-sm focus:border-border-focus focus:outline-none"
-                >
-                    <option value="">Všechny akce</option>
-                    {actions.map((a) => (
-                        <option key={a.value} value={a.value}>
-                            {a.label}
-                        </option>
-                    ))}
-                </select>
-                <select
+                    options={actions}
+                    placeholder="Všechny akce"
+                />
+                <FormSelect
                     value={filters.entity_type ?? ''}
                     onChange={(e) => applyFilter('entity_type', e.target.value)}
-                    className="rounded-md border border-border-default bg-surface-primary px-3 py-1.5 text-sm focus:border-border-focus focus:outline-none"
-                >
-                    <option value="">Všechny entity</option>
-                    {entityTypes.map((e) => (
-                        <option key={e.value} value={e.value}>
-                            {e.label}
-                        </option>
-                    ))}
-                </select>
-                <select
+                    options={entityTypes}
+                    placeholder="Všechny entity"
+                />
+                <FormSelect
                     value={filters.actor_id ?? ''}
                     onChange={(e) => applyFilter('actor_id', e.target.value)}
-                    className="rounded-md border border-border-default bg-surface-primary px-3 py-1.5 text-sm focus:border-border-focus focus:outline-none"
-                >
-                    <option value="">Všichni uživatelé</option>
-                    {actors.map((a) => (
-                        <option key={a.id} value={a.id}>
-                            {a.name}
-                        </option>
-                    ))}
-                </select>
-            </div>
+                    options={actors.map((a) => ({ value: a.id, label: a.name }))}
+                    placeholder="Všichni uživatelé"
+                />
+                <DateRangePicker
+                    from={filters.date_from ?? ''}
+                    to={filters.date_to ?? ''}
+                    onFromChange={(v) => applyFilter('date_from', v)}
+                    onToChange={(v) => applyFilter('date_to', v)}
+                />
+            </FilterBar>
 
             {/* Table */}
             <div className="overflow-x-auto rounded-lg border border-border-subtle bg-surface-primary">

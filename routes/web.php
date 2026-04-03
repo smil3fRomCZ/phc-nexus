@@ -9,6 +9,7 @@ use App\Http\Controllers\GlobalApprovalsController;
 use App\Http\Controllers\MyTasksController;
 use App\Http\Controllers\SearchController;
 use App\Models\User;
+use App\Modules\Organization\Controllers\ProfileController;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Route;
@@ -22,21 +23,8 @@ Route::middleware('auth')->group(function () {
     Route::get('/calendar', CalendarController::class)->name('calendar');
     Route::get('/admin/approval-analytics', ApprovalAnalyticsController::class)->name('admin.approval-analytics');
 
-    Route::get('/profile', function (Request $request) {
-        $user = $request->user();
-
-        return Inertia::render('Profile/Index', [
-            'user' => [
-                'id' => $user->id,
-                'name' => $user->name,
-                'email' => $user->email,
-                'system_role' => $user->system_role,
-                'status' => $user->status,
-                'team' => $user->team ? ['id' => $user->team->id, 'name' => $user->team->name] : null,
-                'created_at' => $user->created_at->toIso8601String(),
-            ],
-        ]);
-    })->name('profile');
+    Route::get('/profile', [ProfileController::class, 'show'])->name('profile');
+    Route::patch('/profile', [ProfileController::class, 'update'])->name('profile.update');
 
     Route::patch('/user/board-settings', function (Request $request) {
         $validated = $request->validate([

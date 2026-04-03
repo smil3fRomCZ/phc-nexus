@@ -157,4 +157,41 @@ class UserManagementTest extends TestCase
 
         $response->assertInertia(fn ($page) => $page->has('users', 1));
     }
+
+    // ── Team Filter ──
+
+    public function test_users_can_be_filtered_by_team(): void
+    {
+        $exec = User::factory()->executive()->create();
+        $division = \App\Modules\Organization\Models\Division::factory()->create();
+        $team = \App\Modules\Organization\Models\Team::factory()->create(['division_id' => $division->id]);
+        User::factory()->create(['team_id' => $team->id]);
+        User::factory()->create(); // no team
+
+        $response = $this->actingAs($exec)->get("/admin/users?team_id={$team->id}");
+
+        $response->assertInertia(fn ($page) => $page->has('users', 1));
+    }
+
+    public function test_users_can_be_filtered_by_no_team(): void
+    {
+        $exec = User::factory()->executive()->create();
+        $division = \App\Modules\Organization\Models\Division::factory()->create();
+        $team = \App\Modules\Organization\Models\Team::factory()->create(['division_id' => $division->id]);
+        User::factory()->create(['team_id' => $team->id]);
+
+        // exec is without team — should be in the result
+        $response = $this->actingAs($exec)->get('/admin/users?team_id=_none');
+
+        $response->assertInertia(fn ($page) => $page->where('users', fn ($users) => $users->every(fn ($u) => $u['team_id'] === null)));
+    }
+
+    public function test_index_returns_teams_for_filter(): void
+    {
+        $exec = User::factory()->executive()->create();
+
+        $response = $this->actingAs($exec)->get('/admin/users');
+
+        $response->assertInertia(fn ($page) => $page->has('teams'));
+    }
 }

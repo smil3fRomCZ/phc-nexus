@@ -108,3 +108,13 @@ test.describe('Autorizace', () => {
         await expect(page).toHaveURL(/\/login/);
     });
 });
+
+test.describe('Audit log — date filter', () => {
+    test('audit log zobrazuje date range picker', async ({ page }) => {
+        await loginAs(page, PM_EMAIL);
+        await page.goto('/admin/audit-log');
+
+        await expect(page.getByText('Od')).toBeVisible();
+        await expect(page.getByText('Do')).toBeVisible();
+    });
+});

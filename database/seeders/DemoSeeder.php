@@ -29,6 +29,8 @@ use App\Modules\Work\Models\TimeEntry;
 use Illuminate\Database\Seeder;
 use Illuminate\Notifications\DatabaseNotification;
 use Illuminate\Support\Facades\Hash;
+use App\Modules\Audit\Enums\AuditAction;
+use App\Modules\Audit\Models\AuditEntry;
 use Illuminate\Support\Str;
 
 class DemoSeeder extends Seeder
@@ -65,18 +67,77 @@ class DemoSeeder extends Seeder
 
         // Uživatelé (bez factory — Faker není dostupný na staging/prod)
         // Admin účet — reálný přístup přes Google SSO
-        $admin = $this->createUser('Jan Melicherik', 'melicherikjan84@gmail.com', SystemRole::Executive);
+        $admin = $this->createUser('Jan Melicherik', 'melicherikjan84@gmail.com', SystemRole::Executive, null, [
+            'job_title' => 'CTO',
+            'phone' => '+420 777 111 222',
+            'bio' => 'Zodpovědný za technickou strategii a architekturu platformy PHC Nexus.',
+            'capacity_h_week' => 40,
+        ]);
 
-        $exec = $this->createUser('Jiří Kratochvíl', 'jiri.kratochvil@example.cz', SystemRole::Executive);
-        $pmTech = $this->createUser('Monika Fialová', 'monika.fialova@example.cz', SystemRole::ProjectManager, $teamBackend->id);
-        $pmMkt = $this->createUser('David Šťastný', 'david.stastny@example.cz', SystemRole::ProjectManager, $teamMarketing->id);
-        $devBack1 = $this->createUser('Ondřej Malý', 'ondrej.maly@example.cz', SystemRole::TeamMember, $teamBackend->id);
-        $devBack2 = $this->createUser('Klára Veselá', 'klara.vesela@example.cz', SystemRole::TeamMember, $teamBackend->id);
-        $devFront = $this->createUser('Simona Nová', 'simona.nova@example.cz', SystemRole::TeamMember, $teamFrontend->id);
-        $logistik = $this->createUser('Radek Průcha', 'radek.prucha@example.cz', SystemRole::TeamMember, $teamSklad->id);
-        $supportLead = $this->createUser('Jana Pokorná', 'jana.pokorna@example.cz', SystemRole::TeamMember, $teamSupport->id);
-        $marketer = $this->createUser('Michal Hora', 'michal.hora@example.cz', SystemRole::TeamMember, $teamMarketing->id);
-        $reader = $this->createUser('Barbora Tichá', 'barbora.ticha@example.cz', SystemRole::Reader, $teamDoprava->id);
+        $exec = $this->createUser('Jiří Kratochvíl', 'jiri.kratochvil@example.cz', SystemRole::Executive, null, [
+            'job_title' => 'CEO',
+            'phone' => '+420 777 333 444',
+            'bio' => 'Řízení společnosti a strategické plánování.',
+            'capacity_h_week' => 40,
+        ]);
+        $pmTech = $this->createUser('Monika Fialová', 'monika.fialova@example.cz', SystemRole::ProjectManager, $teamBackend->id, [
+            'job_title' => 'Lead Backend Engineer',
+            'phone' => '+420 602 111 333',
+            'capacity_h_week' => 40,
+        ]);
+        $pmMkt = $this->createUser('David Šťastný', 'david.stastny@example.cz', SystemRole::ProjectManager, $teamMarketing->id, [
+            'job_title' => 'Marketing Manager',
+            'phone' => '+420 603 222 444',
+            'capacity_h_week' => 40,
+        ]);
+        $devBack1 = $this->createUser('Ondřej Malý', 'ondrej.maly@example.cz', SystemRole::TeamMember, $teamBackend->id, [
+            'job_title' => 'Senior PHP Developer',
+            'capacity_h_week' => 40,
+        ]);
+        $devBack2 = $this->createUser('Klára Veselá', 'klara.vesela@example.cz', SystemRole::TeamMember, $teamBackend->id, [
+            'job_title' => 'PHP Developer',
+            'capacity_h_week' => 32,
+        ]);
+        $devFront = $this->createUser('Simona Nová', 'simona.nova@example.cz', SystemRole::TeamMember, $teamFrontend->id, [
+            'job_title' => 'Frontend Developer',
+            'capacity_h_week' => 40,
+        ]);
+        $logistik = $this->createUser('Radek Průcha', 'radek.prucha@example.cz', SystemRole::TeamMember, $teamSklad->id, [
+            'job_title' => 'Warehouse Lead',
+            'capacity_h_week' => 40,
+        ]);
+        $supportLead = $this->createUser('Jana Pokorná', 'jana.pokorna@example.cz', SystemRole::TeamMember, $teamSupport->id, [
+            'job_title' => 'Support Team Lead',
+            'phone' => '+420 604 555 666',
+            'capacity_h_week' => 40,
+        ]);
+        $marketer = $this->createUser('Michal Hora', 'michal.hora@example.cz', SystemRole::TeamMember, $teamMarketing->id, [
+            'job_title' => 'Digital Marketing Specialist',
+            'capacity_h_week' => 32,
+        ]);
+        $reader = $this->createUser('Barbora Tichá', 'barbora.ticha@example.cz', SystemRole::Reader, $teamDoprava->id, [
+            'job_title' => 'Logistics Coordinator',
+            'capacity_h_week' => 20,
+        ]);
+
+        // Invited user — pro testování invite flow
+        $this->createUser('Tomáš Novotný', 'tomas.novotny@example.cz', SystemRole::TeamMember, null, [
+            'job_title' => 'QA Engineer',
+            'status' => UserStatus::Invited,
+        ]);
+
+        // Deactivated user — pro testování filtrů
+        $this->createUser('Petra Černá', 'petra.cerna@example.cz', SystemRole::TeamMember, null, [
+            'job_title' => 'Former Analyst',
+            'status' => UserStatus::Deactivated,
+        ]);
+
+        // Uživatel bez týmu — pro testování filtru "neobsazení"
+        $this->createUser('Lukáš Svoboda', 'lukas.svoboda@example.cz', SystemRole::TeamMember, null, [
+            'job_title' => 'Data Analyst',
+            'capacity_h_week' => 40,
+            'bio' => 'Nový zaměstnanec, zatím nepřiřazen k týmu.',
+        ]);
 
         // Team leads
         $teamBackend->update(['team_lead_id' => $pmTech->id]);
@@ -103,6 +164,7 @@ class DemoSeeder extends Seeder
         $this->seedProjectUpdates($users);
         $this->seedNotifications($users);
         $this->seedTaskDependencies();
+        $this->seedAuditEntries($users);
     }
 
     // ──────────────────────────────────────────────
@@ -1167,7 +1229,10 @@ class DemoSeeder extends Seeder
         return $created;
     }
 
-    private function createUser(string $name, string $email, SystemRole $role, ?string $teamId = null): User
+    /**
+     * @param  array{job_title?: string, phone?: string, bio?: string, capacity_h_week?: float, status?: UserStatus}  $extra
+     */
+    private function createUser(string $name, string $email, SystemRole $role, ?string $teamId = null, array $extra = []): User
     {
         return User::create([
             'name' => $name,
@@ -1175,8 +1240,12 @@ class DemoSeeder extends Seeder
             'email_verified_at' => now(),
             'password' => Hash::make('password'),
             'system_role' => $role,
-            'status' => UserStatus::Active,
+            'status' => $extra['status'] ?? UserStatus::Active,
             'team_id' => $teamId,
+            'job_title' => $extra['job_title'] ?? null,
+            'phone' => $extra['phone'] ?? null,
+            'bio' => $extra['bio'] ?? null,
+            'capacity_h_week' => $extra['capacity_h_week'] ?? null,
         ]);
     }
 
@@ -1360,6 +1429,76 @@ class DemoSeeder extends Seeder
         if ($checkoutWizard && $gpWebpay && $bankTransfer) {
             // Checkout wizard závisí na obou platebních metodách
             $checkoutWizard->blockers()->syncWithoutDetaching([$gpWebpay->id, $bankTransfer->id]);
+        }
+    }
+
+    // ──────────────────────────────────────────────
+    // Audit log — testovací záznamy rozptýlené přes 14 dní
+    // ──────────────────────────────────────────────
+
+    private function seedAuditEntries(array $u): void
+    {
+        $project = Project::where('key', 'ESHOP')->first();
+        $task = Task::first();
+
+        $entries = [
+            // Auth events
+            ['action' => AuditAction::LoggedIn, 'entity_type' => User::class, 'entity_id' => $u['admin']->id, 'actor_id' => $u['admin']->id, 'days_ago' => 0, 'ip' => '10.0.1.5'],
+            ['action' => AuditAction::LoggedIn, 'entity_type' => User::class, 'entity_id' => $u['pmTech']->id, 'actor_id' => $u['pmTech']->id, 'days_ago' => 0, 'ip' => '10.0.1.12'],
+            ['action' => AuditAction::LoggedIn, 'entity_type' => User::class, 'entity_id' => $u['exec']->id, 'actor_id' => $u['exec']->id, 'days_ago' => 1, 'ip' => '10.0.1.3'],
+            ['action' => AuditAction::LoggedOut, 'entity_type' => User::class, 'entity_id' => $u['exec']->id, 'actor_id' => $u['exec']->id, 'days_ago' => 1, 'ip' => '10.0.1.3'],
+            ['action' => AuditAction::InviteSent, 'entity_type' => User::class, 'entity_id' => $u['devBack1']->id, 'actor_id' => $u['admin']->id, 'days_ago' => 13, 'ip' => '10.0.1.5'],
+            ['action' => AuditAction::InviteAccepted, 'entity_type' => User::class, 'entity_id' => $u['devBack1']->id, 'actor_id' => $u['devBack1']->id, 'days_ago' => 12, 'ip' => '10.0.1.20'],
+
+            // Entity lifecycle
+            ['action' => AuditAction::Created, 'entity_type' => Project::class, 'entity_id' => $project?->id ?? Str::uuid7()->toString(), 'actor_id' => $u['pmTech']->id, 'days_ago' => 13, 'ip' => '10.0.1.12', 'new_values' => ['name' => 'Replatform E-shop', 'status' => 'draft']],
+            ['action' => AuditAction::Updated, 'entity_type' => Project::class, 'entity_id' => $project?->id ?? Str::uuid7()->toString(), 'actor_id' => $u['pmTech']->id, 'days_ago' => 10, 'ip' => '10.0.1.12', 'old_values' => ['status' => 'draft'], 'new_values' => ['status' => 'active']],
+            ['action' => AuditAction::Created, 'entity_type' => Task::class, 'entity_id' => $task?->id ?? Str::uuid7()->toString(), 'actor_id' => $u['devBack1']->id, 'days_ago' => 11, 'ip' => '10.0.1.20'],
+            ['action' => AuditAction::Updated, 'entity_type' => Task::class, 'entity_id' => $task?->id ?? Str::uuid7()->toString(), 'actor_id' => $u['devBack2']->id, 'days_ago' => 9, 'ip' => '10.0.1.21', 'old_values' => ['priority' => 'medium'], 'new_values' => ['priority' => 'high']],
+            ['action' => AuditAction::Viewed, 'entity_type' => Task::class, 'entity_id' => $task?->id ?? Str::uuid7()->toString(), 'actor_id' => $u['marketer']->id, 'days_ago' => 8, 'ip' => '10.0.1.30'],
+
+            // Status changes
+            ['action' => AuditAction::StatusChanged, 'entity_type' => Task::class, 'entity_id' => $task?->id ?? Str::uuid7()->toString(), 'actor_id' => $u['devBack1']->id, 'days_ago' => 7, 'ip' => '10.0.1.20', 'old_values' => ['status' => 'backlog'], 'new_values' => ['status' => 'in_progress']],
+            ['action' => AuditAction::StatusChanged, 'entity_type' => Task::class, 'entity_id' => $task?->id ?? Str::uuid7()->toString(), 'actor_id' => $u['devBack1']->id, 'days_ago' => 5, 'ip' => '10.0.1.20', 'old_values' => ['status' => 'in_progress'], 'new_values' => ['status' => 'code_review']],
+            ['action' => AuditAction::RoleChanged, 'entity_type' => User::class, 'entity_id' => $u['devFront']->id, 'actor_id' => $u['admin']->id, 'days_ago' => 6, 'ip' => '10.0.1.5', 'old_values' => ['role' => 'team_member'], 'new_values' => ['role' => 'project_manager']],
+            ['action' => AuditAction::RoleChanged, 'entity_type' => User::class, 'entity_id' => $u['devFront']->id, 'actor_id' => $u['admin']->id, 'days_ago' => 6, 'ip' => '10.0.1.5', 'old_values' => ['role' => 'project_manager'], 'new_values' => ['role' => 'team_member']],
+
+            // Approval events
+            ['action' => AuditAction::ApprovalRequested, 'entity_type' => Task::class, 'entity_id' => $task?->id ?? Str::uuid7()->toString(), 'actor_id' => $u['pmTech']->id, 'days_ago' => 4, 'ip' => '10.0.1.12'],
+            ['action' => AuditAction::ApprovalApproved, 'entity_type' => Task::class, 'entity_id' => $task?->id ?? Str::uuid7()->toString(), 'actor_id' => $u['exec']->id, 'days_ago' => 3, 'ip' => '10.0.1.3'],
+
+            // PHI events
+            ['action' => AuditAction::PhiAccessed, 'entity_type' => Task::class, 'entity_id' => $task?->id ?? Str::uuid7()->toString(), 'actor_id' => $u['admin']->id, 'days_ago' => 2, 'ip' => '10.0.1.5'],
+            ['action' => AuditAction::PhiClassificationChanged, 'entity_type' => Project::class, 'entity_id' => $project?->id ?? Str::uuid7()->toString(), 'actor_id' => $u['admin']->id, 'days_ago' => 11, 'ip' => '10.0.1.5', 'old_values' => ['classification' => 'unknown'], 'new_values' => ['classification' => 'non_phi']],
+
+            // File events
+            ['action' => AuditAction::Downloaded, 'entity_type' => Task::class, 'entity_id' => $task?->id ?? Str::uuid7()->toString(), 'actor_id' => $u['devBack2']->id, 'days_ago' => 3, 'ip' => '10.0.1.21'],
+            ['action' => AuditAction::Exported, 'entity_type' => Project::class, 'entity_id' => $project?->id ?? Str::uuid7()->toString(), 'actor_id' => $u['pmTech']->id, 'days_ago' => 1, 'ip' => '10.0.1.12'],
+
+            // More logins spread over time
+            ['action' => AuditAction::LoggedIn, 'entity_type' => User::class, 'entity_id' => $u['admin']->id, 'actor_id' => $u['admin']->id, 'days_ago' => 4, 'ip' => '10.0.1.5'],
+            ['action' => AuditAction::LoggedIn, 'entity_type' => User::class, 'entity_id' => $u['admin']->id, 'actor_id' => $u['admin']->id, 'days_ago' => 7, 'ip' => '10.0.1.5'],
+            ['action' => AuditAction::LoggedIn, 'entity_type' => User::class, 'entity_id' => $u['devBack1']->id, 'actor_id' => $u['devBack1']->id, 'days_ago' => 3, 'ip' => '10.0.1.20'],
+            ['action' => AuditAction::LoggedIn, 'entity_type' => User::class, 'entity_id' => $u['pmMkt']->id, 'actor_id' => $u['pmMkt']->id, 'days_ago' => 9, 'ip' => '10.0.1.15'],
+
+            // Deactivation event
+            ['action' => AuditAction::Deactivated, 'entity_type' => User::class, 'entity_id' => $u['reader']->id, 'actor_id' => $u['admin']->id, 'days_ago' => 2, 'ip' => '10.0.1.5'],
+        ];
+
+        foreach ($entries as $entry) {
+            AuditEntry::forceCreate([
+                'id' => Str::uuid7()->toString(),
+                'action' => $entry['action'],
+                'entity_type' => $entry['entity_type'],
+                'entity_id' => $entry['entity_id'],
+                'actor_id' => $entry['actor_id'],
+                'payload' => $entry['payload'] ?? null,
+                'old_values' => $entry['old_values'] ?? null,
+                'new_values' => $entry['new_values'] ?? null,
+                'ip_address' => $entry['ip'] ?? null,
+                'user_agent' => 'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36',
+                'created_at' => now()->subDays($entry['days_ago'])->subHours(rand(0, 12))->subMinutes(rand(0, 59)),
+            ]);
         }
     }
 }

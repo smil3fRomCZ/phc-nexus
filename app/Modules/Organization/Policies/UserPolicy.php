@@ -37,6 +37,14 @@ final class UserPolicy
         ]);
     }
 
+    /**
+     * Executive can update any user (except self role/status).
+     */
+    public function updateUser(User $user, User $target): bool
+    {
+        return $user->system_role === SystemRole::Executive;
+    }
+
     public function updateRole(User $user, User $target): bool
     {
         if ($user->id === $target->id) {

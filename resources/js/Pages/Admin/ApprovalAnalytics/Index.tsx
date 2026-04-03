@@ -51,16 +51,18 @@ function formatHours(hours: number): string {
     return `${Math.round(hours / 24)}d`;
 }
 
+function compareHistory(a: HistoryItem, b: HistoryItem, field: string): number {
+    const av = a[field as keyof HistoryItem];
+    const bv = b[field as keyof HistoryItem];
+    if (av === null && bv === null) return 0;
+    if (av === null) return 1;
+    if (bv === null) return -1;
+    if (typeof av === 'number' && typeof bv === 'number') return av - bv;
+    return String(av).localeCompare(String(bv), 'cs');
+}
+
 export default function ApprovalAnalyticsIndex({ stats, history }: Props) {
-    const { sorted, sortField, sortDir, toggle } = useClientSort(history, (a, b, field) => {
-        const av = a[field as keyof HistoryItem];
-        const bv = b[field as keyof HistoryItem];
-        if (av === null && bv === null) return 0;
-        if (av === null) return 1;
-        if (bv === null) return -1;
-        if (typeof av === 'number' && typeof bv === 'number') return av - bv;
-        return String(av).localeCompare(String(bv), 'cs');
-    }, 'created_at', 'desc');
+    const { sorted, sortField, sortDir, toggle } = useClientSort(history, compareHistory, 'created_at', 'desc');
 
     const tiles = [
         { label: 'Celkem', value: stats.total, icon: BarChart3, color: 'text-text-strong', bg: 'bg-surface-secondary' },

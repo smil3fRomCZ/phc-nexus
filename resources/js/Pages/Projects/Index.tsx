@@ -38,6 +38,23 @@ function getProgress(completed: number, total: number): number {
     return Math.round((completed / total) * 100);
 }
 
+function compareProjects(a: Project, b: Project, field: string): number {
+    switch (field) {
+        case 'name':
+            return a.name.localeCompare(b.name, 'cs');
+        case 'status':
+            return a.status.localeCompare(b.status, 'cs');
+        case 'tasks_count':
+            return a.tasks_count - b.tasks_count;
+        case 'progress':
+            return getProgress(a.tasks_completed_count, a.tasks_count) - getProgress(b.tasks_completed_count, b.tasks_count);
+        case 'updated_at':
+            return a.updated_at.localeCompare(b.updated_at);
+        default:
+            return 0;
+    }
+}
+
 export default function ProjectsIndex({ projects }: Props) {
     const [statusFilter, setStatusFilter] = useState('');
     const [searchQuery, setSearchQuery] = useState('');
@@ -48,22 +65,7 @@ export default function ProjectsIndex({ projects }: Props) {
         return matchesStatus && matchesSearch;
     });
 
-    const { sorted: filteredProjects, sortField, sortDir, toggle } = useClientSort(filtered, (a, b, field) => {
-        switch (field) {
-            case 'name':
-                return a.name.localeCompare(b.name, 'cs');
-            case 'status':
-                return a.status.localeCompare(b.status, 'cs');
-            case 'tasks_count':
-                return a.tasks_count - b.tasks_count;
-            case 'progress':
-                return getProgress(a.tasks_completed_count, a.tasks_count) - getProgress(b.tasks_completed_count, b.tasks_count);
-            case 'updated_at':
-                return a.updated_at.localeCompare(b.updated_at);
-            default:
-                return 0;
-        }
-    });
+    const { sorted: filteredProjects, sortField, sortDir, toggle } = useClientSort(filtered, compareProjects);
 
     return (
         <AppLayout title="Projekty" breadcrumbs={BREADCRUMBS}>

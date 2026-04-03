@@ -574,137 +574,137 @@ function EpicEditDialog({
 
     return (
         <Modal open onClose={onClose} size="max-w-lg" showClose={false}>
-                <div className="mb-4 flex items-center justify-between">
-                    <h2 className="text-lg font-semibold text-text-strong">Upravit Epic</h2>
-                    <button onClick={onClose} className="rounded p-2 text-text-muted hover:bg-surface-hover">
-                        <X className="h-4 w-4" />
-                    </button>
+            <div className="mb-4 flex items-center justify-between">
+                <h2 className="text-lg font-semibold text-text-strong">Upravit Epic</h2>
+                <button onClick={onClose} className="rounded p-2 text-text-muted hover:bg-surface-hover">
+                    <X className="h-4 w-4" />
+                </button>
+            </div>
+
+            <form onSubmit={submit} className="space-y-4">
+                <div>
+                    <label className="block text-xs font-medium text-text-default">Název *</label>
+                    <input
+                        type="text"
+                        value={data.title}
+                        onChange={(e) => setData('title', e.target.value)}
+                        className="mt-1 w-full rounded-md border border-border-default bg-surface-primary px-3 py-2 text-sm focus:border-border-focus focus:outline-none focus:shadow-[0_0_0_2px_var(--color-brand-soft)]"
+                    />
+                    {errors.title && <p className="mt-1 text-xs text-status-danger">{errors.title}</p>}
                 </div>
 
-                <form onSubmit={submit} className="space-y-4">
-                    <div>
-                        <label className="block text-xs font-medium text-text-default">Název *</label>
-                        <input
-                            type="text"
-                            value={data.title}
-                            onChange={(e) => setData('title', e.target.value)}
-                            className="mt-1 w-full rounded-md border border-border-default bg-surface-primary px-3 py-2 text-sm focus:border-border-focus focus:outline-none focus:shadow-[0_0_0_2px_var(--color-brand-soft)]"
+                <div>
+                    <label className="block text-xs font-medium text-text-default">Popis</label>
+                    <div className="mt-1">
+                        <RichTextEditor
+                            content={data.description}
+                            onChange={(html) => setData('description', html)}
+                            placeholder="Popis epicu..."
                         />
-                        {errors.title && <p className="mt-1 text-xs text-status-danger">{errors.title}</p>}
+                    </div>
+                    {errors.description && <p className="mt-1 text-xs text-status-danger">{errors.description}</p>}
+                </div>
+
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                    <div>
+                        <label className="block text-xs font-medium text-text-default">Stav</label>
+                        <select
+                            value={data.status}
+                            onChange={(e) => setData('status', e.target.value)}
+                            className="mt-1 w-full rounded-md border border-border-default bg-surface-primary px-3 py-2 text-sm focus:border-border-focus focus:outline-none focus:shadow-[0_0_0_2px_var(--color-brand-soft)]"
+                        >
+                            {statuses.map((s) => (
+                                <option key={s.value} value={s.value}>
+                                    {s.label}
+                                </option>
+                            ))}
+                        </select>
+                        {errors.status && <p className="mt-1 text-xs text-status-danger">{errors.status}</p>}
                     </div>
 
                     <div>
-                        <label className="block text-xs font-medium text-text-default">Popis</label>
-                        <div className="mt-1">
-                            <RichTextEditor
-                                content={data.description}
-                                onChange={(html) => setData('description', html)}
-                                placeholder="Popis epicu..."
-                            />
-                        </div>
-                        {errors.description && <p className="mt-1 text-xs text-status-danger">{errors.description}</p>}
-                    </div>
-
-                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                        <div>
-                            <label className="block text-xs font-medium text-text-default">Stav</label>
-                            <select
-                                value={data.status}
-                                onChange={(e) => setData('status', e.target.value)}
-                                className="mt-1 w-full rounded-md border border-border-default bg-surface-primary px-3 py-2 text-sm focus:border-border-focus focus:outline-none focus:shadow-[0_0_0_2px_var(--color-brand-soft)]"
-                            >
-                                {statuses.map((s) => (
-                                    <option key={s.value} value={s.value}>
-                                        {s.label}
-                                    </option>
-                                ))}
-                            </select>
-                            {errors.status && <p className="mt-1 text-xs text-status-danger">{errors.status}</p>}
-                        </div>
-
-                        <div>
-                            <label className="block text-xs font-medium text-text-default">Priorita</label>
-                            <select
-                                value={data.priority}
-                                onChange={(e) => setData('priority', e.target.value)}
-                                className="mt-1 w-full rounded-md border border-border-default bg-surface-primary px-3 py-2 text-sm focus:border-border-focus focus:outline-none focus:shadow-[0_0_0_2px_var(--color-brand-soft)]"
-                            >
-                                {priorities.map((p) => (
-                                    <option key={p.value} value={p.value}>
-                                        {p.label}
-                                    </option>
-                                ))}
-                            </select>
-                        </div>
-                    </div>
-
-                    <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
-                        <div>
-                            <label className="block text-xs font-medium text-text-default">Vlastník</label>
-                            <select
-                                value={data.owner_id}
-                                onChange={(e) => setData('owner_id', e.target.value)}
-                                className="mt-1 w-full rounded-md border border-border-default bg-surface-primary px-3 py-2 text-sm focus:border-border-focus focus:outline-none focus:shadow-[0_0_0_2px_var(--color-brand-soft)]"
-                            >
-                                <option value="">—</option>
-                                {members.map((m) => (
-                                    <option key={m.id} value={m.id}>
-                                        {m.name}
-                                    </option>
-                                ))}
-                            </select>
-                        </div>
-
-                        <div>
-                            <label className="block text-xs font-medium text-text-default">PM</label>
-                            <select
-                                value={data.pm_id}
-                                onChange={(e) => setData('pm_id', e.target.value)}
-                                className="mt-1 w-full rounded-md border border-border-default bg-surface-primary px-3 py-2 text-sm focus:border-border-focus focus:outline-none focus:shadow-[0_0_0_2px_var(--color-brand-soft)]"
-                            >
-                                <option value="">—</option>
-                                {members.map((m) => (
-                                    <option key={m.id} value={m.id}>
-                                        {m.name}
-                                    </option>
-                                ))}
-                            </select>
-                        </div>
-
-                        <div>
-                            <label className="block text-xs font-medium text-text-default">Lead Developer</label>
-                            <select
-                                value={data.lead_developer_id}
-                                onChange={(e) => setData('lead_developer_id', e.target.value)}
-                                className="mt-1 w-full rounded-md border border-border-default bg-surface-primary px-3 py-2 text-sm focus:border-border-focus focus:outline-none focus:shadow-[0_0_0_2px_var(--color-brand-soft)]"
-                            >
-                                <option value="">—</option>
-                                {members.map((m) => (
-                                    <option key={m.id} value={m.id}>
-                                        {m.name}
-                                    </option>
-                                ))}
-                            </select>
-                        </div>
-                    </div>
-
-                    <div className="flex justify-end gap-3 pt-2">
-                        <button
-                            type="button"
-                            onClick={onClose}
-                            className="rounded-md border border-border-default px-4 py-2 text-sm font-medium text-text-muted transition-colors hover:bg-surface-hover"
+                        <label className="block text-xs font-medium text-text-default">Priorita</label>
+                        <select
+                            value={data.priority}
+                            onChange={(e) => setData('priority', e.target.value)}
+                            className="mt-1 w-full rounded-md border border-border-default bg-surface-primary px-3 py-2 text-sm focus:border-border-focus focus:outline-none focus:shadow-[0_0_0_2px_var(--color-brand-soft)]"
                         >
-                            Zrušit
-                        </button>
-                        <button
-                            type="submit"
-                            disabled={processing}
-                            className="rounded-md bg-brand-primary px-4 py-2 text-sm font-medium text-text-inverse transition-colors hover:bg-brand-hover disabled:opacity-50"
-                        >
-                            Uložit změny
-                        </button>
+                            {priorities.map((p) => (
+                                <option key={p.value} value={p.value}>
+                                    {p.label}
+                                </option>
+                            ))}
+                        </select>
                     </div>
-                </form>
+                </div>
+
+                <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
+                    <div>
+                        <label className="block text-xs font-medium text-text-default">Vlastník</label>
+                        <select
+                            value={data.owner_id}
+                            onChange={(e) => setData('owner_id', e.target.value)}
+                            className="mt-1 w-full rounded-md border border-border-default bg-surface-primary px-3 py-2 text-sm focus:border-border-focus focus:outline-none focus:shadow-[0_0_0_2px_var(--color-brand-soft)]"
+                        >
+                            <option value="">—</option>
+                            {members.map((m) => (
+                                <option key={m.id} value={m.id}>
+                                    {m.name}
+                                </option>
+                            ))}
+                        </select>
+                    </div>
+
+                    <div>
+                        <label className="block text-xs font-medium text-text-default">PM</label>
+                        <select
+                            value={data.pm_id}
+                            onChange={(e) => setData('pm_id', e.target.value)}
+                            className="mt-1 w-full rounded-md border border-border-default bg-surface-primary px-3 py-2 text-sm focus:border-border-focus focus:outline-none focus:shadow-[0_0_0_2px_var(--color-brand-soft)]"
+                        >
+                            <option value="">—</option>
+                            {members.map((m) => (
+                                <option key={m.id} value={m.id}>
+                                    {m.name}
+                                </option>
+                            ))}
+                        </select>
+                    </div>
+
+                    <div>
+                        <label className="block text-xs font-medium text-text-default">Lead Developer</label>
+                        <select
+                            value={data.lead_developer_id}
+                            onChange={(e) => setData('lead_developer_id', e.target.value)}
+                            className="mt-1 w-full rounded-md border border-border-default bg-surface-primary px-3 py-2 text-sm focus:border-border-focus focus:outline-none focus:shadow-[0_0_0_2px_var(--color-brand-soft)]"
+                        >
+                            <option value="">—</option>
+                            {members.map((m) => (
+                                <option key={m.id} value={m.id}>
+                                    {m.name}
+                                </option>
+                            ))}
+                        </select>
+                    </div>
+                </div>
+
+                <div className="flex justify-end gap-3 pt-2">
+                    <button
+                        type="button"
+                        onClick={onClose}
+                        className="rounded-md border border-border-default px-4 py-2 text-sm font-medium text-text-muted transition-colors hover:bg-surface-hover"
+                    >
+                        Zrušit
+                    </button>
+                    <button
+                        type="submit"
+                        disabled={processing}
+                        className="rounded-md bg-brand-primary px-4 py-2 text-sm font-medium text-text-inverse transition-colors hover:bg-brand-hover disabled:opacity-50"
+                    >
+                        Uložit změny
+                    </button>
+                </div>
+            </form>
         </Modal>
     );
 }

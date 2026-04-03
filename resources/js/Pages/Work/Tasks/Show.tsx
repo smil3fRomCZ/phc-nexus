@@ -667,121 +667,121 @@ function TaskEditDialog({
 
     return (
         <Modal open onClose={onClose} size="max-w-lg" showClose={false}>
-                <div className="mb-4 flex items-center justify-between">
-                    <h2 className="text-lg font-semibold text-text-strong">Upravit úkol</h2>
-                    <button onClick={onClose} className="rounded p-2 text-text-muted hover:bg-surface-hover">
-                        <X className="h-4 w-4" />
-                    </button>
+            <div className="mb-4 flex items-center justify-between">
+                <h2 className="text-lg font-semibold text-text-strong">Upravit úkol</h2>
+                <button onClick={onClose} className="rounded p-2 text-text-muted hover:bg-surface-hover">
+                    <X className="h-4 w-4" />
+                </button>
+            </div>
+
+            <form onSubmit={submit} className="space-y-4">
+                <EditField label="Název *" error={errors.title}>
+                    <input
+                        type="text"
+                        value={data.title}
+                        onChange={(e) => setData('title', e.target.value)}
+                        className="mt-1 w-full rounded-md border border-border-default bg-surface-primary px-3 py-2 text-sm focus:border-border-focus focus:outline-none focus:shadow-[0_0_0_2px_var(--color-brand-soft)]"
+                    />
+                </EditField>
+
+                <EditField label="Popis" error={errors.description}>
+                    <div className="mt-1">
+                        <RichTextEditor
+                            content={data.description}
+                            onChange={(html) => setData('description', html)}
+                            placeholder="Popis úkolu..."
+                        />
+                    </div>
+                </EditField>
+
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                    <EditField label="Stav" error={errors.workflow_status_id}>
+                        <select
+                            value={data.workflow_status_id}
+                            onChange={(e) => setData('workflow_status_id', e.target.value)}
+                            className="mt-1 w-full rounded-md border border-border-default bg-surface-primary px-3 py-2 text-sm focus:border-border-focus focus:outline-none focus:shadow-[0_0_0_2px_var(--color-brand-soft)]"
+                        >
+                            {statuses.map((s) => (
+                                <option key={s.value} value={s.value}>
+                                    {s.label}
+                                </option>
+                            ))}
+                        </select>
+                    </EditField>
+
+                    <EditField label="Priorita" error={errors.priority}>
+                        <select
+                            value={data.priority}
+                            onChange={(e) => setData('priority', e.target.value)}
+                            className="mt-1 w-full rounded-md border border-border-default bg-surface-primary px-3 py-2 text-sm focus:border-border-focus focus:outline-none focus:shadow-[0_0_0_2px_var(--color-brand-soft)]"
+                        >
+                            {priorities.map((p) => (
+                                <option key={p.value} value={p.value}>
+                                    {p.label}
+                                </option>
+                            ))}
+                        </select>
+                    </EditField>
                 </div>
 
-                <form onSubmit={submit} className="space-y-4">
-                    <EditField label="Název *" error={errors.title}>
-                        <input
-                            type="text"
-                            value={data.title}
-                            onChange={(e) => setData('title', e.target.value)}
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                    <EditField label="Řešitel" error={errors.assignee_id}>
+                        <select
+                            value={data.assignee_id}
+                            onChange={(e) => setData('assignee_id', e.target.value)}
                             className="mt-1 w-full rounded-md border border-border-default bg-surface-primary px-3 py-2 text-sm focus:border-border-focus focus:outline-none focus:shadow-[0_0_0_2px_var(--color-brand-soft)]"
-                        />
+                        >
+                            <option value="">Nepřiřazeno</option>
+                            {members.map((m) => (
+                                <option key={m.id} value={m.id}>
+                                    {m.name}
+                                </option>
+                            ))}
+                        </select>
                     </EditField>
 
-                    <EditField label="Popis" error={errors.description}>
-                        <div className="mt-1">
-                            <RichTextEditor
-                                content={data.description}
-                                onChange={(html) => setData('description', html)}
-                                placeholder="Popis úkolu..."
-                            />
-                        </div>
-                    </EditField>
-
-                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                        <EditField label="Stav" error={errors.workflow_status_id}>
-                            <select
-                                value={data.workflow_status_id}
-                                onChange={(e) => setData('workflow_status_id', e.target.value)}
-                                className="mt-1 w-full rounded-md border border-border-default bg-surface-primary px-3 py-2 text-sm focus:border-border-focus focus:outline-none focus:shadow-[0_0_0_2px_var(--color-brand-soft)]"
-                            >
-                                {statuses.map((s) => (
-                                    <option key={s.value} value={s.value}>
-                                        {s.label}
-                                    </option>
-                                ))}
-                            </select>
-                        </EditField>
-
-                        <EditField label="Priorita" error={errors.priority}>
-                            <select
-                                value={data.priority}
-                                onChange={(e) => setData('priority', e.target.value)}
-                                className="mt-1 w-full rounded-md border border-border-default bg-surface-primary px-3 py-2 text-sm focus:border-border-focus focus:outline-none focus:shadow-[0_0_0_2px_var(--color-brand-soft)]"
-                            >
-                                {priorities.map((p) => (
-                                    <option key={p.value} value={p.value}>
-                                        {p.label}
-                                    </option>
-                                ))}
-                            </select>
-                        </EditField>
-                    </div>
-
-                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                        <EditField label="Řešitel" error={errors.assignee_id}>
-                            <select
-                                value={data.assignee_id}
-                                onChange={(e) => setData('assignee_id', e.target.value)}
-                                className="mt-1 w-full rounded-md border border-border-default bg-surface-primary px-3 py-2 text-sm focus:border-border-focus focus:outline-none focus:shadow-[0_0_0_2px_var(--color-brand-soft)]"
-                            >
-                                <option value="">Nepřiřazeno</option>
-                                {members.map((m) => (
-                                    <option key={m.id} value={m.id}>
-                                        {m.name}
-                                    </option>
-                                ))}
-                            </select>
-                        </EditField>
-
-                        <EditField label="Zadavatel" error={errors.reporter_id}>
-                            <select
-                                value={data.reporter_id}
-                                onChange={(e) => setData('reporter_id', e.target.value)}
-                                className="mt-1 w-full rounded-md border border-border-default bg-surface-primary px-3 py-2 text-sm focus:border-border-focus focus:outline-none focus:shadow-[0_0_0_2px_var(--color-brand-soft)]"
-                            >
-                                <option value="">—</option>
-                                {members.map((m) => (
-                                    <option key={m.id} value={m.id}>
-                                        {m.name}
-                                    </option>
-                                ))}
-                            </select>
-                        </EditField>
-                    </div>
-
-                    <EditField label="Termín" error={errors.due_date}>
-                        <input
-                            type="date"
-                            value={data.due_date}
-                            onChange={(e) => setData('due_date', e.target.value)}
+                    <EditField label="Zadavatel" error={errors.reporter_id}>
+                        <select
+                            value={data.reporter_id}
+                            onChange={(e) => setData('reporter_id', e.target.value)}
                             className="mt-1 w-full rounded-md border border-border-default bg-surface-primary px-3 py-2 text-sm focus:border-border-focus focus:outline-none focus:shadow-[0_0_0_2px_var(--color-brand-soft)]"
-                        />
+                        >
+                            <option value="">—</option>
+                            {members.map((m) => (
+                                <option key={m.id} value={m.id}>
+                                    {m.name}
+                                </option>
+                            ))}
+                        </select>
                     </EditField>
+                </div>
 
-                    <div className="flex justify-end gap-3 pt-2">
-                        <button
-                            type="button"
-                            onClick={onClose}
-                            className="rounded-md border border-border-default px-4 py-2 text-sm font-medium text-text-muted transition-colors hover:bg-surface-hover"
-                        >
-                            Zrušit
-                        </button>
-                        <button
-                            type="submit"
-                            disabled={processing}
-                            className="rounded-md bg-brand-primary px-4 py-2 text-sm font-medium text-text-inverse transition-colors hover:bg-brand-hover disabled:opacity-50"
-                        >
-                            Uložit změny
-                        </button>
-                    </div>
-                </form>
+                <EditField label="Termín" error={errors.due_date}>
+                    <input
+                        type="date"
+                        value={data.due_date}
+                        onChange={(e) => setData('due_date', e.target.value)}
+                        className="mt-1 w-full rounded-md border border-border-default bg-surface-primary px-3 py-2 text-sm focus:border-border-focus focus:outline-none focus:shadow-[0_0_0_2px_var(--color-brand-soft)]"
+                    />
+                </EditField>
+
+                <div className="flex justify-end gap-3 pt-2">
+                    <button
+                        type="button"
+                        onClick={onClose}
+                        className="rounded-md border border-border-default px-4 py-2 text-sm font-medium text-text-muted transition-colors hover:bg-surface-hover"
+                    >
+                        Zrušit
+                    </button>
+                    <button
+                        type="submit"
+                        disabled={processing}
+                        className="rounded-md bg-brand-primary px-4 py-2 text-sm font-medium text-text-inverse transition-colors hover:bg-brand-hover disabled:opacity-50"
+                    >
+                        Uložit změny
+                    </button>
+                </div>
+            </form>
         </Modal>
     );
 }
@@ -835,73 +835,71 @@ function RequestApprovalDialog({
 
     return (
         <Modal open onClose={onClose} size="max-w-lg" showClose={false}>
-                <div className="mb-4 flex items-center justify-between">
-                    <h2 className="text-lg font-semibold text-text-strong">Žádost o schválení</h2>
-                    <button onClick={onClose} className="rounded p-2 text-text-muted hover:bg-surface-hover">
-                        <X className="h-4 w-4" />
-                    </button>
+            <div className="mb-4 flex items-center justify-between">
+                <h2 className="text-lg font-semibold text-text-strong">Žádost o schválení</h2>
+                <button onClick={onClose} className="rounded p-2 text-text-muted hover:bg-surface-hover">
+                    <X className="h-4 w-4" />
+                </button>
+            </div>
+
+            <form onSubmit={submit} className="space-y-4">
+                <EditField label="Popis" error={errors.description}>
+                    <textarea
+                        value={data.description}
+                        onChange={(e) => setData('description', e.target.value)}
+                        rows={2}
+                        placeholder="Co potřebuje schválení?"
+                        className="mt-1 w-full rounded-md border border-border-default bg-surface-primary px-3 py-2 text-sm focus:border-border-focus focus:outline-none focus:shadow-[0_0_0_2px_var(--color-brand-soft)]"
+                    />
+                </EditField>
+
+                <div>
+                    <label className="block text-xs font-medium text-text-default">Schvalovatelé *</label>
+                    {errors.approver_ids && <p className="mt-1 text-xs text-status-danger">{errors.approver_ids}</p>}
+                    <div className="mt-2 max-h-48 space-y-1 overflow-y-auto rounded-md border border-border-default p-2">
+                        {members.map((m) => (
+                            <label
+                                key={m.id}
+                                className="flex cursor-pointer items-center gap-2 rounded px-2 py-1.5 text-sm hover:bg-surface-hover"
+                            >
+                                <input
+                                    type="checkbox"
+                                    checked={data.approver_ids.includes(m.id)}
+                                    onChange={() => toggleApprover(m.id)}
+                                    className="rounded border-border-default"
+                                />
+                                <span className="text-text-default">{m.name}</span>
+                            </label>
+                        ))}
+                    </div>
                 </div>
 
-                <form onSubmit={submit} className="space-y-4">
-                    <EditField label="Popis" error={errors.description}>
-                        <textarea
-                            value={data.description}
-                            onChange={(e) => setData('description', e.target.value)}
-                            rows={2}
-                            placeholder="Co potřebuje schválení?"
-                            className="mt-1 w-full rounded-md border border-border-default bg-surface-primary px-3 py-2 text-sm focus:border-border-focus focus:outline-none focus:shadow-[0_0_0_2px_var(--color-brand-soft)]"
-                        />
-                    </EditField>
+                <EditField label="Platnost do" error={errors.expires_at}>
+                    <input
+                        type="datetime-local"
+                        value={data.expires_at}
+                        onChange={(e) => setData('expires_at', e.target.value)}
+                        className="mt-1 w-full rounded-md border border-border-default bg-surface-primary px-3 py-2 text-sm focus:border-border-focus focus:outline-none focus:shadow-[0_0_0_2px_var(--color-brand-soft)]"
+                    />
+                </EditField>
 
-                    <div>
-                        <label className="block text-xs font-medium text-text-default">Schvalovatelé *</label>
-                        {errors.approver_ids && (
-                            <p className="mt-1 text-xs text-status-danger">{errors.approver_ids}</p>
-                        )}
-                        <div className="mt-2 max-h-48 space-y-1 overflow-y-auto rounded-md border border-border-default p-2">
-                            {members.map((m) => (
-                                <label
-                                    key={m.id}
-                                    className="flex cursor-pointer items-center gap-2 rounded px-2 py-1.5 text-sm hover:bg-surface-hover"
-                                >
-                                    <input
-                                        type="checkbox"
-                                        checked={data.approver_ids.includes(m.id)}
-                                        onChange={() => toggleApprover(m.id)}
-                                        className="rounded border-border-default"
-                                    />
-                                    <span className="text-text-default">{m.name}</span>
-                                </label>
-                            ))}
-                        </div>
-                    </div>
-
-                    <EditField label="Platnost do" error={errors.expires_at}>
-                        <input
-                            type="datetime-local"
-                            value={data.expires_at}
-                            onChange={(e) => setData('expires_at', e.target.value)}
-                            className="mt-1 w-full rounded-md border border-border-default bg-surface-primary px-3 py-2 text-sm focus:border-border-focus focus:outline-none focus:shadow-[0_0_0_2px_var(--color-brand-soft)]"
-                        />
-                    </EditField>
-
-                    <div className="flex justify-end gap-3 pt-2">
-                        <button
-                            type="button"
-                            onClick={onClose}
-                            className="rounded-md border border-border-default px-4 py-2 text-sm font-medium text-text-muted transition-colors hover:bg-surface-hover"
-                        >
-                            Zrušit
-                        </button>
-                        <button
-                            type="submit"
-                            disabled={processing || data.approver_ids.length === 0}
-                            className="rounded-md bg-brand-primary px-4 py-2 text-sm font-medium text-text-inverse transition-colors hover:bg-brand-hover disabled:opacity-50"
-                        >
-                            Odeslat žádost
-                        </button>
-                    </div>
-                </form>
+                <div className="flex justify-end gap-3 pt-2">
+                    <button
+                        type="button"
+                        onClick={onClose}
+                        className="rounded-md border border-border-default px-4 py-2 text-sm font-medium text-text-muted transition-colors hover:bg-surface-hover"
+                    >
+                        Zrušit
+                    </button>
+                    <button
+                        type="submit"
+                        disabled={processing || data.approver_ids.length === 0}
+                        className="rounded-md bg-brand-primary px-4 py-2 text-sm font-medium text-text-inverse transition-colors hover:bg-brand-hover disabled:opacity-50"
+                    >
+                        Odeslat žádost
+                    </button>
+                </div>
+            </form>
         </Modal>
     );
 }

@@ -13,7 +13,14 @@ interface Props {
     zIndex?: string;
 }
 
-export default function Modal({ open, onClose, children, size = 'max-w-md', showClose = true, zIndex = 'z-50' }: Props) {
+export default function Modal({
+    open,
+    onClose,
+    children,
+    size = 'max-w-md',
+    showClose = true,
+    zIndex = 'z-50',
+}: Props) {
     if (!open) return null;
 
     return (

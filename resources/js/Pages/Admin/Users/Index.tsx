@@ -362,59 +362,59 @@ function InviteDialog({ roles, onClose }: { roles: SelectOption[]; onClose: () =
 
     return (
         <Modal open onClose={onClose} showClose={false}>
-                <div className="mb-4 flex items-center justify-between">
-                    <h2 className="text-lg font-semibold text-text-strong">Pozvat uživatele</h2>
-                    <button onClick={onClose} className="rounded p-2 text-text-muted hover:bg-surface-hover">
-                        <X className="h-4 w-4" />
-                    </button>
+            <div className="mb-4 flex items-center justify-between">
+                <h2 className="text-lg font-semibold text-text-strong">Pozvat uživatele</h2>
+                <button onClick={onClose} className="rounded p-2 text-text-muted hover:bg-surface-hover">
+                    <X className="h-4 w-4" />
+                </button>
+            </div>
+
+            <form onSubmit={submit} className="space-y-4">
+                <div>
+                    <label className="block text-xs font-medium text-text-default">Email *</label>
+                    <input
+                        type="email"
+                        value={data.email}
+                        onChange={(e) => setData('email', e.target.value)}
+                        placeholder="user@pearshealthcare.com"
+                        className="mt-1 w-full rounded-md border border-border-default bg-surface-primary px-3 py-2 text-sm focus:border-border-focus focus:outline-none focus:shadow-[0_0_0_2px_var(--color-brand-soft)]"
+                    />
+                    {errors.email && <p className="mt-1 text-xs text-status-danger">{errors.email}</p>}
                 </div>
 
-                <form onSubmit={submit} className="space-y-4">
-                    <div>
-                        <label className="block text-xs font-medium text-text-default">Email *</label>
-                        <input
-                            type="email"
-                            value={data.email}
-                            onChange={(e) => setData('email', e.target.value)}
-                            placeholder="user@pearshealthcare.com"
-                            className="mt-1 w-full rounded-md border border-border-default bg-surface-primary px-3 py-2 text-sm focus:border-border-focus focus:outline-none focus:shadow-[0_0_0_2px_var(--color-brand-soft)]"
-                        />
-                        {errors.email && <p className="mt-1 text-xs text-status-danger">{errors.email}</p>}
-                    </div>
+                <div>
+                    <label className="block text-xs font-medium text-text-default">Role</label>
+                    <select
+                        value={data.system_role}
+                        onChange={(e) => setData('system_role', e.target.value)}
+                        className="mt-1 w-full rounded-md border border-border-default bg-surface-primary px-3 py-2 text-sm focus:border-border-focus focus:outline-none focus:shadow-[0_0_0_2px_var(--color-brand-soft)]"
+                    >
+                        {roles.map((r) => (
+                            <option key={r.value} value={r.value}>
+                                {r.label}
+                            </option>
+                        ))}
+                    </select>
+                    {errors.system_role && <p className="mt-1 text-xs text-status-danger">{errors.system_role}</p>}
+                </div>
 
-                    <div>
-                        <label className="block text-xs font-medium text-text-default">Role</label>
-                        <select
-                            value={data.system_role}
-                            onChange={(e) => setData('system_role', e.target.value)}
-                            className="mt-1 w-full rounded-md border border-border-default bg-surface-primary px-3 py-2 text-sm focus:border-border-focus focus:outline-none focus:shadow-[0_0_0_2px_var(--color-brand-soft)]"
-                        >
-                            {roles.map((r) => (
-                                <option key={r.value} value={r.value}>
-                                    {r.label}
-                                </option>
-                            ))}
-                        </select>
-                        {errors.system_role && <p className="mt-1 text-xs text-status-danger">{errors.system_role}</p>}
-                    </div>
-
-                    <div className="flex justify-end gap-3 pt-2">
-                        <button
-                            type="button"
-                            onClick={onClose}
-                            className="rounded-md border border-border-default px-4 py-2 text-sm font-medium text-text-muted transition-colors hover:bg-surface-hover"
-                        >
-                            Zrušit
-                        </button>
-                        <button
-                            type="submit"
-                            disabled={processing}
-                            className="rounded-md bg-brand-primary px-4 py-2 text-sm font-medium text-text-inverse transition-colors hover:bg-brand-hover disabled:opacity-50"
-                        >
-                            Odeslat pozvánku
-                        </button>
-                    </div>
-                </form>
+                <div className="flex justify-end gap-3 pt-2">
+                    <button
+                        type="button"
+                        onClick={onClose}
+                        className="rounded-md border border-border-default px-4 py-2 text-sm font-medium text-text-muted transition-colors hover:bg-surface-hover"
+                    >
+                        Zrušit
+                    </button>
+                    <button
+                        type="submit"
+                        disabled={processing}
+                        className="rounded-md bg-brand-primary px-4 py-2 text-sm font-medium text-text-inverse transition-colors hover:bg-brand-hover disabled:opacity-50"
+                    >
+                        Odeslat pozvánku
+                    </button>
+                </div>
+            </form>
         </Modal>
     );
 }

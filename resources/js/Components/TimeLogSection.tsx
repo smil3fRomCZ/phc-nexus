@@ -159,57 +159,59 @@ export default function TimeLogSection({
             {/* Entries table */}
             {timeEntries.length > 0 ? (
                 <div className="overflow-x-auto">
-                <table className="w-full border-collapse">
-                    <thead>
-                        <tr>
-                            {headers.map((h) => (
-                                <th
-                                    key={h}
-                                    className="border-b-2 border-border-subtle px-3 py-2 text-left text-xs font-semibold uppercase tracking-wider text-text-subtle"
-                                >
-                                    {h}
-                                </th>
-                            ))}
-                        </tr>
-                    </thead>
-                    <tbody>
-                        {timeEntries.map((entry) => (
-                            <tr key={entry.id} className="transition-colors hover:bg-brand-soft">
-                                <td className="border-b border-border-subtle px-3 py-2 text-sm">
-                                    {formatDate(entry.date)}
-                                </td>
-                                <td className="border-b border-border-subtle px-3 py-2 text-sm font-bold text-text-strong">
-                                    {entry.hours} h
-                                </td>
-                                {showTaskColumn && (
+                    <table className="w-full border-collapse">
+                        <thead>
+                            <tr>
+                                {headers.map((h) => (
+                                    <th
+                                        key={h}
+                                        className="border-b-2 border-border-subtle px-3 py-2 text-left text-xs font-semibold uppercase tracking-wider text-text-subtle"
+                                    >
+                                        {h}
+                                    </th>
+                                ))}
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {timeEntries.map((entry) => (
+                                <tr key={entry.id} className="transition-colors hover:bg-brand-soft">
+                                    <td className="border-b border-border-subtle px-3 py-2 text-sm">
+                                        {formatDate(entry.date)}
+                                    </td>
+                                    <td className="border-b border-border-subtle px-3 py-2 text-sm font-bold text-text-strong">
+                                        {entry.hours} h
+                                    </td>
+                                    {showTaskColumn && (
+                                        <td className="border-b border-border-subtle px-3 py-2 text-sm text-text-muted">
+                                            {entry.task ? (
+                                                <span className="font-medium text-brand-primary">
+                                                    {entry.task.title}
+                                                </span>
+                                            ) : (
+                                                <em className="text-text-subtle">Epic</em>
+                                            )}
+                                        </td>
+                                    )}
                                     <td className="border-b border-border-subtle px-3 py-2 text-sm text-text-muted">
-                                        {entry.task ? (
-                                            <span className="font-medium text-brand-primary">{entry.task.title}</span>
-                                        ) : (
-                                            <em className="text-text-subtle">Epic</em>
+                                        {entry.user.name}
+                                    </td>
+                                    <td className="border-b border-border-subtle px-3 py-2 text-sm text-text-muted">
+                                        {entry.note ?? '\u2014'}
+                                    </td>
+                                    <td className="border-b border-border-subtle px-3 py-2 text-right">
+                                        {entry.user.id === currentUserId && (
+                                            <button
+                                                onClick={() => handleDelete(entry.id)}
+                                                className="text-xs text-text-subtle transition-colors hover:text-status-danger"
+                                            >
+                                                <Trash2 className="h-3.5 w-3.5" />
+                                            </button>
                                         )}
                                     </td>
-                                )}
-                                <td className="border-b border-border-subtle px-3 py-2 text-sm text-text-muted">
-                                    {entry.user.name}
-                                </td>
-                                <td className="border-b border-border-subtle px-3 py-2 text-sm text-text-muted">
-                                    {entry.note ?? '\u2014'}
-                                </td>
-                                <td className="border-b border-border-subtle px-3 py-2 text-right">
-                                    {entry.user.id === currentUserId && (
-                                        <button
-                                            onClick={() => handleDelete(entry.id)}
-                                            className="text-xs text-text-subtle transition-colors hover:text-status-danger"
-                                        >
-                                            <Trash2 className="h-3.5 w-3.5" />
-                                        </button>
-                                    )}
-                                </td>
-                            </tr>
-                        ))}
-                    </tbody>
-                </table>
+                                </tr>
+                            ))}
+                        </tbody>
+                    </table>
                 </div>
             ) : (
                 <p className="text-sm text-text-muted">Zatím žádné záznamy. Přidejte první výše.</p>

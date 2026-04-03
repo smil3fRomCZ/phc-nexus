@@ -18,14 +18,11 @@ export function useClientSort<T>(
         dir: defaultDir,
     });
 
-    const toggle = useCallback(
-        (field: string) => {
-            setSort((prev) =>
-                prev.field === field ? { field, dir: prev.dir === 'asc' ? 'desc' : 'asc' } : { field, dir: 'asc' },
-            );
-        },
-        [],
-    );
+    const toggle = useCallback((field: string) => {
+        setSort((prev) =>
+            prev.field === field ? { field, dir: prev.dir === 'asc' ? 'desc' : 'asc' } : { field, dir: 'asc' },
+        );
+    }, []);
 
     const sorted = useMemo(() => {
         if (!sort.field) return data;

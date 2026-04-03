@@ -509,125 +509,125 @@ function TaskCreateDialog({
 
     return (
         <Modal open onClose={onClose} size="max-w-md" showClose={false}>
-                <div className="mb-4 flex items-center justify-between">
-                    <h2 className="text-lg font-semibold text-text-strong">Nový úkol</h2>
-                    <button onClick={onClose} className="rounded p-2 text-text-muted hover:bg-surface-hover">
-                        ✕
-                    </button>
+            <div className="mb-4 flex items-center justify-between">
+                <h2 className="text-lg font-semibold text-text-strong">Nový úkol</h2>
+                <button onClick={onClose} className="rounded p-2 text-text-muted hover:bg-surface-hover">
+                    ✕
+                </button>
+            </div>
+
+            <form onSubmit={submit} className="space-y-3">
+                <div>
+                    <label className="block text-xs font-semibold uppercase tracking-wider text-text-subtle">
+                        Název *
+                    </label>
+                    <input
+                        type="text"
+                        value={data.title}
+                        onChange={(e) => setData('title', e.target.value)}
+                        placeholder="Co je potřeba udělat..."
+                        autoFocus
+                        className="mt-1 w-full rounded-md border border-border-default bg-surface-primary px-3 py-2 text-sm focus:border-border-focus focus:outline-none focus:shadow-[0_0_0_2px_var(--color-brand-soft)]"
+                    />
+                    {errors.title && <p className="mt-1 text-xs text-status-danger">{errors.title}</p>}
                 </div>
 
-                <form onSubmit={submit} className="space-y-3">
+                <div>
+                    <label className="block text-xs font-semibold uppercase tracking-wider text-text-subtle">
+                        Popis
+                    </label>
+                    <textarea
+                        value={data.description}
+                        onChange={(e) => setData('description', e.target.value)}
+                        rows={2}
+                        placeholder="Volitelný popis..."
+                        className="mt-1 w-full rounded-md border border-border-default bg-surface-primary px-3 py-2 text-sm focus:border-border-focus focus:outline-none focus:shadow-[0_0_0_2px_var(--color-brand-soft)]"
+                    />
+                </div>
+
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
                     <div>
                         <label className="block text-xs font-semibold uppercase tracking-wider text-text-subtle">
-                            Název *
+                            Priorita
+                        </label>
+                        <select
+                            value={data.priority}
+                            onChange={(e) => setData('priority', e.target.value)}
+                            className="mt-1 w-full rounded-md border border-border-default bg-surface-primary px-3 py-2 text-sm focus:border-border-focus focus:outline-none"
+                        >
+                            <option value="low">Nízká</option>
+                            <option value="medium">Střední</option>
+                            <option value="high">Vysoká</option>
+                            <option value="urgent">Urgentní</option>
+                        </select>
+                    </div>
+                    <div>
+                        <label className="block text-xs font-semibold uppercase tracking-wider text-text-subtle">
+                            Řešitel
+                        </label>
+                        <select
+                            value={data.assignee_id}
+                            onChange={(e) => setData('assignee_id', e.target.value)}
+                            className="mt-1 w-full rounded-md border border-border-default bg-surface-primary px-3 py-2 text-sm focus:border-border-focus focus:outline-none"
+                        >
+                            <option value="">Nepřiřazeno</option>
+                            {members.map((m) => (
+                                <option key={m.id} value={m.id}>
+                                    {m.name}
+                                </option>
+                            ))}
+                        </select>
+                    </div>
+                </div>
+
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                    <div>
+                        <label className="block text-xs font-semibold uppercase tracking-wider text-text-subtle">
+                            Epic
+                        </label>
+                        <select
+                            value={data.epic_id}
+                            onChange={(e) => setData('epic_id', e.target.value)}
+                            className="mt-1 w-full rounded-md border border-border-default bg-surface-primary px-3 py-2 text-sm focus:border-border-focus focus:outline-none"
+                        >
+                            <option value="">Bez epicu</option>
+                            {epics.map((ep) => (
+                                <option key={ep.id} value={ep.id}>
+                                    {ep.title}
+                                </option>
+                            ))}
+                        </select>
+                    </div>
+                    <div>
+                        <label className="block text-xs font-semibold uppercase tracking-wider text-text-subtle">
+                            Termín
                         </label>
                         <input
-                            type="text"
-                            value={data.title}
-                            onChange={(e) => setData('title', e.target.value)}
-                            placeholder="Co je potřeba udělat..."
-                            autoFocus
-                            className="mt-1 w-full rounded-md border border-border-default bg-surface-primary px-3 py-2 text-sm focus:border-border-focus focus:outline-none focus:shadow-[0_0_0_2px_var(--color-brand-soft)]"
-                        />
-                        {errors.title && <p className="mt-1 text-xs text-status-danger">{errors.title}</p>}
-                    </div>
-
-                    <div>
-                        <label className="block text-xs font-semibold uppercase tracking-wider text-text-subtle">
-                            Popis
-                        </label>
-                        <textarea
-                            value={data.description}
-                            onChange={(e) => setData('description', e.target.value)}
-                            rows={2}
-                            placeholder="Volitelný popis..."
-                            className="mt-1 w-full rounded-md border border-border-default bg-surface-primary px-3 py-2 text-sm focus:border-border-focus focus:outline-none focus:shadow-[0_0_0_2px_var(--color-brand-soft)]"
+                            type="date"
+                            value={data.due_date}
+                            onChange={(e) => setData('due_date', e.target.value)}
+                            className="mt-1 w-full rounded-md border border-border-default bg-surface-primary px-3 py-2 text-sm focus:border-border-focus focus:outline-none"
                         />
                     </div>
+                </div>
 
-                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
-                        <div>
-                            <label className="block text-xs font-semibold uppercase tracking-wider text-text-subtle">
-                                Priorita
-                            </label>
-                            <select
-                                value={data.priority}
-                                onChange={(e) => setData('priority', e.target.value)}
-                                className="mt-1 w-full rounded-md border border-border-default bg-surface-primary px-3 py-2 text-sm focus:border-border-focus focus:outline-none"
-                            >
-                                <option value="low">Nízká</option>
-                                <option value="medium">Střední</option>
-                                <option value="high">Vysoká</option>
-                                <option value="urgent">Urgentní</option>
-                            </select>
-                        </div>
-                        <div>
-                            <label className="block text-xs font-semibold uppercase tracking-wider text-text-subtle">
-                                Řešitel
-                            </label>
-                            <select
-                                value={data.assignee_id}
-                                onChange={(e) => setData('assignee_id', e.target.value)}
-                                className="mt-1 w-full rounded-md border border-border-default bg-surface-primary px-3 py-2 text-sm focus:border-border-focus focus:outline-none"
-                            >
-                                <option value="">Nepřiřazeno</option>
-                                {members.map((m) => (
-                                    <option key={m.id} value={m.id}>
-                                        {m.name}
-                                    </option>
-                                ))}
-                            </select>
-                        </div>
-                    </div>
-
-                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
-                        <div>
-                            <label className="block text-xs font-semibold uppercase tracking-wider text-text-subtle">
-                                Epic
-                            </label>
-                            <select
-                                value={data.epic_id}
-                                onChange={(e) => setData('epic_id', e.target.value)}
-                                className="mt-1 w-full rounded-md border border-border-default bg-surface-primary px-3 py-2 text-sm focus:border-border-focus focus:outline-none"
-                            >
-                                <option value="">Bez epicu</option>
-                                {epics.map((ep) => (
-                                    <option key={ep.id} value={ep.id}>
-                                        {ep.title}
-                                    </option>
-                                ))}
-                            </select>
-                        </div>
-                        <div>
-                            <label className="block text-xs font-semibold uppercase tracking-wider text-text-subtle">
-                                Termín
-                            </label>
-                            <input
-                                type="date"
-                                value={data.due_date}
-                                onChange={(e) => setData('due_date', e.target.value)}
-                                className="mt-1 w-full rounded-md border border-border-default bg-surface-primary px-3 py-2 text-sm focus:border-border-focus focus:outline-none"
-                            />
-                        </div>
-                    </div>
-
-                    <div className="flex justify-end gap-2 pt-2">
-                        <button
-                            type="button"
-                            onClick={onClose}
-                            className="rounded-md border border-border-default px-4 py-2 text-sm font-medium text-text-default transition-colors hover:bg-surface-hover"
-                        >
-                            Zrušit
-                        </button>
-                        <button
-                            type="submit"
-                            disabled={processing || !data.title}
-                            className="rounded-md bg-brand-primary px-4 py-2 text-sm font-medium text-text-inverse transition-colors hover:bg-brand-hover disabled:opacity-50"
-                        >
-                            Vytvořit úkol
-                        </button>
-                    </div>
-                </form>
+                <div className="flex justify-end gap-2 pt-2">
+                    <button
+                        type="button"
+                        onClick={onClose}
+                        className="rounded-md border border-border-default px-4 py-2 text-sm font-medium text-text-default transition-colors hover:bg-surface-hover"
+                    >
+                        Zrušit
+                    </button>
+                    <button
+                        type="submit"
+                        disabled={processing || !data.title}
+                        className="rounded-md bg-brand-primary px-4 py-2 text-sm font-medium text-text-inverse transition-colors hover:bg-brand-hover disabled:opacity-50"
+                    >
+                        Vytvořit úkol
+                    </button>
+                </div>
+            </form>
         </Modal>
     );
 }

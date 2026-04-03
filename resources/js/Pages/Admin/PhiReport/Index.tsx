@@ -53,7 +53,12 @@ function compareEntries(a: AuditEntry, b: AuditEntry, field: string): number {
 }
 
 export default function PhiReportIndex({ entries, filters, actors }: Props) {
-    const { sorted: sortedEntries, sortField, sortDir, toggle } = useClientSort(entries, compareEntries, 'created_at', 'desc');
+    const {
+        sorted: sortedEntries,
+        sortField,
+        sortDir,
+        toggle,
+    } = useClientSort(entries, compareEntries, 'created_at', 'desc');
     const applyFilter = useFilterRouter('/admin/phi-report');
 
     return (
@@ -96,9 +101,27 @@ export default function PhiReportIndex({ entries, filters, actors }: Props) {
                 <table className="w-full border-collapse">
                     <thead>
                         <tr>
-                            <SortableHeader field="created_at" label="Čas" sortField={sortField} sortDir={sortDir} onSort={toggle} />
-                            <SortableHeader field="actor" label="Uživatel" sortField={sortField} sortDir={sortDir} onSort={toggle} />
-                            <SortableHeader field="entity_type" label="Entita" sortField={sortField} sortDir={sortDir} onSort={toggle} />
+                            <SortableHeader
+                                field="created_at"
+                                label="Čas"
+                                sortField={sortField}
+                                sortDir={sortDir}
+                                onSort={toggle}
+                            />
+                            <SortableHeader
+                                field="actor"
+                                label="Uživatel"
+                                sortField={sortField}
+                                sortDir={sortDir}
+                                onSort={toggle}
+                            />
+                            <SortableHeader
+                                field="entity_type"
+                                label="Entita"
+                                sortField={sortField}
+                                sortDir={sortDir}
+                                onSort={toggle}
+                            />
                             <PlainHeader label="IP adresa" />
                         </tr>
                     </thead>

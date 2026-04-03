@@ -59,15 +59,17 @@ export default function ProfileIndex({ user }: Props) {
                     {/* Details */}
                     <div className="divide-y divide-border-subtle">
                         <DetailRow icon={Mail} label="Email" value={user.email} />
-                        <DetailRow icon={Shield} label="Role" value={ROLE_LABELS[user.system_role] ?? user.system_role} />
+                        <DetailRow
+                            icon={Shield}
+                            label="Role"
+                            value={ROLE_LABELS[user.system_role] ?? user.system_role}
+                        />
                         <DetailRow icon={Users} label="Tým" value={user.team?.name ?? '—'} />
                         <DetailRow icon={Calendar} label="Účet vytvořen" value={formatDate(user.created_at)} />
                     </div>
                 </div>
 
-                <p className="mt-4 text-xs text-text-muted">
-                    Pro změnu údajů kontaktujte administrátora.
-                </p>
+                <p className="mt-4 text-xs text-text-muted">Pro změnu údajů kontaktujte administrátora.</p>
             </div>
         </AppLayout>
     );

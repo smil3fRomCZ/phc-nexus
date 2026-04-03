@@ -81,7 +81,6 @@ export default function GlobalSearch() {
         return () => document.removeEventListener('keydown', handleKeyDown);
     }, []);
 
-
     const navigate = useCallback((item: (typeof allItems)[number]) => {
         setOpen(false);
         setQuery('');

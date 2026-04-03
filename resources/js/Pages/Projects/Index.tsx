@@ -47,7 +47,10 @@ function compareProjects(a: Project, b: Project, field: string): number {
         case 'tasks_count':
             return a.tasks_count - b.tasks_count;
         case 'progress':
-            return getProgress(a.tasks_completed_count, a.tasks_count) - getProgress(b.tasks_completed_count, b.tasks_count);
+            return (
+                getProgress(a.tasks_completed_count, a.tasks_count) -
+                getProgress(b.tasks_completed_count, b.tasks_count)
+            );
         case 'updated_at':
             return a.updated_at.localeCompare(b.updated_at);
         default:
@@ -113,13 +116,43 @@ export default function ProjectsIndex({ projects }: Props) {
                 <table className="w-full border-collapse">
                     <thead>
                         <tr>
-                            <SortableHeader field="name" label="Název projektu" sortField={sortField} sortDir={sortDir} onSort={toggle} />
-                            <SortableHeader field="status" label="Stav" sortField={sortField} sortDir={sortDir} onSort={toggle} />
+                            <SortableHeader
+                                field="name"
+                                label="Název projektu"
+                                sortField={sortField}
+                                sortDir={sortDir}
+                                onSort={toggle}
+                            />
+                            <SortableHeader
+                                field="status"
+                                label="Stav"
+                                sortField={sortField}
+                                sortDir={sortDir}
+                                onSort={toggle}
+                            />
                             <PlainHeader label="Vlastník" />
                             <PlainHeader label="Tým" />
-                            <SortableHeader field="tasks_count" label="Úkoly" sortField={sortField} sortDir={sortDir} onSort={toggle} />
-                            <SortableHeader field="progress" label="Průběh" sortField={sortField} sortDir={sortDir} onSort={toggle} />
-                            <SortableHeader field="updated_at" label="Aktualizováno" sortField={sortField} sortDir={sortDir} onSort={toggle} />
+                            <SortableHeader
+                                field="tasks_count"
+                                label="Úkoly"
+                                sortField={sortField}
+                                sortDir={sortDir}
+                                onSort={toggle}
+                            />
+                            <SortableHeader
+                                field="progress"
+                                label="Průběh"
+                                sortField={sortField}
+                                sortDir={sortDir}
+                                onSort={toggle}
+                            />
+                            <SortableHeader
+                                field="updated_at"
+                                label="Aktualizováno"
+                                sortField={sortField}
+                                sortDir={sortDir}
+                                onSort={toggle}
+                            />
                         </tr>
                     </thead>
                     <tbody>

@@ -97,12 +97,36 @@ export default function MyTasksIndex({ tasks, filters, statuses, priorities }: P
                 <table className="w-full border-collapse">
                     <thead>
                         <tr>
-                            <SortableHeader field="title" label="Úkol" sortField={filters.sort} sortDir={filters.dir === 'desc' ? 'desc' : 'asc'} onSort={toggleSort} />
+                            <SortableHeader
+                                field="title"
+                                label="Úkol"
+                                sortField={filters.sort}
+                                sortDir={filters.dir === 'desc' ? 'desc' : 'asc'}
+                                onSort={toggleSort}
+                            />
                             <PlainHeader label="Projekt" />
                             <PlainHeader label="Epic" />
-                            <SortableHeader field="status" label="Stav" sortField={filters.sort} sortDir={filters.dir === 'desc' ? 'desc' : 'asc'} onSort={toggleSort} />
-                            <SortableHeader field="priority" label="Priorita" sortField={filters.sort} sortDir={filters.dir === 'desc' ? 'desc' : 'asc'} onSort={toggleSort} />
-                            <SortableHeader field="due_date" label="Termín" sortField={filters.sort} sortDir={filters.dir === 'desc' ? 'desc' : 'asc'} onSort={toggleSort} />
+                            <SortableHeader
+                                field="status"
+                                label="Stav"
+                                sortField={filters.sort}
+                                sortDir={filters.dir === 'desc' ? 'desc' : 'asc'}
+                                onSort={toggleSort}
+                            />
+                            <SortableHeader
+                                field="priority"
+                                label="Priorita"
+                                sortField={filters.sort}
+                                sortDir={filters.dir === 'desc' ? 'desc' : 'asc'}
+                                onSort={toggleSort}
+                            />
+                            <SortableHeader
+                                field="due_date"
+                                label="Termín"
+                                sortField={filters.sort}
+                                sortDir={filters.dir === 'desc' ? 'desc' : 'asc'}
+                                onSort={toggleSort}
+                            />
                         </tr>
                     </thead>
                     <tbody>

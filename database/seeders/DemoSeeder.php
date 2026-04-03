@@ -1438,8 +1438,8 @@ class DemoSeeder extends Seeder
 
     private function seedAuditEntries(array $u): void
     {
-        $project = Project::where('key', 'ESHOP')->first();
-        $task = Task::first();
+        $projectId = Project::where('key', 'ESHOP')->value('id') ?? Str::uuid7()->toString();
+        $taskId = Task::value('id') ?? Str::uuid7()->toString();
 
         $entries = [
             // Auth events
@@ -1451,29 +1451,29 @@ class DemoSeeder extends Seeder
             ['action' => AuditAction::InviteAccepted, 'entity_type' => User::class, 'entity_id' => $u['devBack1']->id, 'actor_id' => $u['devBack1']->id, 'days_ago' => 12, 'ip' => '10.0.1.20'],
 
             // Entity lifecycle
-            ['action' => AuditAction::Created, 'entity_type' => Project::class, 'entity_id' => $project?->id ?? Str::uuid7()->toString(), 'actor_id' => $u['pmTech']->id, 'days_ago' => 13, 'ip' => '10.0.1.12', 'new_values' => ['name' => 'Replatform E-shop', 'status' => 'draft']],
-            ['action' => AuditAction::Updated, 'entity_type' => Project::class, 'entity_id' => $project?->id ?? Str::uuid7()->toString(), 'actor_id' => $u['pmTech']->id, 'days_ago' => 10, 'ip' => '10.0.1.12', 'old_values' => ['status' => 'draft'], 'new_values' => ['status' => 'active']],
-            ['action' => AuditAction::Created, 'entity_type' => Task::class, 'entity_id' => $task?->id ?? Str::uuid7()->toString(), 'actor_id' => $u['devBack1']->id, 'days_ago' => 11, 'ip' => '10.0.1.20'],
-            ['action' => AuditAction::Updated, 'entity_type' => Task::class, 'entity_id' => $task?->id ?? Str::uuid7()->toString(), 'actor_id' => $u['devBack2']->id, 'days_ago' => 9, 'ip' => '10.0.1.21', 'old_values' => ['priority' => 'medium'], 'new_values' => ['priority' => 'high']],
-            ['action' => AuditAction::Viewed, 'entity_type' => Task::class, 'entity_id' => $task?->id ?? Str::uuid7()->toString(), 'actor_id' => $u['marketer']->id, 'days_ago' => 8, 'ip' => '10.0.1.30'],
+            ['action' => AuditAction::Created, 'entity_type' => Project::class, 'entity_id' => $projectId, 'actor_id' => $u['pmTech']->id, 'days_ago' => 13, 'ip' => '10.0.1.12', 'new_values' => ['name' => 'Replatform E-shop', 'status' => 'draft']],
+            ['action' => AuditAction::Updated, 'entity_type' => Project::class, 'entity_id' => $projectId, 'actor_id' => $u['pmTech']->id, 'days_ago' => 10, 'ip' => '10.0.1.12', 'old_values' => ['status' => 'draft'], 'new_values' => ['status' => 'active']],
+            ['action' => AuditAction::Created, 'entity_type' => Task::class, 'entity_id' => $taskId, 'actor_id' => $u['devBack1']->id, 'days_ago' => 11, 'ip' => '10.0.1.20'],
+            ['action' => AuditAction::Updated, 'entity_type' => Task::class, 'entity_id' => $taskId, 'actor_id' => $u['devBack2']->id, 'days_ago' => 9, 'ip' => '10.0.1.21', 'old_values' => ['priority' => 'medium'], 'new_values' => ['priority' => 'high']],
+            ['action' => AuditAction::Viewed, 'entity_type' => Task::class, 'entity_id' => $taskId, 'actor_id' => $u['marketer']->id, 'days_ago' => 8, 'ip' => '10.0.1.30'],
 
             // Status changes
-            ['action' => AuditAction::StatusChanged, 'entity_type' => Task::class, 'entity_id' => $task?->id ?? Str::uuid7()->toString(), 'actor_id' => $u['devBack1']->id, 'days_ago' => 7, 'ip' => '10.0.1.20', 'old_values' => ['status' => 'backlog'], 'new_values' => ['status' => 'in_progress']],
-            ['action' => AuditAction::StatusChanged, 'entity_type' => Task::class, 'entity_id' => $task?->id ?? Str::uuid7()->toString(), 'actor_id' => $u['devBack1']->id, 'days_ago' => 5, 'ip' => '10.0.1.20', 'old_values' => ['status' => 'in_progress'], 'new_values' => ['status' => 'code_review']],
+            ['action' => AuditAction::StatusChanged, 'entity_type' => Task::class, 'entity_id' => $taskId, 'actor_id' => $u['devBack1']->id, 'days_ago' => 7, 'ip' => '10.0.1.20', 'old_values' => ['status' => 'backlog'], 'new_values' => ['status' => 'in_progress']],
+            ['action' => AuditAction::StatusChanged, 'entity_type' => Task::class, 'entity_id' => $taskId, 'actor_id' => $u['devBack1']->id, 'days_ago' => 5, 'ip' => '10.0.1.20', 'old_values' => ['status' => 'in_progress'], 'new_values' => ['status' => 'code_review']],
             ['action' => AuditAction::RoleChanged, 'entity_type' => User::class, 'entity_id' => $u['devFront']->id, 'actor_id' => $u['admin']->id, 'days_ago' => 6, 'ip' => '10.0.1.5', 'old_values' => ['role' => 'team_member'], 'new_values' => ['role' => 'project_manager']],
             ['action' => AuditAction::RoleChanged, 'entity_type' => User::class, 'entity_id' => $u['devFront']->id, 'actor_id' => $u['admin']->id, 'days_ago' => 6, 'ip' => '10.0.1.5', 'old_values' => ['role' => 'project_manager'], 'new_values' => ['role' => 'team_member']],
 
             // Approval events
-            ['action' => AuditAction::ApprovalRequested, 'entity_type' => Task::class, 'entity_id' => $task?->id ?? Str::uuid7()->toString(), 'actor_id' => $u['pmTech']->id, 'days_ago' => 4, 'ip' => '10.0.1.12'],
-            ['action' => AuditAction::ApprovalApproved, 'entity_type' => Task::class, 'entity_id' => $task?->id ?? Str::uuid7()->toString(), 'actor_id' => $u['exec']->id, 'days_ago' => 3, 'ip' => '10.0.1.3'],
+            ['action' => AuditAction::ApprovalRequested, 'entity_type' => Task::class, 'entity_id' => $taskId, 'actor_id' => $u['pmTech']->id, 'days_ago' => 4, 'ip' => '10.0.1.12'],
+            ['action' => AuditAction::ApprovalApproved, 'entity_type' => Task::class, 'entity_id' => $taskId, 'actor_id' => $u['exec']->id, 'days_ago' => 3, 'ip' => '10.0.1.3'],
 
             // PHI events
-            ['action' => AuditAction::PhiAccessed, 'entity_type' => Task::class, 'entity_id' => $task?->id ?? Str::uuid7()->toString(), 'actor_id' => $u['admin']->id, 'days_ago' => 2, 'ip' => '10.0.1.5'],
-            ['action' => AuditAction::PhiClassificationChanged, 'entity_type' => Project::class, 'entity_id' => $project?->id ?? Str::uuid7()->toString(), 'actor_id' => $u['admin']->id, 'days_ago' => 11, 'ip' => '10.0.1.5', 'old_values' => ['classification' => 'unknown'], 'new_values' => ['classification' => 'non_phi']],
+            ['action' => AuditAction::PhiAccessed, 'entity_type' => Task::class, 'entity_id' => $taskId, 'actor_id' => $u['admin']->id, 'days_ago' => 2, 'ip' => '10.0.1.5'],
+            ['action' => AuditAction::PhiClassificationChanged, 'entity_type' => Project::class, 'entity_id' => $projectId, 'actor_id' => $u['admin']->id, 'days_ago' => 11, 'ip' => '10.0.1.5', 'old_values' => ['classification' => 'unknown'], 'new_values' => ['classification' => 'non_phi']],
 
             // File events
-            ['action' => AuditAction::Downloaded, 'entity_type' => Task::class, 'entity_id' => $task?->id ?? Str::uuid7()->toString(), 'actor_id' => $u['devBack2']->id, 'days_ago' => 3, 'ip' => '10.0.1.21'],
-            ['action' => AuditAction::Exported, 'entity_type' => Project::class, 'entity_id' => $project?->id ?? Str::uuid7()->toString(), 'actor_id' => $u['pmTech']->id, 'days_ago' => 1, 'ip' => '10.0.1.12'],
+            ['action' => AuditAction::Downloaded, 'entity_type' => Task::class, 'entity_id' => $taskId, 'actor_id' => $u['devBack2']->id, 'days_ago' => 3, 'ip' => '10.0.1.21'],
+            ['action' => AuditAction::Exported, 'entity_type' => Project::class, 'entity_id' => $projectId, 'actor_id' => $u['pmTech']->id, 'days_ago' => 1, 'ip' => '10.0.1.12'],
 
             // More logins spread over time
             ['action' => AuditAction::LoggedIn, 'entity_type' => User::class, 'entity_id' => $u['admin']->id, 'actor_id' => $u['admin']->id, 'days_ago' => 4, 'ip' => '10.0.1.5'],

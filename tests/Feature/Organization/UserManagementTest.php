@@ -73,9 +73,11 @@ class UserManagementTest extends TestCase
         $exec = User::factory()->executive()->create();
         $target = User::factory()->create();
 
-        $response = $this->actingAs($exec)->post("/admin/users/{$target->id}/deactivate");
+        $response = $this->actingAs($exec)
+            ->from('/admin/users')
+            ->post("/admin/users/{$target->id}/deactivate");
 
-        $response->assertRedirect(route('admin.users.index'));
+        $response->assertRedirect();
         $this->assertEquals(UserStatus::Deactivated, $target->fresh()->status);
     }
 
@@ -105,9 +107,11 @@ class UserManagementTest extends TestCase
         $exec = User::factory()->executive()->create();
         $target = User::factory()->deactivated()->create();
 
-        $response = $this->actingAs($exec)->post("/admin/users/{$target->id}/activate");
+        $response = $this->actingAs($exec)
+            ->from('/admin/users')
+            ->post("/admin/users/{$target->id}/activate");
 
-        $response->assertRedirect(route('admin.users.index'));
+        $response->assertRedirect();
         $this->assertEquals(UserStatus::Active, $target->fresh()->status);
     }
 

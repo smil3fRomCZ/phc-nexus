@@ -9,9 +9,9 @@ import type { Attachment } from '@/Components/AttachmentsSection';
 import { displayKey } from '@/utils/displayKey';
 import { formatDate } from '@/utils/formatDate';
 import { Link, router, useForm } from '@inertiajs/react';
-import { ChevronRight, Pencil, Plus } from 'lucide-react';
+import { ChevronRight, Pencil, Plus, Trash2 } from 'lucide-react';
+import ActionIconButton from '@/Components/ActionIconButton';
 import ConfirmModal from '@/Components/ConfirmModal';
-import DeleteButton from '@/Components/DeleteButton';
 import { useState, type FormEvent } from 'react';
 
 interface WikiPageTree {
@@ -118,22 +118,20 @@ export default function EpicWikiShow({ project, epic, page, pages }: Props) {
                                     )}
                                 </div>
                             </div>
-                            <div className="flex gap-2">
-                                <button
-                                    onClick={() => setEditing(true)}
-                                    className="rounded-md border border-border-default px-3 py-1.5 text-xs font-medium text-text-muted transition-colors hover:bg-surface-hover hover:text-text-default"
+                            <div className="flex items-center gap-1">
+                                <ActionIconButton onClick={() => setEditing(true)} label="Upravit">
+                                    <Pencil className="h-4 w-4" />
+                                </ActionIconButton>
+                                <ActionIconButton onClick={() => setAddingChild(!addingChild)} label="Podstránka">
+                                    <Plus className="h-4 w-4" />
+                                </ActionIconButton>
+                                <ActionIconButton
+                                    onClick={() => setShowDeleteModal(true)}
+                                    label="Smazat"
+                                    variant="danger"
                                 >
-                                    <Pencil className="mr-1 inline-block h-3 w-3" />
-                                    Upravit
-                                </button>
-                                <button
-                                    onClick={() => setAddingChild(!addingChild)}
-                                    className="rounded-md border border-border-default px-3 py-1.5 text-xs font-medium text-text-muted transition-colors hover:bg-surface-hover hover:text-text-default"
-                                >
-                                    <Plus className="mr-1 inline-block h-3 w-3" />
-                                    Podstránka
-                                </button>
-                                <DeleteButton onClick={() => setShowDeleteModal(true)} />
+                                    <Trash2 className="h-4 w-4" />
+                                </ActionIconButton>
                             </div>
                         </div>
 

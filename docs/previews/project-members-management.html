@@ -1,0 +1,257 @@
+<!DOCTYPE html>
+<html lang="cs">
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>PHC Nexus — Správa členů projektu (preview)</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    colors: {
+                        'surface-primary': '#ffffff',
+                        'surface-secondary': '#f4f5f7',
+                        'text-strong': '#172b4d',
+                        'text-default': '#42526e',
+                        'text-muted': '#6b778c',
+                        'text-subtle': '#97a0af',
+                        'border-default': '#dfe1e6',
+                        'border-subtle': '#ebecf0',
+                        'border-focus': '#f5a623',
+                        'brand-soft': 'rgba(245,166,35,0.15)',
+                        'brand': '#f5a623',
+                    },
+                },
+            },
+        };
+    </script>
+    <style>
+        body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif; }
+        select { -webkit-appearance: none; appearance: none; background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 24 24' fill='none' stroke='%236b778c' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpolyline points='6 9 12 15 18 9'%3E%3C/polyline%3E%3C/svg%3E"); background-repeat: no-repeat; background-position: right 0.75rem center; padding-right: 2rem; }
+    </style>
+</head>
+<body class="bg-[#fafbfc] text-text-default">
+    <div class="mx-auto max-w-2xl px-4 py-10 space-y-12">
+
+        <!-- ============================================================ -->
+        <!-- SECTION 1: Project Creation Form — Role Assignment           -->
+        <!-- ============================================================ -->
+        <section>
+            <div class="mb-4">
+                <span class="inline-block rounded bg-brand/10 px-2 py-0.5 text-xs font-semibold uppercase tracking-wider text-brand">Sekce 1</span>
+                <h2 class="mt-1 text-lg font-bold text-text-strong">Formulář vytvoření projektu — Přiřazení rolí</h2>
+                <p class="text-sm text-text-muted">Nová pole se zobrazují za stávajícím polem "Tým".</p>
+            </div>
+
+            <div class="rounded-lg border border-border-subtle bg-surface-primary p-5">
+                <h1 class="mb-6 text-xl font-bold leading-tight text-text-strong">Nový projekt</h1>
+
+                <div class="space-y-5">
+                    <!-- Existing: Název -->
+                    <div class="opacity-50">
+                        <label class="block text-sm font-medium text-text-strong">Název *</label>
+                        <input type="text" value="Datový sklad v3" disabled
+                            class="mt-1 w-full rounded-md border border-border-default bg-surface-secondary px-3 py-2 text-base text-text-default" />
+                    </div>
+
+                    <!-- Existing: Klíč -->
+                    <div class="opacity-50">
+                        <label class="block text-sm font-medium text-text-strong">Klíč *</label>
+                        <input type="text" value="DAS" disabled
+                            class="mt-1 w-40 rounded-md border border-border-default bg-surface-secondary px-3 py-2 font-mono text-base uppercase text-text-default" />
+                    </div>
+
+                    <!-- Existing: Klasifikace dat -->
+                    <div class="opacity-50">
+                        <label class="block text-sm font-medium text-text-strong">Klasifikace dat</label>
+                        <select disabled class="mt-1 rounded-md border border-border-default bg-surface-secondary px-3 py-2 text-base text-text-default">
+                            <option>Non-PHI</option>
+                        </select>
+                    </div>
+
+                    <!-- Existing: Tým -->
+                    <div class="opacity-50">
+                        <label class="block text-sm font-medium text-text-strong">Tým</label>
+                        <select disabled class="mt-1 rounded-md border border-border-default bg-surface-secondary px-3 py-2 text-base text-text-default">
+                            <option>Backend tým</option>
+                        </select>
+                    </div>
+
+                    <!-- ===== NEW: Projektový manažer ===== -->
+                    <div class="relative rounded-md ring-2 ring-brand/30 ring-offset-2">
+                        <span class="absolute -top-2.5 left-3 rounded bg-brand px-1.5 py-0 text-[10px] font-bold uppercase tracking-wider text-white">Nové</span>
+                        <div class="p-0">
+                            <label class="block text-sm font-medium text-text-strong">Projektový manažer</label>
+                            <select class="mt-1 w-full rounded-md border border-border-default bg-surface-primary px-3 py-2 text-base text-text-default focus:border-border-focus focus:outline-none focus:shadow-[0_0_0_2px_var(--tw-color-brand-soft)]">
+                                <option value="">Nevybráno</option>
+                                <option>Jan Melicherik</option>
+                                <option selected>Petra Novotná</option>
+                                <option>Tomáš Dvořák</option>
+                                <option>Eva Svobodová</option>
+                            </select>
+                            <p class="mt-1 text-xs text-text-muted">Volitelné. Zodpovídá za řízení projektu.</p>
+                        </div>
+                    </div>
+
+                    <!-- ===== NEW: Lead developer ===== -->
+                    <div class="relative rounded-md ring-2 ring-brand/30 ring-offset-2">
+                        <span class="absolute -top-2.5 left-3 rounded bg-brand px-1.5 py-0 text-[10px] font-bold uppercase tracking-wider text-white">Nové</span>
+                        <div class="p-0">
+                            <label class="block text-sm font-medium text-text-strong">Lead developer</label>
+                            <select class="mt-1 w-full rounded-md border border-border-default bg-surface-primary px-3 py-2 text-base text-text-default focus:border-border-focus focus:outline-none">
+                                <option value="">Nevybráno</option>
+                                <option>Jan Melicherik</option>
+                                <option>Petra Novotná</option>
+                                <option selected>Tomáš Dvořák</option>
+                                <option>Eva Svobodová</option>
+                            </select>
+                            <p class="mt-1 text-xs text-text-muted">Volitelné. Technický vedoucí projektu.</p>
+                        </div>
+                    </div>
+
+                    <!-- Existing: Popis (faded) -->
+                    <div class="opacity-50">
+                        <label class="block text-sm font-medium text-text-strong">Popis</label>
+                        <textarea disabled rows="2"
+                            class="mt-1 w-full rounded-md border border-border-default bg-surface-secondary px-3 py-2 text-base text-text-default">Migrace datového skladu na novou platformu.</textarea>
+                    </div>
+
+                    <!-- Submit -->
+                    <div class="pt-2">
+                        <button class="rounded-md bg-brand px-5 py-2 text-sm font-semibold text-white shadow-sm hover:bg-[#e09000] transition-colors">
+                            Vytvořit projekt
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- ============================================================ -->
+        <!-- SECTION 2: Project Detail — Member Management                -->
+        <!-- ============================================================ -->
+        <section>
+            <div class="mb-4">
+                <span class="inline-block rounded bg-brand/10 px-2 py-0.5 text-xs font-semibold uppercase tracking-wider text-brand">Sekce 2</span>
+                <h2 class="mt-1 text-lg font-bold text-text-strong">Detail projektu — Správa členů</h2>
+                <p class="text-sm text-text-muted">Sekce členů s rolemi, odebíráním a přidáváním nových členů.</p>
+            </div>
+
+            <div class="rounded-lg border border-border-subtle bg-surface-primary p-5">
+                <div class="flex items-center justify-between mb-4">
+                    <h3 class="text-xs font-semibold uppercase tracking-wider text-text-subtle">
+                        Členové (4)
+                    </h3>
+                </div>
+
+                <!-- Member list -->
+                <div class="flex flex-wrap gap-2 mb-4">
+                    <!-- Owner — no remove button -->
+                    <div class="flex items-center gap-2 rounded-full bg-surface-secondary pl-1 pr-3 py-1 border border-border-subtle">
+                        <span class="inline-flex h-6 w-6 items-center justify-center rounded-full bg-[#172b4d] text-[10px] font-bold text-white">JM</span>
+                        <span class="text-sm font-medium text-text-strong">Jan Melicherik</span>
+                        <span class="rounded bg-[#172b4d] px-1.5 py-0.5 text-[10px] font-semibold uppercase tracking-wider text-white leading-none">Vlastník</span>
+                    </div>
+
+                    <!-- PM — with remove -->
+                    <div class="flex items-center gap-2 rounded-full bg-surface-secondary pl-1 pr-1.5 py-1 border border-border-subtle">
+                        <span class="inline-flex h-6 w-6 items-center justify-center rounded-full bg-blue-600 text-[10px] font-bold text-white">PN</span>
+                        <span class="text-sm font-medium text-text-strong">Petra Novotná</span>
+                        <span class="rounded bg-blue-100 px-1.5 py-0.5 text-[10px] font-semibold uppercase tracking-wider text-blue-700 leading-none">PM</span>
+                        <button class="ml-0.5 inline-flex h-5 w-5 items-center justify-center rounded-full text-text-subtle hover:bg-red-100 hover:text-red-600 transition-colors" title="Odebrat">
+                            <svg class="h-3 w-3" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
+                        </button>
+                    </div>
+
+                    <!-- Lead Developer — with remove -->
+                    <div class="flex items-center gap-2 rounded-full bg-surface-secondary pl-1 pr-1.5 py-1 border border-border-subtle">
+                        <span class="inline-flex h-6 w-6 items-center justify-center rounded-full bg-purple-600 text-[10px] font-bold text-white">TD</span>
+                        <span class="text-sm font-medium text-text-strong">Tomáš Dvořák</span>
+                        <span class="rounded bg-purple-100 px-1.5 py-0.5 text-[10px] font-semibold uppercase tracking-wider text-purple-700 leading-none">Lead Dev</span>
+                        <button class="ml-0.5 inline-flex h-5 w-5 items-center justify-center rounded-full text-text-subtle hover:bg-red-100 hover:text-red-600 transition-colors" title="Odebrat">
+                            <svg class="h-3 w-3" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
+                        </button>
+                    </div>
+
+                    <!-- Regular member — with remove -->
+                    <div class="flex items-center gap-2 rounded-full bg-surface-secondary pl-1 pr-1.5 py-1 border border-border-subtle">
+                        <span class="inline-flex h-6 w-6 items-center justify-center rounded-full bg-gray-500 text-[10px] font-bold text-white">ES</span>
+                        <span class="text-sm font-medium text-text-strong">Eva Svobodová</span>
+                        <span class="rounded bg-gray-100 px-1.5 py-0.5 text-[10px] font-semibold uppercase tracking-wider text-text-muted leading-none">Člen</span>
+                        <button class="ml-0.5 inline-flex h-5 w-5 items-center justify-center rounded-full text-text-subtle hover:bg-red-100 hover:text-red-600 transition-colors" title="Odebrat">
+                            <svg class="h-3 w-3" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
+                        </button>
+                    </div>
+                </div>
+
+                <!-- Separator -->
+                <div class="border-t border-border-subtle pt-4">
+                    <!-- Add member toggle button -->
+                    <button id="addMemberBtn" onclick="toggleAddForm()"
+                        class="inline-flex items-center gap-1.5 rounded-md border border-dashed border-border-default px-3 py-1.5 text-sm font-medium text-text-muted hover:border-brand hover:text-brand transition-colors">
+                        <svg class="h-4 w-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
+                        Přidat člena
+                    </button>
+
+                    <!-- Add member form (initially hidden) -->
+                    <div id="addMemberForm" class="hidden mt-3 rounded-lg border border-border-default bg-surface-secondary p-4">
+                        <div class="flex flex-col sm:flex-row gap-3">
+                            <div class="flex-1">
+                                <label class="block text-xs font-semibold uppercase tracking-wider text-text-subtle mb-1">Uživatel</label>
+                                <select class="w-full rounded-md border border-border-default bg-surface-primary px-3 py-2 text-sm text-text-default focus:border-border-focus focus:outline-none">
+                                    <option value="">Vyberte uživatele...</option>
+                                    <option>Martin Procházka</option>
+                                    <option>Lucie Černá</option>
+                                    <option>Jiří Kučera</option>
+                                    <option>Anna Veselá</option>
+                                </select>
+                            </div>
+                            <div class="sm:w-48">
+                                <label class="block text-xs font-semibold uppercase tracking-wider text-text-subtle mb-1">Role</label>
+                                <select class="w-full rounded-md border border-border-default bg-surface-primary px-3 py-2 text-sm text-text-default focus:border-border-focus focus:outline-none">
+                                    <option value="member">Člen</option>
+                                    <option value="pm">PM</option>
+                                    <option value="lead_dev">Lead Developer</option>
+                                </select>
+                            </div>
+                            <div class="flex items-end gap-2">
+                                <button class="rounded-md bg-brand px-4 py-2 text-sm font-semibold text-white shadow-sm hover:bg-[#e09000] transition-colors">
+                                    Přidat
+                                </button>
+                                <button onclick="toggleAddForm()" class="rounded-md border border-border-default bg-surface-primary px-4 py-2 text-sm font-medium text-text-muted hover:bg-surface-secondary transition-colors">
+                                    Zrušit
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- Legend / Notes -->
+        <section class="rounded-lg border border-border-subtle bg-surface-primary p-4 text-xs text-text-muted space-y-1">
+            <p><strong class="text-text-default">Poznámky k designu:</strong></p>
+            <ul class="list-disc pl-4 space-y-0.5">
+                <li>Pole "Projektový manažer" a "Lead developer" jsou zvýrazněna orámováním — v reálné aplikaci budou bez zvýraznění.</li>
+                <li>Stávající pole jsou ztlumená (opacity) pro kontext — v reálné aplikaci budou plně aktivní.</li>
+                <li>Vlastník (Owner) nemá tlačítko pro odebrání (x) — vlastníka nelze odebrat.</li>
+                <li>Role jsou barevně odlišeny: Vlastník (tmavá), PM (modrá), Lead Dev (fialová), Člen (šedá).</li>
+            </ul>
+        </section>
+    </div>
+
+    <script>
+        function toggleAddForm() {
+            const form = document.getElementById('addMemberForm');
+            const btn = document.getElementById('addMemberBtn');
+            if (form.classList.contains('hidden')) {
+                form.classList.remove('hidden');
+                btn.classList.add('hidden');
+            } else {
+                form.classList.add('hidden');
+                btn.classList.remove('hidden');
+            }
+        }
+    </script>
+</body>
+</html>

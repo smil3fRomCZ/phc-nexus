@@ -362,7 +362,13 @@ final class TaskController extends Controller
             ->with(['assignee:id,name', 'reporter:id,name', 'epic:id,title', 'workflowStatus:id,name,color']);
 
         if ($request->filled('status')) {
-            $query->where('workflow_status_id', $request->input('status'));
+            if ($request->input('status') === 'overdue') {
+                $query->whereNotNull('due_date')
+                    ->where('due_date', '<', now()->toDateString())
+                    ->whereHas('workflowStatus', fn ($q) => $q->where('is_done', false)->where('is_cancelled', false));
+            } else {
+                $query->where('workflow_status_id', $request->input('status'));
+            }
         }
 
         if ($request->filled('priority')) {

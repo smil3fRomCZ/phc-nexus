@@ -11,8 +11,8 @@ import type { Breadcrumb } from '@/Layouts/AppLayout';
 import { displayKey } from '@/utils/displayKey';
 import { formatDate } from '@/utils/formatDate';
 import { Link, router, useForm } from '@inertiajs/react';
-import DeleteButton from '@/Components/DeleteButton';
-import { Pencil, X, Plus, FileText, Timer, BookOpen } from 'lucide-react';
+import ActionIconButton from '@/Components/ActionIconButton';
+import { Pencil, X, Plus, FileText, Timer, BookOpen, Trash2 } from 'lucide-react';
 import Modal from '@/Components/Modal';
 import RichTextDisplay from '@/Components/RichTextDisplay';
 import RichTextEditor from '@/Components/RichTextEditor';
@@ -139,15 +139,17 @@ export default function EpicShow({
                                 </h1>
                                 <StatusBadge statusMap={EPIC_STATUS} value={epic.status} />
                             </div>
-                            <div className="sm:ml-auto flex flex-wrap gap-2">
-                                <button
-                                    onClick={() => setEditing(true)}
-                                    className="rounded-md border border-border-default px-3 py-1.5 text-xs font-medium text-text-muted transition-colors hover:bg-surface-hover hover:text-text-default"
+                            <div className="sm:ml-auto flex items-center gap-1">
+                                <ActionIconButton onClick={() => setEditing(true)} label="Upravit">
+                                    <Pencil className="h-4 w-4" />
+                                </ActionIconButton>
+                                <ActionIconButton
+                                    onClick={() => setShowDeleteModal(true)}
+                                    label="Smazat"
+                                    variant="danger"
                                 >
-                                    <Pencil className="mr-1 inline-block h-3 w-3" />
-                                    Upravit
-                                </button>
-                                <DeleteButton onClick={() => setShowDeleteModal(true)} />
+                                    <Trash2 className="h-4 w-4" />
+                                </ActionIconButton>
                             </div>
                         </div>
 

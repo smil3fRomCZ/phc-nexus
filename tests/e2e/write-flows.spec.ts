@@ -36,7 +36,7 @@ test.describe('Založení projektu', () => {
 
         // Redirect na show stránku nového projektu
         await page.waitForURL(/\/projects\/[a-f0-9-]+$/);
-        await expect(page.locator('h2', { hasText: projectName })).toBeVisible();
+        await expect(page.locator('h1', { hasText: projectName })).toBeVisible();
     });
 });
 

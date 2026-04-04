@@ -44,8 +44,8 @@ test.describe('Kanban a tabulka', () => {
         const projectId = href?.split('/projects/')[1]?.split('/')[0] ?? '';
 
         await page.goto(`/projects/${projectId}/board`);
-        await expect(page.getByText('Backlog')).toBeVisible();
-        await expect(page.getByText('Hotovo')).toBeVisible();
+        await expect(page.getByText('Backlog').first()).toBeVisible();
+        await expect(page.getByText('Hotovo').first()).toBeVisible();
     });
 
     test('PM vidí tabulkový view', async ({ page }) => {

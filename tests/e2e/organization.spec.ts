@@ -54,7 +54,7 @@ test.describe('Organizační struktura', () => {
         if (await firstCard.isVisible()) {
             await firstCard.click();
             await page.waitForURL(/\/admin\/organization\/divisions\//);
-            await expect(page.getByText('Tým')).toBeVisible();
+            await expect(page.getByRole('columnheader', { name: 'Tým' })).toBeVisible();
         }
     });
 

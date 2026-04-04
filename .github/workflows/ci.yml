@@ -82,7 +82,8 @@ jobs:
 
       # ── Backend checks ──
       - name: Laravel Pint (code style)
-        run: ./vendor/bin/pint --test
+        run: |
+          ./vendor/bin/pint --test || (./vendor/bin/pint --diff && exit 1)
 
       - name: PHPStan (static analysis)
         run: ./vendor/bin/phpstan analyse --no-progress --memory-limit=512M

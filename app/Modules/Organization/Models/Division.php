@@ -19,6 +19,11 @@ class Division extends Model
 
     protected $fillable = ['name', 'description'];
 
+    protected static function newFactory(): DivisionFactory
+    {
+        return DivisionFactory::new();
+    }
+
     public function teams(): HasMany
     {
         return $this->hasMany(Team::class);

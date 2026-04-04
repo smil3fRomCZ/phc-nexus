@@ -19,6 +19,11 @@ class Team extends Model
 
     protected $fillable = ['name', 'description', 'division_id', 'team_lead_id'];
 
+    protected static function newFactory(): TeamFactory
+    {
+        return TeamFactory::new();
+    }
+
     public function division(): BelongsTo
     {
         return $this->belongsTo(Division::class);

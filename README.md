@@ -33,10 +33,11 @@ Navrženo pro 50–200 uživatelů. Invite-only přístup přes Google SSO.
 
 ### Spolupráce
 
-- **Komentáře** — threaded diskuze na projektech, epicích, úkolech a dokumentaci
+- **Komentáře** — threaded diskuze na projektech, epicích, úkolech a dokumentaci, odeslání přes Shift+Enter
 - **Přílohy** — upload/download s PHI guardem a auditem
 - **Notifikace** — in-app + email, deep links, živý unread count v notifikačním zvonečku
 - **Toast zprávy** — okamžitá zpětná vazba po akcích
+- **Status update** — health tracking projektu (On Track / At Risk / Blocked) s historií
 
 ### Administrace & compliance
 
@@ -56,6 +57,7 @@ Navrženo pro 50–200 uživatelů. Invite-only přístup přes Google SSO.
 - **My Tasks** — globální přehled přiřazených úkolů s filtry
 - **Responsive layout** — mobilní sidebar, responsive tabulky
 - **Activity timeline** — vizualizace historie změn na úkolech
+- **Action icon buttons** — kompaktní icon-only akce s tooltip popisem (edit, delete, duplicate…)
 - **Inline editace** — assignee, priorita, due date přímo v sidebaru
 - **Pagination** — na všech seznamech
 - **Error handling** — globální error modal pro HTTP chyby (404/500), zavíratelný křížkem/klikem mimo/Escape

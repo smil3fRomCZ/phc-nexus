@@ -177,12 +177,27 @@ function CommentForm({ postUrl, parentId, onDone }: { postUrl: string; parentId?
         });
     }
 
+    function handleKeyDown(e: React.KeyboardEvent<HTMLTextAreaElement>) {
+        if (e.key === 'Enter' && e.shiftKey && data.body.trim() && !processing) {
+            e.preventDefault();
+            post(postUrl, {
+                onSuccess: () => {
+                    reset();
+                    onDone?.();
+                },
+            });
+        }
+    }
+
     return (
         <form onSubmit={submit} className="mt-4 flex gap-2">
             <textarea
                 value={data.body}
                 onChange={(e) => setData('body', e.target.value)}
-                placeholder={parentId ? 'Napsat odpověď...' : 'Přidat komentář...'}
+                onKeyDown={handleKeyDown}
+                placeholder={
+                    parentId ? 'Napsat odpověď… (Shift+Enter odešle)' : 'Přidat komentář… (Shift+Enter odešle)'
+                }
                 rows={parentId ? 2 : 3}
                 className="flex-1 rounded-md border border-border-default bg-surface-primary px-3 py-2 text-sm focus:border-border-focus focus:outline-none focus:shadow-[0_0_0_2px_var(--color-brand-soft)]"
             />

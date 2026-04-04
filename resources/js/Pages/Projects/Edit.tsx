@@ -1,6 +1,7 @@
 import AppLayout from '@/Layouts/AppLayout';
 import type { Breadcrumb } from '@/Layouts/AppLayout';
 import Spinner from '@/Components/Spinner';
+import { toDateInputValue } from '@/utils/formatDate';
 import { useForm } from '@inertiajs/react';
 import type { FormEvent } from 'react';
 
@@ -50,8 +51,8 @@ export default function ProjectEdit({ project, statuses, classifications, teams 
         benefit_type: project.benefit_type ?? '',
         benefit_amount: project.benefit_amount ?? '',
         benefit_note: project.benefit_note ?? '',
-        start_date: project.start_date ?? '',
-        target_date: project.target_date ?? '',
+        start_date: toDateInputValue(project.start_date),
+        target_date: toDateInputValue(project.target_date),
     });
 
     function submit(e: FormEvent) {

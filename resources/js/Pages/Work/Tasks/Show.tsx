@@ -6,7 +6,7 @@ import ActivityTimeline from '@/Components/ActivityTimeline';
 import type { ActivityEntry } from '@/Components/ActivityTimeline';
 import RichTextDisplay from '@/Components/RichTextDisplay';
 import RichTextEditor from '@/Components/RichTextEditor';
-import DeleteButton from '@/Components/DeleteButton';
+import ActionIconButton from '@/Components/ActionIconButton';
 import Modal from '@/Components/Modal';
 import TimeLogSection from '@/Components/TimeLogSection';
 import type { TimeEntryData } from '@/Components/TimeLogSection';
@@ -215,37 +215,33 @@ export default function TaskShow({
                                     <span className="mr-2 text-text-muted">{displayKey(project.key, task.number)}</span>
                                     {task.title}
                                 </h1>
-                                <StatusBadge
-                                    label={task.workflow_status?.name ?? '—'}
-                                    color={task.workflow_status?.color ?? null}
-                                />
                             </div>
                             {!isDone && (
-                                <div className="sm:ml-auto flex flex-wrap gap-2">
-                                    <button
+                                <div className="sm:ml-auto flex items-center gap-1">
+                                    <ActionIconButton
                                         onClick={() => setRequestingApproval(true)}
-                                        className="rounded-md border border-border-default px-3 py-1.5 text-xs font-medium text-text-muted transition-colors hover:bg-surface-hover hover:text-text-default"
+                                        label="Žádost o schválení"
                                     >
-                                        <ShieldCheck className="mr-1 inline-block h-3 w-3" />
-                                        Žádost o schválení
-                                    </button>
-                                    <button
-                                        onClick={() => setEditing(true)}
-                                        className="rounded-md border border-border-default px-3 py-1.5 text-xs font-medium text-text-muted transition-colors hover:bg-surface-hover hover:text-text-default"
-                                    >
-                                        <Pencil className="mr-1 inline-block h-3 w-3" />
-                                        Upravit
-                                    </button>
-                                    <button
+                                        <ShieldCheck className="h-4 w-4" />
+                                    </ActionIconButton>
+                                    <ActionIconButton onClick={() => setEditing(true)} label="Upravit">
+                                        <Pencil className="h-4 w-4" />
+                                    </ActionIconButton>
+                                    <ActionIconButton
                                         onClick={() =>
                                             router.post(`/projects/${project.id}/tasks/${task.id}/duplicate`)
                                         }
-                                        className="rounded-md border border-border-default px-3 py-1.5 text-xs font-medium text-text-muted transition-colors hover:bg-surface-hover hover:text-text-default"
+                                        label="Duplikovat"
                                     >
-                                        <Copy className="mr-1 inline-block h-3 w-3" />
-                                        Duplikovat
-                                    </button>
-                                    <DeleteButton onClick={() => setShowDeleteModal(true)} />
+                                        <Copy className="h-4 w-4" />
+                                    </ActionIconButton>
+                                    <ActionIconButton
+                                        onClick={() => setShowDeleteModal(true)}
+                                        label="Smazat"
+                                        variant="danger"
+                                    >
+                                        <Trash2 className="h-4 w-4" />
+                                    </ActionIconButton>
                                 </div>
                             )}
                         </div>
@@ -1163,9 +1159,11 @@ function CommentForm({
         parent_id: parentId ?? '',
     });
 
+    const postUrl = `/projects/${projectId}/tasks/${taskId}/comments`;
+
     function submit(e: FormEvent) {
         e.preventDefault();
-        post(`/projects/${projectId}/tasks/${taskId}/comments`, {
+        post(postUrl, {
             onSuccess: () => {
                 reset();
                 onDone?.();
@@ -1173,12 +1171,27 @@ function CommentForm({
         });
     }
 
+    function handleKeyDown(e: React.KeyboardEvent<HTMLTextAreaElement>) {
+        if (e.key === 'Enter' && e.shiftKey && data.body.trim() && !processing) {
+            e.preventDefault();
+            post(postUrl, {
+                onSuccess: () => {
+                    reset();
+                    onDone?.();
+                },
+            });
+        }
+    }
+
     return (
         <form onSubmit={submit} className="mt-4 flex gap-2">
             <textarea
                 value={data.body}
                 onChange={(e) => setData('body', e.target.value)}
-                placeholder={parentId ? 'Napsat odpověď...' : 'Přidat komentář...'}
+                onKeyDown={handleKeyDown}
+                placeholder={
+                    parentId ? 'Napsat odpověď… (Shift+Enter odešle)' : 'Přidat komentář… (Shift+Enter odešle)'
+                }
                 rows={parentId ? 2 : 3}
                 className="flex-1 rounded-md border border-border-default bg-surface-primary px-3 py-2 text-sm focus:border-border-focus focus:outline-none focus:shadow-[0_0_0_2px_var(--color-brand-soft)]"
             />

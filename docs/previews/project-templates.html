@@ -1,0 +1,532 @@
+<!DOCTYPE html>
+<html lang="cs">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>PHC Nexus — Vytvoření projektu (Template Wizard)</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+  <script>
+    tailwind.config = {
+      theme: {
+        extend: {
+          fontFamily: { sans: ['Inter', 'system-ui', 'sans-serif'] },
+          colors: {
+            brand: {
+              DEFAULT: '#f5a623',
+              hover: '#e09000',
+              soft: '#fff8eb',
+              muted: '#ffd080',
+            },
+            navy: { 900: '#172b4d' },
+            slate: {
+              50: '#fafbfc',
+              100: '#f4f5f7',
+              200: '#ebecf0',
+              300: '#dfe1e6',
+              500: '#b3bac5',
+              600: '#97a0af',
+              700: '#6b778c',
+              800: '#42526e',
+            },
+            status: {
+              'green-bg': '#e3fcef', 'green-fg': '#006644',
+              'blue-bg': '#deebff', 'blue-fg': '#0747a6',
+              'yellow-bg': '#fff0b3', 'yellow-fg': '#974f0c',
+              'red-bg': '#ffebe6', 'red-fg': '#bf2600',
+              'purple-bg': '#eae6ff', 'purple-fg': '#5243aa',
+            },
+          },
+        },
+      },
+    }
+  </script>
+  <style>
+    body { background: #f4f5f7; }
+    .step-dot { transition: all 0.2s; }
+    .template-card { transition: border-color 0.15s, box-shadow 0.15s; }
+    .template-card:hover { box-shadow: 0 4px 6px rgba(23,43,77,0.08); }
+    .template-card.selected { border-color: #0747a6; box-shadow: 0 0 0 2px rgba(7,71,166,0.2); }
+    .flow-arrow { display: flex; align-items: center; }
+    .flow-arrow::after {
+      content: '';
+      display: block;
+      width: 24px;
+      height: 2px;
+      background: #dfe1e6;
+      position: relative;
+    }
+    .flow-arrow-head::after {
+      content: '';
+      display: block;
+      width: 0; height: 0;
+      border-top: 5px solid transparent;
+      border-bottom: 5px solid transparent;
+      border-left: 6px solid #dfe1e6;
+    }
+    .field-row { transition: opacity 0.2s; }
+    .field-hidden { opacity: 0.3; text-decoration: line-through; }
+  </style>
+</head>
+<body class="min-h-screen font-sans text-slate-800">
+
+  <!-- Top Bar -->
+  <header class="bg-white border-b border-slate-200 px-6 py-3 flex items-center justify-between">
+    <div class="flex items-center gap-3">
+      <div class="w-8 h-8 rounded-lg bg-brand flex items-center justify-center text-white font-bold text-sm">N</div>
+      <span class="font-semibold text-navy-900">PHC Nexus</span>
+      <span class="text-slate-600 mx-2">/</span>
+      <span class="text-slate-700">Novy projekt</span>
+    </div>
+    <div class="flex items-center gap-2">
+      <div class="w-8 h-8 rounded-full bg-slate-200 flex items-center justify-center text-xs font-medium text-slate-700">JM</div>
+    </div>
+  </header>
+
+  <main class="max-w-4xl mx-auto py-10 px-4">
+
+    <!-- Wizard Header -->
+    <div class="mb-8">
+      <h1 class="text-2xl font-bold text-navy-900 mb-1">Vytvorit novy projekt</h1>
+      <p class="text-slate-700 text-sm">Vyberte sablonu a nastavte zakladni parametry projektu.</p>
+    </div>
+
+    <!-- Step Indicator -->
+    <div class="flex items-center gap-0 mb-10" id="stepIndicator">
+      <button onclick="goToStep(1)" class="step-dot flex items-center gap-2 px-4 py-2 rounded-full text-sm font-medium bg-status-blue-bg text-status-blue-fg" id="stepBtn1">
+        <span class="w-6 h-6 rounded-full bg-status-blue-fg text-white flex items-center justify-center text-xs font-bold">1</span>
+        Sablona
+      </button>
+      <div class="w-8 h-px bg-slate-300"></div>
+      <button onclick="goToStep(2)" class="step-dot flex items-center gap-2 px-4 py-2 rounded-full text-sm font-medium text-slate-600 bg-slate-100" id="stepBtn2">
+        <span class="w-6 h-6 rounded-full bg-slate-300 text-slate-700 flex items-center justify-center text-xs font-bold">2</span>
+        Pole formulare
+      </button>
+      <div class="w-8 h-px bg-slate-300"></div>
+      <button onclick="goToStep(3)" class="step-dot flex items-center gap-2 px-4 py-2 rounded-full text-sm font-medium text-slate-600 bg-slate-100" id="stepBtn3">
+        <span class="w-6 h-6 rounded-full bg-slate-300 text-slate-700 flex items-center justify-center text-xs font-bold">3</span>
+        Workflow
+      </button>
+    </div>
+
+    <!-- ==================== STEP 1: Template Selection ==================== -->
+    <div id="step1" class="step-content">
+      <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+
+        <!-- Software Project -->
+        <div class="template-card bg-white rounded-xl border-2 border-slate-200 p-5 cursor-pointer" onclick="selectTemplate('sw')" id="card-sw">
+          <div class="flex items-start gap-4 mb-3">
+            <div class="w-12 h-12 rounded-xl bg-status-blue-bg flex items-center justify-center text-2xl shrink-0">💻</div>
+            <div>
+              <h3 class="font-semibold text-navy-900 text-base">Softwarovy projekt</h3>
+              <p class="text-slate-700 text-sm mt-0.5">Vyvoj software s epiky, code review a QA fazemi.</p>
+            </div>
+          </div>
+          <ul class="text-xs text-slate-600 space-y-1.5 ml-16">
+            <li class="flex items-center gap-1.5">
+              <span class="w-1.5 h-1.5 rounded-full bg-status-blue-fg shrink-0"></span>
+              Role: PM, Lead Developer, Clen
+            </li>
+            <li class="flex items-center gap-1.5">
+              <span class="w-1.5 h-1.5 rounded-full bg-status-blue-fg shrink-0"></span>
+              Workflow: Backlog → Code Review → QA → Hotovo
+            </li>
+            <li class="flex items-center gap-1.5">
+              <span class="w-1.5 h-1.5 rounded-full bg-status-blue-fg shrink-0"></span>
+              Podpora Epiku a Lead Developera
+            </li>
+          </ul>
+          <div class="mt-4 ml-16">
+            <span class="inline-block text-xs font-medium px-3 py-1.5 rounded-lg bg-status-blue-bg text-status-blue-fg select-btn" id="btn-sw">Vybrat</span>
+          </div>
+        </div>
+
+        <!-- Task Management -->
+        <div class="template-card bg-white rounded-xl border-2 border-slate-200 p-5 cursor-pointer" onclick="selectTemplate('task')" id="card-task">
+          <div class="flex items-start gap-4 mb-3">
+            <div class="w-12 h-12 rounded-xl bg-status-green-bg flex items-center justify-center text-2xl shrink-0">✅</div>
+            <div>
+              <h3 class="font-semibold text-navy-900 text-base">Rizeni ukolu</h3>
+              <p class="text-slate-700 text-sm mt-0.5">Jednoduche ukoly pro HR, marketing ci provoz.</p>
+            </div>
+          </div>
+          <ul class="text-xs text-slate-600 space-y-1.5 ml-16">
+            <li class="flex items-center gap-1.5">
+              <span class="w-1.5 h-1.5 rounded-full bg-status-green-fg shrink-0"></span>
+              Role: PM, Clen
+            </li>
+            <li class="flex items-center gap-1.5">
+              <span class="w-1.5 h-1.5 rounded-full bg-status-green-fg shrink-0"></span>
+              Workflow: K zpracovani → V prubehu → Hotovo
+            </li>
+            <li class="flex items-center gap-1.5">
+              <span class="w-1.5 h-1.5 rounded-full bg-status-green-fg shrink-0"></span>
+              Zjednoduseny formular bez epiku
+            </li>
+          </ul>
+          <div class="mt-4 ml-16">
+            <span class="inline-block text-xs font-medium px-3 py-1.5 rounded-lg bg-status-green-bg text-status-green-fg select-btn" id="btn-task">Vybrat</span>
+          </div>
+        </div>
+
+        <!-- Approval Workflow -->
+        <div class="template-card bg-white rounded-xl border-2 border-slate-200 p-5 cursor-pointer" onclick="selectTemplate('approval')" id="card-approval">
+          <div class="flex items-start gap-4 mb-3">
+            <div class="w-12 h-12 rounded-xl bg-status-yellow-bg flex items-center justify-center text-2xl shrink-0">✋</div>
+            <div>
+              <h3 class="font-semibold text-navy-900 text-base">Schvalovaci proces</h3>
+              <p class="text-slate-700 text-sm mt-0.5">Navrhy, schvalovani a zamitani pro pravni nebo nakupni procesy.</p>
+            </div>
+          </div>
+          <ul class="text-xs text-slate-600 space-y-1.5 ml-16">
+            <li class="flex items-center gap-1.5">
+              <span class="w-1.5 h-1.5 rounded-full bg-status-yellow-fg shrink-0"></span>
+              Role: PM, Schvalovatel, Clen
+            </li>
+            <li class="flex items-center gap-1.5">
+              <span class="w-1.5 h-1.5 rounded-full bg-status-yellow-fg shrink-0"></span>
+              Workflow: Navrh → Ke schvaleni → Schvaleno/Zamitnuto
+            </li>
+            <li class="flex items-center gap-1.5">
+              <span class="w-1.5 h-1.5 rounded-full bg-status-yellow-fg shrink-0"></span>
+              Approval flow jako jadro procesu
+            </li>
+          </ul>
+          <div class="mt-4 ml-16">
+            <span class="inline-block text-xs font-medium px-3 py-1.5 rounded-lg bg-status-yellow-bg text-status-yellow-fg select-btn" id="btn-approval">Vybrat</span>
+          </div>
+        </div>
+
+        <!-- Custom -->
+        <div class="template-card bg-white rounded-xl border-2 border-slate-200 p-5 cursor-pointer" onclick="selectTemplate('custom')" id="card-custom">
+          <div class="flex items-start gap-4 mb-3">
+            <div class="w-12 h-12 rounded-xl bg-status-purple-bg flex items-center justify-center text-2xl shrink-0">⚙️</div>
+            <div>
+              <h3 class="font-semibold text-navy-900 text-base">Vlastni</h3>
+              <p class="text-slate-700 text-sm mt-0.5">Prazdna sablona — nastavite vse rucne podle potreb.</p>
+            </div>
+          </div>
+          <ul class="text-xs text-slate-600 space-y-1.5 ml-16">
+            <li class="flex items-center gap-1.5">
+              <span class="w-1.5 h-1.5 rounded-full bg-status-purple-fg shrink-0"></span>
+              Vsechna pole a nastaveni dostupna
+            </li>
+            <li class="flex items-center gap-1.5">
+              <span class="w-1.5 h-1.5 rounded-full bg-status-purple-fg shrink-0"></span>
+              Zakladni workflow: K zpracovani → V prubehu → Hotovo
+            </li>
+            <li class="flex items-center gap-1.5">
+              <span class="w-1.5 h-1.5 rounded-full bg-status-purple-fg shrink-0"></span>
+              Uplna kontrola nad konfiguraci
+            </li>
+          </ul>
+          <div class="mt-4 ml-16">
+            <span class="inline-block text-xs font-medium px-3 py-1.5 rounded-lg bg-status-purple-bg text-status-purple-fg select-btn" id="btn-custom">Vybrat</span>
+          </div>
+        </div>
+
+      </div>
+
+      <!-- Next button -->
+      <div class="flex justify-end mt-8">
+        <button onclick="goToStep(2)" class="px-5 py-2.5 rounded-lg bg-brand text-white font-medium text-sm hover:bg-brand-hover transition-colors disabled:opacity-40 disabled:cursor-not-allowed" id="nextBtn1" disabled>
+          Pokracovat →
+        </button>
+      </div>
+    </div>
+
+    <!-- ==================== STEP 2: Form Fields Comparison ==================== -->
+    <div id="step2" class="step-content hidden">
+      <div class="mb-6">
+        <h2 class="text-lg font-semibold text-navy-900 mb-1">Pole formulare podle sablony</h2>
+        <p class="text-sm text-slate-700">Porovnani viditelnosti poli pro ruzne sablony. Zelene = viditelne, preskrtnute = skryte.</p>
+      </div>
+
+      <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
+
+        <!-- SW Project Form -->
+        <div class="bg-white rounded-xl border border-slate-200 overflow-hidden">
+          <div class="px-5 py-3 bg-status-blue-bg border-b border-slate-200 flex items-center gap-2">
+            <span class="text-lg">💻</span>
+            <span class="font-semibold text-sm text-status-blue-fg">Softwarovy projekt</span>
+          </div>
+          <div class="p-5 space-y-3">
+            <div class="field-row flex items-center gap-3">
+              <span class="w-2 h-2 rounded-full bg-status-green-fg shrink-0"></span>
+              <span class="text-sm text-navy-900 font-medium">Nazev projektu</span>
+              <span class="ml-auto text-xs text-slate-500 bg-slate-100 px-2 py-0.5 rounded">povinne</span>
+            </div>
+            <div class="field-row flex items-center gap-3">
+              <span class="w-2 h-2 rounded-full bg-status-green-fg shrink-0"></span>
+              <span class="text-sm text-navy-900 font-medium">Popis</span>
+              <span class="ml-auto text-xs text-slate-500 bg-slate-100 px-2 py-0.5 rounded">volitelne</span>
+            </div>
+            <div class="field-row flex items-center gap-3">
+              <span class="w-2 h-2 rounded-full bg-status-green-fg shrink-0"></span>
+              <span class="text-sm text-navy-900 font-medium">Projektovy manazer</span>
+              <span class="ml-auto text-xs text-slate-500 bg-slate-100 px-2 py-0.5 rounded">povinne</span>
+            </div>
+            <div class="field-row flex items-center gap-3">
+              <span class="w-2 h-2 rounded-full bg-status-blue-fg shrink-0"></span>
+              <span class="text-sm text-status-blue-fg font-semibold">Lead Developer</span>
+              <span class="ml-auto text-xs text-status-blue-fg bg-status-blue-bg px-2 py-0.5 rounded font-medium">pouze SW</span>
+            </div>
+            <div class="field-row flex items-center gap-3">
+              <span class="w-2 h-2 rounded-full bg-status-blue-fg shrink-0"></span>
+              <span class="text-sm text-status-blue-fg font-semibold">Podpora Epiku</span>
+              <span class="ml-auto text-xs text-status-blue-fg bg-status-blue-bg px-2 py-0.5 rounded font-medium">pouze SW</span>
+            </div>
+            <div class="field-row flex items-center gap-3">
+              <span class="w-2 h-2 rounded-full bg-status-green-fg shrink-0"></span>
+              <span class="text-sm text-navy-900 font-medium">Datum zahajeni / ukonceni</span>
+              <span class="ml-auto text-xs text-slate-500 bg-slate-100 px-2 py-0.5 rounded">volitelne</span>
+            </div>
+            <div class="field-row flex items-center gap-3">
+              <span class="w-2 h-2 rounded-full bg-status-green-fg shrink-0"></span>
+              <span class="text-sm text-navy-900 font-medium">PHI klasifikace</span>
+              <span class="ml-auto text-xs text-slate-500 bg-slate-100 px-2 py-0.5 rounded">povinne</span>
+            </div>
+          </div>
+        </div>
+
+        <!-- Task Management Form -->
+        <div class="bg-white rounded-xl border border-slate-200 overflow-hidden">
+          <div class="px-5 py-3 bg-status-green-bg border-b border-slate-200 flex items-center gap-2">
+            <span class="text-lg">✅</span>
+            <span class="font-semibold text-sm text-status-green-fg">Rizeni ukolu</span>
+          </div>
+          <div class="p-5 space-y-3">
+            <div class="field-row flex items-center gap-3">
+              <span class="w-2 h-2 rounded-full bg-status-green-fg shrink-0"></span>
+              <span class="text-sm text-navy-900 font-medium">Nazev projektu</span>
+              <span class="ml-auto text-xs text-slate-500 bg-slate-100 px-2 py-0.5 rounded">povinne</span>
+            </div>
+            <div class="field-row flex items-center gap-3">
+              <span class="w-2 h-2 rounded-full bg-status-green-fg shrink-0"></span>
+              <span class="text-sm text-navy-900 font-medium">Popis</span>
+              <span class="ml-auto text-xs text-slate-500 bg-slate-100 px-2 py-0.5 rounded">volitelne</span>
+            </div>
+            <div class="field-row flex items-center gap-3">
+              <span class="w-2 h-2 rounded-full bg-status-green-fg shrink-0"></span>
+              <span class="text-sm text-navy-900 font-medium">Projektovy manazer</span>
+              <span class="ml-auto text-xs text-slate-500 bg-slate-100 px-2 py-0.5 rounded">povinne</span>
+            </div>
+            <div class="field-row flex items-center gap-3 field-hidden">
+              <span class="w-2 h-2 rounded-full bg-slate-300 shrink-0"></span>
+              <span class="text-sm text-slate-500 font-medium">Lead Developer</span>
+              <span class="ml-auto text-xs text-slate-400 bg-slate-100 px-2 py-0.5 rounded">skryto</span>
+            </div>
+            <div class="field-row flex items-center gap-3 field-hidden">
+              <span class="w-2 h-2 rounded-full bg-slate-300 shrink-0"></span>
+              <span class="text-sm text-slate-500 font-medium">Podpora Epiku</span>
+              <span class="ml-auto text-xs text-slate-400 bg-slate-100 px-2 py-0.5 rounded">skryto</span>
+            </div>
+            <div class="field-row flex items-center gap-3">
+              <span class="w-2 h-2 rounded-full bg-status-green-fg shrink-0"></span>
+              <span class="text-sm text-navy-900 font-medium">Datum zahajeni / ukonceni</span>
+              <span class="ml-auto text-xs text-slate-500 bg-slate-100 px-2 py-0.5 rounded">volitelne</span>
+            </div>
+            <div class="field-row flex items-center gap-3">
+              <span class="w-2 h-2 rounded-full bg-status-green-fg shrink-0"></span>
+              <span class="text-sm text-navy-900 font-medium">PHI klasifikace</span>
+              <span class="ml-auto text-xs text-slate-500 bg-slate-100 px-2 py-0.5 rounded">povinne</span>
+            </div>
+          </div>
+        </div>
+
+      </div>
+
+      <!-- Navigation -->
+      <div class="flex justify-between mt-8">
+        <button onclick="goToStep(1)" class="px-5 py-2.5 rounded-lg border border-slate-300 text-slate-700 font-medium text-sm hover:bg-slate-50 transition-colors">
+          ← Zpet
+        </button>
+        <button onclick="goToStep(3)" class="px-5 py-2.5 rounded-lg bg-brand text-white font-medium text-sm hover:bg-brand-hover transition-colors">
+          Pokracovat →
+        </button>
+      </div>
+    </div>
+
+    <!-- ==================== STEP 3: Workflow Preview ==================== -->
+    <div id="step3" class="step-content hidden">
+      <div class="mb-6">
+        <h2 class="text-lg font-semibold text-navy-900 mb-1">Vychozi workflow</h2>
+        <p class="text-sm text-slate-700">Nahled stavoveho diagramu pro vybranou sablonu. Workflow lze upravit po vytvoreni projektu.</p>
+      </div>
+
+      <!-- SW Workflow -->
+      <div id="workflow-sw" class="workflow-panel bg-white rounded-xl border border-slate-200 p-6">
+        <div class="flex items-center gap-2 mb-5">
+          <span class="text-lg">💻</span>
+          <span class="font-semibold text-navy-900">Softwarovy projekt</span>
+        </div>
+        <!-- Main flow -->
+        <div class="flex flex-wrap items-center gap-2 mb-4">
+          <div class="px-3 py-2 rounded-lg bg-slate-100 border border-slate-300 text-xs font-semibold text-slate-700">Backlog</div>
+          <svg class="w-5 h-4 text-slate-400 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 20 16"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M1 8h16m0 0l-5-5m5 5l-5 5"/></svg>
+          <div class="px-3 py-2 rounded-lg bg-status-blue-bg border border-blue-200 text-xs font-semibold text-status-blue-fg">K zpracovani</div>
+          <svg class="w-5 h-4 text-slate-400 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 20 16"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M1 8h16m0 0l-5-5m5 5l-5 5"/></svg>
+          <div class="px-3 py-2 rounded-lg bg-status-yellow-bg border border-yellow-200 text-xs font-semibold text-status-yellow-fg">V prubehu</div>
+          <svg class="w-5 h-4 text-slate-400 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 20 16"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M1 8h16m0 0l-5-5m5 5l-5 5"/></svg>
+          <div class="px-3 py-2 rounded-lg bg-status-purple-bg border border-purple-200 text-xs font-semibold text-status-purple-fg">Code Review</div>
+          <svg class="w-5 h-4 text-slate-400 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 20 16"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M1 8h16m0 0l-5-5m5 5l-5 5"/></svg>
+          <div class="px-3 py-2 rounded-lg bg-orange-50 border border-orange-200 text-xs font-semibold text-orange-700">QA</div>
+          <svg class="w-5 h-4 text-slate-400 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 20 16"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M1 8h16m0 0l-5-5m5 5l-5 5"/></svg>
+          <div class="px-3 py-2 rounded-lg bg-status-green-bg border border-green-200 text-xs font-semibold text-status-green-fg">Hotovo</div>
+        </div>
+        <!-- Side branch -->
+        <div class="flex items-center gap-2 ml-8">
+          <span class="text-xs text-slate-500">Z libovolneho stavu →</span>
+          <div class="px-3 py-2 rounded-lg bg-status-red-bg border border-red-200 text-xs font-semibold text-status-red-fg">Zruseno</div>
+        </div>
+      </div>
+
+      <!-- Task Workflow -->
+      <div id="workflow-task" class="workflow-panel bg-white rounded-xl border border-slate-200 p-6 hidden">
+        <div class="flex items-center gap-2 mb-5">
+          <span class="text-lg">✅</span>
+          <span class="font-semibold text-navy-900">Rizeni ukolu</span>
+        </div>
+        <div class="flex flex-wrap items-center gap-2 mb-4">
+          <div class="px-3 py-2 rounded-lg bg-status-blue-bg border border-blue-200 text-xs font-semibold text-status-blue-fg">K zpracovani</div>
+          <svg class="w-5 h-4 text-slate-400 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 20 16"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M1 8h16m0 0l-5-5m5 5l-5 5"/></svg>
+          <div class="px-3 py-2 rounded-lg bg-status-yellow-bg border border-yellow-200 text-xs font-semibold text-status-yellow-fg">V prubehu</div>
+          <svg class="w-5 h-4 text-slate-400 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 20 16"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M1 8h16m0 0l-5-5m5 5l-5 5"/></svg>
+          <div class="px-3 py-2 rounded-lg bg-status-green-bg border border-green-200 text-xs font-semibold text-status-green-fg">Hotovo</div>
+        </div>
+        <div class="flex items-center gap-2 ml-8">
+          <span class="text-xs text-slate-500">Z libovolneho stavu →</span>
+          <div class="px-3 py-2 rounded-lg bg-status-red-bg border border-red-200 text-xs font-semibold text-status-red-fg">Zruseno</div>
+        </div>
+      </div>
+
+      <!-- Approval Workflow -->
+      <div id="workflow-approval" class="workflow-panel bg-white rounded-xl border border-slate-200 p-6 hidden">
+        <div class="flex items-center gap-2 mb-5">
+          <span class="text-lg">✋</span>
+          <span class="font-semibold text-navy-900">Schvalovaci proces</span>
+        </div>
+        <div class="flex flex-wrap items-center gap-2 mb-4">
+          <div class="px-3 py-2 rounded-lg bg-slate-100 border border-slate-300 text-xs font-semibold text-slate-700">Navrh</div>
+          <svg class="w-5 h-4 text-slate-400 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 20 16"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M1 8h16m0 0l-5-5m5 5l-5 5"/></svg>
+          <div class="px-3 py-2 rounded-lg bg-status-yellow-bg border border-yellow-200 text-xs font-semibold text-status-yellow-fg">Ke schvaleni</div>
+          <svg class="w-5 h-4 text-slate-400 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 20 16"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M1 8h16m0 0l-5-5m5 5l-5 5"/></svg>
+          <div class="flex flex-col gap-2">
+            <div class="px-3 py-2 rounded-lg bg-status-green-bg border border-green-200 text-xs font-semibold text-status-green-fg">Schvaleno</div>
+            <div class="px-3 py-2 rounded-lg bg-status-red-bg border border-red-200 text-xs font-semibold text-status-red-fg">Zamitnuto</div>
+          </div>
+        </div>
+        <div class="flex items-center gap-2 ml-8 mt-2">
+          <span class="text-xs text-slate-500">Z libovolneho stavu →</span>
+          <div class="px-3 py-2 rounded-lg bg-slate-200 border border-slate-300 text-xs font-semibold text-slate-600">Zruseno</div>
+        </div>
+      </div>
+
+      <!-- Custom Workflow -->
+      <div id="workflow-custom" class="workflow-panel bg-white rounded-xl border border-slate-200 p-6 hidden">
+        <div class="flex items-center gap-2 mb-5">
+          <span class="text-lg">⚙️</span>
+          <span class="font-semibold text-navy-900">Vlastni</span>
+        </div>
+        <div class="flex flex-wrap items-center gap-2 mb-4">
+          <div class="px-3 py-2 rounded-lg bg-status-blue-bg border border-blue-200 text-xs font-semibold text-status-blue-fg">K zpracovani</div>
+          <svg class="w-5 h-4 text-slate-400 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 20 16"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M1 8h16m0 0l-5-5m5 5l-5 5"/></svg>
+          <div class="px-3 py-2 rounded-lg bg-status-yellow-bg border border-yellow-200 text-xs font-semibold text-status-yellow-fg">V prubehu</div>
+          <svg class="w-5 h-4 text-slate-400 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 20 16"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M1 8h16m0 0l-5-5m5 5l-5 5"/></svg>
+          <div class="px-3 py-2 rounded-lg bg-status-green-bg border border-green-200 text-xs font-semibold text-status-green-fg">Hotovo</div>
+        </div>
+        <div class="flex items-center gap-2 ml-8">
+          <span class="text-xs text-slate-500">Z libovolneho stavu →</span>
+          <div class="px-3 py-2 rounded-lg bg-status-red-bg border border-red-200 text-xs font-semibold text-status-red-fg">Zruseno</div>
+        </div>
+        <div class="mt-4 p-3 rounded-lg bg-status-purple-bg border border-purple-100">
+          <p class="text-xs text-status-purple-fg font-medium">Toto je zakladni workflow. Pridejte vlastni stavy a prechody po vytvoreni projektu.</p>
+        </div>
+      </div>
+
+      <!-- Note -->
+      <div class="mt-6 flex items-start gap-2 p-4 rounded-lg bg-brand-soft border border-orange-100">
+        <svg class="w-4 h-4 text-brand mt-0.5 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
+        <p class="text-xs text-slate-700">Muzete upravit workflow po vytvoreni projektu v nastaveni projektu → Workflow.</p>
+      </div>
+
+      <!-- Navigation -->
+      <div class="flex justify-between mt-8">
+        <button onclick="goToStep(2)" class="px-5 py-2.5 rounded-lg border border-slate-300 text-slate-700 font-medium text-sm hover:bg-slate-50 transition-colors">
+          ← Zpet
+        </button>
+        <button class="px-5 py-2.5 rounded-lg bg-brand text-white font-medium text-sm hover:bg-brand-hover transition-colors">
+          Vytvorit projekt ✓
+        </button>
+      </div>
+    </div>
+
+  </main>
+
+  <!-- Footer -->
+  <footer class="text-center py-6 text-xs text-slate-500">
+    PHC Nexus — Preview: Project Templates Wizard
+  </footer>
+
+  <script>
+    let currentStep = 1;
+    let selectedTemplate = null;
+
+    function selectTemplate(id) {
+      selectedTemplate = id;
+      // Reset all cards
+      document.querySelectorAll('.template-card').forEach(card => {
+        card.classList.remove('selected');
+      });
+      document.querySelectorAll('.select-btn').forEach(btn => {
+        btn.textContent = 'Vybrat';
+      });
+      // Select clicked card
+      document.getElementById('card-' + id).classList.add('selected');
+      document.getElementById('btn-' + id).textContent = 'Vybrano ✓';
+      // Enable next button
+      document.getElementById('nextBtn1').disabled = false;
+    }
+
+    function goToStep(step) {
+      if (step > 1 && !selectedTemplate) return;
+      currentStep = step;
+
+      // Hide all steps
+      document.querySelectorAll('.step-content').forEach(el => el.classList.add('hidden'));
+      document.getElementById('step' + step).classList.remove('hidden');
+
+      // Update step indicators
+      for (let i = 1; i <= 3; i++) {
+        const btn = document.getElementById('stepBtn' + i);
+        const dot = btn.querySelector('span');
+        if (i < step) {
+          btn.className = 'step-dot flex items-center gap-2 px-4 py-2 rounded-full text-sm font-medium bg-status-green-bg text-status-green-fg';
+          dot.className = 'w-6 h-6 rounded-full bg-status-green-fg text-white flex items-center justify-center text-xs font-bold';
+          dot.textContent = '✓';
+        } else if (i === step) {
+          btn.className = 'step-dot flex items-center gap-2 px-4 py-2 rounded-full text-sm font-medium bg-status-blue-bg text-status-blue-fg';
+          dot.className = 'w-6 h-6 rounded-full bg-status-blue-fg text-white flex items-center justify-center text-xs font-bold';
+          dot.textContent = i;
+        } else {
+          btn.className = 'step-dot flex items-center gap-2 px-4 py-2 rounded-full text-sm font-medium text-slate-600 bg-slate-100';
+          dot.className = 'w-6 h-6 rounded-full bg-slate-300 text-slate-700 flex items-center justify-center text-xs font-bold';
+          dot.textContent = i;
+        }
+      }
+
+      // Show correct workflow on step 3
+      if (step === 3) {
+        document.querySelectorAll('.workflow-panel').forEach(el => el.classList.add('hidden'));
+        const panel = document.getElementById('workflow-' + selectedTemplate);
+        if (panel) panel.classList.remove('hidden');
+      }
+    }
+
+    // Pre-select SW template for demo
+    selectTemplate('sw');
+  </script>
+
+</body>
+</html>

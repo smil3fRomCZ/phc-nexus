@@ -25,7 +25,7 @@ import {
     MoreVertical,
 } from 'lucide-react';
 import ConfirmModal from '@/Components/ConfirmModal';
-import DeleteButton from '@/Components/DeleteButton';
+import ActionIconButton from '@/Components/ActionIconButton';
 import Modal from '@/Components/Modal';
 import ProjectTabs from '@/Components/ProjectTabs';
 import { useClickOutside } from '@/hooks/useClickOutside';
@@ -71,7 +71,7 @@ const HEALTH_CONFIG: Record<
     { label: string; badgeBg: string; border: string; bg: string; text: string; icon: string }
 > = {
     on_track: {
-        label: 'Na trati',
+        label: 'On Track',
         badgeBg: 'bg-green-600',
         border: 'border-green-600/20',
         bg: 'bg-green-50',
@@ -79,7 +79,7 @@ const HEALTH_CONFIG: Record<
         icon: 'text-green-600',
     },
     at_risk: {
-        label: 'Ohrožen',
+        label: 'At Risk',
         badgeBg: 'bg-amber-500',
         border: 'border-amber-500/20',
         bg: 'bg-amber-50',
@@ -87,7 +87,7 @@ const HEALTH_CONFIG: Record<
         icon: 'text-amber-500',
     },
     blocked: {
-        label: 'Blokován',
+        label: 'Blocked',
         badgeBg: 'bg-red-600',
         border: 'border-red-600/20',
         bg: 'bg-red-50',
@@ -142,21 +142,21 @@ export default function ProjectShow({
                         </div>
                         <div className="flex items-center gap-2">
                             <StatusUpdateForm projectId={project.id} />
-                            <div className="hidden sm:flex items-center gap-2">
-                                <Link
-                                    href={`/projects/${project.id}/edit`}
-                                    className="flex items-center gap-1.5 rounded-md border border-border-default px-3 py-2 text-sm font-medium text-text-default no-underline transition-colors hover:bg-surface-hover"
-                                >
-                                    <Pencil className="h-3.5 w-3.5" />
-                                    Upravit
-                                </Link>
+                            <div className="hidden sm:flex items-center gap-1">
+                                <ActionIconButton href={`/projects/${project.id}/edit`} label="Upravit">
+                                    <Pencil className="h-4 w-4" />
+                                </ActionIconButton>
                                 <ExportDropdown projectId={project.id} />
-                                <DeleteButton
+                                <ActionIconButton
                                     onClick={() => {
                                         setDeleteConfirmName('');
                                         setShowDeleteModal(true);
                                     }}
-                                />
+                                    label="Smazat"
+                                    variant="danger"
+                                >
+                                    <Trash2 className="h-4 w-4" />
+                                </ActionIconButton>
                             </div>
                             {/* Mobile options */}
                             <ProjectOptionsMenu
@@ -493,17 +493,17 @@ function StatusUpdateForm({ projectId }: { projectId: string }) {
     }> = [
         {
             value: 'on_track',
-            label: '✓ Na trati',
+            label: '✓ On Track',
             active: 'border-green-600 bg-green-50 text-green-700',
         },
         {
             value: 'at_risk',
-            label: '⚠ Ohrožen',
+            label: '⚠ At Risk',
             active: 'border-amber-500 bg-amber-50 text-amber-700',
         },
         {
             value: 'blocked',
-            label: '✕ Blokován',
+            label: '✕ Blocked',
             active: 'border-red-600 bg-red-50 text-red-700',
         },
     ];

@@ -43,7 +43,7 @@ final class ApprovalController extends Controller
         $requests = $query->get();
 
         return Inertia::render('Approvals/Index', [
-            'project' => $project->only('id', 'name', 'key'),
+            'project' => $project->only('id', 'name', 'key', 'status'),
             'approvalRequests' => $requests,
             'filters' => $request->only(['status', 'sort', 'dir']),
         ]);
@@ -60,7 +60,7 @@ final class ApprovalController extends Controller
         ]);
 
         return Inertia::render('Approvals/Show', [
-            'project' => $project->only('id', 'name', 'key'),
+            'project' => $project->only('id', 'name', 'key', 'status'),
             'approvalRequest' => $approval,
         ]);
     }

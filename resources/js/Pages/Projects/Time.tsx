@@ -1,5 +1,6 @@
 import AppLayout from '@/Layouts/AppLayout';
 import type { Breadcrumb } from '@/Layouts/AppLayout';
+import ProjectHeaderCompact from '@/Components/ProjectHeaderCompact';
 import ProjectTabs from '@/Components/ProjectTabs';
 import TimeLogSection from '@/Components/TimeLogSection';
 import type { TimeEntryData } from '@/Components/TimeLogSection';
@@ -7,7 +8,7 @@ import { usePage } from '@inertiajs/react';
 import type { PageProps } from '@/types';
 
 interface Props {
-    project: { id: string; name: string; key: string };
+    project: { id: string; name: string; key: string; status: string };
     timeEntries: TimeEntryData[];
     totalHours: number;
 }
@@ -25,6 +26,9 @@ export default function ProjectTime({ project, timeEntries = [], totalHours = 0 
     return (
         <AppLayout title={`${project.key} — Čas`} breadcrumbs={breadcrumbs}>
             <div className="max-w-screen-xl space-y-5">
+                <div className="mb-4">
+                    <ProjectHeaderCompact project={project} />
+                </div>
                 <div className="flex items-center justify-between">
                     <ProjectTabs projectId={project.id} active="time" />
                 </div>

@@ -12,9 +12,9 @@ import { displayKey } from '@/utils/displayKey';
 import { formatDate } from '@/utils/formatDate';
 import { Link, router, useForm } from '@inertiajs/react';
 import ActionIconButton from '@/Components/ActionIconButton';
+import InlineDescription from '@/Components/InlineDescription';
 import { Pencil, X, Plus, FileText, Timer, BookOpen, Trash2 } from 'lucide-react';
 import Modal from '@/Components/Modal';
-import RichTextDisplay from '@/Components/RichTextDisplay';
 import RichTextEditor from '@/Components/RichTextEditor';
 import TimeLogSection from '@/Components/TimeLogSection';
 import type { TimeEntryData } from '@/Components/TimeLogSection';
@@ -153,15 +153,12 @@ export default function EpicShow({
                             </div>
                         </div>
 
-                        {/* Description */}
-                        {epic.description && (
-                            <div className="mt-4 rounded-md border border-border-subtle bg-surface-secondary px-4 py-3">
-                                <span className="mb-1 block text-xs font-semibold uppercase tracking-wider text-text-subtle">
-                                    Popis
-                                </span>
-                                <RichTextDisplay content={epic.description} />
-                            </div>
-                        )}
+                        {/* Description — inline editable */}
+                        <InlineDescription
+                            content={epic.description}
+                            updateUrl={`/projects/${project.id}/epics/${epic.id}`}
+                            readonly={false}
+                        />
 
                         {/* Metadata strip */}
                         <div className="mt-4 flex flex-wrap gap-x-6 gap-y-1 border-t border-border-subtle pt-4 text-xs text-text-muted">

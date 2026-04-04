@@ -1,5 +1,6 @@
 import { Link } from '@inertiajs/react';
-import type { ReactNode } from 'react';
+import { type ReactNode, useState, useRef, useEffect } from 'react';
+import { createPortal } from 'react-dom';
 
 interface Props {
     onClick?: () => void;
@@ -18,36 +19,66 @@ const VARIANTS = {
 
 export default function ActionIconButton({ onClick, href, label, variant = 'default', children, className }: Props) {
     const cls = className ?? VARIANTS[variant];
+    const [show, setShow] = useState(false);
+    const ref = useRef<HTMLButtonElement | HTMLAnchorElement>(null);
+    const [pos, setPos] = useState({ top: 0, left: 0 });
+
+    useEffect(() => {
+        if (show && ref.current) {
+            const rect = ref.current.getBoundingClientRect();
+            setPos({
+                top: rect.bottom + 6,
+                left: rect.left + rect.width / 2,
+            });
+        }
+    }, [show]);
+
+    const tooltip =
+        show &&
+        createPortal(
+            <span
+                style={{ top: pos.top, left: pos.left }}
+                className="pointer-events-none fixed z-[9999] -translate-x-1/2 whitespace-nowrap rounded bg-surface-inverse px-2 py-1 text-xs font-medium text-text-inverse shadow-lg"
+            >
+                {label}
+            </span>,
+            document.body,
+        );
+
+    const handlers = {
+        onMouseEnter: () => setShow(true),
+        onMouseLeave: () => setShow(false),
+    };
 
     if (href) {
         return (
-            <Link
-                href={href}
-                title={label}
-                className={`group relative inline-flex items-center justify-center no-underline ${cls}`}
-            >
-                {children}
-                <Tooltip label={label} />
-            </Link>
+            <>
+                <Link
+                    href={href}
+                    ref={ref as React.Ref<HTMLAnchorElement>}
+                    title={label}
+                    className={`inline-flex items-center justify-center no-underline ${cls}`}
+                    {...handlers}
+                >
+                    {children}
+                </Link>
+                {tooltip}
+            </>
         );
     }
 
     return (
-        <button
-            onClick={onClick}
-            title={label}
-            className={`group relative inline-flex items-center justify-center ${cls}`}
-        >
-            {children}
-            <Tooltip label={label} />
-        </button>
-    );
-}
-
-function Tooltip({ label }: { label: string }) {
-    return (
-        <span className="pointer-events-none absolute -bottom-8 left-1/2 z-50 -translate-x-1/2 whitespace-nowrap rounded bg-surface-inverse px-2 py-1 text-xs font-medium text-text-inverse opacity-0 shadow-lg transition-opacity group-hover:opacity-100">
-            {label}
-        </span>
+        <>
+            <button
+                onClick={onClick}
+                ref={ref as React.Ref<HTMLButtonElement>}
+                title={label}
+                className={`inline-flex items-center justify-center ${cls}`}
+                {...handlers}
+            >
+                {children}
+            </button>
+            {tooltip}
+        </>
     );
 }

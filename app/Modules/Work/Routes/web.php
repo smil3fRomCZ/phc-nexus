@@ -15,6 +15,8 @@ use Illuminate\Support\Facades\Route;
 Route::middleware('auth')->scopeBindings()->group(function () {
     Route::resource('projects.epics', EpicController::class)->except(['create', 'edit']);
 
+    Route::patch('projects/{project}/epics/{epic}', [EpicController::class, 'updatePartial'])->name('projects.epics.updatePartial');
+
     // Epic comments & attachments
     Route::post('projects/{project}/epics/{epic}/comments', [EpicCommentController::class, 'store'])->name('projects.epics.comments.store');
     Route::post('projects/{project}/epics/{epic}/attachments', [EpicAttachmentController::class, 'store'])->name('projects.epics.attachments.store');
@@ -34,6 +36,7 @@ Route::middleware('auth')->scopeBindings()->group(function () {
     // Detail, update, delete úkolu
     Route::get('projects/{project}/tasks/{task}', [TaskController::class, 'show'])->name('projects.tasks.show');
     Route::put('projects/{project}/tasks/{task}', [TaskController::class, 'update'])->name('projects.tasks.update');
+    Route::patch('projects/{project}/tasks/{task}', [TaskController::class, 'updatePartial'])->name('projects.tasks.updatePartial');
     Route::patch('projects/{project}/tasks/{task}/status', [TaskController::class, 'updateStatus'])->name('projects.tasks.updateStatus');
     Route::post('projects/{project}/tasks/bulk-status', [TaskController::class, 'bulkUpdateStatus'])->name('projects.tasks.bulkUpdateStatus');
     Route::patch('projects/{project}/tasks/{task}/recurrence', [TaskController::class, 'setRecurrence'])->name('projects.tasks.setRecurrence');

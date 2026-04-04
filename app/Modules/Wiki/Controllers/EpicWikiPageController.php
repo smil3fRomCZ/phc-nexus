@@ -27,7 +27,7 @@ final class EpicWikiPageController extends Controller
             ->get();
 
         return Inertia::render('Wiki/EpicIndex', [
-            'project' => $project->only('id', 'name', 'key'),
+            'project' => $project->only('id', 'name', 'key', 'status'),
             'epic' => $epic->only('id', 'title', 'number'),
             'pages' => $pages,
         ]);
@@ -78,7 +78,7 @@ final class EpicWikiPageController extends Controller
             ->get(['id', 'title', 'parent_id', 'position']);
 
         return Inertia::render('Wiki/EpicShow', [
-            'project' => $project->only('id', 'name', 'key'),
+            'project' => $project->only('id', 'name', 'key', 'status'),
             'epic' => $epic->only('id', 'title', 'number'),
             'page' => $wikiPage,
             'pages' => $pages,

@@ -36,7 +36,7 @@ final class EpicController extends Controller
         $epics = $query->get();
 
         return Inertia::render('Work/Epics/Index', [
-            'project' => $project->only('id', 'name', 'key'),
+            'project' => $project->only('id', 'name', 'key', 'status'),
             'epics' => $epics,
             'filters' => $request->only(['sort', 'dir']),
             'priorities' => collect(TaskPriority::cases())->map(fn (TaskPriority $p) => ['value' => $p->value, 'label' => $p->label()]),
@@ -104,7 +104,7 @@ final class EpicController extends Controller
         $taskHours = (float) $taskEntries->sum('hours');
 
         return Inertia::render('Work/Epics/Show', [
-            'project' => $project->only('id', 'name', 'key'),
+            'project' => $project->only('id', 'name', 'key', 'status'),
             'epic' => $epic,
             'members' => $members,
             'statuses' => $statuses,
@@ -128,6 +128,22 @@ final class EpicController extends Controller
             'owner_id' => ['nullable', 'uuid', 'exists:users,id'],
             'pm_id' => ['nullable', 'uuid', 'exists:users,id'],
             'lead_developer_id' => ['nullable', 'uuid', 'exists:users,id'],
+        ]);
+
+        $epic->update($validated);
+
+        return back()->with('success', 'Epic aktualizován.');
+    }
+
+    /**
+     * PATCH — částečný update (description apod.).
+     */
+    public function updatePartial(Request $request, Project $project, Epic $epic): RedirectResponse
+    {
+        Gate::authorize('update', $epic);
+
+        $validated = $request->validate([
+            'description' => ['nullable', 'string'],
         ]);
 
         $epic->update($validated);

@@ -13,6 +13,7 @@ use App\Models\User;
 use App\Modules\Organization\Models\Team;
 use App\Modules\Projects\Enums\BenefitType;
 use App\Modules\Projects\Enums\ProjectStatus;
+use App\Modules\Projects\Enums\ProjectType;
 use App\Modules\Wiki\Models\WikiPage;
 use App\Modules\Work\Models\Epic;
 use App\Modules\Work\Models\Task;
@@ -35,6 +36,7 @@ class Project extends Model
         'key',
         'description',
         'status',
+        'project_type',
         'data_classification',
         'owner_id',
         'team_id',
@@ -49,6 +51,7 @@ class Project extends Model
     {
         return [
             'status' => ProjectStatus::class,
+            'project_type' => ProjectType::class,
             'start_date' => 'date',
             'target_date' => 'date',
             'benefit_type' => BenefitType::class,

@@ -10,6 +10,7 @@ use App\Modules\Organization\Models\Team;
 use App\Modules\Projects\Actions\SeedDefaultWorkflow;
 use App\Modules\Projects\Enums\BenefitType;
 use App\Modules\Projects\Enums\ProjectStatus;
+use App\Modules\Projects\Enums\ProjectType;
 use App\Modules\Projects\Models\Project;
 use App\Modules\Projects\Models\ProjectUpdate;
 use Illuminate\Http\RedirectResponse;
@@ -44,6 +45,13 @@ final class ProjectController extends Controller
         Gate::authorize('create', Project::class);
 
         return Inertia::render('Projects/Create', [
+            'projectTypes' => collect(ProjectType::cases())->map(fn (ProjectType $t) => [
+                'value' => $t->value,
+                'label' => $t->label(),
+                'description' => $t->description(),
+                'icon' => $t->icon(),
+                'hasLeadDeveloper' => $t->hasLeadDeveloper(),
+            ]),
             'existingKeys' => Project::pluck('key')->toArray(),
             'classifications' => collect(PhiClassification::cases())->map(fn ($c) => [
                 'value' => $c->value,
@@ -66,6 +74,7 @@ final class ProjectController extends Controller
             'name' => ['required', 'string', 'max:255'],
             'key' => ['required', 'string', 'max:10', 'unique:projects,key', 'regex:/^[A-Z][A-Z0-9-]*$/'],
             'description' => ['nullable', 'string'],
+            'project_type' => ['nullable', 'string', 'in:'.implode(',', array_column(ProjectType::cases(), 'value'))],
             'data_classification' => ['nullable', 'string', 'in:'.implode(',', array_column(PhiClassification::cases(), 'value'))],
             'team_id' => ['nullable', 'uuid', 'exists:teams,id'],
             'start_date' => ['nullable', 'date'],
@@ -77,6 +86,7 @@ final class ProjectController extends Controller
 
         $project = Project::create([
             ...$validated,
+            'project_type' => $validated['project_type'] ?? ProjectType::Custom->value,
             'status' => ProjectStatus::Draft,
             'data_classification' => $validated['data_classification'] ?? PhiClassification::NonPhi->value,
             'owner_id' => $request->user()->id,
@@ -163,7 +173,7 @@ final class ProjectController extends Controller
             ->get(['id', 'title', 'number', 'target_date', 'start_date', 'status']);
 
         return Inertia::render('Projects/Gantt', [
-            'project' => $project->only('id', 'name', 'key'),
+            'project' => $project->only('id', 'name', 'key', 'status'),
             'tasks' => $tasks,
             'epics' => $epics,
         ]);
@@ -180,7 +190,7 @@ final class ProjectController extends Controller
         $totalHours = (float) $project->timeEntries()->sum('hours');
 
         return Inertia::render('Projects/Time', [
-            'project' => $project->only('id', 'name', 'key'),
+            'project' => $project->only('id', 'name', 'key', 'status'),
             'timeEntries' => $timeEntries,
             'totalHours' => $totalHours,
         ]);

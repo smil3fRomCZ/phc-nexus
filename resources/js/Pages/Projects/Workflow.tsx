@@ -2,6 +2,7 @@ import AppLayout from '@/Layouts/AppLayout';
 import type { Breadcrumb } from '@/Layouts/AppLayout';
 import ConfirmModal from '@/Components/ConfirmModal';
 import DeleteButton from '@/Components/DeleteButton';
+import ProjectHeaderCompact from '@/Components/ProjectHeaderCompact';
 import { router } from '@inertiajs/react';
 import { Plus, Trash2, X } from 'lucide-react';
 import { useState, useCallback, useMemo, useEffect } from 'react';
@@ -43,7 +44,7 @@ interface WorkflowTransition {
 }
 
 interface Props {
-    project: { id: string; name: string; key: string };
+    project: { id: string; name: string; key: string; status: string };
     statuses: WorkflowStatus[];
     transitions: WorkflowTransition[];
 }
@@ -241,6 +242,9 @@ export default function Workflow({ project, statuses, transitions }: Props) {
     return (
         <AppLayout title={`${project.key} — Workflow`} breadcrumbs={breadcrumbs}>
             <div className="max-w-screen-xl">
+                <div className="mb-6">
+                    <ProjectHeaderCompact project={project} />
+                </div>
                 <div className="mb-4 flex items-center justify-between">
                     <h1 className="text-xl md:text-2xl font-bold text-text-strong">Workflow Editor</h1>
                     <span className="text-sm text-text-muted">

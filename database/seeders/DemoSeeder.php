@@ -9,6 +9,8 @@ use App\Modules\Approvals\Enums\ApprovalDecision;
 use App\Modules\Approvals\Enums\ApprovalMode;
 use App\Modules\Approvals\Enums\ApprovalStatus;
 use App\Modules\Approvals\Models\ApprovalRequest;
+use App\Modules\Audit\Enums\AuditAction;
+use App\Modules\Audit\Models\AuditEntry;
 use App\Modules\Comments\Models\Comment;
 use App\Modules\Organization\Enums\SystemRole;
 use App\Modules\Organization\Enums\UserStatus;
@@ -29,8 +31,6 @@ use App\Modules\Work\Models\TimeEntry;
 use Illuminate\Database\Seeder;
 use Illuminate\Notifications\DatabaseNotification;
 use Illuminate\Support\Facades\Hash;
-use App\Modules\Audit\Enums\AuditAction;
-use App\Modules\Audit\Models\AuditEntry;
 use Illuminate\Support\Str;
 
 class DemoSeeder extends Seeder

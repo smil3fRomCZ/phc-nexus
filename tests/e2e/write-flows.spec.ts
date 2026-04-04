@@ -28,10 +28,9 @@ test.describe('Založení projektu', () => {
         const projectKey = `E${suffix}`;
 
         // Vyplnit formulář
-        const contentArea = page.locator('main, [class*="max-w"]').first();
-        await contentArea.locator('input[type="text"]').first().fill(projectName);
-        await contentArea.locator('input[type="text"]').nth(1).fill(projectKey);
-        await contentArea.locator('textarea').fill('Projekt vytvořený E2E testem');
+        await page.locator('main input[type="text"]').first().fill(projectName);
+        await page.locator('main input[type="text"]').nth(1).fill(projectKey);
+        await page.locator('main textarea').fill('Projekt vytvořený E2E testem');
 
         await page.getByRole('button', { name: 'Vytvořit projekt' }).click();
 
@@ -87,7 +86,7 @@ test.describe('Změna stavu úkolu', () => {
         await page.waitForTimeout(1000);
 
         // Ověříme, že stránka stále funguje (nepřesměrovala na error)
-        await expect(page.locator('h2', { hasText: 'Tabulka' })).toBeVisible();
+        await expect(page.getByRole('columnheader', { name: 'Název' })).toBeVisible();
     });
 });
 
@@ -116,9 +115,7 @@ test.describe('Approval flow — vote', () => {
         }
 
         // Test prošel — buď jsme hlasovali, nebo nebyl pending request k hlasování
-        await expect(
-            page.getByRole('heading', { name: 'Approval requesty' }).or(page.locator('text=Schváleno').first()),
-        ).toBeVisible();
+        await expect(page.locator('table').or(page.getByText('Žádné'))).toBeVisible();
     });
 });
 
@@ -133,7 +130,7 @@ test.describe('Založení EPIC', () => {
         const epicName = `E2E EPIC ${Date.now().toString().slice(-6)}`;
         await page.goto(`/projects/${projectId}/epics`);
 
-        await page.getByPlaceholder('Název nového EPIC...').fill(epicName);
+        await page.getByPlaceholder('Název nového Epicu...').fill(epicName);
         await page.getByRole('button', { name: 'Přidat' }).click();
 
         await expect(page.getByRole('link', { name: epicName })).toBeVisible();
@@ -182,7 +179,7 @@ test.describe('Notifikace po akci', () => {
         await page.goto('/notifications');
 
         // Stránka se načte bez chyby
-        await expect(page.locator('h2', { hasText: 'Notifikace' })).toBeVisible();
+        await expect(page.locator('h1', { hasText: 'Notifikace' })).toBeVisible();
 
         // Buď jsou notifikace, nebo zpráva "Žádné notifikace"
         const hasNotifications = await page

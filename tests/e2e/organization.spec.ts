@@ -15,8 +15,8 @@ test.describe('Organizační struktura', () => {
         await expect(page.locator('h1', { hasText: 'Organizační struktura' })).toBeVisible();
         // Stat cards should be visible
         await expect(page.getByText('Aktivních uživatelů')).toBeVisible();
-        await expect(page.getByText('Divize')).toBeVisible();
-        await expect(page.getByText('Týmy')).toBeVisible();
+        await expect(page.getByText('Divize', { exact: true })).toBeVisible();
+        await expect(page.getByText('Týmy', { exact: true })).toBeVisible();
     });
 
     test('Executive může vytvořit divizi', async ({ page }) => {
@@ -38,7 +38,7 @@ test.describe('Organizační struktura', () => {
         await page.goto('/admin/organization');
 
         // Click first division card
-        const firstCard = page.locator('[class*="cursor-pointer"]').first();
+        const firstCard = page.locator('main [class*="cursor-pointer"][class*="rounded-lg"]').first();
         if (await firstCard.isVisible()) {
             await firstCard.click();
             await page.waitForURL(/\/admin\/organization\/divisions\//);
@@ -50,7 +50,7 @@ test.describe('Organizační struktura', () => {
         await loginAs(page, EXEC_EMAIL);
         await page.goto('/admin/organization');
 
-        const firstCard = page.locator('[class*="cursor-pointer"]').first();
+        const firstCard = page.locator('main [class*="cursor-pointer"][class*="rounded-lg"]').first();
         if (await firstCard.isVisible()) {
             await firstCard.click();
             await page.waitForURL(/\/admin\/organization\/divisions\//);
@@ -62,7 +62,7 @@ test.describe('Organizační struktura', () => {
         await loginAs(page, EXEC_EMAIL);
         await page.goto('/admin/organization');
 
-        const firstCard = page.locator('[class*="cursor-pointer"]').first();
+        const firstCard = page.locator('main [class*="cursor-pointer"][class*="rounded-lg"]').first();
         if (await firstCard.isVisible()) {
             await firstCard.click();
             await page.waitForURL(/\/admin\/organization\/divisions\//);
@@ -81,7 +81,7 @@ test.describe('Organizační struktura', () => {
         await loginAs(page, EXEC_EMAIL);
         await page.goto('/admin/organization');
 
-        const firstCard = page.locator('[class*="cursor-pointer"]').first();
+        const firstCard = page.locator('main [class*="cursor-pointer"][class*="rounded-lg"]').first();
         if (await firstCard.isVisible()) {
             await firstCard.click();
             await page.waitForURL(/\/admin\/organization\/divisions\//);

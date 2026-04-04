@@ -9,8 +9,8 @@ async function loginAs(page: Page, email: string) {
     await page.waitForURL('**/');
 }
 
-const PM_EMAIL = 'eva.svobodova@pearshealthcare.cz';
-const READER_EMAIL = 'karel.horak@pearshealthcare.cz';
+const PM_EMAIL = 'monika.fialova@example.cz';
+const READER_EMAIL = 'barbora.ticha@example.cz';
 
 test.describe('Dashboard', () => {
     test('přihlášený uživatel vidí dashboard', async ({ page }) => {
@@ -23,13 +23,13 @@ test.describe('Projekty', () => {
     test('PM vidí seznam projektů', async ({ page }) => {
         await loginAs(page, PM_EMAIL);
         await page.goto('/projects');
-        await expect(page.getByRole('link', { name: 'PHC Nexus' })).toBeVisible();
+        await expect(page.getByRole('link', { name: 'Replatform E-shop' })).toBeVisible();
     });
 
     test('PM vidí detail projektu', async ({ page }) => {
         await loginAs(page, PM_EMAIL);
         await page.goto('/projects');
-        await page.getByRole('link', { name: 'PHC Nexus' }).first().click();
+        await page.getByRole('link', { name: 'Replatform E-shop' }).first().click();
         await expect(page.getByRole('heading').first()).toBeVisible();
     });
 });
@@ -40,7 +40,7 @@ test.describe('Kanban a tabulka', () => {
         await page.goto('/projects');
 
         // Získat project ID z odkazu
-        const href = await page.getByRole('link', { name: 'PHC Nexus' }).first().getAttribute('href');
+        const href = await page.getByRole('link', { name: 'Replatform E-shop' }).first().getAttribute('href');
         const projectId = href?.split('/projects/')[1]?.split('/')[0] ?? '';
 
         await page.goto(`/projects/${projectId}/board`);
@@ -53,7 +53,7 @@ test.describe('Kanban a tabulka', () => {
         await loginAs(page, PM_EMAIL);
         await page.goto('/projects');
 
-        const href = await page.getByRole('link', { name: 'PHC Nexus' }).first().getAttribute('href');
+        const href = await page.getByRole('link', { name: 'Replatform E-shop' }).first().getAttribute('href');
         const projectId = href?.split('/projects/')[1]?.split('/')[0] ?? '';
 
         await page.goto(`/projects/${projectId}/table`);
@@ -67,7 +67,7 @@ test.describe('Approvals', () => {
         await loginAs(page, PM_EMAIL);
         await page.goto('/projects');
 
-        const href = await page.getByRole('link', { name: 'PHC Nexus' }).first().getAttribute('href');
+        const href = await page.getByRole('link', { name: 'Replatform E-shop' }).first().getAttribute('href');
         const projectId = href?.split('/projects/')[1]?.split('/')[0] ?? '';
 
         await page.goto(`/projects/${projectId}/approvals`);

@@ -161,6 +161,7 @@ class DemoSeeder extends Seeder
         $this->seedProjectSeo($users);
         $this->seedProjectLoyalty($users);
         $this->seedProjectWms($users);
+        $this->seedProjectPhi($users);
         $this->seedProjectUpdates($users);
         $this->seedNotifications($users);
         $this->seedTaskDependencies();
@@ -1243,6 +1244,27 @@ class DemoSeeder extends Seeder
             'phone' => $extra['phone'] ?? null,
             'bio' => $extra['bio'] ?? null,
             'capacity_h_week' => $extra['capacity_h_week'] ?? null,
+        ]);
+    }
+
+    // ──────────────────────────────────────────────
+    // Projekt 5: Pacientský registr (PHI, Active)
+    // ──────────────────────────────────────────────
+
+    private function seedProjectPhi(array $u): void
+    {
+        Project::create([
+            'name' => 'Pacientský registr',
+            'key' => 'PHI',
+            'description' => 'Evidence a správa pacientských dat — přísně chráněné PHI informace.',
+            'status' => ProjectStatus::Active,
+            'data_classification' => 'phi',
+            'owner_id' => $u['pmTech']->id,
+            'team_id' => $u['pmTech']->team_id,
+            'start_date' => '2026-03-01',
+            'target_date' => '2026-12-31',
+            'benefit_type' => BenefitType::Strategy,
+            'benefit_note' => 'Splnění regulatorních požadavků na správu pacientských dat.',
         ]);
     }
 

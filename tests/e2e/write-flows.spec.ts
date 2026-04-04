@@ -11,9 +11,9 @@ async function getProjectId(page: Page, name: string): Promise<string> {
     return href?.split('/projects/')[1]?.split('/')[0] ?? '';
 }
 
-const EXEC_EMAIL = 'jan.novak@pearshealthcare.cz';
-const PM_EMAIL = 'eva.svobodova@pearshealthcare.cz';
-const QA_EMAIL = 'tomas.prochazka@pearshealthcare.cz';
+const EXEC_EMAIL = 'jiri.kratochvil@example.cz';
+const PM_EMAIL = 'monika.fialova@example.cz';
+const QA_EMAIL = 'ondrej.maly@example.cz';
 
 // ============================================================
 // 1. Založení projektu
@@ -47,7 +47,7 @@ test.describe('Založení projektu', () => {
 test.describe('Založení úkolu', () => {
     test('PM může vytvořit úkol přes quick-add', async ({ page }) => {
         await loginAs(page, PM_EMAIL);
-        const projectId = await getProjectId(page, 'PHC Nexus');
+        const projectId = await getProjectId(page, 'Replatform E-shop');
 
         const taskName = `E2E úkol ${Date.now().toString().slice(-6)}`;
         await page.goto(`/projects/${projectId}/tasks`);
@@ -66,7 +66,7 @@ test.describe('Založení úkolu', () => {
 test.describe('Změna stavu úkolu', () => {
     test('PM může změnit status úkolu v tabulce', async ({ page }) => {
         await loginAs(page, PM_EMAIL);
-        const projectId = await getProjectId(page, 'PHC Nexus');
+        const projectId = await getProjectId(page, 'Replatform E-shop');
 
         await page.goto(`/projects/${projectId}/table`);
 
@@ -97,7 +97,7 @@ test.describe('Změna stavu úkolu', () => {
 test.describe('Approval flow — vote', () => {
     test('approver může schválit request', async ({ page }) => {
         await loginAs(page, PM_EMAIL);
-        const projectId = await getProjectId(page, 'PHC Nexus');
+        const projectId = await getProjectId(page, 'Replatform E-shop');
 
         // Přejdi na approvals
         await page.goto(`/projects/${projectId}/approvals`);
@@ -116,9 +116,9 @@ test.describe('Approval flow — vote', () => {
         }
 
         // Test prošel — buď jsme hlasovali, nebo nebyl pending request k hlasování
-        await expect(page.getByRole('heading', { name: 'Approval requesty' }).or(
-            page.locator('text=Schváleno').first()
-        )).toBeVisible();
+        await expect(
+            page.getByRole('heading', { name: 'Approval requesty' }).or(page.locator('text=Schváleno').first()),
+        ).toBeVisible();
     });
 });
 
@@ -128,7 +128,7 @@ test.describe('Approval flow — vote', () => {
 test.describe('Založení EPIC', () => {
     test('PM může vytvořit EPIC přes quick-add', async ({ page }) => {
         await loginAs(page, PM_EMAIL);
-        const projectId = await getProjectId(page, 'PHC Nexus');
+        const projectId = await getProjectId(page, 'Replatform E-shop');
 
         const epicName = `E2E EPIC ${Date.now().toString().slice(-6)}`;
         await page.goto(`/projects/${projectId}/epics`);
@@ -145,7 +145,7 @@ test.describe('Založení EPIC', () => {
 // ============================================================
 test.describe('PHI access guard', () => {
     test('reader dostane 403 na PHI projekt', async ({ page }) => {
-        await loginAs(page, 'karel.horak@pearshealthcare.cz');
+        await loginAs(page, 'barbora.ticha@example.cz');
 
         // Najdeme PHI projekt ID — reader vidí seznam ale nemá přístup na detail
         // Zkusíme přímo přistoupit na Pacientský registr
@@ -153,7 +153,7 @@ test.describe('PHI access guard', () => {
         const phiProjectId = await getProjectId(page, 'Pacientský registr');
 
         // Přepneme na readera
-        await loginAs(page, 'karel.horak@pearshealthcare.cz');
+        await loginAs(page, 'barbora.ticha@example.cz');
         const response = await page.goto(`/projects/${phiProjectId}`);
 
         // Reader by měl dostat 403
@@ -185,8 +185,15 @@ test.describe('Notifikace po akci', () => {
         await expect(page.locator('h2', { hasText: 'Notifikace' })).toBeVisible();
 
         // Buď jsou notifikace, nebo zpráva "Žádné notifikace"
-        const hasNotifications = await page.locator('[class*="rounded-lg"]').first().isVisible().catch(() => false);
-        const hasEmptyState = await page.getByText('Žádné notifikace').isVisible().catch(() => false);
+        const hasNotifications = await page
+            .locator('[class*="rounded-lg"]')
+            .first()
+            .isVisible()
+            .catch(() => false);
+        const hasEmptyState = await page
+            .getByText('Žádné notifikace')
+            .isVisible()
+            .catch(() => false);
 
         expect(hasNotifications || hasEmptyState).toBe(true);
     });
@@ -196,7 +203,7 @@ test.describe('Notifikace po akci', () => {
 
         // Získáme cookies z page kontextu
         const cookies = await page.context().cookies();
-        const cookieHeader = cookies.map(c => `${c.name}=${c.value}`).join('; ');
+        const cookieHeader = cookies.map((c) => `${c.name}=${c.value}`).join('; ');
 
         const response = await request.get('/notifications/unread-count', {
             headers: { Cookie: cookieHeader },

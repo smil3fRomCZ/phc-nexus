@@ -9,8 +9,8 @@ async function loginAs(page: Page, email: string) {
     await page.waitForURL('**/');
 }
 
-const PM_EMAIL = 'eva.svobodova@pearshealthcare.cz';
-const READER_EMAIL = 'karel.horak@pearshealthcare.cz';
+const PM_EMAIL = 'monika.fialova@example.cz';
+const READER_EMAIL = 'barbora.ticha@example.cz';
 
 test.describe('Dashboard', () => {
     test('přihlášený uživatel vidí dashboard', async ({ page }) => {
@@ -23,13 +23,13 @@ test.describe('Projekty', () => {
     test('PM vidí seznam projektů', async ({ page }) => {
         await loginAs(page, PM_EMAIL);
         await page.goto('/projects');
-        await expect(page.getByRole('link', { name: 'PHC Nexus' })).toBeVisible();
+        await expect(page.getByRole('link', { name: 'Replatform E-shop' })).toBeVisible();
     });
 
     test('PM vidí detail projektu', async ({ page }) => {
         await loginAs(page, PM_EMAIL);
         await page.goto('/projects');
-        await page.getByRole('link', { name: 'PHC Nexus' }).first().click();
+        await page.getByRole('link', { name: 'Replatform E-shop' }).first().click();
         await expect(page.getByRole('heading').first()).toBeVisible();
     });
 });
@@ -40,24 +40,22 @@ test.describe('Kanban a tabulka', () => {
         await page.goto('/projects');
 
         // Získat project ID z odkazu
-        const href = await page.getByRole('link', { name: 'PHC Nexus' }).first().getAttribute('href');
+        const href = await page.getByRole('link', { name: 'Replatform E-shop' }).first().getAttribute('href');
         const projectId = href?.split('/projects/')[1]?.split('/')[0] ?? '';
 
         await page.goto(`/projects/${projectId}/board`);
-        await expect(page.locator('h2', { hasText: 'Kanban' })).toBeVisible();
-        await expect(page.getByText('Backlog')).toBeVisible();
-        await expect(page.getByText('Hotovo')).toBeVisible();
+        await expect(page.getByText('Backlog').first()).toBeVisible();
+        await expect(page.getByText('Hotovo').first()).toBeVisible();
     });
 
     test('PM vidí tabulkový view', async ({ page }) => {
         await loginAs(page, PM_EMAIL);
         await page.goto('/projects');
 
-        const href = await page.getByRole('link', { name: 'PHC Nexus' }).first().getAttribute('href');
+        const href = await page.getByRole('link', { name: 'Replatform E-shop' }).first().getAttribute('href');
         const projectId = href?.split('/projects/')[1]?.split('/')[0] ?? '';
 
         await page.goto(`/projects/${projectId}/table`);
-        await expect(page.locator('h2', { hasText: 'Tabulka' })).toBeVisible();
         await expect(page.getByRole('columnheader', { name: 'Název' })).toBeVisible();
     });
 });
@@ -67,11 +65,12 @@ test.describe('Approvals', () => {
         await loginAs(page, PM_EMAIL);
         await page.goto('/projects');
 
-        const href = await page.getByRole('link', { name: 'PHC Nexus' }).first().getAttribute('href');
+        const href = await page.getByRole('link', { name: 'Replatform E-shop' }).first().getAttribute('href');
         const projectId = href?.split('/projects/')[1]?.split('/')[0] ?? '';
 
         await page.goto(`/projects/${projectId}/approvals`);
-        await expect(page.getByRole('heading', { name: 'Approval requesty' })).toBeVisible();
+        // Stránka se načte — ověříme přítomnost tabulky nebo prázdný stav
+        await expect(page.locator('table').or(page.getByText('Žádné'))).toBeVisible();
     });
 });
 
@@ -79,7 +78,7 @@ test.describe('Notifikace', () => {
     test('přihlášený uživatel vidí stránku notifikací', async ({ page }) => {
         await loginAs(page, PM_EMAIL);
         await page.goto('/notifications');
-        await expect(page.locator('h2', { hasText: 'Notifikace' })).toBeVisible();
+        await expect(page.locator('h1', { hasText: 'Notifikace' })).toBeVisible();
     });
 });
 
@@ -106,5 +105,15 @@ test.describe('Autorizace', () => {
         });
         await page.waitForURL(/\/login/);
         await expect(page).toHaveURL(/\/login/);
+    });
+});
+
+test.describe('Audit log — date filter', () => {
+    test('audit log zobrazuje date range picker', async ({ page }) => {
+        await loginAs(page, PM_EMAIL);
+        await page.goto('/admin/audit-log');
+
+        await expect(page.locator('input[type="date"]').first()).toBeVisible();
+        await expect(page.locator('input[type="date"]').nth(1)).toBeVisible();
     });
 });

@@ -6,15 +6,23 @@ namespace App\Modules\Organization\Models;
 
 use App\Models\Concerns\HasUuidV7;
 use App\Models\User;
+use Database\Factories\TeamFactory;
+use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\HasMany;
 
 class Team extends Model
 {
-    use HasUuidV7;
+    /** @use HasFactory<TeamFactory> */
+    use HasFactory, HasUuidV7;
 
     protected $fillable = ['name', 'description', 'division_id', 'team_lead_id'];
+
+    protected static function newFactory(): TeamFactory
+    {
+        return TeamFactory::new();
+    }
 
     public function division(): BelongsTo
     {

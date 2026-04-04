@@ -8,10 +8,14 @@ use Illuminate\Support\Facades\Route;
 
 Route::middleware('auth')->prefix('admin')->group(function () {
     Route::get('users', [UserController::class, 'index'])->name('admin.users.index');
+    Route::get('users/{user}', [UserController::class, 'show'])->name('admin.users.show');
+    Route::patch('users/{user}', [UserController::class, 'update'])->name('admin.users.update');
     Route::patch('users/{user}/role', [UserController::class, 'updateRole'])->name('admin.users.updateRole');
     Route::post('users/{user}/deactivate', [UserController::class, 'deactivate'])->name('admin.users.deactivate');
     Route::post('users/{user}/activate', [UserController::class, 'activate'])->name('admin.users.activate');
     Route::get('organization', OrganizationController::class)->name('admin.organization');
+    Route::get('organization/divisions/{division}', [OrganizationController::class, 'showDivision'])->name('admin.organization.division');
+    Route::get('organization/teams/{team}', [OrganizationController::class, 'showTeam'])->name('admin.organization.team');
 
     // Divisions CRUD
     Route::post('divisions', [OrganizationController::class, 'storeDivision'])->name('admin.divisions.store');

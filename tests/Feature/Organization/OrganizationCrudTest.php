@@ -45,12 +45,14 @@ class OrganizationCrudTest extends TestCase
         $exec = User::factory()->executive()->create();
         $division = Division::create(['name' => 'Old Name']);
 
-        $response = $this->actingAs($exec)->put("/admin/divisions/{$division->id}", [
-            'name' => 'New Name',
-            'description' => 'Updated',
-        ]);
+        $response = $this->actingAs($exec)
+            ->from('/admin/organization/divisions/'.$division->id)
+            ->put("/admin/divisions/{$division->id}", [
+                'name' => 'New Name',
+                'description' => 'Updated',
+            ]);
 
-        $response->assertRedirect(route('admin.organization'));
+        $response->assertRedirect();
         $this->assertEquals('New Name', $division->fresh()->name);
     }
 
@@ -83,12 +85,14 @@ class OrganizationCrudTest extends TestCase
         $exec = User::factory()->executive()->create();
         $division = Division::create(['name' => 'Engineering']);
 
-        $response = $this->actingAs($exec)->post('/admin/teams', [
-            'name' => 'Backend',
-            'division_id' => $division->id,
-        ]);
+        $response = $this->actingAs($exec)
+            ->from('/admin/organization')
+            ->post('/admin/teams', [
+                'name' => 'Backend',
+                'division_id' => $division->id,
+            ]);
 
-        $response->assertRedirect(route('admin.organization'));
+        $response->assertRedirect();
         $this->assertDatabaseHas('teams', ['name' => 'Backend', 'division_id' => $division->id]);
     }
 
@@ -97,12 +101,14 @@ class OrganizationCrudTest extends TestCase
         $pm = User::factory()->projectManager()->create();
         $division = Division::create(['name' => 'Engineering']);
 
-        $response = $this->actingAs($pm)->post('/admin/teams', [
-            'name' => 'Frontend',
-            'division_id' => $division->id,
-        ]);
+        $response = $this->actingAs($pm)
+            ->from('/admin/organization')
+            ->post('/admin/teams', [
+                'name' => 'Frontend',
+                'division_id' => $division->id,
+            ]);
 
-        $response->assertRedirect(route('admin.organization'));
+        $response->assertRedirect();
         $this->assertDatabaseHas('teams', ['name' => 'Frontend']);
     }
 
@@ -126,13 +132,15 @@ class OrganizationCrudTest extends TestCase
         $division = Division::create(['name' => 'Engineering']);
         $team = Team::create(['name' => 'Old', 'division_id' => $division->id]);
 
-        $response = $this->actingAs($exec)->put("/admin/teams/{$team->id}", [
-            'name' => 'Updated Team',
-            'division_id' => $division->id,
-            'team_lead_id' => $lead->id,
-        ]);
+        $response = $this->actingAs($exec)
+            ->from('/admin/organization')
+            ->put("/admin/teams/{$team->id}", [
+                'name' => 'Updated Team',
+                'division_id' => $division->id,
+                'team_lead_id' => $lead->id,
+            ]);
 
-        $response->assertRedirect(route('admin.organization'));
+        $response->assertRedirect();
         $team->refresh();
         $this->assertEquals('Updated Team', $team->name);
         $this->assertEquals($lead->id, $team->team_lead_id);
@@ -144,9 +152,11 @@ class OrganizationCrudTest extends TestCase
         $division = Division::create(['name' => 'Engineering']);
         $team = Team::create(['name' => 'To Delete', 'division_id' => $division->id]);
 
-        $response = $this->actingAs($exec)->delete("/admin/teams/{$team->id}");
+        $response = $this->actingAs($exec)
+            ->from('/admin/organization')
+            ->delete("/admin/teams/{$team->id}");
 
-        $response->assertRedirect(route('admin.organization'));
+        $response->assertRedirect();
         $this->assertDatabaseMissing('teams', ['id' => $team->id]);
     }
 
@@ -174,7 +184,7 @@ class OrganizationCrudTest extends TestCase
         $response->assertInertia(fn ($page) => $page
             ->component('Admin/Organization/Index')
             ->has('divisions')
-            ->has('users')
+            ->has('stats')
             ->has('can')
         );
     }

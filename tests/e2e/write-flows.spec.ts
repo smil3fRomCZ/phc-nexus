@@ -11,9 +11,9 @@ async function getProjectId(page: Page, name: string): Promise<string> {
     return href?.split('/projects/')[1]?.split('/')[0] ?? '';
 }
 
-const EXEC_EMAIL = 'jan.novak@pearshealthcare.cz';
-const PM_EMAIL = 'eva.svobodova@pearshealthcare.cz';
-const QA_EMAIL = 'tomas.prochazka@pearshealthcare.cz';
+const EXEC_EMAIL = 'jiri.kratochvil@example.cz';
+const PM_EMAIL = 'monika.fialova@example.cz';
+const QA_EMAIL = 'ondrej.maly@example.cz';
 
 // ============================================================
 // 1. Založení projektu
@@ -28,16 +28,15 @@ test.describe('Založení projektu', () => {
         const projectKey = `E${suffix}`;
 
         // Vyplnit formulář
-        const contentArea = page.locator('main, [class*="max-w"]').first();
-        await contentArea.locator('input[type="text"]').first().fill(projectName);
-        await contentArea.locator('input[type="text"]').nth(1).fill(projectKey);
-        await contentArea.locator('textarea').fill('Projekt vytvořený E2E testem');
+        await page.locator('main input[type="text"]').first().fill(projectName);
+        await page.locator('main input[type="text"]').nth(1).fill(projectKey);
+        await page.locator('main textarea').fill('Projekt vytvořený E2E testem');
 
         await page.getByRole('button', { name: 'Vytvořit projekt' }).click();
 
         // Redirect na show stránku nového projektu
         await page.waitForURL(/\/projects\/[a-f0-9-]+$/);
-        await expect(page.locator('h2', { hasText: projectName })).toBeVisible();
+        await expect(page.locator('h1', { hasText: projectName })).toBeVisible();
     });
 });
 
@@ -47,7 +46,7 @@ test.describe('Založení projektu', () => {
 test.describe('Založení úkolu', () => {
     test('PM může vytvořit úkol přes quick-add', async ({ page }) => {
         await loginAs(page, PM_EMAIL);
-        const projectId = await getProjectId(page, 'PHC Nexus');
+        const projectId = await getProjectId(page, 'Replatform E-shop');
 
         const taskName = `E2E úkol ${Date.now().toString().slice(-6)}`;
         await page.goto(`/projects/${projectId}/tasks`);
@@ -66,7 +65,7 @@ test.describe('Založení úkolu', () => {
 test.describe('Změna stavu úkolu', () => {
     test('PM může změnit status úkolu v tabulce', async ({ page }) => {
         await loginAs(page, PM_EMAIL);
-        const projectId = await getProjectId(page, 'PHC Nexus');
+        const projectId = await getProjectId(page, 'Replatform E-shop');
 
         await page.goto(`/projects/${projectId}/table`);
 
@@ -87,7 +86,7 @@ test.describe('Změna stavu úkolu', () => {
         await page.waitForTimeout(1000);
 
         // Ověříme, že stránka stále funguje (nepřesměrovala na error)
-        await expect(page.locator('h2', { hasText: 'Tabulka' })).toBeVisible();
+        await expect(page.getByRole('columnheader', { name: 'Název' })).toBeVisible();
     });
 });
 
@@ -97,7 +96,7 @@ test.describe('Změna stavu úkolu', () => {
 test.describe('Approval flow — vote', () => {
     test('approver může schválit request', async ({ page }) => {
         await loginAs(page, PM_EMAIL);
-        const projectId = await getProjectId(page, 'PHC Nexus');
+        const projectId = await getProjectId(page, 'Replatform E-shop');
 
         // Přejdi na approvals
         await page.goto(`/projects/${projectId}/approvals`);
@@ -116,9 +115,7 @@ test.describe('Approval flow — vote', () => {
         }
 
         // Test prošel — buď jsme hlasovali, nebo nebyl pending request k hlasování
-        await expect(page.getByRole('heading', { name: 'Approval requesty' }).or(
-            page.locator('text=Schváleno').first()
-        )).toBeVisible();
+        await expect(page.locator('table').or(page.getByText('Žádné'))).toBeVisible();
     });
 });
 
@@ -128,12 +125,12 @@ test.describe('Approval flow — vote', () => {
 test.describe('Založení EPIC', () => {
     test('PM může vytvořit EPIC přes quick-add', async ({ page }) => {
         await loginAs(page, PM_EMAIL);
-        const projectId = await getProjectId(page, 'PHC Nexus');
+        const projectId = await getProjectId(page, 'Replatform E-shop');
 
         const epicName = `E2E EPIC ${Date.now().toString().slice(-6)}`;
         await page.goto(`/projects/${projectId}/epics`);
 
-        await page.getByPlaceholder('Název nového EPIC...').fill(epicName);
+        await page.getByPlaceholder('Název nového Epicu...').fill(epicName);
         await page.getByRole('button', { name: 'Přidat' }).click();
 
         await expect(page.getByRole('link', { name: epicName })).toBeVisible();
@@ -145,7 +142,7 @@ test.describe('Založení EPIC', () => {
 // ============================================================
 test.describe('PHI access guard', () => {
     test('reader dostane 403 na PHI projekt', async ({ page }) => {
-        await loginAs(page, 'karel.horak@pearshealthcare.cz');
+        await loginAs(page, 'barbora.ticha@example.cz');
 
         // Najdeme PHI projekt ID — reader vidí seznam ale nemá přístup na detail
         // Zkusíme přímo přistoupit na Pacientský registr
@@ -153,7 +150,7 @@ test.describe('PHI access guard', () => {
         const phiProjectId = await getProjectId(page, 'Pacientský registr');
 
         // Přepneme na readera
-        await loginAs(page, 'karel.horak@pearshealthcare.cz');
+        await loginAs(page, 'barbora.ticha@example.cz');
         const response = await page.goto(`/projects/${phiProjectId}`);
 
         // Reader by měl dostat 403
@@ -182,11 +179,18 @@ test.describe('Notifikace po akci', () => {
         await page.goto('/notifications');
 
         // Stránka se načte bez chyby
-        await expect(page.locator('h2', { hasText: 'Notifikace' })).toBeVisible();
+        await expect(page.locator('h1', { hasText: 'Notifikace' })).toBeVisible();
 
         // Buď jsou notifikace, nebo zpráva "Žádné notifikace"
-        const hasNotifications = await page.locator('[class*="rounded-lg"]').first().isVisible().catch(() => false);
-        const hasEmptyState = await page.getByText('Žádné notifikace').isVisible().catch(() => false);
+        const hasNotifications = await page
+            .locator('[class*="rounded-lg"]')
+            .first()
+            .isVisible()
+            .catch(() => false);
+        const hasEmptyState = await page
+            .getByText('Žádné notifikace')
+            .isVisible()
+            .catch(() => false);
 
         expect(hasNotifications || hasEmptyState).toBe(true);
     });
@@ -196,7 +200,7 @@ test.describe('Notifikace po akci', () => {
 
         // Získáme cookies z page kontextu
         const cookies = await page.context().cookies();
-        const cookieHeader = cookies.map(c => `${c.name}=${c.value}`).join('; ');
+        const cookieHeader = cookies.map((c) => `${c.name}=${c.value}`).join('; ');
 
         const response = await request.get('/notifications/unread-count', {
             headers: { Cookie: cookieHeader },

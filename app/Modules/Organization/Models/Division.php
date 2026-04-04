@@ -6,15 +6,23 @@ namespace App\Modules\Organization\Models;
 
 use App\Models\Concerns\HasUuidV7;
 use App\Models\User;
+use Database\Factories\DivisionFactory;
+use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Database\Eloquent\Relations\HasManyThrough;
 
 class Division extends Model
 {
-    use HasUuidV7;
+    /** @use HasFactory<DivisionFactory> */
+    use HasFactory, HasUuidV7;
 
     protected $fillable = ['name', 'description'];
+
+    protected static function newFactory(): DivisionFactory
+    {
+        return DivisionFactory::new();
+    }
 
     public function teams(): HasMany
     {

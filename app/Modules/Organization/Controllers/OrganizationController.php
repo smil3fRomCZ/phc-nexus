@@ -19,12 +19,22 @@ final class OrganizationController extends Controller
     public function __invoke(Request $request): Response
     {
         $divisions = Division::query()
-            ->with([
-                'teams.members:id,name,email,team_id,system_role,status',
-                'teams.teamLead:id,name',
-            ])
+            ->withCount('teams')
+            ->with(['teams' => fn ($q) => $q->withCount('members')])
             ->orderBy('name')
             ->get();
+
+        // Add member_count to each division
+        $divisions->each(function (Division $div): void {
+            $div->setAttribute('member_count', $div->teams->sum('members_count'));
+        });
+
+        $stats = [
+            'totalUsers' => User::where('status', 'active')->count(),
+            'totalDivisions' => Division::count(),
+            'totalTeams' => Team::count(),
+            'unassigned' => User::where('status', 'active')->whereNull('team_id')->count(),
+        ];
 
         $users = User::query()
             ->where('status', 'active')
@@ -33,10 +43,58 @@ final class OrganizationController extends Controller
 
         return Inertia::render('Admin/Organization/Index', [
             'divisions' => $divisions,
+            'stats' => $stats,
             'users' => $users,
             'can' => [
                 'createDivision' => Gate::allows('create', Division::class),
                 'createTeam' => Gate::allows('create', Team::class),
+            ],
+        ]);
+    }
+
+    public function showDivision(Division $division): Response
+    {
+        $division->load([
+            'teams.teamLead:id,name',
+            'teams' => fn ($q) => $q->withCount('members')->orderBy('name'),
+        ]);
+
+        $users = User::query()
+            ->where('status', 'active')
+            ->orderBy('name')
+            ->get(['id', 'name']);
+
+        return Inertia::render('Admin/Organization/DivisionShow', [
+            'division' => $division,
+            'users' => $users,
+            'can' => [
+                'editDivision' => Gate::allows('update', $division),
+                'deleteDivision' => Gate::allows('delete', $division),
+                'createTeam' => Gate::allows('create', Team::class),
+            ],
+        ]);
+    }
+
+    public function showTeam(Team $team): Response
+    {
+        $team->load([
+            'division:id,name',
+            'teamLead:id,name',
+            'members:id,name,email,system_role,status,job_title,team_id',
+        ]);
+
+        $users = User::query()
+            ->where('status', 'active')
+            ->orderBy('name')
+            ->get(['id', 'name']);
+
+        return Inertia::render('Admin/Organization/TeamShow', [
+            'team' => $team,
+            'users' => $users,
+            'can' => [
+                'editTeam' => Gate::allows('update', $team),
+                'deleteTeam' => Gate::allows('delete', $team),
+                'manageMembers' => Gate::allows('manageMembers', $team),
             ],
         ]);
     }
@@ -67,7 +125,7 @@ final class OrganizationController extends Controller
 
         $division->update($validated);
 
-        return redirect()->route('admin.organization')
+        return redirect()->back()
             ->with('success', 'Divize aktualizována.');
     }
 
@@ -94,7 +152,7 @@ final class OrganizationController extends Controller
 
         Team::create($validated);
 
-        return redirect()->route('admin.organization')
+        return redirect()->back()
             ->with('success', 'Tým vytvořen.');
     }
 
@@ -111,7 +169,7 @@ final class OrganizationController extends Controller
 
         $team->update($validated);
 
-        return redirect()->route('admin.organization')
+        return redirect()->back()
             ->with('success', 'Tým aktualizován.');
     }
 
@@ -121,7 +179,7 @@ final class OrganizationController extends Controller
 
         $team->delete();
 
-        return redirect()->route('admin.organization')
+        return redirect()->back()
             ->with('success', 'Tým smazán.');
     }
 
@@ -135,7 +193,7 @@ final class OrganizationController extends Controller
 
         User::where('id', $validated['user_id'])->update(['team_id' => $team->id]);
 
-        return redirect()->route('admin.organization')
+        return redirect()->back()
             ->with('success', 'Člen přidán do týmu.');
     }
 
@@ -147,7 +205,7 @@ final class OrganizationController extends Controller
             $user->update(['team_id' => null]);
         }
 
-        return redirect()->route('admin.organization')
+        return redirect()->back()
             ->with('success', 'Člen odebrán z týmu.');
     }
 }

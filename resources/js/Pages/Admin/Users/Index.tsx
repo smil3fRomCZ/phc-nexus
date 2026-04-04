@@ -1,14 +1,16 @@
 import AppLayout from '@/Layouts/AppLayout';
 import type { Breadcrumb } from '@/Layouts/AppLayout';
-import ConfirmModal from '@/Components/ConfirmModal';
-import DeleteButton from '@/Components/DeleteButton';
+import Button from '@/Components/Button';
 import EmptyState from '@/Components/EmptyState';
+import FilterBar from '@/Components/FilterBar';
+import FormInput from '@/Components/FormInput';
+import FormSelect from '@/Components/FormSelect';
 import Modal from '@/Components/Modal';
+import PageHeader from '@/Components/PageHeader';
 import SortableHeader, { PlainHeader } from '@/Components/SortableHeader';
 import { useFilterRouter } from '@/hooks/useFilterRouter';
-import { router, useForm, usePage } from '@inertiajs/react';
-import type { PageProps } from '@/types';
-import { UserPlus, X, Shield, Ban, CheckCircle } from 'lucide-react';
+import { router, useForm } from '@inertiajs/react';
+import { UserPlus, X } from 'lucide-react';
 import { useState, type FormEvent } from 'react';
 
 interface User {
@@ -26,11 +28,17 @@ interface SelectOption {
     label: string;
 }
 
+interface TeamOption {
+    id: string;
+    name: string;
+}
+
 interface Props {
     users: User[];
-    filters: { search?: string; role?: string; status?: string; sort?: string; dir?: string };
+    filters: { search?: string; role?: string; status?: string; team_id?: string; sort?: string; dir?: string };
     roles: SelectOption[];
     statuses: SelectOption[];
+    teams: TeamOption[];
 }
 
 const BREADCRUMBS: Breadcrumb[] = [{ label: 'Domů', href: '/' }, { label: 'Administrace' }, { label: 'Uživatelé' }];
@@ -41,14 +49,9 @@ const STATUS_COLORS: Record<string, string> = {
     deactivated: 'bg-status-neutral-subtle text-status-neutral',
 };
 
-export default function UsersIndex({ users, filters, roles, statuses }: Props) {
-    const { auth } = usePage<PageProps>().props;
-    const currentUser = auth.user;
-    const isExecutive = currentUser?.system_role === 'executive';
-
+export default function UsersIndex({ users, filters, roles, statuses, teams }: Props) {
     const [search, setSearch] = useState(filters.search ?? '');
     const [inviting, setInviting] = useState(false);
-    const [selectedUser, setSelectedUser] = useState<User | null>(null);
 
     const applyFilter = useFilterRouter('/admin/users');
 
@@ -62,63 +65,53 @@ export default function UsersIndex({ users, filters, roles, statuses }: Props) {
         applyFilter('search', search);
     }
 
+    const teamOptions = [{ value: '_none', label: 'Bez týmu' }, ...teams.map((t) => ({ value: t.id, label: t.name }))];
+
     return (
         <AppLayout title="Uživatelé" breadcrumbs={BREADCRUMBS}>
-            <div className="mb-6 flex items-center justify-between">
-                <h1 className="text-xl md:text-2xl font-bold leading-tight text-text-strong">Uživatelé</h1>
-                <button
-                    onClick={() => setInviting(true)}
-                    className="flex items-center gap-2 rounded-md bg-brand-primary px-4 py-2 text-sm font-medium text-text-inverse transition-colors hover:bg-brand-hover"
-                >
-                    <UserPlus className="h-4 w-4" />
-                    Pozvat uživatele
-                </button>
-            </div>
+            <PageHeader
+                title="Uživatelé"
+                actions={
+                    <Button icon={<UserPlus className="h-4 w-4" />} onClick={() => setInviting(true)}>
+                        Pozvat uživatele
+                    </Button>
+                }
+            />
 
             {inviting && <InviteDialog roles={roles} onClose={() => setInviting(false)} />}
 
-            {/* Filters */}
-            <div className="mb-6 flex flex-wrap gap-3">
+            <FilterBar>
                 <form onSubmit={handleSearch} className="flex gap-2">
-                    <input
+                    <FormInput
                         type="text"
                         value={search}
                         onChange={(e) => setSearch(e.target.value)}
                         placeholder="Hledat jméno nebo email..."
-                        className="w-full sm:w-64 rounded-md border border-border-default bg-surface-primary px-3 py-1.5 text-sm focus:border-border-focus focus:outline-none"
+                        wrapperClassName="w-full sm:w-64"
                     />
-                    <button
-                        type="submit"
-                        className="rounded-md bg-brand-primary px-3 py-1.5 text-sm font-medium text-text-inverse transition-colors hover:bg-brand-hover"
-                    >
+                    <Button type="submit" size="md">
                         Hledat
-                    </button>
+                    </Button>
                 </form>
-                <select
+                <FormSelect
                     value={filters.role ?? ''}
                     onChange={(e) => applyFilter('role', e.target.value)}
-                    className="rounded-md border border-border-default bg-surface-primary px-3 py-1.5 text-sm focus:border-border-focus focus:outline-none"
-                >
-                    <option value="">Všechny role</option>
-                    {roles.map((r) => (
-                        <option key={r.value} value={r.value}>
-                            {r.label}
-                        </option>
-                    ))}
-                </select>
-                <select
+                    options={roles}
+                    placeholder="Všechny role"
+                />
+                <FormSelect
                     value={filters.status ?? ''}
                     onChange={(e) => applyFilter('status', e.target.value)}
-                    className="rounded-md border border-border-default bg-surface-primary px-3 py-1.5 text-sm focus:border-border-focus focus:outline-none"
-                >
-                    <option value="">Všechny stavy</option>
-                    {statuses.map((s) => (
-                        <option key={s.value} value={s.value}>
-                            {s.label}
-                        </option>
-                    ))}
-                </select>
-            </div>
+                    options={statuses}
+                    placeholder="Všechny stavy"
+                />
+                <FormSelect
+                    value={filters.team_id ?? ''}
+                    onChange={(e) => applyFilter('team_id', e.target.value)}
+                    options={teamOptions}
+                    placeholder="Všechny týmy"
+                />
+            </FilterBar>
 
             {/* Table */}
             <div className="overflow-x-auto rounded-lg border border-border-subtle bg-surface-primary">
@@ -152,7 +145,7 @@ export default function UsersIndex({ users, filters, roles, statuses }: Props) {
                             <tr
                                 key={user.id}
                                 className="cursor-pointer transition-colors hover:bg-brand-soft"
-                                onClick={() => setSelectedUser(user)}
+                                onClick={() => router.get(`/admin/users/${user.id}`)}
                             >
                                 <td className="border-b border-border-subtle px-5 py-3 text-sm font-medium text-text-strong">
                                     {user.name}
@@ -179,172 +172,7 @@ export default function UsersIndex({ users, filters, roles, statuses }: Props) {
                     </tbody>
                 </table>
             </div>
-            {/* User Detail Modal */}
-            {selectedUser && (
-                <UserDetailModal
-                    user={selectedUser}
-                    roles={roles}
-                    statuses={statuses}
-                    isExecutive={isExecutive}
-                    currentUserId={currentUser?.id}
-                    onClose={() => setSelectedUser(null)}
-                />
-            )}
         </AppLayout>
-    );
-}
-
-function UserDetailModal({
-    user,
-    roles,
-    statuses,
-    isExecutive,
-    currentUserId,
-    onClose,
-}: {
-    user: User;
-    roles: SelectOption[];
-    statuses: SelectOption[];
-    isExecutive: boolean;
-    currentUserId?: string;
-    onClose: () => void;
-}) {
-    const [role, setRole] = useState(user.system_role);
-    const [showDeactivateModal, setShowDeactivateModal] = useState(false);
-    const isSelf = user.id === currentUserId;
-    const canChangeRole = isExecutive && !isSelf;
-    const canToggleStatus = isExecutive && !isSelf;
-
-    function handleRoleChange() {
-        router.patch(`/admin/users/${user.id}/role`, { system_role: role }, { onSuccess: onClose });
-    }
-
-    function handleToggleStatus() {
-        if (user.status === 'deactivated') {
-            router.post(`/admin/users/${user.id}/activate`, {}, { onSuccess: onClose });
-        } else {
-            setShowDeactivateModal(true);
-        }
-    }
-
-    return (
-        <Modal open onClose={onClose} showClose={false}>
-            <div>
-                <div className="mb-4 flex items-center justify-between">
-                    <h2 className="text-lg font-semibold text-text-strong">Detail uživatele</h2>
-                    <button onClick={onClose} className="rounded p-2 text-text-muted hover:bg-surface-hover">
-                        <X className="h-4 w-4" />
-                    </button>
-                </div>
-
-                <div className="space-y-4">
-                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
-                        <div>
-                            <span className="text-xs font-semibold uppercase tracking-wider text-text-subtle">
-                                Jméno
-                            </span>
-                            <p className="mt-0.5 text-sm font-medium text-text-strong">{user.name}</p>
-                        </div>
-                        <div>
-                            <span className="text-xs font-semibold uppercase tracking-wider text-text-subtle">
-                                Email
-                            </span>
-                            <p className="mt-0.5 text-sm text-text-default">{user.email}</p>
-                        </div>
-                        <div>
-                            <span className="text-xs font-semibold uppercase tracking-wider text-text-subtle">Tým</span>
-                            <p className="mt-0.5 text-sm text-text-default">{user.team?.name ?? '—'}</p>
-                        </div>
-                        <div>
-                            <span className="text-xs font-semibold uppercase tracking-wider text-text-subtle">
-                                Stav
-                            </span>
-                            <div className="mt-0.5">
-                                <span
-                                    className={`inline-flex rounded-[10px] px-2 py-px text-xs font-semibold leading-relaxed ${STATUS_COLORS[user.status] ?? 'bg-status-neutral-subtle text-status-neutral'}`}
-                                >
-                                    {statuses.find((s) => s.value === user.status)?.label ?? user.status}
-                                </span>
-                            </div>
-                        </div>
-                    </div>
-
-                    {/* Role management */}
-                    <div className="border-t border-border-subtle pt-4">
-                        <label
-                            htmlFor="user-role"
-                            className="mb-1 block text-xs font-semibold uppercase tracking-wider text-text-subtle"
-                        >
-                            Role
-                        </label>
-                        <div className="flex gap-2">
-                            <select
-                                id="user-role"
-                                value={role}
-                                onChange={(e) => setRole(e.target.value)}
-                                disabled={!canChangeRole}
-                                className="flex-1 rounded-md border border-border-default bg-surface-primary px-3 py-2 text-sm focus:border-brand-primary focus:outline-none disabled:opacity-50"
-                            >
-                                {roles.map((r) => (
-                                    <option key={r.value} value={r.value}>
-                                        {r.label}
-                                    </option>
-                                ))}
-                            </select>
-                            {canChangeRole && role !== user.system_role && (
-                                <button
-                                    onClick={handleRoleChange}
-                                    className="flex items-center gap-1 rounded-md bg-brand-primary px-3 py-2 text-sm font-medium text-text-inverse hover:bg-brand-hover"
-                                >
-                                    <Shield className="h-3.5 w-3.5" />
-                                    Uložit
-                                </button>
-                            )}
-                        </div>
-                        {!canChangeRole && (
-                            <p className="mt-1 text-xs text-text-muted">
-                                {isSelf ? 'Nemůžete měnit vlastní roli.' : 'Pouze Executive může měnit role.'}
-                            </p>
-                        )}
-                    </div>
-
-                    {/* Status toggle */}
-                    {canToggleStatus && (
-                        <div className="border-t border-border-subtle pt-4">
-                            {user.status === 'deactivated' ? (
-                                <button
-                                    onClick={handleToggleStatus}
-                                    className="flex items-center gap-2 rounded-md border border-status-info/30 px-4 py-2 text-sm font-medium text-status-info hover:bg-status-info-subtle"
-                                >
-                                    <CheckCircle className="h-4 w-4" />
-                                    Aktivovat uživatele
-                                </button>
-                            ) : (
-                                <DeleteButton
-                                    onClick={handleToggleStatus}
-                                    className="flex items-center gap-2 rounded-md border border-status-danger/30 px-4 py-2 text-sm font-medium text-status-danger hover:bg-status-danger-subtle"
-                                >
-                                    <Ban className="h-4 w-4" />
-                                    Deaktivovat uživatele
-                                </DeleteButton>
-                            )}
-                        </div>
-                    )}
-                </div>
-            </div>
-            <ConfirmModal
-                open={showDeactivateModal}
-                variant="warning"
-                title="Deaktivovat uživatele"
-                message={`Opravdu chcete deaktivovat uživatele ${user.name}?`}
-                confirmLabel="Deaktivovat"
-                onConfirm={() => {
-                    setShowDeactivateModal(false);
-                    router.post(`/admin/users/${user.id}/deactivate`, {}, { onSuccess: onClose });
-                }}
-                onCancel={() => setShowDeactivateModal(false)}
-            />
-        </Modal>
     );
 }
 
@@ -370,49 +198,33 @@ function InviteDialog({ roles, onClose }: { roles: SelectOption[]; onClose: () =
             </div>
 
             <form onSubmit={submit} className="space-y-4">
-                <div>
-                    <label className="block text-xs font-medium text-text-default">Email *</label>
-                    <input
-                        type="email"
-                        value={data.email}
-                        onChange={(e) => setData('email', e.target.value)}
-                        placeholder="user@pearshealthcare.com"
-                        className="mt-1 w-full rounded-md border border-border-default bg-surface-primary px-3 py-2 text-sm focus:border-border-focus focus:outline-none focus:shadow-[0_0_0_2px_var(--color-brand-soft)]"
-                    />
-                    {errors.email && <p className="mt-1 text-xs text-status-danger">{errors.email}</p>}
-                </div>
+                <FormInput
+                    id="invite-email"
+                    label="Email"
+                    type="email"
+                    required
+                    value={data.email}
+                    onChange={(e) => setData('email', e.target.value)}
+                    placeholder="user@pearshealthcare.com"
+                    error={errors.email}
+                />
 
-                <div>
-                    <label className="block text-xs font-medium text-text-default">Role</label>
-                    <select
-                        value={data.system_role}
-                        onChange={(e) => setData('system_role', e.target.value)}
-                        className="mt-1 w-full rounded-md border border-border-default bg-surface-primary px-3 py-2 text-sm focus:border-border-focus focus:outline-none focus:shadow-[0_0_0_2px_var(--color-brand-soft)]"
-                    >
-                        {roles.map((r) => (
-                            <option key={r.value} value={r.value}>
-                                {r.label}
-                            </option>
-                        ))}
-                    </select>
-                    {errors.system_role && <p className="mt-1 text-xs text-status-danger">{errors.system_role}</p>}
-                </div>
+                <FormSelect
+                    id="invite-role"
+                    label="Role"
+                    value={data.system_role}
+                    onChange={(e) => setData('system_role', e.target.value)}
+                    options={roles}
+                    error={errors.system_role}
+                />
 
                 <div className="flex justify-end gap-3 pt-2">
-                    <button
-                        type="button"
-                        onClick={onClose}
-                        className="rounded-md border border-border-default px-4 py-2 text-sm font-medium text-text-muted transition-colors hover:bg-surface-hover"
-                    >
+                    <Button variant="secondary" type="button" onClick={onClose}>
                         Zrušit
-                    </button>
-                    <button
-                        type="submit"
-                        disabled={processing}
-                        className="rounded-md bg-brand-primary px-4 py-2 text-sm font-medium text-text-inverse transition-colors hover:bg-brand-hover disabled:opacity-50"
-                    >
+                    </Button>
+                    <Button type="submit" loading={processing}>
                         Odeslat pozvánku
-                    </button>
+                    </Button>
                 </div>
             </form>
         </Modal>

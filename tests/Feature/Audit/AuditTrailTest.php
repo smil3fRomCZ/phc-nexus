@@ -14,6 +14,7 @@ use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Schema\Blueprint;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Support\Facades\Schema;
+use Illuminate\Support\Str;
 use Tests\TestCase;
 
 class AuditTrailTest extends TestCase
@@ -174,6 +175,101 @@ class AuditTrailTest extends TestCase
 
         $entry = AuditEntry::first();
         $this->assertEquals($user->id, $entry->actor->id);
+    }
+
+    // ── Date Range Filter ──
+
+    public function test_audit_log_can_filter_by_date_from(): void
+    {
+        $exec = User::factory()->executive()->create();
+
+        AuditEntry::forceCreate([
+            'id' => Str::uuid7()->toString(),
+            'action' => AuditAction::LoggedIn,
+            'entity_type' => User::class,
+            'entity_id' => $exec->id,
+            'actor_id' => $exec->id,
+            'created_at' => now()->subDays(5),
+        ]);
+        AuditEntry::forceCreate([
+            'id' => Str::uuid7()->toString(),
+            'action' => AuditAction::LoggedIn,
+            'entity_type' => User::class,
+            'entity_id' => $exec->id,
+            'actor_id' => $exec->id,
+            'created_at' => now()->subDays(1),
+        ]);
+
+        $dateFrom = now()->subDays(3)->format('Y-m-d');
+        $response = $this->actingAs($exec)->get("/admin/audit-log?date_from={$dateFrom}");
+
+        $response->assertStatus(200);
+        $response->assertInertia(fn ($page) => $page->has('entries.data', 1));
+    }
+
+    public function test_audit_log_can_filter_by_date_to(): void
+    {
+        $exec = User::factory()->executive()->create();
+
+        AuditEntry::forceCreate([
+            'id' => Str::uuid7()->toString(),
+            'action' => AuditAction::Created,
+            'entity_type' => User::class,
+            'entity_id' => $exec->id,
+            'actor_id' => $exec->id,
+            'created_at' => now()->subDays(5),
+        ]);
+        AuditEntry::forceCreate([
+            'id' => Str::uuid7()->toString(),
+            'action' => AuditAction::Created,
+            'entity_type' => User::class,
+            'entity_id' => $exec->id,
+            'actor_id' => $exec->id,
+            'created_at' => now(),
+        ]);
+
+        $dateTo = now()->subDays(3)->format('Y-m-d');
+        $response = $this->actingAs($exec)->get("/admin/audit-log?date_to={$dateTo}");
+
+        $response->assertStatus(200);
+        $response->assertInertia(fn ($page) => $page->has('entries.data', 1));
+    }
+
+    public function test_audit_log_can_filter_by_date_range(): void
+    {
+        $exec = User::factory()->executive()->create();
+
+        AuditEntry::forceCreate([
+            'id' => Str::uuid7()->toString(),
+            'action' => AuditAction::Updated,
+            'entity_type' => User::class,
+            'entity_id' => $exec->id,
+            'actor_id' => $exec->id,
+            'created_at' => now()->subDays(10),
+        ]);
+        AuditEntry::forceCreate([
+            'id' => Str::uuid7()->toString(),
+            'action' => AuditAction::Updated,
+            'entity_type' => User::class,
+            'entity_id' => $exec->id,
+            'actor_id' => $exec->id,
+            'created_at' => now()->subDays(5),
+        ]);
+        AuditEntry::forceCreate([
+            'id' => Str::uuid7()->toString(),
+            'action' => AuditAction::Updated,
+            'entity_type' => User::class,
+            'entity_id' => $exec->id,
+            'actor_id' => $exec->id,
+            'created_at' => now(),
+        ]);
+
+        $dateFrom = now()->subDays(7)->format('Y-m-d');
+        $dateTo = now()->subDays(3)->format('Y-m-d');
+        $response = $this->actingAs($exec)->get("/admin/audit-log?date_from={$dateFrom}&date_to={$dateTo}");
+
+        $response->assertStatus(200);
+        $response->assertInertia(fn ($page) => $page->has('entries.data', 1));
     }
 }
 

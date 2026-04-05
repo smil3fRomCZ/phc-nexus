@@ -4,18 +4,20 @@ import Avatar from '@/Components/Avatar';
 import StatusBadge from '@/Components/StatusBadge';
 import ActivityTimeline from '@/Components/ActivityTimeline';
 import type { ActivityEntry } from '@/Components/ActivityTimeline';
+import CommentsSection from '@/Components/CommentsSection';
+import type { Comment } from '@/Components/CommentsSection';
 import InlineDescription from '@/Components/InlineDescription';
 import RichTextEditor from '@/Components/RichTextEditor';
 import ActionIconButton from '@/Components/ActionIconButton';
 import Modal from '@/Components/Modal';
+import TabBar from '@/Components/TabBar';
 import TimeLogSection from '@/Components/TimeLogSection';
 import type { TimeEntryData } from '@/Components/TimeLogSection';
-import { formatDate, toDateInputValue } from '@/utils/formatDate';
+import { formatDate, formatFileSize, toDateInputValue } from '@/utils/formatDate';
 import { displayKey } from '@/utils/displayKey';
 import { Link, router, useForm, usePage } from '@inertiajs/react';
 import {
     Paperclip,
-    Send,
     Download,
     Trash2,
     MessageSquare,
@@ -33,15 +35,6 @@ import {
 import type { PageProps } from '@/types';
 import ConfirmModal from '@/Components/ConfirmModal';
 import { useState, type FormEvent } from 'react';
-
-interface Comment {
-    id: string;
-    body: string;
-    author: { id: string; name: string };
-    created_at: string;
-    edited_at: string | null;
-    replies: Comment[];
-}
 
 interface Attachment {
     id: string;
@@ -122,23 +115,6 @@ interface Props {
     benefitTypes: BenefitTypeOption[];
     timeEntries: TimeEntryData[];
     totalHours: number;
-}
-
-function timeAgo(dateStr: string): string {
-    const diff = Date.now() - new Date(dateStr).getTime();
-    const mins = Math.floor(diff / 60000);
-    if (mins < 1) return 'právě teď';
-    if (mins < 60) return `před ${mins} min`;
-    const hours = Math.floor(mins / 60);
-    if (hours < 24) return `před ${hours} h`;
-    const days = Math.floor(hours / 24);
-    return `před ${days} d`;
-}
-
-function formatFileSize(bytes: number): string {
-    if (bytes < 1024) return `${bytes} B`;
-    if (bytes < 1048576) return `${(bytes / 1024).toFixed(1)} KB`;
-    return `${(bytes / 1048576).toFixed(1)} MB`;
 }
 
 export default function TaskShow({
@@ -299,50 +275,15 @@ export default function TaskShow({
                     )}
 
                     {/* Tab navigation */}
-                    <div className="flex gap-0 border-b border-border-subtle">
-                        <button
-                            onClick={() => setActiveTab('detail')}
-                            className={`flex items-center gap-2 border-b-2 px-4 py-2.5 text-sm font-medium transition-colors ${
-                                activeTab === 'detail'
-                                    ? 'border-brand-primary text-brand-primary'
-                                    : 'border-transparent text-text-muted hover:text-text-default'
-                            }`}
-                        >
-                            <MessageSquare className="h-3.5 w-3.5" />
-                            Detail
-                            <span className="rounded-full bg-status-neutral-subtle px-1.5 py-px text-xs font-medium text-text-muted">
-                                {task.comments_count}
-                            </span>
-                        </button>
-                        <button
-                            onClick={() => setActiveTab('activity')}
-                            className={`flex items-center gap-2 border-b-2 px-4 py-2.5 text-sm font-medium transition-colors ${
-                                activeTab === 'activity'
-                                    ? 'border-brand-primary text-brand-primary'
-                                    : 'border-transparent text-text-muted hover:text-text-default'
-                            }`}
-                        >
-                            <Clock className="h-3.5 w-3.5" />
-                            Aktivita
-                            <span className="rounded-full bg-status-neutral-subtle px-1.5 py-px text-xs font-medium text-text-muted">
-                                {activity.length}
-                            </span>
-                        </button>
-                        <button
-                            onClick={() => setActiveTab('time')}
-                            className={`flex items-center gap-2 border-b-2 px-4 py-2.5 text-sm font-medium transition-colors ${
-                                activeTab === 'time'
-                                    ? 'border-brand-primary text-brand-primary'
-                                    : 'border-transparent text-text-muted hover:text-text-default'
-                            }`}
-                        >
-                            <Timer className="h-3.5 w-3.5" />
-                            Čas
-                            <span className="rounded-full bg-status-neutral-subtle px-1.5 py-px text-xs font-medium text-text-muted">
-                                {totalHours}h
-                            </span>
-                        </button>
-                    </div>
+                    <TabBar
+                        tabs={[
+                            { key: 'detail', label: 'Detail', icon: MessageSquare, badge: task.comments_count },
+                            { key: 'activity', label: 'Aktivita', icon: Clock, badge: activity.length },
+                            { key: 'time', label: 'Čas', icon: Timer, badge: `${totalHours}h` },
+                        ]}
+                        activeTab={activeTab}
+                        onChange={(key) => setActiveTab(key as 'detail' | 'activity' | 'time')}
+                    />
 
                     {/* Tab content */}
                     {activeTab === 'detail' && (
@@ -352,19 +293,12 @@ export default function TaskShow({
                                 Komentáře
                             </h2>
 
-                            <div className="space-y-4">
-                                {task.root_comments.map((comment) => (
-                                    <CommentItem
-                                        key={comment.id}
-                                        comment={comment}
-                                        projectId={project.id}
-                                        taskId={task.id}
-                                        currentUserId={auth.user?.id}
-                                    />
-                                ))}
-                            </div>
-
-                            <CommentForm projectId={project.id} taskId={task.id} />
+                            <CommentsSection
+                                comments={task.root_comments}
+                                commentsCount={task.comments_count}
+                                postUrl={`/projects/${project.id}/tasks/${task.id}/comments`}
+                                showHeader={false}
+                            />
                         </div>
                     )}
 
@@ -1075,177 +1009,6 @@ function SidebarSection({ label, children }: { label: string; children: React.Re
             <div className="mb-1 text-xs font-semibold uppercase tracking-wider text-text-subtle">{label}</div>
             {children}
         </div>
-    );
-}
-
-/** Recursively collect all nested replies into a flat array. */
-function flattenTaskReplies(comment: Comment): Comment[] {
-    const result: Comment[] = [];
-    for (const reply of comment.replies ?? []) {
-        result.push(reply);
-        result.push(...flattenTaskReplies(reply));
-    }
-    return result;
-}
-
-function CommentItem({
-    comment,
-    projectId,
-    taskId,
-    currentUserId,
-    isReply = false,
-    rootId,
-}: {
-    comment: Comment;
-    projectId: string;
-    taskId: string;
-    currentUserId?: string;
-    isReply?: boolean;
-    rootId?: string;
-}) {
-    const [showReply, setShowReply] = useState(false);
-    const [showDeleteModal, setShowDeleteModal] = useState(false);
-    const isOwner = comment.author.id === currentUserId;
-    const effectiveRootId = rootId ?? comment.id;
-    const allReplies = !isReply ? flattenTaskReplies(comment) : [];
-
-    function handleDelete() {
-        setShowDeleteModal(true);
-    }
-
-    return (
-        <div>
-            <div className="rounded-lg border border-border-subtle bg-surface-primary p-3 sm:p-4">
-                <div className="mb-2 flex items-center justify-between">
-                    <div className="flex items-center gap-2">
-                        <Avatar name={comment.author.name} />
-                        <span className="text-sm font-medium text-text-strong">{comment.author.name}</span>
-                        <span className="text-xs text-text-muted">{timeAgo(comment.created_at)}</span>
-                        {comment.edited_at && <span className="text-xs italic text-text-subtle">(upraveno)</span>}
-                    </div>
-                    <div className="flex gap-1">
-                        <button
-                            onClick={() => setShowReply(!showReply)}
-                            className="rounded px-2.5 py-1 text-xs text-text-muted hover:bg-surface-hover hover:text-text-default"
-                        >
-                            Odpovědět
-                        </button>
-                        {isOwner && (
-                            <button
-                                onClick={handleDelete}
-                                className="rounded px-2.5 py-1 text-xs text-text-muted hover:bg-status-danger-subtle hover:text-status-danger"
-                            >
-                                Smazat
-                            </button>
-                        )}
-                    </div>
-                </div>
-                <p className="whitespace-pre-wrap text-sm leading-relaxed text-text-default">{comment.body}</p>
-            </div>
-
-            {/* Flat replies — all at the same indentation level */}
-            {!isReply && allReplies.length > 0 && (
-                <div className="ml-4 sm:ml-8 border-l-2 border-border-subtle pl-3 sm:pl-4 space-y-2 mt-2">
-                    {allReplies.map((reply) => (
-                        <CommentItem
-                            key={reply.id}
-                            comment={reply}
-                            projectId={projectId}
-                            taskId={taskId}
-                            currentUserId={currentUserId}
-                            isReply
-                            rootId={effectiveRootId}
-                        />
-                    ))}
-                </div>
-            )}
-
-            {showReply && (
-                <div className={isReply ? 'mt-2' : 'ml-4 sm:ml-8 mt-2'}>
-                    <CommentForm
-                        projectId={projectId}
-                        taskId={taskId}
-                        parentId={effectiveRootId}
-                        onDone={() => setShowReply(false)}
-                    />
-                </div>
-            )}
-            <ConfirmModal
-                open={showDeleteModal}
-                variant="danger"
-                title="Smazat komentář"
-                message="Opravdu chcete smazat tento komentář?"
-                confirmLabel="Smazat"
-                onConfirm={() => {
-                    setShowDeleteModal(false);
-                    router.delete(`/comments/${comment.id}`);
-                }}
-                onCancel={() => setShowDeleteModal(false)}
-            />
-        </div>
-    );
-}
-
-function CommentForm({
-    projectId,
-    taskId,
-    parentId,
-    onDone,
-}: {
-    projectId: string;
-    taskId: string;
-    parentId?: string;
-    onDone?: () => void;
-}) {
-    const { data, setData, post, processing, reset } = useForm({
-        body: '',
-        parent_id: parentId ?? '',
-    });
-
-    const postUrl = `/projects/${projectId}/tasks/${taskId}/comments`;
-
-    function submit(e: FormEvent) {
-        e.preventDefault();
-        post(postUrl, {
-            onSuccess: () => {
-                reset();
-                onDone?.();
-            },
-        });
-    }
-
-    function handleKeyDown(e: React.KeyboardEvent<HTMLTextAreaElement>) {
-        if (e.key === 'Enter' && e.shiftKey && data.body.trim() && !processing) {
-            e.preventDefault();
-            post(postUrl, {
-                onSuccess: () => {
-                    reset();
-                    onDone?.();
-                },
-            });
-        }
-    }
-
-    return (
-        <form onSubmit={submit} className="mt-4 flex gap-2">
-            <textarea
-                value={data.body}
-                onChange={(e) => setData('body', e.target.value)}
-                onKeyDown={handleKeyDown}
-                placeholder={
-                    parentId ? 'Napsat odpověď… (Shift+Enter odešle)' : 'Přidat komentář… (Shift+Enter odešle)'
-                }
-                rows={parentId ? 2 : 3}
-                className="flex-1 rounded-md border border-border-default bg-surface-primary px-3 py-2 text-sm focus:border-border-focus focus:outline-none focus:shadow-[0_0_0_2px_var(--color-brand-soft)]"
-            />
-            <button
-                type="submit"
-                disabled={processing || !data.body.trim()}
-                className="self-end rounded-md bg-brand-primary px-4 py-2 text-sm font-medium text-text-inverse transition-colors hover:bg-brand-hover disabled:opacity-50"
-            >
-                <Send className="h-4 w-4" />
-            </button>
-        </form>
     );
 }
 

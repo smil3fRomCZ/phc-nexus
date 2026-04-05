@@ -8,9 +8,15 @@ interface Props {
     content: string;
     onChange: (html: string) => void;
     placeholder?: string;
+    autoFocus?: boolean;
 }
 
-export default function RichTextEditor({ content, onChange, placeholder = 'Začněte psát...' }: Props) {
+export default function RichTextEditor({
+    content,
+    onChange,
+    placeholder = 'Začněte psát...',
+    autoFocus = false,
+}: Props) {
     const editor = useEditor({
         extensions: [
             StarterKit.configure({
@@ -20,6 +26,7 @@ export default function RichTextEditor({ content, onChange, placeholder = 'Začn
             Placeholder.configure({ placeholder }),
         ],
         content,
+        autofocus: autoFocus ? 'end' : false,
         onUpdate: ({ editor: ed }) => {
             onChange(ed.getHTML());
         },

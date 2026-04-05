@@ -1,10 +1,11 @@
 import Avatar from '@/Components/Avatar';
 import ConfirmModal from '@/Components/ConfirmModal';
 import Spinner from '@/Components/Spinner';
+import { timeAgo } from '@/utils/formatDate';
 import { router, useForm, usePage } from '@inertiajs/react';
-import { MessageSquare, Send } from 'lucide-react';
+import { MessageSquare, Pencil, Send } from 'lucide-react';
 import type { PageProps } from '@/types';
-import { useState, type FormEvent } from 'react';
+import { useState, useRef, useEffect, type FormEvent } from 'react';
 
 export interface Comment {
     id: string;
@@ -15,37 +16,30 @@ export interface Comment {
     replies: Comment[];
 }
 
-function timeAgo(dateStr: string): string {
-    const diff = Date.now() - new Date(dateStr).getTime();
-    const mins = Math.floor(diff / 60000);
-    if (mins < 1) return 'just now';
-    if (mins < 60) return `${mins}m ago`;
-    const hours = Math.floor(mins / 60);
-    if (hours < 24) return `${hours}h ago`;
-    const days = Math.floor(hours / 24);
-    return `${days}d ago`;
-}
-
 export default function CommentsSection({
     comments,
     commentsCount,
     postUrl,
+    showHeader = true,
 }: {
     comments: Comment[];
     commentsCount: number;
     postUrl: string;
+    showHeader?: boolean;
 }) {
     const { auth } = usePage<PageProps>().props;
 
     return (
-        <div className="mb-8">
-            <h2 className="mb-4 flex items-center gap-2 text-lg font-semibold text-text-strong">
-                <MessageSquare className="h-4 w-4" />
-                Komentáře
-                <span className="rounded-full bg-status-neutral-subtle px-2 py-px text-xs font-medium text-text-muted">
-                    {commentsCount}
-                </span>
-            </h2>
+        <div className={showHeader ? 'mb-8' : ''}>
+            {showHeader && (
+                <h2 className="mb-4 flex items-center gap-2 text-lg font-semibold text-text-strong">
+                    <MessageSquare className="h-4 w-4" />
+                    Komentáře
+                    <span className="rounded-full bg-status-neutral-subtle px-2 py-px text-xs font-medium text-text-muted">
+                        {commentsCount}
+                    </span>
+                </h2>
+            )}
 
             <div className="space-y-4">
                 {comments.map((comment) => (
@@ -83,20 +77,54 @@ function CommentItem({
 }) {
     const [showReply, setShowReply] = useState(false);
     const [showDeleteModal, setShowDeleteModal] = useState(false);
+    const [editing, setEditing] = useState(false);
+    const [editBody, setEditBody] = useState(comment.body);
+    const [editSaving, setEditSaving] = useState(false);
+    const editRef = useRef<HTMLTextAreaElement>(null);
     const isOwner = comment.author.id === currentUserId;
-    // Root comment ID for threading — replies always point to the root
     const effectiveRootId = rootId ?? comment.id;
 
-    function handleDelete() {
-        setShowDeleteModal(true);
+    useEffect(() => {
+        if (editing && editRef.current) {
+            editRef.current.focus();
+            editRef.current.setSelectionRange(editRef.current.value.length, editRef.current.value.length);
+        }
+    }, [editing]);
+
+    function handleEdit() {
+        setEditBody(comment.body);
+        setEditing(true);
     }
 
-    // For root comments, collect all replies (flat, not nested)
+    function saveEdit() {
+        setEditSaving(true);
+        router.put(
+            `/comments/${comment.id}`,
+            { body: editBody },
+            {
+                onFinish: () => setEditSaving(false),
+                onSuccess: () => setEditing(false),
+                preserveScroll: true,
+            },
+        );
+    }
+
+    function handleEditKeyDown(e: React.KeyboardEvent<HTMLTextAreaElement>) {
+        if (e.key === 'Enter' && (e.shiftKey || e.metaKey) && editBody.trim() && !editSaving) {
+            e.preventDefault();
+            saveEdit();
+        }
+        if (e.key === 'Escape') {
+            setEditing(false);
+            setEditBody(comment.body);
+        }
+    }
+
     const allReplies = !isReply ? flattenReplies(comment) : [];
 
     return (
         <div>
-            <div className="rounded-lg border border-border-subtle bg-surface-primary p-4">
+            <div className="rounded-lg border border-border-subtle bg-surface-primary p-3 sm:p-4">
                 <div className="mb-2 flex items-center justify-between">
                     <div className="flex items-center gap-2">
                         <Avatar name={comment.author.name} />
@@ -112,21 +140,60 @@ function CommentItem({
                             Odpovědět
                         </button>
                         {isOwner && (
-                            <button
-                                onClick={handleDelete}
-                                className="rounded px-2.5 py-1 text-xs text-text-muted hover:bg-status-danger-subtle hover:text-status-danger"
-                            >
-                                Smazat
-                            </button>
+                            <>
+                                <button
+                                    onClick={handleEdit}
+                                    className="rounded px-2.5 py-1 text-xs text-text-muted hover:bg-surface-hover hover:text-text-default"
+                                >
+                                    <Pencil className="inline h-3 w-3" /> Upravit
+                                </button>
+                                <button
+                                    onClick={() => setShowDeleteModal(true)}
+                                    className="rounded px-2.5 py-1 text-xs text-text-muted hover:bg-status-danger-subtle hover:text-status-danger"
+                                >
+                                    Smazat
+                                </button>
+                            </>
                         )}
                     </div>
                 </div>
-                <p className="whitespace-pre-wrap text-sm leading-relaxed text-text-default">{comment.body}</p>
+                {editing ? (
+                    <div>
+                        <textarea
+                            ref={editRef}
+                            value={editBody}
+                            onChange={(e) => setEditBody(e.target.value)}
+                            onKeyDown={handleEditKeyDown}
+                            rows={3}
+                            className="w-full rounded-md border border-border-default bg-surface-primary px-3 py-2 text-sm focus:border-border-focus focus:outline-none focus:shadow-[0_0_0_2px_var(--color-brand-soft)]"
+                        />
+                        <div className="mt-1.5 flex gap-2">
+                            <button
+                                onClick={saveEdit}
+                                disabled={editSaving || !editBody.trim()}
+                                className="rounded-md bg-brand-primary px-3 py-1 text-xs font-medium text-text-inverse hover:bg-brand-hover disabled:opacity-50"
+                            >
+                                {editSaving ? 'Ukládání...' : 'Uložit'}
+                            </button>
+                            <button
+                                onClick={() => {
+                                    setEditing(false);
+                                    setEditBody(comment.body);
+                                }}
+                                className="rounded-md border border-border-default px-3 py-1 text-xs font-medium text-text-muted hover:bg-surface-hover"
+                            >
+                                Zrušit
+                            </button>
+                            <span className="self-center text-xs text-text-subtle">⌘+Enter uloží, Esc zruší</span>
+                        </div>
+                    </div>
+                ) : (
+                    <p className="whitespace-pre-wrap text-sm leading-relaxed text-text-default">{comment.body}</p>
+                )}
             </div>
 
-            {/* Flat replies — all at the same indentation level */}
             {!isReply && allReplies.length > 0 && (
-                <div className="ml-8 border-l-2 border-border-subtle pl-4 space-y-2 mt-2">
+                <div className="ml-4 sm:ml-8 border-l-2 border-border-subtle pl-3 sm:pl-4 space-y-2 mt-2">
                     {allReplies.map((reply) => (
                         <CommentItem
                             key={reply.id}
@@ -141,7 +208,7 @@ function CommentItem({
             )}
 
             {showReply && (
-                <div className={isReply ? 'mt-2' : 'ml-8 mt-2'}>
+                <div className={isReply ? 'mt-2' : 'ml-4 sm:ml-8 mt-2'}>
                     <CommentForm postUrl={postUrl} parentId={effectiveRootId} onDone={() => setShowReply(false)} />
                 </div>
             )}

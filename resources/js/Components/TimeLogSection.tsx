@@ -52,22 +52,18 @@ export default function TimeLogSection({
         e.preventDefault();
         if (!hours || submitting) return;
         setSubmitting(true);
-        fetch(postUrl, {
-            method: 'POST',
-            headers: {
-                'Content-Type': 'application/json',
-                'X-CSRF-TOKEN': document.querySelector<HTMLMetaElement>('meta[name="csrf-token"]')?.content ?? '',
-                Accept: 'application/json',
+        router.post(
+            postUrl,
+            { date, hours: parseFloat(hours), note: note || null },
+            {
+                onFinish: () => setSubmitting(false),
+                onSuccess: () => {
+                    setHours('');
+                    setNote('');
+                },
+                preserveScroll: true,
             },
-            body: JSON.stringify({ date, hours: parseFloat(hours), note: note || null }),
-        }).then((res) => {
-            setSubmitting(false);
-            if (res.ok) {
-                setHours('');
-                setNote('');
-                router.reload();
-            }
-        });
+        );
     }
 
     function handleDelete(id: string) {
@@ -76,15 +72,7 @@ export default function TimeLogSection({
 
     function confirmDelete() {
         if (!deleteTarget) return;
-        fetch(`/time-entries/${deleteTarget}`, {
-            method: 'DELETE',
-            headers: {
-                'X-CSRF-TOKEN': document.querySelector<HTMLMetaElement>('meta[name="csrf-token"]')?.content ?? '',
-                Accept: 'application/json',
-            },
-        }).then((res) => {
-            if (res.ok) router.reload();
-        });
+        router.delete(`/time-entries/${deleteTarget}`, { preserveScroll: true });
         setDeleteTarget(null);
     }
 

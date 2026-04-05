@@ -37,3 +37,26 @@ export function toDateInputValue(dateStr: string | null): string {
 export function formatMonthYear(date: Date): string {
     return date.toLocaleDateString('cs-CZ', { month: 'long', year: 'numeric' });
 }
+
+/**
+ * Relativní čas — "právě teď", "před 5m", "před 3h", "před 2d"
+ */
+export function timeAgo(dateStr: string): string {
+    const diff = Date.now() - new Date(dateStr).getTime();
+    const mins = Math.floor(diff / 60000);
+    if (mins < 1) return 'právě teď';
+    if (mins < 60) return `před ${mins}m`;
+    const hours = Math.floor(mins / 60);
+    if (hours < 24) return `před ${hours}h`;
+    const days = Math.floor(hours / 24);
+    return `před ${days}d`;
+}
+
+/**
+ * Lidsky čitelná velikost souboru — "1.2 KB", "3.5 MB"
+ */
+export function formatFileSize(bytes: number): string {
+    if (bytes < 1024) return `${bytes} B`;
+    if (bytes < 1048576) return `${(bytes / 1024).toFixed(1)} KB`;
+    return `${(bytes / 1048576).toFixed(1)} MB`;
+}

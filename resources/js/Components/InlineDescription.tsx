@@ -34,7 +34,7 @@ export default function InlineDescription({ content, updateUrl, readonly }: Prop
                 <span className="mb-1 block text-xs font-semibold uppercase tracking-wider text-text-subtle">
                     Popis
                 </span>
-                <RichTextEditor content={value} onChange={setValue} />
+                <RichTextEditor content={value} onChange={setValue} autoFocus />
                 <div className="mt-2 flex gap-2">
                     <button
                         onClick={save}

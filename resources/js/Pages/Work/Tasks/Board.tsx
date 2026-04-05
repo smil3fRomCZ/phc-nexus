@@ -1,14 +1,11 @@
 import AppLayout from '@/Layouts/AppLayout';
 import type { Breadcrumb } from '@/Layouts/AppLayout';
-import Avatar from '@/Components/Avatar';
+import BoardCard from '@/Components/BoardCard';
+import type { BoardTask } from '@/Components/BoardCard';
 import FilterSelect from '@/Components/FilterSelect';
-import StatusBadge from '@/Components/StatusBadge';
 import { COLUMN_COLORS } from '@/constants/status';
-import { getPriority } from '@/constants/priority';
-import { displayKey } from '@/utils/displayKey';
-import { formatDate } from '@/utils/formatDate';
 import { Link, router, useForm } from '@inertiajs/react';
-import { MessageSquare, Plus, ShieldAlert, Settings2, Layers, X } from 'lucide-react';
+import { Plus, Settings2, X } from 'lucide-react';
 import ProjectHeaderCompact from '@/Components/ProjectHeaderCompact';
 import ProjectTabs from '@/Components/ProjectTabs';
 import ConfirmModal from '@/Components/ConfirmModal';
@@ -17,21 +14,6 @@ import { useClickOutside } from '@/hooks/useClickOutside';
 import { useFilterRouter } from '@/hooks/useFilterRouter';
 import { useState, type DragEvent } from 'react';
 
-interface Task {
-    id: string;
-    number: number;
-    title: string;
-    status: string;
-    priority: string;
-    data_classification: string;
-    due_date: string | null;
-    comments_count: number;
-    assignee: { id: string; name: string } | null;
-    reporter: { id: string; name: string } | null;
-    epic: { id: string; title: string } | null;
-    workflow_status: { id: string; name: string; color: string | null } | null;
-}
-
 interface Column {
     id: string | null;
     status: string;
@@ -39,7 +21,7 @@ interface Column {
     color: string | null;
     is_done?: boolean;
     is_cancelled?: boolean;
-    tasks: Task[];
+    tasks: BoardTask[];
 }
 
 interface Member {
@@ -109,19 +91,7 @@ export default function TaskBoard({
     function toggleCardField(field: string) {
         const next = cardFields.includes(field) ? cardFields.filter((f) => f !== field) : [...cardFields, field];
         setCardFields(next);
-        fetch('/user/board-settings', {
-            method: 'PATCH',
-            headers: {
-                'Content-Type': 'application/json',
-                'X-CSRF-TOKEN': document.querySelector<HTMLMetaElement>('meta[name="csrf-token"]')?.content ?? '',
-                Accept: 'application/json',
-            },
-            body: JSON.stringify({ card_fields: next }),
-        });
-    }
-
-    function shows(field: string) {
-        return cardFields.includes(field);
+        router.patch('/user/board-settings', { card_fields: next }, { preserveState: true, preserveScroll: true });
     }
 
     function handleDragStart(e: DragEvent, taskId: string) {
@@ -148,7 +118,7 @@ export default function TaskBoard({
         const taskId = e.dataTransfer.getData('text/plain');
         if (!taskId) return;
 
-        let sourceTask: Task | undefined;
+        let sourceTask: BoardTask | undefined;
         let sourceStatus: string | undefined;
         for (const col of columns) {
             const found = col.tasks.find((t) => t.id === taskId);
@@ -340,101 +310,18 @@ export default function TaskBoard({
                         </div>
 
                         <div className="flex flex-1 flex-col gap-2 p-2" style={{ minHeight: '150px' }}>
-                            {col.tasks.map((task) => {
-                                const priority = getPriority(task.priority);
-                                const isDone = col.is_done || col.is_cancelled;
-
-                                return (
-                                    <div
-                                        key={task.id}
-                                        draggable
-                                        onDragStart={(e) => handleDragStart(e, task.id)}
-                                        className={`cursor-grab rounded-md border border-border-subtle bg-surface-primary p-2.5 shadow-sm transition-opacity hover:border-brand-muted hover:shadow-md active:cursor-grabbing ${
-                                            dragging === task.id ? 'opacity-50' : ''
-                                        } ${isDone ? 'opacity-65' : ''}`}
-                                    >
-                                        <Link
-                                            href={`/projects/${project.id}/tasks/${task.id}`}
-                                            draggable={false}
-                                            className="line-clamp-2 text-sm font-medium leading-snug text-text-strong no-underline hover:text-brand-primary"
-                                        >
-                                            <span className="mr-1 text-xs font-semibold text-text-muted">
-                                                {displayKey(project.key, task.number)}
-                                            </span>
-                                            {task.title}
-                                        </Link>
-
-                                        {/* Workflow status badge */}
-                                        {shows('status') && task.workflow_status && (
-                                            <div className="mt-1">
-                                                <StatusBadge
-                                                    label={task.workflow_status.name}
-                                                    color={task.workflow_status.color}
-                                                />
-                                            </div>
-                                        )}
-
-                                        {/* Epic */}
-                                        {shows('epic') && task.epic && (
-                                            <div className="mt-1 flex items-center gap-1 text-xs text-text-subtle">
-                                                <Layers className="h-2.5 w-2.5" />
-                                                <span className="truncate">{task.epic.title}</span>
-                                            </div>
-                                        )}
-
-                                        {/* Due date */}
-                                        {shows('due_date') && task.due_date && (
-                                            <div className="mt-1 text-xs text-text-muted">
-                                                {formatDate(task.due_date)}
-                                            </div>
-                                        )}
-
-                                        {/* Bottom row: priority + badges + assignee */}
-                                        <div className="mt-2 flex items-center justify-between">
-                                            <div className="flex items-center gap-1.5">
-                                                {shows('priority') && (
-                                                    <span
-                                                        className={`rounded px-1.5 py-0.5 text-[10px] font-semibold leading-tight ${priority.textClass}`}
-                                                        style={{
-                                                            backgroundColor:
-                                                                'color-mix(in srgb, currentColor 12%, transparent)',
-                                                        }}
-                                                    >
-                                                        {priority.label}
-                                                    </span>
-                                                )}
-                                                {shows('phi') && task.data_classification === 'phi' && (
-                                                    <span className="inline-flex items-center gap-0.5 rounded-full border border-brand-primary px-1.5 py-px text-[9px] font-bold uppercase tracking-wide text-brand-hover">
-                                                        <ShieldAlert className="h-2.5 w-2.5" />
-                                                        PHI
-                                                    </span>
-                                                )}
-                                                {shows('comments_count') && task.comments_count > 0 && (
-                                                    <span className="inline-flex items-center gap-0.5 text-xs text-text-muted">
-                                                        <MessageSquare className="h-2.5 w-2.5" />
-                                                        {task.comments_count}
-                                                    </span>
-                                                )}
-                                            </div>
-                                            {shows('assignee') &&
-                                                (task.assignee ? (
-                                                    <Avatar name={task.assignee.name} size="sm" />
-                                                ) : (
-                                                    <div className="flex h-5 w-5 items-center justify-center rounded-full bg-border-strong text-[8px] text-text-muted">
-                                                        ?
-                                                    </div>
-                                                ))}
-                                        </div>
-
-                                        {/* Reporter */}
-                                        {shows('reporter') && task.reporter && (
-                                            <div className="mt-1 text-[10px] text-text-subtle">
-                                                Zadavatel: {task.reporter.name}
-                                            </div>
-                                        )}
-                                    </div>
-                                );
-                            })}
+                            {col.tasks.map((task) => (
+                                <BoardCard
+                                    key={task.id}
+                                    task={task}
+                                    projectId={project.id}
+                                    projectKey={project.key}
+                                    cardFields={cardFields}
+                                    isDragging={dragging === task.id}
+                                    isDone={!!(col.is_done || col.is_cancelled)}
+                                    onDragStart={handleDragStart}
+                                />
+                            ))}
                         </div>
                     </div>
                 ))}

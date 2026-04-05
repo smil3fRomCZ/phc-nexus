@@ -9,6 +9,7 @@ import { formatDate } from '@/utils/formatDate';
 import { Link, router } from '@inertiajs/react';
 import { Layers } from 'lucide-react';
 import { useState } from 'react';
+import ProjectHeaderCompact from '@/Components/ProjectHeaderCompact';
 import ProjectTabs from '@/Components/ProjectTabs';
 
 interface Task {
@@ -35,7 +36,7 @@ interface Member {
 }
 
 interface Props {
-    project: { id: string; name: string; key: string };
+    project: { id: string; name: string; key: string; status: string };
     tasks: Task[];
     filters: Record<string, string | undefined>;
     statuses: Option[];
@@ -106,6 +107,9 @@ export default function TaskTable({ project, tasks, filters, statuses, prioritie
 
     return (
         <AppLayout title={`${project.key} — Tabulka`} breadcrumbs={breadcrumbs}>
+            <div className="mb-4">
+                <ProjectHeaderCompact project={project} />
+            </div>
             <div className="mb-6">
                 <ProjectTabs projectId={project.id} active="table" />
             </div>

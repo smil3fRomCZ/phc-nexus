@@ -42,7 +42,7 @@ final class TaskController extends Controller
             ->get();
 
         $props = [
-            'project' => $project->only('id', 'name', 'key'),
+            'project' => $project->only('id', 'name', 'key', 'status'),
             'tasks' => $tasks,
         ];
 
@@ -205,7 +205,7 @@ final class TaskController extends Controller
             ->map(fn (RecurrenceRule $r) => ['value' => $r->value, 'label' => $r->label()]);
 
         return Inertia::render('Work/Tasks/Show', [
-            'project' => $project->only('id', 'name', 'key'),
+            'project' => $project->only('id', 'name', 'key', 'status'),
             'task' => $task,
             'hasPendingApproval' => $task->hasPendingApproval(),
             'allowedTransitions' => $allowedTransitions,
@@ -291,6 +291,22 @@ final class TaskController extends Controller
     }
 
     /**
+     * PATCH — částečný update (description apod.).
+     */
+    public function updatePartial(Request $request, Project $project, Task $task): RedirectResponse
+    {
+        Gate::authorize('update', $task);
+
+        $validated = $request->validate([
+            'description' => ['nullable', 'string'],
+        ]);
+
+        $task->update($validated);
+
+        return back()->with('success', 'Úkol aktualizován.');
+    }
+
+    /**
      * Kanban board — všechny úkoly projektu seskupené podle statusu.
      */
     public function board(Request $request, Project $project): Response
@@ -341,7 +357,7 @@ final class TaskController extends Controller
             || $project->epics()->where('pm_id', $user->id)->exists();
 
         return Inertia::render('Work/Tasks/Board', [
-            'project' => $project->only('id', 'name', 'key'),
+            'project' => $project->only('id', 'name', 'key', 'status'),
             'columns' => $columns,
             'canManageColumns' => $canManageColumns,
             'members' => $members,
@@ -396,7 +412,7 @@ final class TaskController extends Controller
         $tasks = $query->get();
 
         return Inertia::render('Work/Tasks/Table', [
-            'project' => $project->only('id', 'name', 'key'),
+            'project' => $project->only('id', 'name', 'key', 'status'),
             'tasks' => $tasks,
             'filters' => $request->only(['status', 'priority', 'assignee_id', 'sort', 'dir']),
             'statuses' => $project->workflowStatuses()->orderBy('position')->get()
@@ -475,7 +491,7 @@ final class TaskController extends Controller
 
         $task->delete();
 
-        return redirect()->route('projects.tasks.index', $project)
+        return redirect()->route('projects.tasks.table', $project)
             ->with('success', 'Úkol smazán.');
     }
 

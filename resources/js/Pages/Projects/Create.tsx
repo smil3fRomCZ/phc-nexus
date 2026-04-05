@@ -3,6 +3,7 @@ import type { Breadcrumb } from '@/Layouts/AppLayout';
 import Spinner from '@/Components/Spinner';
 import { validate, required, maxLength, pattern } from '@/utils/validate';
 import { useForm } from '@inertiajs/react';
+import { ArrowLeft } from 'lucide-react';
 import { useState, type FormEvent } from 'react';
 
 interface BenefitTypeOption {
@@ -11,7 +12,16 @@ interface BenefitTypeOption {
     hasMoney: boolean;
 }
 
+interface ProjectTypeOption {
+    value: string;
+    label: string;
+    description: string;
+    icon: string;
+    hasLeadDeveloper: boolean;
+}
+
 interface Props {
+    projectTypes: ProjectTypeOption[];
     existingKeys: string[];
     classifications: Array<{ value: string; label: string }>;
     teams: Array<{ id: string; name: string }>;
@@ -27,26 +37,18 @@ const BREADCRUMBS: Breadcrumb[] = [
 const KEY_RULES = [required(), pattern(/^[A-Z][A-Z0-9-]*$/, 'Musí začínat písmenem (A-Z, 0-9, -)'), maxLength(10)];
 const NAME_RULES = [required(), maxLength(255)];
 
-/**
- * Generuje 3písmenný klíč z názvu projektu (JIRA styl).
- * "Datový sklad" → "DAS", "PHC Nexus" → "PHN"
- * Pokud koliduje s existujícími, přidá číslo: "DAS1", "DAS2"
- */
 function generateKey(name: string, existingKeys: string[]): string {
     const words = name.trim().split(/\s+/).filter(Boolean);
     let base = '';
 
     if (words.length >= 3) {
-        // 3+ slov: první písmeno z každého z prvních 3 slov
         base = words
             .slice(0, 3)
             .map((w) => w[0])
             .join('');
     } else if (words.length === 2) {
-        // 2 slova: první písmeno z prvního + první dvě z druhého
         base = words[0][0] + words[1].slice(0, 2);
     } else if (words.length === 1) {
-        // 1 slovo: první 3 písmena
         base = words[0].slice(0, 3);
     }
 
@@ -54,7 +56,6 @@ function generateKey(name: string, existingKeys: string[]): string {
     if (base.length < 2) return base;
     if (base.length > 3) base = base.slice(0, 3);
 
-    // Zajistit unikátnost
     const existing = new Set(existingKeys.map((k) => k.toUpperCase()));
     if (!existing.has(base)) return base;
 
@@ -73,15 +74,19 @@ const DEFAULT_CLASSIFICATIONS = [
 ];
 
 export default function ProjectCreate({
+    projectTypes = [],
     existingKeys,
     classifications = DEFAULT_CLASSIFICATIONS,
     teams = [],
     benefitTypes = [],
 }: Props) {
+    const [step, setStep] = useState<'type' | 'form'>('type');
+
     const { data, setData, post, processing, errors } = useForm({
         name: '',
         key: '',
         description: '',
+        project_type: '',
         data_classification: 'non_phi',
         status: 'draft',
         team_id: '',
@@ -94,6 +99,8 @@ export default function ProjectCreate({
 
     const [clientErrors, setClientErrors] = useState<Record<string, string | null>>({});
     const [keyManuallyEdited, setKeyManuallyEdited] = useState(false);
+
+    const selectedType = projectTypes.find((t) => t.value === data.project_type);
 
     function validateField(field: string, value: string, rules: typeof NAME_RULES) {
         const error = validate(value, rules);
@@ -114,6 +121,11 @@ export default function ProjectCreate({
         setData('key', key.toUpperCase());
     }
 
+    function selectType(value: string) {
+        setData('project_type', value);
+        setStep('form');
+    }
+
     function submit(e: FormEvent) {
         e.preventDefault();
         const nameErr = validateField('name', data.name, NAME_RULES);
@@ -122,10 +134,57 @@ export default function ProjectCreate({
         post('/projects');
     }
 
+    if (step === 'type') {
+        return (
+            <AppLayout title="Nový projekt" breadcrumbs={BREADCRUMBS}>
+                <div className="mx-auto max-w-3xl">
+                    <h1 className="mb-2 text-xl md:text-2xl font-bold leading-tight text-text-strong">Nový projekt</h1>
+                    <p className="mb-6 text-sm text-text-muted">
+                        Vyberte typ projektu. Určuje výchozí workflow a dostupná pole.
+                    </p>
+
+                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                        {projectTypes.map((pt) => (
+                            <button
+                                key={pt.value}
+                                onClick={() => selectType(pt.value)}
+                                className="flex flex-col items-start gap-2 rounded-lg border-2 border-border-subtle bg-surface-primary p-5 text-left transition-all hover:border-brand-primary hover:shadow-md"
+                            >
+                                <span className="text-2xl">{pt.icon}</span>
+                                <span className="text-base font-semibold text-text-strong">{pt.label}</span>
+                                <span className="text-sm text-text-muted">{pt.description}</span>
+                                {pt.hasLeadDeveloper && (
+                                    <span className="mt-1 rounded bg-brand-soft px-2 py-0.5 text-xs font-medium text-brand-primary">
+                                        Lead Developer
+                                    </span>
+                                )}
+                            </button>
+                        ))}
+                    </div>
+                </div>
+            </AppLayout>
+        );
+    }
+
     return (
         <AppLayout title="Nový projekt" breadcrumbs={BREADCRUMBS}>
             <div className="mx-auto max-w-2xl">
-                <h1 className="mb-6 text-xl md:text-2xl font-bold leading-tight text-text-strong">Nový projekt</h1>
+                <div className="mb-6 flex items-center gap-3">
+                    <button
+                        onClick={() => setStep('type')}
+                        className="rounded-md border border-border-default p-1.5 text-text-muted transition-colors hover:bg-surface-hover hover:text-text-default"
+                    >
+                        <ArrowLeft className="h-4 w-4" />
+                    </button>
+                    <div>
+                        <h1 className="text-xl md:text-2xl font-bold leading-tight text-text-strong">Nový projekt</h1>
+                        {selectedType && (
+                            <p className="text-sm text-text-muted">
+                                {selectedType.icon} {selectedType.label}
+                            </p>
+                        )}
+                    </div>
+                </div>
 
                 <form onSubmit={submit} className="space-y-5">
                     <Field label="Název *" error={errors.name ?? clientErrors.name}>
@@ -134,6 +193,7 @@ export default function ProjectCreate({
                             value={data.name}
                             onChange={(e) => handleNameChange(e.target.value)}
                             onBlur={() => validateField('name', data.name, NAME_RULES)}
+                            autoFocus
                             className="mt-1 w-full rounded-md border border-border-default bg-surface-primary px-3 py-2 text-base focus:border-border-focus focus:outline-none focus:shadow-[0_0_0_2px_var(--color-brand-soft)]"
                         />
                     </Field>

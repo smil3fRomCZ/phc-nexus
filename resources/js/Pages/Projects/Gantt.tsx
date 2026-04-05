@@ -1,6 +1,7 @@
 import 'frappe-gantt-css';
 import AppLayout from '@/Layouts/AppLayout';
 import type { Breadcrumb } from '@/Layouts/AppLayout';
+import ProjectHeaderCompact from '@/Components/ProjectHeaderCompact';
 import ProjectTabs from '@/Components/ProjectTabs';
 import EmptyState from '@/Components/EmptyState';
 import { useEffect, useRef, useState } from 'react';
@@ -26,7 +27,7 @@ interface GanttEpic {
 }
 
 interface Props {
-    project: { id: string; name: string; key: string };
+    project: { id: string; name: string; key: string; status: string };
     tasks: GanttTask[];
     epics: GanttEpic[];
 }
@@ -95,6 +96,9 @@ export default function ProjectGantt({ project, tasks, epics }: Props) {
     return (
         <AppLayout title={`${project.key} — Gantt`} breadcrumbs={breadcrumbs}>
             <div className="max-w-screen-xl space-y-5">
+                <div className="mb-4">
+                    <ProjectHeaderCompact project={project} />
+                </div>
                 <div className="flex items-center justify-between">
                     <ProjectTabs projectId={project.id} active="gantt" />
                 </div>

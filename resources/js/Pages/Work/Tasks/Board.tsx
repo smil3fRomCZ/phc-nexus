@@ -8,6 +8,7 @@ import { displayKey } from '@/utils/displayKey';
 import { formatDate } from '@/utils/formatDate';
 import { Link, router, useForm } from '@inertiajs/react';
 import { MessageSquare, Plus, ShieldAlert, Settings2, Layers, X } from 'lucide-react';
+import ProjectHeaderCompact from '@/Components/ProjectHeaderCompact';
 import ProjectTabs from '@/Components/ProjectTabs';
 import ConfirmModal from '@/Components/ConfirmModal';
 import Modal from '@/Components/Modal';
@@ -55,7 +56,7 @@ interface BoardSettings {
 }
 
 interface Props {
-    project: { id: string; name: string; key: string };
+    project: { id: string; name: string; key: string; status: string };
     columns: Column[];
     canManageColumns: boolean;
     members: Member[];
@@ -192,6 +193,9 @@ export default function TaskBoard({
 
     return (
         <AppLayout title={`${project.key} — Kanban`} breadcrumbs={breadcrumbs}>
+            <div className="mb-4">
+                <ProjectHeaderCompact project={project} />
+            </div>
             <div className="mb-6">
                 <ProjectTabs projectId={project.id} active="board" />
             </div>

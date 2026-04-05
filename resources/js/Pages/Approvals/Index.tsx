@@ -7,6 +7,7 @@ import { formatDate } from '@/utils/formatDate';
 import AppLayout from '@/Layouts/AppLayout';
 import type { Breadcrumb } from '@/Layouts/AppLayout';
 import { router } from '@inertiajs/react';
+import ProjectHeaderCompact from '@/Components/ProjectHeaderCompact';
 import ProjectTabs from '@/Components/ProjectTabs';
 
 interface Vote {
@@ -28,7 +29,7 @@ interface ApprovalRequest {
 }
 
 interface Props {
-    project: { id: string; name: string; key: string };
+    project: { id: string; name: string; key: string; status: string };
     approvalRequests: ApprovalRequest[];
     filters: Record<string, string | undefined>;
 }
@@ -54,6 +55,9 @@ export default function ApprovalsIndex({ project, approvalRequests, filters = {}
 
     return (
         <AppLayout title={`${project.key} — Schvalování`} breadcrumbs={breadcrumbs}>
+            <div className="mb-4">
+                <ProjectHeaderCompact project={project} />
+            </div>
             <div className="mb-6">
                 <ProjectTabs projectId={project.id} active="approvals" />
             </div>

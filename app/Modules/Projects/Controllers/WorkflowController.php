@@ -26,7 +26,7 @@ final class WorkflowController extends Controller
             ->get();
 
         return Inertia::render('Projects/Workflow', [
-            'project' => $project->only('id', 'name', 'key'),
+            'project' => $project->only('id', 'name', 'key', 'status'),
             'statuses' => $statuses,
             'transitions' => $transitions,
         ]);

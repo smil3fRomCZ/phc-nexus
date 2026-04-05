@@ -1,5 +1,6 @@
 import AppLayout from '@/Layouts/AppLayout';
 import type { Breadcrumb } from '@/Layouts/AppLayout';
+import ProjectHeaderCompact from '@/Components/ProjectHeaderCompact';
 import ProjectTabs from '@/Components/ProjectTabs';
 import { Link, useForm } from '@inertiajs/react';
 import { BookOpen, ChevronRight, Plus } from 'lucide-react';
@@ -13,7 +14,7 @@ interface WikiPage {
 }
 
 interface Props {
-    project: { id: string; name: string; key: string };
+    project: { id: string; name: string; key: string; status: string };
     pages: WikiPage[];
 }
 
@@ -43,6 +44,9 @@ export default function WikiIndex({ project, pages }: Props) {
 
     return (
         <AppLayout title={`${project.key} — Dokumentace`} breadcrumbs={breadcrumbs}>
+            <div className="mb-4">
+                <ProjectHeaderCompact project={project} />
+            </div>
             <div className="mb-6">
                 <ProjectTabs projectId={project.id} active="wiki" />
             </div>

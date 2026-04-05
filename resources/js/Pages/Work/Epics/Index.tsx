@@ -9,6 +9,7 @@ import { displayKey } from '@/utils/displayKey';
 import { formatDate } from '@/utils/formatDate';
 import { Link, router, useForm } from '@inertiajs/react';
 import { Plus } from 'lucide-react';
+import ProjectHeaderCompact from '@/Components/ProjectHeaderCompact';
 import ProjectTabs from '@/Components/ProjectTabs';
 import type { FormEvent } from 'react';
 
@@ -26,7 +27,7 @@ interface Epic {
 }
 
 interface Props {
-    project: { id: string; name: string; key: string };
+    project: { id: string; name: string; key: string; status: string };
     epics: Epic[];
     filters: Record<string, string | undefined>;
 }
@@ -60,6 +61,9 @@ export default function EpicsIndex({ project, epics, filters = {} }: Props) {
 
     return (
         <AppLayout title={`${project.key} — Epic`} breadcrumbs={breadcrumbs}>
+            <div className="mb-4">
+                <ProjectHeaderCompact project={project} />
+            </div>
             <div className="mb-6">
                 <ProjectTabs projectId={project.id} active="epics" />
             </div>

@@ -26,7 +26,7 @@ final class WikiPageController extends Controller
             ->get();
 
         return Inertia::render('Wiki/Index', [
-            'project' => $project->only('id', 'name', 'key'),
+            'project' => $project->only('id', 'name', 'key', 'status'),
             'pages' => $pages,
         ]);
     }
@@ -51,7 +51,7 @@ final class WikiPageController extends Controller
             ->get(['id', 'title', 'parent_id', 'position']);
 
         return Inertia::render('Wiki/Show', [
-            'project' => $project->only('id', 'name', 'key'),
+            'project' => $project->only('id', 'name', 'key', 'status'),
             'page' => $wikiPage,
             'pages' => $pages,
         ]);

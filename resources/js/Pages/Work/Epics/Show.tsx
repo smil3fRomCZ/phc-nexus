@@ -156,7 +156,7 @@ export default function EpicShow({
                         {/* Description — inline editable */}
                         <InlineDescription
                             content={epic.description}
-                            updateUrl={`/projects/${project.id}/epics/${epic.id}`}
+                            updateUrl={`/projects/${project.id}/epics/${epic.id}/description`}
                             readonly={false}
                         />
 

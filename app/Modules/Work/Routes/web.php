@@ -15,7 +15,7 @@ use Illuminate\Support\Facades\Route;
 Route::middleware('auth')->scopeBindings()->group(function () {
     Route::resource('projects.epics', EpicController::class)->except(['create', 'edit']);
 
-    Route::patch('projects/{project}/epics/{epic}', [EpicController::class, 'updatePartial'])->name('projects.epics.updatePartial');
+    Route::patch('projects/{project}/epics/{epic}/description', [EpicController::class, 'updatePartial'])->name('projects.epics.updatePartial');
 
     // Epic comments & attachments
     Route::post('projects/{project}/epics/{epic}/comments', [EpicCommentController::class, 'store'])->name('projects.epics.comments.store');

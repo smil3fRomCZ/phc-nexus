@@ -1057,9 +1057,7 @@ function CollapsibleDependencies({
                             {total}
                         </span>
                     )}
-                    {total === 0 && (
-                        <span className="text-xs text-text-subtle">Žádné závislosti</span>
-                    )}
+                    {total === 0 && <span className="text-xs text-text-subtle">Žádné závislosti</span>}
                 </div>
             </button>
             {open && (

@@ -27,6 +27,9 @@ test.describe('Založení projektu', () => {
         const projectName = `E2E Projekt ${suffix}`;
         const projectKey = `E${suffix}`;
 
+        // Vybrat typ projektu (wizard krok 1)
+        await page.getByRole('button', { name: 'Vlastní' }).click();
+
         // Vyplnit formulář
         await page.locator('main input[type="text"]').first().fill(projectName);
         await page.locator('main input[type="text"]').nth(1).fill(projectKey);

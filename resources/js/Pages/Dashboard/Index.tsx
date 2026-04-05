@@ -4,7 +4,7 @@ import StatusBadge from '@/Components/StatusBadge';
 import EmptyState from '@/Components/EmptyState';
 
 import { getPriority } from '@/constants/priority';
-import { formatDate } from '@/utils/formatDate';
+import { formatDate, timeAgo } from '@/utils/formatDate';
 import { Link, usePage } from '@inertiajs/react';
 import { Clock, CheckSquare, AlertCircle, FolderKanban } from 'lucide-react';
 import type { PageProps } from '@/types';
@@ -63,15 +63,6 @@ function formatDueDate(dateStr: string | null): { text: string; overdue: boolean
     const overdue = date < now;
     const text = formatDate(dateStr);
     return { text: overdue ? `${text} — PO TERMÍNU` : text, overdue };
-}
-
-function timeAgo(dateStr: string): string {
-    const diff = Date.now() - new Date(dateStr).getTime();
-    const hours = Math.floor(diff / 3600000);
-    if (hours < 1) return 'právě teď';
-    if (hours < 24) return `před ${hours}h`;
-    const days = Math.floor(hours / 24);
-    return `před ${days}d`;
 }
 
 export default function DashboardIndex({ stats, myTasks, pendingApprovals }: Props) {

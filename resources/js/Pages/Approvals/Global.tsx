@@ -1,6 +1,7 @@
 import AppLayout from '@/Layouts/AppLayout';
 import type { Breadcrumb } from '@/Layouts/AppLayout';
 import EmptyState from '@/Components/EmptyState';
+import { timeAgo } from '@/utils/formatDate';
 import { Link } from '@inertiajs/react';
 import { Clock, CheckCircle, XCircle } from 'lucide-react';
 import { useState } from 'react';
@@ -29,15 +30,6 @@ interface Props {
 }
 
 const BREADCRUMBS: Breadcrumb[] = [{ label: 'Domů', href: '/' }, { label: 'Schvalování' }];
-
-function timeAgo(dateStr: string): string {
-    const diff = Date.now() - new Date(dateStr).getTime();
-    const hours = Math.floor(diff / 3600000);
-    if (hours < 1) return 'právě teď';
-    if (hours < 24) return `před ${hours}h`;
-    const days = Math.floor(hours / 24);
-    return `před ${days}d`;
-}
 
 const STATUS_CONFIG: Record<string, { label: string; color: string; bg: string }> = {
     pending: { label: 'Čeká', color: 'text-status-warning', bg: 'bg-status-warning-subtle' },

@@ -1,4 +1,5 @@
 import ConfirmModal from '@/Components/ConfirmModal';
+import { formatFileSize } from '@/utils/formatDate';
 import { router, usePage } from '@inertiajs/react';
 import { Paperclip, Download, Trash2, Upload } from 'lucide-react';
 import type { PageProps } from '@/types';
@@ -11,12 +12,6 @@ export interface Attachment {
     size: number;
     uploader: { id: string; name: string } | null;
     created_at: string;
-}
-
-function formatFileSize(bytes: number): string {
-    if (bytes < 1024) return `${bytes} B`;
-    if (bytes < 1048576) return `${(bytes / 1024).toFixed(1)} KB`;
-    return `${(bytes / 1048576).toFixed(1)} MB`;
 }
 
 export default function AttachmentsSection({
@@ -34,21 +29,16 @@ export default function AttachmentsSection({
         const file = e.target.files?.[0];
         if (!file) return;
 
-        const formData = new FormData();
-        formData.append('file', file);
-
         setUploading(true);
-        fetch(uploadUrl, {
-            method: 'POST',
-            headers: {
-                'X-CSRF-TOKEN': document.querySelector<HTMLMetaElement>('meta[name="csrf-token"]')?.content ?? '',
-                Accept: 'text/html',
+        router.post(
+            uploadUrl,
+            { file },
+            {
+                forceFormData: true,
+                onFinish: () => setUploading(false),
+                preserveScroll: true,
             },
-            body: formData,
-        }).then(() => {
-            setUploading(false);
-            router.reload();
-        });
+        );
     }
 
     function handleDelete(attachmentId: string) {

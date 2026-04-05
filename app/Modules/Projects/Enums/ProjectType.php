@@ -34,10 +34,10 @@ enum ProjectType: string
     public function icon(): string
     {
         return match ($this) {
-            self::Software => '💻',
-            self::TaskManagement => '✅',
-            self::Approval => '✋',
-            self::Custom => '⚙️',
+            self::Software => 'code',
+            self::TaskManagement => 'check-square',
+            self::Approval => 'shield-check',
+            self::Custom => 'settings',
         };
     }
 

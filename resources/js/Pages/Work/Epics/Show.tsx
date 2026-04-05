@@ -13,6 +13,7 @@ import { formatDate } from '@/utils/formatDate';
 import { Link, router, useForm } from '@inertiajs/react';
 import ActionIconButton from '@/Components/ActionIconButton';
 import InlineDescription from '@/Components/InlineDescription';
+import TabBar from '@/Components/TabBar';
 import { Pencil, X, Plus, FileText, Timer, BookOpen, Trash2 } from 'lucide-react';
 import Modal from '@/Components/Modal';
 import RichTextEditor from '@/Components/RichTextEditor';
@@ -187,45 +188,28 @@ export default function EpicShow({
                     )}
 
                     {/* Tab navigation */}
-                    <div className="flex gap-0 border-b border-border-subtle">
-                        <button
-                            onClick={() => setActiveTab('detail')}
-                            className={`flex items-center gap-2 border-b-2 px-4 py-2.5 text-sm font-medium transition-colors ${
-                                activeTab === 'detail'
-                                    ? 'border-brand-primary text-brand-primary'
-                                    : 'border-transparent text-text-muted hover:text-text-default'
-                            }`}
-                        >
-                            <FileText className="h-3.5 w-3.5" />
-                            Detail
-                        </button>
-                        <button
-                            onClick={() => setActiveTab('time')}
-                            className={`flex items-center gap-2 border-b-2 px-4 py-2.5 text-sm font-medium transition-colors ${
-                                activeTab === 'time'
-                                    ? 'border-brand-primary text-brand-primary'
-                                    : 'border-transparent text-text-muted hover:text-text-default'
-                            }`}
-                        >
-                            <Timer className="h-3.5 w-3.5" />
-                            Čas
-                            <span className="rounded-full bg-status-neutral-subtle px-1.5 py-px text-xs font-medium text-text-muted">
-                                {totalHours}h
-                            </span>
-                        </button>
-                        <Link
-                            href={`/projects/${project.id}/epics/${epic.id}/wiki`}
-                            className={`flex items-center gap-2 border-b-2 border-transparent px-4 py-2.5 text-sm font-medium no-underline transition-colors text-text-muted hover:text-text-default`}
-                        >
-                            <BookOpen className="h-3.5 w-3.5" />
-                            Dokumentace
-                            {epic.wiki_pages_count > 0 && (
-                                <span className="rounded-full bg-status-neutral-subtle px-1.5 py-px text-xs font-medium text-text-muted">
-                                    {epic.wiki_pages_count}
-                                </span>
-                            )}
-                        </Link>
-                    </div>
+                    <TabBar
+                        tabs={[
+                            { key: 'detail', label: 'Detail', icon: FileText },
+                            { key: 'time', label: 'Čas', icon: Timer, badge: `${totalHours}h` },
+                        ]}
+                        activeTab={activeTab}
+                        onChange={(key) => setActiveTab(key as 'detail' | 'time')}
+                        trailing={
+                            <Link
+                                href={`/projects/${project.id}/epics/${epic.id}/wiki`}
+                                className="flex items-center gap-2 border-b-2 border-transparent px-4 py-2.5 text-sm font-medium no-underline transition-colors text-text-muted hover:text-text-default"
+                            >
+                                <BookOpen className="h-3.5 w-3.5" />
+                                Dokumentace
+                                {epic.wiki_pages_count > 0 && (
+                                    <span className="rounded-full bg-status-neutral-subtle px-1.5 py-px text-xs font-medium text-text-muted">
+                                        {epic.wiki_pages_count}
+                                    </span>
+                                )}
+                            </Link>
+                        }
+                    />
 
                     {activeTab === 'detail' && (
                         <>

@@ -3,8 +3,15 @@ import type { Breadcrumb } from '@/Layouts/AppLayout';
 import Spinner from '@/Components/Spinner';
 import { validate, required, maxLength, pattern } from '@/utils/validate';
 import { useForm } from '@inertiajs/react';
-import { ArrowLeft } from 'lucide-react';
+import { ArrowLeft, Code, CheckSquare, ShieldCheck, Settings, type LucideIcon } from 'lucide-react';
 import { useState, type FormEvent } from 'react';
+
+const ICON_MAP: Record<string, LucideIcon> = {
+    code: Code,
+    'check-square': CheckSquare,
+    'shield-check': ShieldCheck,
+    settings: Settings,
+};
 
 interface BenefitTypeOption {
     value: string;
@@ -144,22 +151,31 @@ export default function ProjectCreate({
                     </p>
 
                     <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                        {projectTypes.map((pt) => (
-                            <button
-                                key={pt.value}
-                                onClick={() => selectType(pt.value)}
-                                className="flex flex-col items-start gap-2 rounded-lg border-2 border-border-subtle bg-surface-primary p-5 text-left transition-all hover:border-brand-primary hover:shadow-md"
-                            >
-                                <span className="text-2xl">{pt.icon}</span>
-                                <span className="text-base font-semibold text-text-strong">{pt.label}</span>
-                                <span className="text-sm text-text-muted">{pt.description}</span>
-                                {pt.hasLeadDeveloper && (
-                                    <span className="mt-1 rounded bg-brand-soft px-2 py-0.5 text-xs font-medium text-brand-primary">
-                                        Lead Developer
-                                    </span>
-                                )}
-                            </button>
-                        ))}
+                        {projectTypes.map((pt) => {
+                            const IconComponent = ICON_MAP[pt.icon];
+                            return (
+                                <button
+                                    key={pt.value}
+                                    onClick={() => selectType(pt.value)}
+                                    className="flex flex-col items-start gap-2 rounded-lg border-2 border-border-subtle bg-surface-primary p-5 text-left transition-all hover:border-brand-primary hover:shadow-md"
+                                >
+                                    <div className="flex h-10 w-10 items-center justify-center rounded-lg bg-brand-soft">
+                                        {IconComponent ? (
+                                            <IconComponent className="h-5 w-5 text-brand-primary" />
+                                        ) : (
+                                            <Settings className="h-5 w-5 text-brand-primary" />
+                                        )}
+                                    </div>
+                                    <span className="text-base font-semibold text-text-strong">{pt.label}</span>
+                                    <span className="text-sm text-text-muted">{pt.description}</span>
+                                    {pt.hasLeadDeveloper && (
+                                        <span className="mt-1 rounded bg-brand-soft px-2 py-0.5 text-xs font-medium text-brand-primary">
+                                            Lead Developer
+                                        </span>
+                                    )}
+                                </button>
+                            );
+                        })}
                     </div>
                 </div>
             </AppLayout>
@@ -179,8 +195,12 @@ export default function ProjectCreate({
                     <div>
                         <h1 className="text-xl md:text-2xl font-bold leading-tight text-text-strong">Nový projekt</h1>
                         {selectedType && (
-                            <p className="text-sm text-text-muted">
-                                {selectedType.icon} {selectedType.label}
+                            <p className="flex items-center gap-1.5 text-sm text-text-muted">
+                                {(() => {
+                                    const Icon = ICON_MAP[selectedType.icon];
+                                    return Icon ? <Icon className="h-4 w-4" /> : null;
+                                })()}
+                                {selectedType.label}
                             </p>
                         )}
                     </div>

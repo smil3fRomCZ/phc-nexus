@@ -59,21 +59,17 @@ export default function TaskTable({ project, tasks, filters, statuses, prioritie
 
     function handleBulkStatus() {
         if (!bulkStatus || selected.length === 0) return;
-        fetch(`/projects/${project.id}/tasks/bulk-status`, {
-            method: 'POST',
-            headers: {
-                'Content-Type': 'application/json',
-                'X-CSRF-TOKEN': document.querySelector<HTMLMetaElement>('meta[name="csrf-token"]')?.content ?? '',
-                Accept: 'application/json',
+        router.post(
+            `/projects/${project.id}/tasks/bulk-status`,
+            { task_ids: selected, status: bulkStatus },
+            {
+                onSuccess: () => {
+                    setSelected([]);
+                    setBulkStatus('');
+                },
+                preserveScroll: true,
             },
-            body: JSON.stringify({ task_ids: selected, status: bulkStatus }),
-        }).then((res) => {
-            if (res.ok) {
-                setSelected([]);
-                setBulkStatus('');
-                router.reload({ only: ['tasks'] });
-            }
-        });
+        );
     }
 
     const breadcrumbs: Breadcrumb[] = [
@@ -91,19 +87,7 @@ export default function TaskTable({ project, tasks, filters, statuses, prioritie
     }
 
     function handleStatusChange(taskId: string, newStatus: string) {
-        fetch(`/projects/${project.id}/tasks/${taskId}/status`, {
-            method: 'PATCH',
-            headers: {
-                'Content-Type': 'application/json',
-                'X-CSRF-TOKEN': document.querySelector<HTMLMetaElement>('meta[name="csrf-token"]')?.content ?? '',
-                Accept: 'application/json',
-            },
-            body: JSON.stringify({ status: newStatus }),
-        }).then((res) => {
-            if (res.ok) {
-                router.reload({ only: ['tasks'] });
-            }
-        });
+        router.patch(`/projects/${project.id}/tasks/${taskId}/status`, { status: newStatus }, { preserveScroll: true });
     }
 
     return (

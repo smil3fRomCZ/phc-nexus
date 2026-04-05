@@ -28,6 +28,7 @@ import {
     Clock,
     Timer,
     Copy,
+    ChevronDown,
 } from 'lucide-react';
 import type { PageProps } from '@/types';
 import ConfirmModal from '@/Components/ConfirmModal';
@@ -273,6 +274,9 @@ export default function TaskShow({
                             )}
                         </div>
                     </div>
+
+                    {/* Dependencies — collapsible section */}
+                    <CollapsibleDependencies project={project} task={task} projectTasks={projectTasks} />
 
                     {editing && (
                         <TaskEditDialog
@@ -593,13 +597,6 @@ export default function TaskShow({
                                         />
                                     </SidebarSection>
                                 )}
-                        </div>
-
-                        {/* Group: Dependencies */}
-                        <div className="pb-4 mb-4 border-b border-border-subtle">
-                            <SidebarSection label="Závislosti">
-                                <DependenciesPanel project={project} task={task} projectTasks={projectTasks} />
-                            </SidebarSection>
                         </div>
 
                         {/* Group: Attachments */}
@@ -1021,6 +1018,54 @@ function DependenciesPanel({
                     <Plus className="h-3 w-3" />
                     Přidat blokaci
                 </button>
+            )}
+        </div>
+    );
+}
+
+function CollapsibleDependencies({
+    project,
+    task,
+    projectTasks,
+}: {
+    project: { id: string };
+    task: Task;
+    projectTasks: ProjectTask[];
+}) {
+    const [open, setOpen] = useState(true);
+    const total = task.blockers.length + task.blocking.length;
+
+    return (
+        <div className="overflow-hidden rounded-lg border border-border-subtle">
+            <button
+                onClick={() => setOpen(!open)}
+                className="flex w-full items-center justify-between bg-surface-secondary px-4 py-2.5"
+            >
+                <div className="flex items-center gap-2">
+                    <ChevronDown
+                        className={`h-3.5 w-3.5 text-text-subtle transition-transform ${open ? '' : '-rotate-90'}`}
+                    />
+                    <span className="text-sm font-semibold text-text-strong">Závislosti</span>
+                    {total > 0 && (
+                        <span
+                            className={`inline-flex h-5 min-w-5 items-center justify-center rounded-full px-1.5 text-xs font-bold ${
+                                task.blockers.length > 0
+                                    ? 'bg-status-danger-subtle text-status-danger'
+                                    : 'bg-border-subtle text-text-muted'
+                            }`}
+                        >
+                            {total}
+                        </span>
+                    )}
+                    {total === 0 && (
+                        <span className="text-xs text-text-subtle">Žádné závislosti</span>
+                    )}
+                </div>
+            </button>
+            {open && (
+                <div className="bg-surface-primary px-4 py-3">
+                    <DependenciesPanel project={project} task={task} projectTasks={projectTasks} />
+                </div>
             )}
         </div>
     );

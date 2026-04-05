@@ -1,4 +1,5 @@
 import EmptyState from '@/Components/EmptyState';
+import FilterSelect from '@/Components/FilterSelect';
 import SortableHeader, { PlainHeader } from '@/Components/SortableHeader';
 import StatusBadge from '@/Components/StatusBadge';
 import { APPROVAL_STATUS } from '@/constants/status';
@@ -63,18 +64,19 @@ export default function ApprovalsIndex({ project, approvalRequests, filters = {}
             </div>
 
             {/* Filter */}
-            <div className="mb-4 flex gap-3">
-                <select
+            <div className="mb-4 flex gap-2">
+                <FilterSelect
+                    label="Stav"
                     value={filters.status ?? ''}
-                    onChange={(e) => applyFilter('status', e.target.value)}
-                    className="h-8 rounded-md border border-border-default bg-surface-primary px-3 text-sm focus:border-brand-primary focus:outline-none focus:shadow-[0_0_0_2px_var(--color-brand-soft)]"
-                >
-                    <option value="">Všechny stavy</option>
-                    <option value="pending">Čeká na schválení</option>
-                    <option value="approved">Schváleno</option>
-                    <option value="rejected">Zamítnuto</option>
-                    <option value="cancelled">Zrušeno</option>
-                </select>
+                    onChange={(v) => applyFilter('status', v)}
+                    options={[
+                        { value: 'pending', label: 'Čeká na schválení' },
+                        { value: 'approved', label: 'Schváleno' },
+                        { value: 'rejected', label: 'Zamítnuto' },
+                        { value: 'cancelled', label: 'Zrušeno' },
+                    ]}
+                    placeholder="Všechny"
+                />
             </div>
 
             {/* Grid */}

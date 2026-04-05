@@ -1,6 +1,7 @@
 import AppLayout from '@/Layouts/AppLayout';
 import type { Breadcrumb } from '@/Layouts/AppLayout';
 import EmptyState from '@/Components/EmptyState';
+import FilterSelect from '@/Components/FilterSelect';
 import SortableHeader, { PlainHeader } from '@/Components/SortableHeader';
 import { useFilterRouter } from '@/hooks/useFilterRouter';
 import { getPriority } from '@/constants/priority';
@@ -115,43 +116,28 @@ export default function TaskTable({ project, tasks, filters, statuses, prioritie
             </div>
 
             {/* Filters */}
-            <div className="mb-5 flex flex-wrap gap-3">
-                <select
+            <div className="mb-5 flex flex-wrap gap-2">
+                <FilterSelect
+                    label="Stav"
                     value={filters.status ?? ''}
-                    onChange={(e) => applyFilter('status', e.target.value)}
-                    className="h-8 rounded-md border border-border-default bg-surface-primary px-3 text-sm focus:border-brand-primary focus:outline-none focus:shadow-[0_0_0_2px_var(--color-brand-soft)]"
-                >
-                    <option value="">Všechny stavy</option>
-                    {statuses.map((s) => (
-                        <option key={s.value} value={s.value}>
-                            {s.label}
-                        </option>
-                    ))}
-                </select>
-                <select
+                    onChange={(v) => applyFilter('status', v)}
+                    options={statuses}
+                    placeholder="Všechny"
+                />
+                <FilterSelect
+                    label="Priorita"
                     value={filters.priority ?? ''}
-                    onChange={(e) => applyFilter('priority', e.target.value)}
-                    className="h-8 rounded-md border border-border-default bg-surface-primary px-3 text-sm focus:border-brand-primary focus:outline-none focus:shadow-[0_0_0_2px_var(--color-brand-soft)]"
-                >
-                    <option value="">Všechny priority</option>
-                    {priorities.map((p) => (
-                        <option key={p.value} value={p.value}>
-                            {p.label}
-                        </option>
-                    ))}
-                </select>
-                <select
+                    onChange={(v) => applyFilter('priority', v)}
+                    options={priorities}
+                    placeholder="Všechny"
+                />
+                <FilterSelect
+                    label="Řešitel"
                     value={filters.assignee_id ?? ''}
-                    onChange={(e) => applyFilter('assignee_id', e.target.value)}
-                    className="h-8 rounded-md border border-border-default bg-surface-primary px-3 text-sm focus:border-brand-primary focus:outline-none focus:shadow-[0_0_0_2px_var(--color-brand-soft)]"
-                >
-                    <option value="">Všichni řešitelé</option>
-                    {members.map((m) => (
-                        <option key={m.id} value={m.id}>
-                            {m.name}
-                        </option>
-                    ))}
-                </select>
+                    onChange={(v) => applyFilter('assignee_id', v)}
+                    options={members.map((m) => ({ value: m.id, label: m.name }))}
+                    placeholder="Všichni"
+                />
             </div>
 
             {/* Bulk Actions */}

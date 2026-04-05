@@ -1,6 +1,7 @@
 import AppLayout from '@/Layouts/AppLayout';
 import type { Breadcrumb } from '@/Layouts/AppLayout';
 import Avatar from '@/Components/Avatar';
+import FilterSelect from '@/Components/FilterSelect';
 import StatusBadge from '@/Components/StatusBadge';
 import { COLUMN_COLORS } from '@/constants/status';
 import { getPriority } from '@/constants/priority';
@@ -201,41 +202,21 @@ export default function TaskBoard({
             </div>
 
             {/* Filter + controls bar */}
-            <div className="mb-4 flex flex-wrap items-center gap-3">
-                <div className="relative">
-                    <label className="absolute -top-2 left-2 z-10 bg-surface-primary px-1 text-[0.6rem] font-semibold uppercase tracking-wider text-text-subtle">
-                        Řešitel
-                    </label>
-                    <select
-                        value={filters.assignee_id ?? ''}
-                        onChange={(e) => applyFilter('assignee_id', e.target.value)}
-                        className="h-8 rounded-md border border-border-default bg-surface-primary px-3 pr-8 text-sm focus:border-brand-primary focus:outline-none focus:shadow-[0_0_0_2px_var(--color-brand-soft)]"
-                    >
-                        <option value="">Všichni</option>
-                        {members.map((m) => (
-                            <option key={m.id} value={m.id}>
-                                {m.name}
-                            </option>
-                        ))}
-                    </select>
-                </div>
-                <div className="relative">
-                    <label className="absolute -top-2 left-2 z-10 bg-surface-primary px-1 text-[0.6rem] font-semibold uppercase tracking-wider text-text-subtle">
-                        Epic
-                    </label>
-                    <select
-                        value={filters.epic_id ?? ''}
-                        onChange={(e) => applyFilter('epic_id', e.target.value)}
-                        className="h-8 rounded-md border border-border-default bg-surface-primary px-3 pr-8 text-sm focus:border-brand-primary focus:outline-none focus:shadow-[0_0_0_2px_var(--color-brand-soft)]"
-                    >
-                        <option value="">Všechny</option>
-                        {epics.map((ep) => (
-                            <option key={ep.id} value={ep.id}>
-                                {ep.title}
-                            </option>
-                        ))}
-                    </select>
-                </div>
+            <div className="mb-4 flex flex-wrap items-center gap-2">
+                <FilterSelect
+                    label="Řešitel"
+                    value={filters.assignee_id ?? ''}
+                    onChange={(v) => applyFilter('assignee_id', v)}
+                    options={members.map((m) => ({ value: m.id, label: m.name }))}
+                    placeholder="Všichni"
+                />
+                <FilterSelect
+                    label="Epic"
+                    value={filters.epic_id ?? ''}
+                    onChange={(v) => applyFilter('epic_id', v)}
+                    options={epics.map((e) => ({ value: e.id, label: e.title }))}
+                    placeholder="Všechny"
+                />
 
                 {/* Settings popover */}
                 <div ref={settingsRef} className="relative ml-auto">

@@ -144,9 +144,9 @@ class UserManagementTest extends TestCase
 
     public function test_user_list_supports_search_filter(): void
     {
-        $exec = User::factory()->executive()->create();
-        User::factory()->create(['name' => 'Jana Nováková']);
-        User::factory()->create(['name' => 'Petr Svoboda']);
+        $exec = User::factory()->executive()->create(['name' => 'Admin Exec', 'email' => 'admin-exec@test.cz']);
+        User::factory()->create(['name' => 'Jana Nováková', 'email' => 'jana@test.cz']);
+        User::factory()->create(['name' => 'Petr Svoboda', 'email' => 'petr@test.cz']);
 
         $response = $this->actingAs($exec)->get('/admin/users?search=Jana');
 

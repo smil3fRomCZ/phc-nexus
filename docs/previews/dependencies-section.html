@@ -1,0 +1,557 @@
+<!DOCTYPE html>
+<html lang="cs">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>PHC Nexus — Dependencies sekce — Preview</title>
+<style>
+  :root {
+    --raw-orange-500: #f5a623;
+    --raw-orange-600: #e09000;
+    --raw-navy-900: #172b4d;
+    --raw-slate-800: #42526e;
+    --raw-slate-700: #6b778c;
+    --raw-slate-600: #97a0af;
+    --raw-slate-500: #b3bac5;
+    --raw-slate-300: #dfe1e6;
+    --raw-slate-200: #ebecf0;
+    --raw-slate-100: #f4f5f7;
+    --raw-slate-050: #fafbfc;
+    --raw-white: #ffffff;
+    --raw-red-100: #ffebe6;
+    --raw-red-700: #bf2600;
+    --raw-yellow-100: #fff0b3;
+    --raw-yellow-700: #974f0c;
+
+    --color-brand-primary: var(--raw-orange-500);
+    --color-brand-soft: #fff8eb;
+    --color-text-strong: var(--raw-navy-900);
+    --color-text-default: var(--raw-slate-800);
+    --color-text-muted: var(--raw-slate-700);
+    --color-text-subtle: var(--raw-slate-600);
+    --color-surface-canvas: var(--raw-slate-100);
+    --color-surface-primary: var(--raw-white);
+    --color-surface-hover: var(--raw-slate-050);
+    --color-border-default: var(--raw-slate-300);
+    --color-border-subtle: var(--raw-slate-200);
+    --color-border-focus: var(--color-brand-primary);
+    --color-status-danger: var(--raw-red-700);
+    --color-status-danger-subtle: var(--raw-red-100);
+    --color-status-warning: var(--raw-yellow-700);
+    --color-status-warning-subtle: var(--raw-yellow-100);
+
+    font-family: "Inter", -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+    font-size: 14px;
+    color: var(--color-text-default);
+    background: var(--color-surface-canvas);
+  }
+
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+  body { padding: 2rem; max-width: 52rem; }
+
+  .section { margin-bottom: 3rem; }
+  .section-title {
+    font-size: 0.75rem;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.08em;
+    color: var(--color-text-subtle);
+    margin-bottom: 1rem;
+    padding-bottom: 0.5rem;
+    border-bottom: 1px solid var(--color-border-subtle);
+  }
+  .section-desc {
+    font-size: 0.8125rem;
+    color: var(--color-text-muted);
+    margin-bottom: 1.5rem;
+    line-height: 1.5;
+  }
+
+  /* Simulate task detail main column */
+  .task-main {
+    background: var(--color-surface-primary);
+    border: 1px solid var(--color-border-subtle);
+    border-radius: 0.5rem;
+    padding: 1.25rem;
+    margin-bottom: 1rem;
+  }
+  .task-title {
+    font-size: 1.25rem;
+    font-weight: 700;
+    color: var(--color-text-strong);
+    margin-bottom: 0.5rem;
+  }
+  .task-key {
+    color: var(--color-text-muted);
+    margin-right: 0.5rem;
+  }
+  .task-desc {
+    font-size: 0.875rem;
+    color: var(--color-text-default);
+    line-height: 1.6;
+    padding: 0.75rem 0;
+    border-bottom: 1px solid var(--color-border-subtle);
+  }
+  .task-meta {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 1.5rem;
+    padding-top: 0.75rem;
+    font-size: 0.75rem;
+    color: var(--color-text-muted);
+  }
+  .task-meta strong {
+    color: var(--color-text-default);
+  }
+
+  /* ─── CURRENT: Sidebar dependencies ─── */
+  .sidebar-mock {
+    width: 18rem;
+    background: var(--color-surface-primary);
+    border: 1px solid var(--color-border-subtle);
+    border-radius: 0.5rem;
+    padding: 1rem;
+  }
+  .sidebar-label {
+    font-size: 0.6875rem;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0.06em;
+    color: var(--color-text-subtle);
+    margin-bottom: 0.375rem;
+  }
+  .dep-item {
+    display: flex;
+    align-items: center;
+    gap: 0.375rem;
+    padding: 0.25rem 0;
+    font-size: 0.75rem;
+    color: var(--color-text-default);
+  }
+  .dep-icon {
+    width: 0.75rem;
+    height: 0.75rem;
+    flex-shrink: 0;
+    border-radius: 2px;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 0.5rem;
+    font-weight: 700;
+  }
+  .dep-icon.blocker { background: var(--color-status-danger-subtle); color: var(--color-status-danger); }
+  .dep-icon.blocking { background: var(--color-status-warning-subtle); color: var(--color-status-warning); }
+  .dep-link {
+    color: var(--color-text-default);
+    text-decoration: none;
+  }
+  .dep-link:hover {
+    color: var(--color-brand-primary);
+  }
+  .dep-remove {
+    margin-left: auto;
+    border: none;
+    background: none;
+    cursor: pointer;
+    padding: 0.25rem;
+    border-radius: 0.25rem;
+    color: var(--color-text-subtle);
+    font-size: 0.75rem;
+    line-height: 1;
+  }
+  .dep-remove:hover {
+    background: var(--color-status-danger-subtle);
+    color: var(--color-status-danger);
+  }
+  .dep-add-btn {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.25rem;
+    font-size: 0.75rem;
+    color: var(--color-text-muted);
+    border: none;
+    background: none;
+    cursor: pointer;
+    padding: 0.25rem 0;
+    margin-top: 0.25rem;
+  }
+  .dep-add-btn:hover { color: var(--color-brand-primary); }
+
+  /* ─── VARIANT A: Collapsible section after description ─── */
+  .deps-section {
+    margin-top: 1rem;
+    border: 1px solid var(--color-border-subtle);
+    border-radius: 0.5rem;
+    overflow: hidden;
+  }
+  .deps-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 0.625rem 0.875rem;
+    background: var(--color-surface-hover);
+    cursor: pointer;
+    user-select: none;
+  }
+  .deps-header-left {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+  }
+  .deps-header-title {
+    font-size: 0.8125rem;
+    font-weight: 600;
+    color: var(--color-text-strong);
+  }
+  .deps-count {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    min-width: 1.25rem;
+    height: 1.25rem;
+    border-radius: 999px;
+    background: var(--color-border-subtle);
+    font-size: 0.6875rem;
+    font-weight: 700;
+    color: var(--color-text-muted);
+  }
+  .deps-count.has-blockers {
+    background: var(--color-status-danger-subtle);
+    color: var(--color-status-danger);
+  }
+  .deps-body {
+    padding: 0.75rem 0.875rem;
+    background: var(--color-surface-primary);
+  }
+  .deps-group-label {
+    font-size: 0.6875rem;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0.06em;
+    color: var(--color-text-subtle);
+    margin-bottom: 0.375rem;
+    margin-top: 0.5rem;
+  }
+  .deps-group-label:first-child { margin-top: 0; }
+
+  .deps-item {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    padding: 0.375rem 0.5rem;
+    border-radius: 0.375rem;
+    transition: background 0.1s;
+  }
+  .deps-item:hover {
+    background: var(--color-surface-hover);
+  }
+  .deps-item-icon {
+    width: 1.125rem;
+    height: 1.125rem;
+    flex-shrink: 0;
+    border-radius: 0.25rem;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 0.5625rem;
+    font-weight: 700;
+  }
+  .deps-item-icon.blocker { background: var(--color-status-danger-subtle); color: var(--color-status-danger); }
+  .deps-item-icon.blocking { background: var(--color-status-warning-subtle); color: var(--color-status-warning); }
+  .deps-item-title {
+    flex: 1;
+    min-width: 0;
+    font-size: 0.8125rem;
+    color: var(--color-text-default);
+    text-decoration: none;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+  }
+  .deps-item-title:hover {
+    color: var(--color-brand-primary);
+  }
+  .deps-item-status {
+    font-size: 0.6875rem;
+    color: var(--color-text-subtle);
+    white-space: nowrap;
+  }
+  .deps-item-remove {
+    border: none;
+    background: none;
+    cursor: pointer;
+    padding: 0.25rem;
+    border-radius: 0.25rem;
+    color: var(--color-text-subtle);
+    font-size: 0.8125rem;
+    line-height: 1;
+  }
+  .deps-item-remove:hover {
+    background: var(--color-status-danger-subtle);
+    color: var(--color-status-danger);
+  }
+
+  .deps-add-row {
+    display: flex;
+    align-items: center;
+    gap: 0.375rem;
+    padding: 0.375rem 0;
+    margin-top: 0.25rem;
+  }
+  .deps-add-row select {
+    flex: 1;
+    height: 1.75rem;
+    border-radius: 0.25rem;
+    border: 1px solid var(--color-border-default);
+    background: var(--color-surface-primary);
+    padding: 0 0.5rem;
+    font-size: 0.75rem;
+    color: var(--color-text-default);
+  }
+  .deps-add-row button {
+    height: 1.75rem;
+    border-radius: 0.25rem;
+    border: none;
+    padding: 0 0.625rem;
+    font-size: 0.75rem;
+    font-weight: 600;
+    cursor: pointer;
+  }
+  .deps-add-row .btn-add {
+    background: var(--color-brand-primary);
+    color: white;
+  }
+  .deps-add-row .btn-cancel {
+    background: transparent;
+    color: var(--color-text-muted);
+    padding: 0 0.375rem;
+  }
+
+  .recommendation {
+    margin-top: 0.75rem;
+    padding: 0.75rem 1rem;
+    border-radius: 0.375rem;
+    background: #e3fcef;
+    border: 1px solid #b5e8c9;
+    font-size: 0.8125rem;
+    color: #006644;
+    line-height: 1.5;
+  }
+
+  .arrow {
+    font-size: 0.625rem;
+    color: var(--color-text-subtle);
+    transition: transform 0.15s;
+  }
+
+  /* ─── VARIANT B: Inline list (no collapse) ─── */
+  .deps-inline {
+    margin-top: 1rem;
+    padding-top: 1rem;
+    border-top: 1px solid var(--color-border-subtle);
+  }
+  .deps-inline-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    margin-bottom: 0.5rem;
+  }
+  .deps-inline-title {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    font-size: 0.8125rem;
+    font-weight: 600;
+    color: var(--color-text-strong);
+  }
+</style>
+</head>
+<body>
+
+<h1 style="font-size:1.375rem;font-weight:700;color:var(--color-text-strong);margin-bottom:0.5rem;">
+  Dependencies sekce — Preview
+</h1>
+<p style="font-size:0.8125rem;color:var(--color-text-muted);margin-bottom:2rem;">
+  Presun zavislosti ze sidebaru do main content — pod description.
+</p>
+
+<!-- ─── CURRENT STATE ─── -->
+<div class="section">
+  <div class="section-title">Aktualni stav — sidebar</div>
+  <div class="section-desc">
+    Zavislosti jsou v pravem sidebaru. Malo mista, male texty, tezke hledat.
+  </div>
+  <div style="display:flex;gap:1rem;">
+    <div style="flex:1;">
+      <div class="task-main">
+        <div class="task-title"><span class="task-key">PHC-42</span>Implementovat approval flow</div>
+        <div class="task-desc">Approval flow pro schvalovani ukolu vcetne vicekoloveho procesu...</div>
+        <div class="task-meta">
+          <span>Vytvoril/a <strong>Jan Melicherik</strong></span>
+          <span>Vytvoreno <strong>28.3.2026</strong></span>
+        </div>
+      </div>
+    </div>
+    <div class="sidebar-mock">
+      <div style="padding-bottom:0.75rem;margin-bottom:0.75rem;border-bottom:1px solid var(--color-border-subtle);">
+        <div class="sidebar-label">Stav</div>
+        <div style="font-size:0.8125rem;">In Progress</div>
+      </div>
+      <div style="padding-bottom:0.75rem;margin-bottom:0.75rem;border-bottom:1px solid var(--color-border-subtle);">
+        <div class="sidebar-label">Zavislosti</div>
+        <div style="font-size:0.6875rem;color:var(--color-text-subtle);margin-bottom:0.25rem;">Blokovano</div>
+        <div class="dep-item">
+          <span class="dep-icon blocker">B</span>
+          <a href="#" class="dep-link">Setup CI pipeline</a>
+          <button class="dep-remove">&times;</button>
+        </div>
+        <div class="dep-item">
+          <span class="dep-icon blocker">B</span>
+          <a href="#" class="dep-link">Design DB schema</a>
+          <button class="dep-remove">&times;</button>
+        </div>
+        <div style="font-size:0.6875rem;color:var(--color-text-subtle);margin:0.375rem 0 0.25rem;">Blokuje</div>
+        <div class="dep-item">
+          <span class="dep-icon blocking">!</span>
+          <a href="#" class="dep-link">Release v1.0</a>
+        </div>
+        <button class="dep-add-btn">+ Pridat blokaci</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ─── VARIANT A: Collapsible section ─── -->
+<div class="section">
+  <div class="section-title">Varianta A — Collapsible sekce (doporucena)</div>
+  <div class="section-desc">
+    Zavislosti jako sbalitelna sekce primo pod description. Vice mista, lepsi prehled, moznost zobrazit status blokovanych ukolu.
+  </div>
+
+  <div class="task-main">
+    <div class="task-title"><span class="task-key">PHC-42</span>Implementovat approval flow</div>
+    <div class="task-desc">Approval flow pro schvalovani ukolu vcetne vicekoloveho procesu...</div>
+    <div class="task-meta">
+      <span>Vytvoril/a <strong>Jan Melicherik</strong></span>
+      <span>Vytvoreno <strong>28.3.2026</strong></span>
+    </div>
+
+    <!-- Dependencies section -->
+    <div class="deps-section">
+      <div class="deps-header">
+        <div class="deps-header-left">
+          <span class="arrow">&#9660;</span>
+          <span class="deps-header-title">Zavislosti</span>
+          <span class="deps-count has-blockers">3</span>
+        </div>
+        <button class="dep-add-btn" style="margin:0;">+ Pridat</button>
+      </div>
+      <div class="deps-body">
+        <div class="deps-group-label">Blokovano (2)</div>
+        <div class="deps-item">
+          <span class="deps-item-icon blocker">&#8634;</span>
+          <a href="#" class="deps-item-title">Setup CI pipeline</a>
+          <span class="deps-item-status">In Progress</span>
+          <button class="deps-item-remove">&times;</button>
+        </div>
+        <div class="deps-item">
+          <span class="deps-item-icon blocker">&#8634;</span>
+          <a href="#" class="deps-item-title">Design DB schema pro approval modely</a>
+          <span class="deps-item-status">Done</span>
+          <button class="deps-item-remove">&times;</button>
+        </div>
+
+        <div class="deps-group-label">Blokuje (1)</div>
+        <div class="deps-item">
+          <span class="deps-item-icon blocking">!</span>
+          <a href="#" class="deps-item-title">Release v1.0</a>
+          <span class="deps-item-status">Backlog</span>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="recommendation">
+    <strong>Doporuceni:</strong> Varianta A — collapsible sekce dava vice prostoru pro zobrazeni stavu a nazvu zavislych ukolu.
+    Badge s poctem upozornuje na aktivni blokace. Sbalenym stavem neubereme misto pri beznem prohlizeni.
+  </div>
+</div>
+
+<!-- ─── VARIANT B: Inline list (non-collapsible) ─── -->
+<div class="section">
+  <div class="section-title">Varianta B — Inline list (bez kolapsu)</div>
+  <div class="section-desc">
+    Jednoduchy list primo pod description. Vzdy viditelny, bez interakce sbaleni. Jednodussi implementace.
+  </div>
+
+  <div class="task-main">
+    <div class="task-title"><span class="task-key">PHC-42</span>Implementovat approval flow</div>
+    <div class="task-desc">Approval flow pro schvalovani ukolu vcetne vicekoloveho procesu...</div>
+    <div class="task-meta">
+      <span>Vytvoril/a <strong>Jan Melicherik</strong></span>
+      <span>Vytvoreno <strong>28.3.2026</strong></span>
+    </div>
+
+    <div class="deps-inline">
+      <div class="deps-inline-header">
+        <div class="deps-inline-title">
+          Zavislosti
+          <span class="deps-count has-blockers">3</span>
+        </div>
+        <button class="dep-add-btn" style="margin:0;">+ Pridat blokaci</button>
+      </div>
+
+      <div style="margin-bottom:0.375rem;">
+        <div class="deps-group-label" style="margin-top:0;">Blokovano</div>
+        <div class="deps-item">
+          <span class="deps-item-icon blocker">&#8634;</span>
+          <a href="#" class="deps-item-title">Setup CI pipeline</a>
+          <span class="deps-item-status">In Progress</span>
+          <button class="deps-item-remove">&times;</button>
+        </div>
+        <div class="deps-item">
+          <span class="deps-item-icon blocker">&#8634;</span>
+          <a href="#" class="deps-item-title">Design DB schema pro approval modely</a>
+          <span class="deps-item-status">Done</span>
+          <button class="deps-item-remove">&times;</button>
+        </div>
+      </div>
+
+      <div>
+        <div class="deps-group-label">Blokuje</div>
+        <div class="deps-item">
+          <span class="deps-item-icon blocking">!</span>
+          <a href="#" class="deps-item-title">Release v1.0</a>
+          <span class="deps-item-status">Backlog</span>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ─── VARIANT: Empty state ─── -->
+<div class="section">
+  <div class="section-title">Empty state (pro obe varianty)</div>
+  <div class="section-desc">
+    Jak sekce vypada kdyz nejsou zadne zavislosti.
+  </div>
+
+  <div class="task-main">
+    <div class="task-title"><span class="task-key">PHC-55</span>Novy ukol bez zavislosti</div>
+    <div class="task-desc">Popis ukolu...</div>
+    <div class="task-meta">
+      <span>Vytvoril/a <strong>Jan Melicherik</strong></span>
+    </div>
+
+    <div class="deps-inline" style="display:flex;align-items:center;justify-content:space-between;">
+      <div class="deps-inline-title" style="display:flex;align-items:center;gap:0.5rem;">
+        <span style="font-size:0.8125rem;font-weight:600;color:var(--color-text-strong);">Zavislosti</span>
+        <span style="font-size:0.75rem;color:var(--color-text-subtle);">Zadne zavislosti</span>
+      </div>
+      <button class="dep-add-btn" style="margin:0;">+ Pridat blokaci</button>
+    </div>
+  </div>
+</div>
+
+</body>
+</html>

@@ -96,7 +96,7 @@ export default function CalendarIndex({ tasks, month }: Props) {
 
     const tasksByDate = new Map<string, Task[]>();
     for (const task of tasks) {
-        const date = task.due_date;
+        const date = task.due_date.slice(0, 10);
         if (!tasksByDate.has(date)) tasksByDate.set(date, []);
         tasksByDate.get(date)!.push(task);
     }

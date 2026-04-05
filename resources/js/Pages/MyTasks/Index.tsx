@@ -5,6 +5,7 @@ import EmptyState from '@/Components/EmptyState';
 import Pagination from '@/Components/Pagination';
 import type { PaginationLink } from '@/Components/Pagination';
 
+import FilterSelect from '@/Components/FilterSelect';
 import SortableHeader, { PlainHeader } from '@/Components/SortableHeader';
 import { useFilterRouter } from '@/hooks/useFilterRouter';
 import { getPriority } from '@/constants/priority';
@@ -65,31 +66,21 @@ export default function MyTasksIndex({ tasks, filters, statuses, priorities }: P
         <AppLayout title="Moje úkoly" breadcrumbs={BREADCRUMBS}>
             <div className="mb-6 flex flex-wrap items-center justify-between gap-3">
                 <h1 className="text-xl md:text-2xl font-bold leading-tight text-text-strong">Moje úkoly</h1>
-                <div className="flex flex-wrap gap-3">
-                    <select
+                <div className="flex flex-wrap gap-2">
+                    <FilterSelect
+                        label="Stav"
                         value={filters.status ?? ''}
-                        onChange={(e) => applyFilter('status', e.target.value)}
-                        className="rounded-md border border-border-default bg-surface-primary px-3 py-1.5 text-sm focus:border-border-focus focus:outline-none"
-                    >
-                        <option value="">Všechny stavy</option>
-                        {statuses.map((s) => (
-                            <option key={s.value} value={s.value}>
-                                {s.label}
-                            </option>
-                        ))}
-                    </select>
-                    <select
+                        onChange={(v) => applyFilter('status', v)}
+                        options={statuses}
+                        placeholder="Všechny"
+                    />
+                    <FilterSelect
+                        label="Priorita"
                         value={filters.priority ?? ''}
-                        onChange={(e) => applyFilter('priority', e.target.value)}
-                        className="rounded-md border border-border-default bg-surface-primary px-3 py-1.5 text-sm focus:border-border-focus focus:outline-none"
-                    >
-                        <option value="">Všechny priority</option>
-                        {priorities.map((p) => (
-                            <option key={p.value} value={p.value}>
-                                {p.label}
-                            </option>
-                        ))}
-                    </select>
+                        onChange={(v) => applyFilter('priority', v)}
+                        options={priorities}
+                        placeholder="Všechny"
+                    />
                 </div>
             </div>
 

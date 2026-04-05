@@ -123,6 +123,7 @@ button {
     --color-surface-hover: #f7f8fa;
     --color-surface-active: #e2e8f0;
     --color-surface-overlay: rgba(15, 23, 42, 0.5);
+    --color-surface-inverse: #172b4d;
 
     /* Borders */
     --color-border-subtle: #ebecf0;

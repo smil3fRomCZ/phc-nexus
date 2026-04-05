@@ -71,6 +71,7 @@ final class TaskController extends Controller
         ]);
 
         $validated['project_id'] = $project->id;
+        $validated['reporter_id'] ??= $request->user()->id;
         if ($epic) {
             $validated['epic_id'] = $epic->id;
         }

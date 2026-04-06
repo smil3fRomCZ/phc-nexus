@@ -23,6 +23,7 @@ import {
     PanelLeftClose,
     PanelLeftOpen,
 } from 'lucide-react';
+import Avatar from '@/Components/Avatar';
 import GlobalSearch from '@/Components/GlobalSearch';
 import useNotificationCount from '@/hooks/useNotificationCount';
 
@@ -70,14 +71,6 @@ const NAV_SECTIONS = [
     },
 ];
 
-function getInitials(name: string): string {
-    return name
-        .split(' ')
-        .map((w) => w[0])
-        .join('')
-        .toUpperCase()
-        .slice(0, 2);
-}
 
 /* ── Component ── */
 
@@ -268,6 +261,12 @@ export default function AppLayout({ title, breadcrumbs, children }: AppLayoutPro
     );
 }
 
+function getAvatarSrc(user: User): string | null {
+    if (user.avatar_path) return `/storage/${user.avatar_path}`;
+    if (user.avatar_url) return user.avatar_url;
+    return null;
+}
+
 function UserMenu({ user }: { user: User }) {
     const [open, setOpen] = useState(false);
     const ref = useClickOutside(() => setOpen(false));
@@ -286,9 +285,7 @@ function UserMenu({ user }: { user: User }) {
                 onClick={() => setOpen(!open)}
                 className="flex items-center gap-2 rounded-md px-1 py-1 transition-colors hover:bg-surface-hover"
             >
-                <div className="flex h-7 w-7 items-center justify-center rounded-full bg-brand-primary text-xs font-semibold text-text-inverse">
-                    {getInitials(user.name)}
-                </div>
+                <Avatar name={user.name} size="md" avatarUrl={getAvatarSrc(user)} />
                 <span className="hidden text-sm font-medium text-text-default sm:inline">{user.name}</span>
             </button>
 

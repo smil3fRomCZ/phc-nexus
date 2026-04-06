@@ -1,6 +1,6 @@
 import EmptyState from '@/Components/EmptyState';
 import Pagination from '@/Components/Pagination';
-import { Bell } from 'lucide-react';
+import { Bell, ShieldCheck, Vote, ClipboardList, RefreshCw, type LucideIcon } from 'lucide-react';
 import type { PaginationLink } from '@/Components/Pagination';
 import AppLayout from '@/Layouts/AppLayout';
 import type { Breadcrumb } from '@/Layouts/AppLayout';
@@ -28,11 +28,11 @@ interface Props {
 
 const BREADCRUMBS: Breadcrumb[] = [{ label: 'Domů', href: '/' }, { label: 'Notifikace' }];
 
-const typeIcons: Record<string, string> = {
-    approval_requested: '\u2705',
-    approval_vote_cast: '\u{1F5F3}',
-    task_assigned: '\u{1F4CB}',
-    task_status_changed: '\u{1F504}',
+const typeIcons: Record<string, LucideIcon> = {
+    approval_requested: ShieldCheck,
+    approval_vote_cast: Vote,
+    task_assigned: ClipboardList,
+    task_status_changed: RefreshCw,
 };
 
 function getNotificationHref(data: NotificationData): string | null {
@@ -100,7 +100,10 @@ export default function NotificationsIndex({ notifications, unreadCount }: Props
 
                         const content = (
                             <>
-                                <span className="mt-0.5 text-lg">{typeIcons[n.data.type] ?? '\u{1F514}'}</span>
+                                {(() => {
+                                    const Icon = typeIcons[n.data.type] ?? Bell;
+                                    return <Icon className="mt-0.5 h-5 w-5 flex-shrink-0 text-text-muted" />;
+                                })()}
                                 <div className="flex-1">
                                     <p className="text-sm font-medium text-text-strong">{n.data.title}</p>
                                     <p className="text-sm text-text-muted">{n.data.body}</p>

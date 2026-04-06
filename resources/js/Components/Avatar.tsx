@@ -1,3 +1,5 @@
+import { useState } from 'react';
+
 const COLORS = ['bg-brand-primary', 'bg-[#5243aa]', 'bg-[#0747a6]', 'bg-[#006644]', 'bg-[#974f0c]'];
 
 function getInitials(name: string): string {
@@ -31,10 +33,18 @@ const SIZE_MAP = {
 } as const;
 
 export default function Avatar({ name, size = 'sm', avatarUrl }: AvatarProps) {
+    const [imgError, setImgError] = useState(false);
     const sizeClasses = SIZE_MAP[size];
 
-    if (avatarUrl) {
-        return <img src={avatarUrl} alt={name} className={`flex-shrink-0 rounded-full object-cover ${sizeClasses}`} />;
+    if (avatarUrl && !imgError) {
+        return (
+            <img
+                src={avatarUrl}
+                alt={name}
+                className={`flex-shrink-0 rounded-full object-cover ${sizeClasses}`}
+                onError={() => setImgError(true)}
+            />
+        );
     }
 
     return (

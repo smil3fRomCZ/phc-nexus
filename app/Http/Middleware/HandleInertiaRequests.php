@@ -22,6 +22,8 @@ final class HandleInertiaRequests extends Middleware
                     'email' => $request->user()->email,
                     /** @phpstan-ignore-next-line */
                     'system_role' => $request->user()->system_role->value,
+                    'avatar_url' => $request->user()->avatar_url,
+                    'avatar_path' => $request->user()->avatar_path,
                 ] : null,
             ],
             'flash' => [

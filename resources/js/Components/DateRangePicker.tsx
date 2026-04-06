@@ -17,22 +17,26 @@ export default function DateRangePicker({
 }: DateRangePickerProps) {
     return (
         <div className="flex items-center gap-2">
-            <label className="text-xs text-text-muted">{labelFrom}</label>
-            <input
-                type="date"
-                value={from}
-                onChange={(e) => onFromChange(e.target.value)}
-                max={to || undefined}
-                className="rounded-md border border-border-default bg-surface-primary px-2.5 py-1.5 text-sm focus:border-border-focus focus:outline-none"
-            />
-            <label className="text-xs text-text-muted">{labelTo}</label>
-            <input
-                type="date"
-                value={to}
-                onChange={(e) => onToChange(e.target.value)}
-                min={from || undefined}
-                className="rounded-md border border-border-default bg-surface-primary px-2.5 py-1.5 text-sm focus:border-border-focus focus:outline-none"
-            />
+            <div className="inline-flex items-center gap-1.5 rounded-md border border-border-default bg-surface-primary transition-colors hover:border-text-subtle focus-within:border-border-focus focus-within:shadow-[0_0_0_2px_var(--color-brand-soft)]">
+                <span className="pl-2.5 text-[0.6875rem] font-semibold text-text-subtle">{labelFrom}:</span>
+                <input
+                    type="date"
+                    value={from}
+                    onChange={(e) => onFromChange(e.target.value)}
+                    max={to || undefined}
+                    className="h-8 cursor-pointer border-none bg-transparent pr-2 pl-0 text-sm text-text-default outline-none"
+                />
+            </div>
+            <div className="inline-flex items-center gap-1.5 rounded-md border border-border-default bg-surface-primary transition-colors hover:border-text-subtle focus-within:border-border-focus focus-within:shadow-[0_0_0_2px_var(--color-brand-soft)]">
+                <span className="pl-2.5 text-[0.6875rem] font-semibold text-text-subtle">{labelTo}:</span>
+                <input
+                    type="date"
+                    value={to}
+                    onChange={(e) => onToChange(e.target.value)}
+                    min={from || undefined}
+                    className="h-8 cursor-pointer border-none bg-transparent pr-2 pl-0 text-sm text-text-default outline-none"
+                />
+            </div>
         </div>
     );
 }

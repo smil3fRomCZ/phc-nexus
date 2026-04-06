@@ -71,7 +71,6 @@ const NAV_SECTIONS = [
     },
 ];
 
-
 /* ── Component ── */
 
 export default function AppLayout({ title, breadcrumbs, children }: AppLayoutProps) {

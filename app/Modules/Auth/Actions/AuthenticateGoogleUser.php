@@ -20,6 +20,7 @@ final class AuthenticateGoogleUser
         $attributes = [
             'name' => $socialiteUser->getName(),
             'email_verified_at' => now(),
+            'avatar_url' => $socialiteUser->getAvatar(),
         ];
 
         if ($invitation) {

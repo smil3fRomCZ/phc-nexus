@@ -31,6 +31,23 @@ export const APPROVAL_STATUS: Record<string, StatusConfig> = {
     cancelled: { label: 'Zrušeno', className: 'bg-status-neutral-subtle text-text-muted' },
 };
 
+// ── User statuses ──
+
+export const USER_STATUS: Record<string, StatusConfig> = {
+    active: { label: 'Aktivní', className: 'bg-status-info-subtle text-status-info' },
+    invited: { label: 'Pozvaný', className: 'bg-status-warning-subtle text-status-warning' },
+    deactivated: { label: 'Deaktivovaný', className: 'bg-status-neutral-subtle text-status-neutral' },
+};
+
+// ── Priority statuses ──
+
+export const PRIORITY_STATUS: Record<string, StatusConfig> = {
+    low: { label: 'Low', className: 'bg-status-neutral-subtle text-status-neutral' },
+    medium: { label: 'Medium', className: 'bg-status-info-subtle text-status-info' },
+    high: { label: 'High', className: 'bg-status-warning-subtle text-status-warning' },
+    urgent: { label: 'Urgent', className: 'bg-status-danger-subtle text-status-danger' },
+};
+
 // ── Kanban column colors ──
 
 export const COLUMN_COLORS: Record<string, string> = {

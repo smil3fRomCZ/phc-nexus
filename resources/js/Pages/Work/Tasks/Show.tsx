@@ -1,6 +1,7 @@
 import AppLayout from '@/Layouts/AppLayout';
 import type { Breadcrumb } from '@/Layouts/AppLayout';
 import Avatar from '@/Components/Avatar';
+import Button from '@/Components/Button';
 import StatusBadge from '@/Components/StatusBadge';
 import ActivityTimeline from '@/Components/ActivityTimeline';
 import type { ActivityEntry } from '@/Components/ActivityTimeline';
@@ -314,6 +315,7 @@ export default function TaskShow({
                                 timeEntries={timeEntries}
                                 totalHours={totalHours}
                                 postUrl={`/projects/${project.id}/tasks/${task.id}/time-entries`}
+                                exportUrl={`/projects/${project.id}/tasks/${task.id}/export/time`}
                                 currentUserId={auth.user?.id}
                             />
                         </div>
@@ -338,13 +340,14 @@ export default function TaskShow({
                                 {allowedTransitions.length > 0 && !hasPendingApproval && (
                                     <div className="mt-2 flex flex-wrap gap-1">
                                         {allowedTransitions.map((t) => (
-                                            <button
+                                            <Button
                                                 key={t.value}
+                                                variant="secondary"
+                                                size="sm"
                                                 onClick={() => handleStatusChange(t.value)}
-                                                className="rounded border border-border-default px-3 py-1.5 text-xs text-text-muted transition-colors hover:bg-surface-hover hover:text-text-default"
                                             >
                                                 &rarr; {t.label}
-                                            </button>
+                                            </Button>
                                         ))}
                                     </div>
                                 )}

@@ -1,6 +1,9 @@
 import AppLayout from '@/Layouts/AppLayout';
 import type { Breadcrumb } from '@/Layouts/AppLayout';
 import Avatar from '@/Components/Avatar';
+import Button from '@/Components/Button';
+import FormTextarea from '@/Components/FormTextarea';
+import Popover, { PopoverItem } from '@/Components/Popover';
 import StatusBadge from '@/Components/StatusBadge';
 
 import CommentsSection from '@/Components/CommentsSection';
@@ -28,7 +31,6 @@ import ConfirmModal from '@/Components/ConfirmModal';
 import ActionIconButton from '@/Components/ActionIconButton';
 import Modal from '@/Components/Modal';
 import ProjectTabs from '@/Components/ProjectTabs';
-import { useClickOutside } from '@/hooks/useClickOutside';
 import { useState } from 'react';
 
 interface Project {
@@ -402,43 +404,41 @@ const EXPORT_FORMATS = [
 
 function ExportDropdown({ projectId }: { projectId: string }) {
     const [open, setOpen] = useState(false);
-    const ref = useClickOutside(() => setOpen(false));
 
     return (
-        <div ref={ref} className="relative">
-            <button
+        <div className="relative">
+            <Button
+                variant="secondary"
+                size="sm"
+                icon={<FileDown className="h-3.5 w-3.5" />}
                 onClick={() => setOpen(!open)}
-                className="flex items-center gap-1.5 rounded-md border border-border-default px-4 py-2 text-sm font-medium text-text-default transition-colors hover:bg-surface-hover"
             >
-                <FileDown className="h-3.5 w-3.5" />
                 Export
                 <ChevronDown className="h-3 w-3" />
-            </button>
+            </Button>
 
-            {open && (
-                <div className="absolute right-0 z-20 mt-1 w-48 rounded-lg border border-border-subtle bg-surface-primary py-1 shadow-lg">
-                    <div className="px-3 py-1.5 text-xs font-semibold uppercase text-text-subtle">Úkoly</div>
-                    {EXPORT_FORMATS.map((f) => (
-                        <a
-                            key={`tasks-${f.value}`}
-                            href={`/projects/${projectId}/export/tasks?format=${f.value}`}
-                            onClick={() => setOpen(false)}
-                            className="block px-3 py-1.5 text-sm text-text-default no-underline hover:bg-surface-hover"
-                        >
-                            {f.label}
-                        </a>
-                    ))}
-                    <div className="my-1 border-t border-border-subtle" />
-                    <div className="px-3 py-1.5 text-xs font-semibold uppercase text-text-subtle">Souhrn</div>
+            <Popover open={open} onClose={() => setOpen(false)} className="w-48 py-1">
+                <div className="px-3 py-1.5 text-xs font-semibold uppercase text-text-subtle">Úkoly</div>
+                {EXPORT_FORMATS.map((f) => (
                     <a
-                        href={`/projects/${projectId}/export/summary`}
+                        key={`tasks-${f.value}`}
+                        href={`/projects/${projectId}/export/tasks?format=${f.value}`}
                         onClick={() => setOpen(false)}
                         className="block px-3 py-1.5 text-sm text-text-default no-underline hover:bg-surface-hover"
                     >
-                        CSV
+                        {f.label}
                     </a>
-                </div>
-            )}
+                ))}
+                <div className="my-1 border-t border-border-subtle" />
+                <div className="px-3 py-1.5 text-xs font-semibold uppercase text-text-subtle">Souhrn</div>
+                <a
+                    href={`/projects/${projectId}/export/summary`}
+                    onClick={() => setOpen(false)}
+                    className="block px-3 py-1.5 text-sm text-text-default no-underline hover:bg-surface-hover"
+                >
+                    CSV
+                </a>
+            </Popover>
         </div>
     );
 }
@@ -510,23 +510,16 @@ function StatusUpdateForm({ projectId }: { projectId: string }) {
 
     return (
         <>
-            <button
-                onClick={() => setOpen(true)}
-                className="flex items-center gap-1.5 rounded-md border border-border-default px-3 py-2 text-sm font-medium text-text-default transition-colors hover:bg-surface-hover"
-            >
-                <Info className="h-3.5 w-3.5" />
+            <Button variant="secondary" icon={<Info className="h-3.5 w-3.5" />} onClick={() => setOpen(true)}>
                 Update
-            </button>
+            </Button>
 
             <Modal open={open} onClose={() => setOpen(false)} size="max-w-lg" showClose={false}>
                 <div className="mb-4 flex items-center justify-between">
                     <h2 className="text-lg font-semibold text-text-strong">Status update</h2>
-                    <button
-                        onClick={() => setOpen(false)}
-                        className="rounded p-2 text-text-muted hover:bg-surface-hover"
-                    >
+                    <Button variant="ghost" size="sm" onClick={() => setOpen(false)}>
                         <X className="h-4 w-4" />
-                    </button>
+                    </Button>
                 </div>
                 <div className="space-y-4">
                     <div>
@@ -549,32 +542,21 @@ function StatusUpdateForm({ projectId }: { projectId: string }) {
                             ))}
                         </div>
                     </div>
-                    <div>
-                        <label className="mb-1.5 block text-xs font-semibold uppercase tracking-wider text-text-subtle">
-                            Zpráva
-                        </label>
-                        <textarea
-                            value={body}
-                            onChange={(e) => setBody(e.target.value)}
-                            rows={3}
-                            placeholder="Co se změnilo od posledního updatu..."
-                            className="w-full rounded-md border border-border-default bg-surface-primary px-3 py-2 text-sm focus:border-brand-primary focus:outline-none"
-                        />
-                    </div>
+                    <FormTextarea
+                        id="status-body"
+                        label="Zpráva"
+                        value={body}
+                        onChange={(e) => setBody(e.target.value)}
+                        rows={3}
+                        placeholder="Co se změnilo od posledního updatu..."
+                    />
                     <div className="flex justify-end gap-3 pt-2">
-                        <button
-                            onClick={() => setOpen(false)}
-                            className="rounded-md border border-border-default px-4 py-2 text-sm font-medium text-text-muted hover:bg-surface-hover"
-                        >
+                        <Button variant="secondary" onClick={() => setOpen(false)}>
                             Zrušit
-                        </button>
-                        <button
-                            onClick={submit}
-                            disabled={processing || !body.trim()}
-                            className="rounded-md bg-brand-primary px-4 py-2 text-sm font-medium text-text-inverse hover:bg-brand-hover disabled:opacity-50"
-                        >
+                        </Button>
+                        <Button onClick={submit} disabled={processing || !body.trim()} loading={processing}>
                             Přidat update
-                        </button>
+                        </Button>
                     </div>
                 </div>
             </Modal>
@@ -584,44 +566,38 @@ function StatusUpdateForm({ projectId }: { projectId: string }) {
 
 function ProjectOptionsMenu({ projectId, onDelete }: { projectId: string; onDelete: () => void }) {
     const [open, setOpen] = useState(false);
-    const ref = useClickOutside(() => setOpen(false));
 
     return (
-        <div ref={ref} className="relative sm:hidden">
-            <button
-                onClick={() => setOpen(!open)}
-                className="rounded-md border border-border-default px-2.5 py-2 text-text-muted transition-colors hover:bg-surface-hover"
-            >
+        <div className="relative sm:hidden">
+            <Button variant="secondary" size="sm" onClick={() => setOpen(!open)}>
                 <MoreVertical className="h-4 w-4" />
-            </button>
-            {open && (
-                <div className="absolute right-0 top-full z-20 mt-1 w-44 rounded-lg border border-border-subtle bg-surface-primary py-1 shadow-xl">
-                    <Link
-                        href={`/projects/${projectId}/edit`}
-                        className="flex w-full items-center gap-2 px-4 py-2 text-sm text-text-default no-underline hover:bg-surface-hover"
-                    >
-                        <Pencil className="h-3.5 w-3.5" />
-                        Upravit
-                    </Link>
-                    <a
-                        href={`/projects/${projectId}/export/tasks?format=csv`}
-                        className="flex w-full items-center gap-2 px-4 py-2 text-sm text-text-default no-underline hover:bg-surface-hover"
-                    >
-                        <FileDown className="h-3.5 w-3.5" />
-                        Export CSV
-                    </a>
-                    <button
-                        onClick={() => {
-                            setOpen(false);
-                            onDelete();
-                        }}
-                        className="flex w-full items-center gap-2 px-4 py-2 text-sm text-status-danger hover:bg-status-danger-subtle"
-                    >
-                        <Trash2 className="h-3.5 w-3.5" />
-                        Smazat
-                    </button>
-                </div>
-            )}
+            </Button>
+            <Popover open={open} onClose={() => setOpen(false)} className="w-44 py-1">
+                <Link
+                    href={`/projects/${projectId}/edit`}
+                    className="flex w-full items-center gap-2 px-4 py-2 text-sm text-text-default no-underline hover:bg-surface-hover"
+                >
+                    <Pencil className="h-3.5 w-3.5" />
+                    Upravit
+                </Link>
+                <a
+                    href={`/projects/${projectId}/export/tasks?format=csv`}
+                    className="flex w-full items-center gap-2 px-4 py-2 text-sm text-text-default no-underline hover:bg-surface-hover"
+                >
+                    <FileDown className="h-3.5 w-3.5" />
+                    Export CSV
+                </a>
+                <PopoverItem
+                    variant="danger"
+                    onClick={() => {
+                        setOpen(false);
+                        onDelete();
+                    }}
+                >
+                    <Trash2 className="h-3.5 w-3.5" />
+                    Smazat
+                </PopoverItem>
+            </Popover>
         </div>
     );
 }

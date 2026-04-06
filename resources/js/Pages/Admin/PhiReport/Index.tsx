@@ -1,6 +1,9 @@
 import AppLayout from '@/Layouts/AppLayout';
 import type { Breadcrumb } from '@/Layouts/AppLayout';
+import DateRangePicker from '@/Components/DateRangePicker';
 import EmptyState from '@/Components/EmptyState';
+import FilterBar from '@/Components/FilterBar';
+import FilterSelect from '@/Components/FilterSelect';
 import SortableHeader, { PlainHeader } from '@/Components/SortableHeader';
 import { useFilterRouter } from '@/hooks/useFilterRouter';
 import { useClientSort } from '@/hooks/useSortable';
@@ -69,32 +72,21 @@ export default function PhiReportIndex({ entries, filters, actors }: Props) {
             </div>
 
             {/* Filters */}
-            <div className="mb-6 flex flex-wrap gap-3">
-                <select
+            <FilterBar>
+                <FilterSelect
+                    label="Uživatel"
                     value={filters.actor_id ?? ''}
-                    onChange={(e) => applyFilter('actor_id', e.target.value)}
-                    className="rounded-md border border-border-default bg-surface-primary px-3 py-1.5 text-sm focus:border-border-focus focus:outline-none"
-                >
-                    <option value="">Všichni uživatelé</option>
-                    {actors.map((a) => (
-                        <option key={a.id} value={a.id}>
-                            {a.name}
-                        </option>
-                    ))}
-                </select>
-                <input
-                    type="date"
-                    value={filters.from ?? ''}
-                    onChange={(e) => applyFilter('from', e.target.value)}
-                    className="rounded-md border border-border-default bg-surface-primary px-3 py-1.5 text-sm focus:border-border-focus focus:outline-none"
+                    onChange={(v) => applyFilter('actor_id', v)}
+                    options={actors.map((a) => ({ value: a.id, label: a.name }))}
+                    placeholder="Všichni"
                 />
-                <input
-                    type="date"
-                    value={filters.to ?? ''}
-                    onChange={(e) => applyFilter('to', e.target.value)}
-                    className="rounded-md border border-border-default bg-surface-primary px-3 py-1.5 text-sm focus:border-border-focus focus:outline-none"
+                <DateRangePicker
+                    from={filters.from ?? ''}
+                    to={filters.to ?? ''}
+                    onFromChange={(v) => applyFilter('from', v)}
+                    onToChange={(v) => applyFilter('to', v)}
                 />
-            </div>
+            </FilterBar>
 
             {/* Table */}
             <div className="overflow-x-auto rounded-lg border border-border-subtle bg-surface-primary">

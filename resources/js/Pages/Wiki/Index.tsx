@@ -1,5 +1,7 @@
 import AppLayout from '@/Layouts/AppLayout';
 import type { Breadcrumb } from '@/Layouts/AppLayout';
+import Button from '@/Components/Button';
+import FormInput from '@/Components/FormInput';
 import ProjectHeaderCompact from '@/Components/ProjectHeaderCompact';
 import ProjectTabs from '@/Components/ProjectTabs';
 import { Link, useForm } from '@inertiajs/react';
@@ -51,41 +53,32 @@ export default function WikiIndex({ project, pages }: Props) {
                 <ProjectTabs projectId={project.id} active="wiki" />
             </div>
 
-            <div className="flex items-center justify-between mb-4">
+            <div className="mb-4 flex items-center justify-between">
                 <h2 className="text-lg font-semibold text-text-strong">Dokumentace</h2>
-                <button
+                <Button
+                    icon={<Plus className="h-3.5 w-3.5" strokeWidth={2.5} />}
                     onClick={() => setCreating(!creating)}
-                    className="inline-flex items-center gap-2 rounded-md bg-brand-primary px-4 py-1.5 text-sm font-semibold text-text-inverse transition-colors hover:bg-brand-hover"
                 >
-                    <Plus className="h-3.5 w-3.5" strokeWidth={2.5} />
                     Nová stránka
-                </button>
+                </Button>
             </div>
 
             {creating && (
-                <form onSubmit={submit} className="mb-4 flex gap-2">
-                    <input
-                        type="text"
+                <form onSubmit={submit} className="mb-4 flex items-end gap-2">
+                    <FormInput
+                        id="wiki-title"
                         value={data.title}
                         onChange={(e) => setData('title', e.target.value)}
                         placeholder="Název stránky..."
                         autoFocus
-                        className="flex-1 rounded-md border border-border-default bg-surface-primary px-3 py-2 text-sm focus:border-border-focus focus:outline-none focus:shadow-[0_0_0_2px_var(--color-brand-soft)]"
+                        wrapperClassName="flex-1"
                     />
-                    <button
-                        type="submit"
-                        disabled={processing || !data.title}
-                        className="rounded-md bg-brand-primary px-4 py-2 text-xs font-semibold text-text-inverse transition-colors hover:bg-brand-hover disabled:opacity-50"
-                    >
+                    <Button type="submit" disabled={processing || !data.title} loading={processing}>
                         Vytvořit
-                    </button>
-                    <button
-                        type="button"
-                        onClick={() => setCreating(false)}
-                        className="rounded-md border border-border-default px-4 py-2 text-xs font-medium text-text-muted hover:bg-surface-hover"
-                    >
+                    </Button>
+                    <Button variant="secondary" type="button" onClick={() => setCreating(false)}>
                         Zrušit
-                    </button>
+                    </Button>
                 </form>
             )}
 

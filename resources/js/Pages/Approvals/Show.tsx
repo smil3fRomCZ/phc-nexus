@@ -1,3 +1,5 @@
+import Button from '@/Components/Button';
+import FormTextarea from '@/Components/FormTextarea';
 import { MetadataGrid, MetadataField } from '@/Components/MetadataGrid';
 import StatusBadge from '@/Components/StatusBadge';
 import { APPROVAL_STATUS } from '@/constants/status';
@@ -143,28 +145,31 @@ export default function ApprovalShow({ project, approvalRequest: req, auth }: Pr
                 {canVote && (
                     <div className="rounded-lg border-2 border-brand-primary bg-surface-secondary p-5">
                         <h3 className="mb-3 text-sm font-semibold text-text-strong">Vaše rozhodnutí</h3>
-                        <textarea
+                        <FormTextarea
+                            id="vote-comment"
                             value={comment}
                             onChange={(e) => setComment(e.target.value)}
                             placeholder="Komentář (nepovinný)..."
-                            className="mb-3 w-full rounded-md border border-border-default bg-surface-primary px-3 py-2 text-base focus:border-border-focus focus:outline-none focus:shadow-[0_0_0_2px_var(--color-brand-soft)]"
                             rows={2}
+                            wrapperClassName="mb-3"
                         />
                         <div className="flex gap-2">
-                            <button
+                            <Button
                                 onClick={() => submitVote('approved')}
                                 disabled={submitting}
-                                className="rounded-md bg-[#006644] px-5 py-2 text-sm font-medium text-white transition-opacity hover:opacity-90 disabled:opacity-50"
+                                loading={submitting}
+                                className="bg-status-success text-text-inverse hover:opacity-90"
                             >
                                 Schválit
-                            </button>
-                            <button
+                            </Button>
+                            <Button
+                                variant="danger"
                                 onClick={() => submitVote('rejected')}
                                 disabled={submitting}
-                                className="rounded-md bg-[#bf2600] px-5 py-2 text-sm font-medium text-white transition-opacity hover:opacity-90 disabled:opacity-50"
+                                className="bg-status-danger border-0 text-text-inverse hover:opacity-90"
                             >
                                 Zamítnout
-                            </button>
+                            </Button>
                         </div>
                     </div>
                 )}
@@ -172,9 +177,9 @@ export default function ApprovalShow({ project, approvalRequest: req, auth }: Pr
                 {/* Cancel */}
                 {isRequester && req.status === 'pending' && (
                     <div className="mt-4">
-                        <button onClick={cancelRequest} className="text-sm text-status-danger hover:underline">
+                        <Button variant="ghost" size="sm" onClick={cancelRequest} className="text-status-danger">
                             Zrušit žádost
-                        </button>
+                        </Button>
                     </div>
                 )}
             </div>

@@ -2,7 +2,12 @@ import AppLayout from '@/Layouts/AppLayout';
 import type { Breadcrumb } from '@/Layouts/AppLayout';
 import BoardCard from '@/Components/BoardCard';
 import type { BoardTask } from '@/Components/BoardCard';
+import Button from '@/Components/Button';
 import FilterSelect from '@/Components/FilterSelect';
+import FormInput from '@/Components/FormInput';
+import FormSelect from '@/Components/FormSelect';
+import FormTextarea from '@/Components/FormTextarea';
+import Popover from '@/Components/Popover';
 import { COLUMN_COLORS } from '@/constants/status';
 import { Link, router, useForm } from '@inertiajs/react';
 import { Plus, Settings2, X } from 'lucide-react';
@@ -10,7 +15,6 @@ import ProjectHeaderCompact from '@/Components/ProjectHeaderCompact';
 import ProjectTabs from '@/Components/ProjectTabs';
 import ConfirmModal from '@/Components/ConfirmModal';
 import Modal from '@/Components/Modal';
-import { useClickOutside } from '@/hooks/useClickOutside';
 import { useFilterRouter } from '@/hooks/useFilterRouter';
 import { useState, type DragEvent } from 'react';
 
@@ -77,7 +81,6 @@ export default function TaskBoard({
     const [cardFields, setCardFields] = useState<string[]>(
         boardSettings?.card_fields ?? ['priority', 'assignee', 'comments_count'],
     );
-    const settingsRef = useClickOutside(() => setSettingsOpen(false));
 
     const breadcrumbs: Breadcrumb[] = [
         { label: 'Domů', href: '/' },
@@ -189,55 +192,50 @@ export default function TaskBoard({
                 />
 
                 {/* Settings popover */}
-                <div ref={settingsRef} className="relative ml-auto">
-                    <button
+                <div className="relative ml-auto">
+                    <Button
+                        variant="secondary"
+                        size="sm"
+                        icon={<Settings2 className="h-3.5 w-3.5" />}
                         onClick={() => setSettingsOpen(!settingsOpen)}
-                        className="inline-flex items-center gap-1.5 rounded-md border border-border-default bg-surface-primary px-3 py-1.5 text-sm text-text-muted transition-colors hover:bg-surface-hover"
                     >
-                        <Settings2 className="h-3.5 w-3.5" />
                         Nastavení
-                    </button>
-                    {settingsOpen && (
-                        <div className="absolute right-0 z-20 mt-1 w-56 rounded-lg border border-border-subtle bg-surface-primary p-3 shadow-lg">
-                            <div className="mb-2 text-xs font-semibold uppercase tracking-wider text-text-subtle">
-                                Viditelná pole na kartě
-                            </div>
-                            {CARD_FIELD_OPTIONS.map((opt) => (
-                                <label
-                                    key={opt.value}
-                                    className="flex cursor-pointer items-center gap-2 rounded px-1 py-1 text-sm text-text-default hover:bg-surface-hover"
-                                >
-                                    <input
-                                        type="checkbox"
-                                        checked={cardFields.includes(opt.value)}
-                                        onChange={() => toggleCardField(opt.value)}
-                                        className="accent-brand-primary"
-                                    />
-                                    {opt.label}
-                                </label>
-                            ))}
-                            {canManageColumns && (
-                                <>
-                                    <div className="my-2 border-t border-border-subtle" />
-                                    <Link
-                                        href={`/projects/${project.id}/workflow`}
-                                        className="flex items-center gap-2 rounded px-1 py-1.5 text-sm font-medium text-brand-primary no-underline hover:bg-brand-soft"
-                                    >
-                                        Workflow editor
-                                    </Link>
-                                </>
-                            )}
+                    </Button>
+                    <Popover open={settingsOpen} onClose={() => setSettingsOpen(false)} className="w-56 p-3">
+                        <div className="mb-2 text-xs font-semibold uppercase tracking-wider text-text-subtle">
+                            Viditelná pole na kartě
                         </div>
-                    )}
+                        {CARD_FIELD_OPTIONS.map((opt) => (
+                            <label
+                                key={opt.value}
+                                className="flex cursor-pointer items-center gap-2 rounded px-1 py-1 text-sm text-text-default hover:bg-surface-hover"
+                            >
+                                <input
+                                    type="checkbox"
+                                    checked={cardFields.includes(opt.value)}
+                                    onChange={() => toggleCardField(opt.value)}
+                                    className="accent-brand-primary"
+                                />
+                                {opt.label}
+                            </label>
+                        ))}
+                        {canManageColumns && (
+                            <>
+                                <div className="my-2 border-t border-border-subtle" />
+                                <Link
+                                    href={`/projects/${project.id}/workflow`}
+                                    className="flex items-center gap-2 rounded px-1 py-1.5 text-sm font-medium text-brand-primary no-underline hover:bg-brand-soft"
+                                >
+                                    Workflow editor
+                                </Link>
+                            </>
+                        )}
+                    </Popover>
                 </div>
 
-                <button
-                    onClick={() => setCreateOpen(true)}
-                    className="inline-flex items-center gap-2 rounded-md bg-brand-primary px-4 py-1.5 text-sm font-semibold text-text-inverse transition-colors hover:bg-brand-hover"
-                >
-                    <Plus className="h-3.5 w-3.5" strokeWidth={2.5} />
+                <Button icon={<Plus className="h-3.5 w-3.5" strokeWidth={2.5} />} onClick={() => setCreateOpen(true)}>
                     Přidat úkol
-                </button>
+                </Button>
             </div>
 
             {/* Active filter chips */}
@@ -266,15 +264,16 @@ export default function TaskBoard({
                             </button>
                         </span>
                     )}
-                    <button
+                    <Button
+                        variant="ghost"
+                        size="sm"
                         onClick={() => {
                             applyFilter('assignee_id', '');
                             applyFilter('epic_id', '');
                         }}
-                        className="text-xs text-text-muted underline hover:text-text-default"
                     >
                         Zrušit vše
-                    </button>
+                    </Button>
                 </div>
             )}
 
@@ -383,121 +382,80 @@ function TaskCreateDialog({
         <Modal open onClose={onClose} size="max-w-md" showClose={false}>
             <div className="mb-4 flex items-center justify-between">
                 <h2 className="text-lg font-semibold text-text-strong">Nový úkol</h2>
-                <button onClick={onClose} className="rounded p-2 text-text-muted hover:bg-surface-hover">
-                    ✕
-                </button>
+                <Button variant="ghost" size="sm" onClick={onClose}>
+                    <X className="h-4 w-4" />
+                </Button>
             </div>
 
             <form onSubmit={submit} className="space-y-3">
-                <div>
-                    <label className="block text-xs font-semibold uppercase tracking-wider text-text-subtle">
-                        Název *
-                    </label>
-                    <input
-                        type="text"
-                        value={data.title}
-                        onChange={(e) => setData('title', e.target.value)}
-                        placeholder="Co je potřeba udělat..."
-                        autoFocus
-                        className="mt-1 w-full rounded-md border border-border-default bg-surface-primary px-3 py-2 text-sm focus:border-border-focus focus:outline-none focus:shadow-[0_0_0_2px_var(--color-brand-soft)]"
+                <FormInput
+                    id="task-title"
+                    label="Název"
+                    required
+                    value={data.title}
+                    onChange={(e) => setData('title', e.target.value)}
+                    placeholder="Co je potřeba udělat..."
+                    autoFocus
+                    error={errors.title}
+                />
+
+                <FormTextarea
+                    id="task-desc"
+                    label="Popis"
+                    value={data.description}
+                    onChange={(e) => setData('description', e.target.value)}
+                    rows={2}
+                    placeholder="Volitelný popis..."
+                />
+
+                <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
+                    <FormSelect
+                        id="task-priority"
+                        label="Priorita"
+                        value={data.priority}
+                        onChange={(e) => setData('priority', e.target.value)}
+                        options={[
+                            { value: 'low', label: 'Nízká' },
+                            { value: 'medium', label: 'Střední' },
+                            { value: 'high', label: 'Vysoká' },
+                            { value: 'urgent', label: 'Urgentní' },
+                        ]}
                     />
-                    {errors.title && <p className="mt-1 text-xs text-status-danger">{errors.title}</p>}
-                </div>
-
-                <div>
-                    <label className="block text-xs font-semibold uppercase tracking-wider text-text-subtle">
-                        Popis
-                    </label>
-                    <textarea
-                        value={data.description}
-                        onChange={(e) => setData('description', e.target.value)}
-                        rows={2}
-                        placeholder="Volitelný popis..."
-                        className="mt-1 w-full rounded-md border border-border-default bg-surface-primary px-3 py-2 text-sm focus:border-border-focus focus:outline-none focus:shadow-[0_0_0_2px_var(--color-brand-soft)]"
+                    <FormSelect
+                        id="task-assignee"
+                        label="Řešitel"
+                        value={data.assignee_id}
+                        onChange={(e) => setData('assignee_id', e.target.value)}
+                        options={members.map((m) => ({ value: m.id, label: m.name }))}
+                        placeholder="Nepřiřazeno"
                     />
                 </div>
 
-                <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
-                    <div>
-                        <label className="block text-xs font-semibold uppercase tracking-wider text-text-subtle">
-                            Priorita
-                        </label>
-                        <select
-                            value={data.priority}
-                            onChange={(e) => setData('priority', e.target.value)}
-                            className="mt-1 w-full rounded-md border border-border-default bg-surface-primary px-3 py-2 text-sm focus:border-border-focus focus:outline-none"
-                        >
-                            <option value="low">Nízká</option>
-                            <option value="medium">Střední</option>
-                            <option value="high">Vysoká</option>
-                            <option value="urgent">Urgentní</option>
-                        </select>
-                    </div>
-                    <div>
-                        <label className="block text-xs font-semibold uppercase tracking-wider text-text-subtle">
-                            Řešitel
-                        </label>
-                        <select
-                            value={data.assignee_id}
-                            onChange={(e) => setData('assignee_id', e.target.value)}
-                            className="mt-1 w-full rounded-md border border-border-default bg-surface-primary px-3 py-2 text-sm focus:border-border-focus focus:outline-none"
-                        >
-                            <option value="">Nepřiřazeno</option>
-                            {members.map((m) => (
-                                <option key={m.id} value={m.id}>
-                                    {m.name}
-                                </option>
-                            ))}
-                        </select>
-                    </div>
-                </div>
-
-                <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
-                    <div>
-                        <label className="block text-xs font-semibold uppercase tracking-wider text-text-subtle">
-                            Epic
-                        </label>
-                        <select
-                            value={data.epic_id}
-                            onChange={(e) => setData('epic_id', e.target.value)}
-                            className="mt-1 w-full rounded-md border border-border-default bg-surface-primary px-3 py-2 text-sm focus:border-border-focus focus:outline-none"
-                        >
-                            <option value="">Bez epicu</option>
-                            {epics.map((ep) => (
-                                <option key={ep.id} value={ep.id}>
-                                    {ep.title}
-                                </option>
-                            ))}
-                        </select>
-                    </div>
-                    <div>
-                        <label className="block text-xs font-semibold uppercase tracking-wider text-text-subtle">
-                            Termín
-                        </label>
-                        <input
-                            type="date"
-                            value={data.due_date}
-                            onChange={(e) => setData('due_date', e.target.value)}
-                            className="mt-1 w-full rounded-md border border-border-default bg-surface-primary px-3 py-2 text-sm focus:border-border-focus focus:outline-none"
-                        />
-                    </div>
+                <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
+                    <FormSelect
+                        id="task-epic"
+                        label="Epic"
+                        value={data.epic_id}
+                        onChange={(e) => setData('epic_id', e.target.value)}
+                        options={epics.map((ep) => ({ value: ep.id, label: ep.title }))}
+                        placeholder="Bez epicu"
+                    />
+                    <FormInput
+                        id="task-due-date"
+                        label="Termín"
+                        type="date"
+                        value={data.due_date}
+                        onChange={(e) => setData('due_date', e.target.value)}
+                    />
                 </div>
 
                 <div className="flex justify-end gap-2 pt-2">
-                    <button
-                        type="button"
-                        onClick={onClose}
-                        className="rounded-md border border-border-default px-4 py-2 text-sm font-medium text-text-default transition-colors hover:bg-surface-hover"
-                    >
+                    <Button variant="secondary" type="button" onClick={onClose}>
                         Zrušit
-                    </button>
-                    <button
-                        type="submit"
-                        disabled={processing || !data.title}
-                        className="rounded-md bg-brand-primary px-4 py-2 text-sm font-medium text-text-inverse transition-colors hover:bg-brand-hover disabled:opacity-50"
-                    >
+                    </Button>
+                    <Button type="submit" disabled={processing || !data.title} loading={processing}>
                         Vytvořit úkol
-                    </button>
+                    </Button>
                 </div>
             </form>
         </Modal>

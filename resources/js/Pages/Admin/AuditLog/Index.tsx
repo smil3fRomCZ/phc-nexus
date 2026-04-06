@@ -3,7 +3,7 @@ import type { Breadcrumb } from '@/Layouts/AppLayout';
 import DateRangePicker from '@/Components/DateRangePicker';
 import EmptyState from '@/Components/EmptyState';
 import FilterBar from '@/Components/FilterBar';
-import FormSelect from '@/Components/FormSelect';
+import FilterSelect from '@/Components/FilterSelect';
 import Modal from '@/Components/Modal';
 import PageHeader from '@/Components/PageHeader';
 import Pagination from '@/Components/Pagination';
@@ -90,23 +90,26 @@ export default function AuditLogIndex({ entries, filters, actions, entityTypes, 
             <PageHeader title="Audit log" />
 
             <FilterBar>
-                <FormSelect
+                <FilterSelect
+                    label="Akce"
                     value={filters.action ?? ''}
-                    onChange={(e) => applyFilter('action', e.target.value)}
+                    onChange={(v) => applyFilter('action', v)}
                     options={actions}
-                    placeholder="Všechny akce"
+                    placeholder="Všechny"
                 />
-                <FormSelect
+                <FilterSelect
+                    label="Entita"
                     value={filters.entity_type ?? ''}
-                    onChange={(e) => applyFilter('entity_type', e.target.value)}
+                    onChange={(v) => applyFilter('entity_type', v)}
                     options={entityTypes}
-                    placeholder="Všechny entity"
+                    placeholder="Všechny"
                 />
-                <FormSelect
+                <FilterSelect
+                    label="Uživatel"
                     value={filters.actor_id ?? ''}
-                    onChange={(e) => applyFilter('actor_id', e.target.value)}
+                    onChange={(v) => applyFilter('actor_id', v)}
                     options={actors.map((a) => ({ value: a.id, label: a.name }))}
-                    placeholder="Všichni uživatelé"
+                    placeholder="Všichni"
                 />
                 <DateRangePicker
                     from={filters.date_from ?? ''}

@@ -1,7 +1,9 @@
 import AppLayout from '@/Layouts/AppLayout';
 import type { Breadcrumb } from '@/Layouts/AppLayout';
+import Button from '@/Components/Button';
 import EmptyState from '@/Components/EmptyState';
 import FilterSelect from '@/Components/FilterSelect';
+import FormSelect from '@/Components/FormSelect';
 import SortableHeader, { PlainHeader } from '@/Components/SortableHeader';
 import { useFilterRouter } from '@/hooks/useFilterRouter';
 import { getPriority } from '@/constants/priority';
@@ -128,28 +130,18 @@ export default function TaskTable({ project, tasks, filters, statuses, prioritie
             {selected.length > 0 && (
                 <div className="mb-4 flex flex-wrap items-center gap-3 rounded-lg border border-brand-primary/30 bg-brand-soft px-4 py-2">
                     <span className="text-sm font-medium text-text-strong">{selected.length} vybráno</span>
-                    <select
+                    <FormSelect
                         value={bulkStatus}
                         onChange={(e) => setBulkStatus(e.target.value)}
-                        className="rounded-md border border-border-default bg-surface-primary px-3 py-1 text-sm"
-                    >
-                        <option value="">Změnit stav na...</option>
-                        {statuses.map((s) => (
-                            <option key={s.value} value={s.value}>
-                                {s.label}
-                            </option>
-                        ))}
-                    </select>
-                    <button
-                        onClick={handleBulkStatus}
-                        disabled={!bulkStatus}
-                        className="rounded-md bg-brand-primary px-3 py-1 text-sm font-medium text-text-inverse transition-colors hover:bg-brand-hover disabled:opacity-50"
-                    >
+                        options={statuses}
+                        placeholder="Změnit stav na..."
+                    />
+                    <Button size="sm" onClick={handleBulkStatus} disabled={!bulkStatus}>
                         Použít
-                    </button>
-                    <button onClick={() => setSelected([])} className="text-sm text-text-muted hover:text-text-default">
+                    </Button>
+                    <Button variant="ghost" size="sm" onClick={() => setSelected([])}>
                         Zrušit
-                    </button>
+                    </Button>
                 </div>
             )}
 

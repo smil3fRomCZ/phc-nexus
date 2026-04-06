@@ -1,9 +1,9 @@
 import AppLayout from '@/Layouts/AppLayout';
 import type { Breadcrumb } from '@/Layouts/AppLayout';
 import StatusBadge from '@/Components/StatusBadge';
+import { PRIORITY_STATUS } from '@/constants/status';
 import EmptyState from '@/Components/EmptyState';
 
-import { getPriority } from '@/constants/priority';
 import { formatDate, timeAgo } from '@/utils/formatDate';
 import { Link, usePage } from '@inertiajs/react';
 import { Clock, CheckSquare, AlertCircle, FolderKanban } from 'lucide-react';
@@ -119,7 +119,6 @@ export default function DashboardIndex({ stats, myTasks, pendingApprovals }: Pro
                     <tbody>
                         {myTasks.map((task) => {
                             const due = formatDueDate(task.due_date);
-                            const priority = getPriority(task.priority);
                             return (
                                 <tr key={task.id} className="transition-colors hover:bg-brand-soft">
                                     <td className="border-b border-border-subtle px-5 py-3 text-sm font-medium text-text-strong">
@@ -144,11 +143,7 @@ export default function DashboardIndex({ stats, myTasks, pendingApprovals }: Pro
                                         />
                                     </td>
                                     <td className="border-b border-border-subtle px-5 py-3">
-                                        <span
-                                            className={`inline-flex items-center rounded-[10px] px-2 py-px text-xs font-semibold leading-relaxed ${priority.textClass === 'text-status-danger' ? 'bg-status-danger-subtle text-status-danger' : priority.textClass === 'text-status-warning' ? 'bg-status-warning-subtle text-status-warning' : priority.textClass === 'text-text-muted' ? 'bg-status-info-subtle text-status-info' : 'bg-status-neutral-subtle text-status-neutral'}`}
-                                        >
-                                            {priority.label}
-                                        </span>
+                                        <StatusBadge statusMap={PRIORITY_STATUS} value={task.priority} />
                                     </td>
                                     <td
                                         className={`border-b border-border-subtle px-5 py-3 text-sm ${due.overdue ? 'font-semibold text-status-danger' : 'text-text-muted'}`}

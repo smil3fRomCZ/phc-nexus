@@ -6,6 +6,8 @@ import ConfirmModal from '@/Components/ConfirmModal';
 import FormInput from '@/Components/FormInput';
 import FormSelect from '@/Components/FormSelect';
 import FormTextarea from '@/Components/FormTextarea';
+import StatusBadge from '@/Components/StatusBadge';
+import { USER_STATUS } from '@/constants/status';
 import { router } from '@inertiajs/react';
 import { Ban, CheckCircle, Mail, Briefcase, Phone, Users, Calendar, Save } from 'lucide-react';
 import { useState } from 'react';
@@ -55,13 +57,7 @@ interface Props {
     can: { edit: boolean; deactivate: boolean };
 }
 
-const STATUS_COLORS: Record<string, string> = {
-    active: 'bg-status-success-subtle text-status-success',
-    invited: 'bg-status-warning-subtle text-status-warning',
-    deactivated: 'bg-status-danger-subtle text-status-danger',
-};
-
-export default function UserShow({ user, directReports, teams, roles, statuses, can }: Props) {
+export default function UserShow({ user, directReports, teams, roles, can }: Props) {
     const breadcrumbs: Breadcrumb[] = [
         { label: 'Domů', href: '/' },
         { label: 'Administrace' },
@@ -115,7 +111,6 @@ export default function UserShow({ user, directReports, teams, roles, statuses, 
     }
 
     const teamOptions = teams.map((t) => ({ value: t.id, label: t.name }));
-    const statusLabel = statuses.find((s) => s.value === user.status)?.label ?? user.status;
 
     return (
         <AppLayout title={user.name} breadcrumbs={breadcrumbs}>
@@ -136,11 +131,7 @@ export default function UserShow({ user, directReports, teams, roles, statuses, 
                             <p className="text-sm text-text-muted">{user.email}</p>
                             {user.job_title && <p className="mt-0.5 text-sm text-text-default">{user.job_title}</p>}
                         </div>
-                        <span
-                            className={`inline-flex rounded-full px-3 py-1 text-xs font-semibold ${STATUS_COLORS[user.status] ?? 'bg-status-neutral-subtle text-status-neutral'}`}
-                        >
-                            {statusLabel}
-                        </span>
+                        <StatusBadge statusMap={USER_STATUS} value={user.status} />
                     </div>
 
                     {/* Info rows */}

@@ -3,11 +3,14 @@ import type { Breadcrumb } from '@/Layouts/AppLayout';
 import Button from '@/Components/Button';
 import EmptyState from '@/Components/EmptyState';
 import FilterBar from '@/Components/FilterBar';
+import FilterSelect from '@/Components/FilterSelect';
 import FormInput from '@/Components/FormInput';
 import FormSelect from '@/Components/FormSelect';
 import Modal from '@/Components/Modal';
 import PageHeader from '@/Components/PageHeader';
 import SortableHeader, { PlainHeader } from '@/Components/SortableHeader';
+import StatusBadge from '@/Components/StatusBadge';
+import { USER_STATUS } from '@/constants/status';
 import { useFilterRouter } from '@/hooks/useFilterRouter';
 import { router, useForm } from '@inertiajs/react';
 import { UserPlus, X } from 'lucide-react';
@@ -42,12 +45,6 @@ interface Props {
 }
 
 const BREADCRUMBS: Breadcrumb[] = [{ label: 'Domů', href: '/' }, { label: 'Administrace' }, { label: 'Uživatelé' }];
-
-const STATUS_COLORS: Record<string, string> = {
-    active: 'bg-status-info-subtle text-status-info',
-    invited: 'bg-status-warning-subtle text-status-warning',
-    deactivated: 'bg-status-neutral-subtle text-status-neutral',
-};
 
 export default function UsersIndex({ users, filters, roles, statuses, teams }: Props) {
     const [search, setSearch] = useState(filters.search ?? '');
@@ -93,23 +90,26 @@ export default function UsersIndex({ users, filters, roles, statuses, teams }: P
                         Hledat
                     </Button>
                 </form>
-                <FormSelect
+                <FilterSelect
+                    label="Role"
                     value={filters.role ?? ''}
-                    onChange={(e) => applyFilter('role', e.target.value)}
+                    onChange={(v) => applyFilter('role', v)}
                     options={roles}
-                    placeholder="Všechny role"
+                    placeholder="Všechny"
                 />
-                <FormSelect
+                <FilterSelect
+                    label="Stav"
                     value={filters.status ?? ''}
-                    onChange={(e) => applyFilter('status', e.target.value)}
+                    onChange={(v) => applyFilter('status', v)}
                     options={statuses}
-                    placeholder="Všechny stavy"
+                    placeholder="Všechny"
                 />
-                <FormSelect
+                <FilterSelect
+                    label="Tým"
                     value={filters.team_id ?? ''}
-                    onChange={(e) => applyFilter('team_id', e.target.value)}
+                    onChange={(v) => applyFilter('team_id', v)}
                     options={teamOptions}
-                    placeholder="Všechny týmy"
+                    placeholder="Všechny"
                 />
             </FilterBar>
 
@@ -160,11 +160,7 @@ export default function UsersIndex({ users, filters, roles, statuses, teams }: P
                                     {user.team?.name ?? '\u2014'}
                                 </td>
                                 <td className="border-b border-border-subtle px-5 py-3">
-                                    <span
-                                        className={`inline-flex rounded-[10px] px-2 py-px text-xs font-semibold leading-relaxed ${STATUS_COLORS[user.status] ?? 'bg-status-neutral-subtle text-status-neutral'}`}
-                                    >
-                                        {statuses.find((s) => s.value === user.status)?.label ?? user.status}
-                                    </span>
+                                    <StatusBadge statusMap={USER_STATUS} value={user.status} />
                                 </td>
                             </tr>
                         ))}

@@ -9,6 +9,8 @@ import FormSelect from '@/Components/FormSelect';
 import FormTextarea from '@/Components/FormTextarea';
 import Modal from '@/Components/Modal';
 import PageHeader from '@/Components/PageHeader';
+import StatusBadge from '@/Components/StatusBadge';
+import { USER_STATUS } from '@/constants/status';
 import { Crown, Pencil, Trash2, UserPlus, X } from 'lucide-react';
 import { useState, type FormEvent } from 'react';
 import { router } from '@inertiajs/react';
@@ -50,12 +52,6 @@ const ROLE_LABELS: Record<string, string> = {
     team_member: 'Team Member',
     service_desk_agent: 'Service Desk',
     reader: 'Reader',
-};
-
-const STATUS_COLORS: Record<string, string> = {
-    active: 'bg-status-info-subtle text-status-info',
-    invited: 'bg-status-warning-subtle text-status-warning',
-    deactivated: 'bg-status-neutral-subtle text-status-neutral',
 };
 
 export default function TeamShow({ team, users, can }: Props) {
@@ -196,15 +192,7 @@ export default function TeamShow({ team, users, can }: Props) {
                                     {ROLE_LABELS[member.system_role] ?? member.system_role}
                                 </td>
                                 <td className="border-b border-border-subtle px-5 py-3">
-                                    <span
-                                        className={`inline-flex rounded-[10px] px-2 py-px text-xs font-semibold leading-relaxed ${STATUS_COLORS[member.status] ?? 'bg-status-neutral-subtle text-status-neutral'}`}
-                                    >
-                                        {member.status === 'active'
-                                            ? 'Aktivní'
-                                            : member.status === 'invited'
-                                              ? 'Pozvaný'
-                                              : 'Deaktivovaný'}
-                                    </span>
+                                    <StatusBadge statusMap={USER_STATUS} value={member.status} />
                                 </td>
                                 {can.manageMembers && (
                                     <td className="border-b border-border-subtle px-5 py-3 text-right">

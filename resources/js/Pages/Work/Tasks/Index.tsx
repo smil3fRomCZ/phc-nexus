@@ -1,6 +1,9 @@
 import AppLayout from '@/Layouts/AppLayout';
 import type { Breadcrumb } from '@/Layouts/AppLayout';
+import Button from '@/Components/Button';
 import EmptyState from '@/Components/EmptyState';
+import FormInput from '@/Components/FormInput';
+import FormSelect from '@/Components/FormSelect';
 import StatusBadge from '@/Components/StatusBadge';
 
 import { getPriority } from '@/constants/priority';
@@ -63,34 +66,34 @@ export default function TasksIndex({ project, epic, tasks }: Props) {
             </div>
 
             {/* Quick add */}
-            <form onSubmit={submit} className="mb-6 flex gap-2">
-                <input
-                    type="text"
+            <form onSubmit={submit} className="mb-6 flex items-end gap-2">
+                <FormInput
+                    id="quick-title"
                     value={data.title}
                     onChange={(e) => setData('title', e.target.value)}
                     placeholder="Název nového úkolu..."
-                    className="flex-1 rounded-md border border-border-default bg-surface-primary px-3 py-2 text-base focus:border-border-focus focus:outline-none focus:shadow-[0_0_0_2px_var(--color-brand-soft)]"
+                    error={errors.title}
+                    wrapperClassName="flex-1"
                 />
-                <select
+                <FormSelect
+                    id="quick-priority"
                     value={data.priority}
                     onChange={(e) => setData('priority', e.target.value)}
-                    className="rounded-md border border-border-default bg-surface-primary px-3 py-2 text-sm focus:border-border-focus focus:outline-none"
-                >
-                    <option value="low">Nízká</option>
-                    <option value="medium">Střední</option>
-                    <option value="high">Vysoká</option>
-                    <option value="urgent">Urgentní</option>
-                </select>
-                <button
+                    options={[
+                        { value: 'low', label: 'Nízká' },
+                        { value: 'medium', label: 'Střední' },
+                        { value: 'high', label: 'Vysoká' },
+                        { value: 'urgent', label: 'Urgentní' },
+                    ]}
+                />
+                <Button
                     type="submit"
                     disabled={processing || !data.title}
-                    className="inline-flex items-center gap-2 rounded-md bg-brand-primary px-4 py-2 text-sm font-medium text-text-inverse transition-colors hover:bg-brand-hover disabled:opacity-50"
+                    icon={<Plus className="h-3.5 w-3.5" strokeWidth={2.5} />}
                 >
-                    <Plus className="h-3.5 w-3.5" strokeWidth={2.5} />
                     Přidat
-                </button>
+                </Button>
             </form>
-            {errors.title && <p className="mb-4 text-xs text-status-danger">{errors.title}</p>}
 
             {/* Task list */}
             <div className="space-y-2">

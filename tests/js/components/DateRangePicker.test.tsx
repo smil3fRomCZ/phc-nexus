@@ -5,8 +5,8 @@ import DateRangePicker from '@/Components/DateRangePicker';
 describe('DateRangePicker', () => {
     it('renders from and to inputs', () => {
         render(<DateRangePicker from="" to="" onFromChange={() => {}} onToChange={() => {}} />);
-        expect(screen.getByText('Od')).toBeInTheDocument();
-        expect(screen.getByText('Do')).toBeInTheDocument();
+        expect(screen.getByText('Od:')).toBeInTheDocument();
+        expect(screen.getByText('Do:')).toBeInTheDocument();
     });
 
     it('calls onFromChange when from date changes', () => {

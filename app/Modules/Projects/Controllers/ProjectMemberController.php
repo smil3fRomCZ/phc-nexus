@@ -41,13 +41,16 @@ final class ProjectMemberController extends Controller
     {
         Gate::authorize('manageMembers', $project);
 
-        $pivot = $project->members()->where('user_id', $user->id)->first()?->pivot;
+        $member = $project->members()->where('user_id', $user->id)->first();
 
-        if (! $pivot) {
+        if (! $member) {
             abort(404);
         }
 
-        if ($pivot->role === 'owner') {
+        /** @var string $currentRole */
+        $currentRole = $member->pivot->getAttribute('role');
+
+        if ($currentRole === 'owner') {
             return redirect()->back()->with('error', 'Nelze změnit roli vlastníka.');
         }
 

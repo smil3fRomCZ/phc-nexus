@@ -5,12 +5,21 @@ declare(strict_types=1);
 namespace App\Modules\Projects\Export;
 
 use App\Modules\Work\Models\TimeEntry;
-use Illuminate\Support\Collection;
+use Illuminate\Database\Eloquent\Collection;
 use Symfony\Component\HttpFoundation\StreamedResponse;
 
 final class TimeEntryExporter
 {
     private const HEADERS = ['Datum', 'Hodiny', 'Uživatel', 'Úkol', 'Epic', 'Poznámka'];
+
+    private const TAG_MAP = [
+        'Datum' => 'Date',
+        'Hodiny' => 'Hours',
+        'Uživatel' => 'User',
+        'Úkol' => 'Task',
+        'Epic' => 'Epic',
+        'Poznámka' => 'Note',
+    ];
 
     /**
      * @param  Collection<int, TimeEntry>  $entries
@@ -18,16 +27,14 @@ final class TimeEntryExporter
      */
     private static function rows(Collection $entries): array
     {
-        return $entries->map(function (TimeEntry $entry) {
-            return [
-                $entry->date->format('Y-m-d'),
-                number_format((float) $entry->hours, 2),
-                $entry->user->name ?? '',
-                $entry->task->title ?? '',
-                $entry->epic->title ?? '',
-                $entry->note ?? '',
-            ];
-        })->all();
+        return $entries->map(fn (TimeEntry $entry): array => [
+            $entry->date instanceof \DateTimeInterface ? $entry->date->format('Y-m-d') : (string) $entry->date,
+            number_format((float) $entry->hours, 2),
+            $entry->user->name ?? '',
+            $entry->task->title ?? '',
+            $entry->epic->title ?? '',
+            $entry->note ?? '',
+        ])->all();
     }
 
     /** @param  Collection<int, TimeEntry>  $entries */
@@ -54,15 +61,7 @@ final class TimeEntryExporter
             foreach ($rows as $row) {
                 echo "  <Entry>\n";
                 foreach (self::HEADERS as $i => $header) {
-                    $tag = match ($header) {
-                        'Datum' => 'Date',
-                        'Hodiny' => 'Hours',
-                        'Uživatel' => 'User',
-                        'Úkol' => 'Task',
-                        'Epic' => 'Epic',
-                        'Poznámka' => 'Note',
-                        default => $header,
-                    };
+                    $tag = self::TAG_MAP[$header] ?? $header;
                     echo '    <'.$tag.'>'.htmlspecialchars($row[$i]).'</'.$tag.">\n";
                 }
                 echo "  </Entry>\n";

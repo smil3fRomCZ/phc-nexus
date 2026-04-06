@@ -13,8 +13,8 @@ use App\Modules\Projects\Models\Project;
 use App\Modules\Work\Models\Epic;
 use App\Modules\Work\Models\Task;
 use App\Modules\Work\Models\TimeEntry;
+use Illuminate\Database\Eloquent\Collection as EloquentCollection;
 use Illuminate\Http\Request;
-use Illuminate\Support\Collection;
 use Illuminate\Support\Facades\Gate;
 use Symfony\Component\HttpFoundation\StreamedResponse;
 
@@ -28,6 +28,7 @@ final class TimeExportController extends Controller
         $format = $this->validFormat($request);
         $audit->log(AuditAction::Exported, $project, ['type' => "time_{$format}"]);
 
+        /** @var EloquentCollection<int, TimeEntry> $entries */
         $entries = $project->timeEntries()
             ->with(['user:id,name', 'task:id,title', 'epic:id,title'])
             ->latest('date')
@@ -44,17 +45,22 @@ final class TimeExportController extends Controller
         $format = $this->validFormat($request);
         $audit->log(AuditAction::Exported, $epic, ['type' => "time_{$format}"]);
 
+        /** @var EloquentCollection<int, TimeEntry> $directEntries */
         $directEntries = $epic->timeEntries()
             ->with(['user:id,name', 'task:id,title', 'epic:id,title'])
             ->latest('date')
             ->get();
 
+        /** @var EloquentCollection<int, TimeEntry> $taskEntries */
         $taskEntries = TimeEntry::whereIn('task_id', $epic->tasks()->pluck('id'))
             ->with(['user:id,name', 'task:id,title', 'epic:id,title'])
             ->latest('date')
             ->get();
 
-        $entries = $directEntries->concat($taskEntries)->sortByDesc('date')->values();
+        /** @var EloquentCollection<int, TimeEntry> $entries */
+        $entries = new EloquentCollection(
+            $directEntries->concat($taskEntries)->sortByDesc('date')->values()->all()
+        );
 
         return $this->export($entries, $format, $project->key, "{$project->name} — {$epic->title}");
     }
@@ -67,6 +73,7 @@ final class TimeExportController extends Controller
         $format = $this->validFormat($request);
         $audit->log(AuditAction::Exported, $task, ['type' => "time_{$format}"]);
 
+        /** @var EloquentCollection<int, TimeEntry> $entries */
         $entries = $task->timeEntries()
             ->with(['user:id,name', 'task:id,title', 'epic:id,title'])
             ->latest('date')
@@ -84,9 +91,9 @@ final class TimeExportController extends Controller
     }
 
     /**
-     * @param  Collection<int, TimeEntry>  $entries
+     * @param  EloquentCollection<int, TimeEntry>  $entries
      */
-    private function export(Collection $entries, string $format, string $projectKey, string $contextName): StreamedResponse
+    private function export(EloquentCollection $entries, string $format, string $projectKey, string $contextName): StreamedResponse
     {
         $date = now()->format('Y-m-d');
         $ext = match ($format) {

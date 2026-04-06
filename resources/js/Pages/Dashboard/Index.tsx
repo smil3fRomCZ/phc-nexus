@@ -4,7 +4,6 @@ import StatusBadge from '@/Components/StatusBadge';
 import { PRIORITY_STATUS } from '@/constants/status';
 import EmptyState from '@/Components/EmptyState';
 
-import { getPriority } from '@/constants/priority';
 import { formatDate, timeAgo } from '@/utils/formatDate';
 import { Link, usePage } from '@inertiajs/react';
 import { Clock, CheckSquare, AlertCircle, FolderKanban } from 'lucide-react';
@@ -120,7 +119,6 @@ export default function DashboardIndex({ stats, myTasks, pendingApprovals }: Pro
                     <tbody>
                         {myTasks.map((task) => {
                             const due = formatDueDate(task.due_date);
-                            const priority = getPriority(task.priority);
                             return (
                                 <tr key={task.id} className="transition-colors hover:bg-brand-soft">
                                     <td className="border-b border-border-subtle px-5 py-3 text-sm font-medium text-text-strong">

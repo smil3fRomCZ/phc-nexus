@@ -57,7 +57,7 @@ interface Props {
     can: { edit: boolean; deactivate: boolean };
 }
 
-export default function UserShow({ user, directReports, teams, roles, statuses, can }: Props) {
+export default function UserShow({ user, directReports, teams, roles, can }: Props) {
     const breadcrumbs: Breadcrumb[] = [
         { label: 'Domů', href: '/' },
         { label: 'Administrace' },

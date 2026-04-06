@@ -244,11 +244,14 @@ export default function ProfileIndex({ user, directReports }: Props) {
 
                 <button
                     type="button"
+                    disabled={uploading}
                     onClick={() => fileInputRef.current?.click()}
-                    className="mb-4 flex w-full cursor-pointer flex-col items-center gap-2 rounded-lg border-2 border-dashed border-border-default p-6 transition-colors hover:border-brand-primary hover:bg-brand-soft"
+                    className="mb-4 flex w-full cursor-pointer flex-col items-center gap-2 rounded-lg border-2 border-dashed border-border-default p-6 transition-colors hover:border-brand-primary hover:bg-brand-soft disabled:opacity-50"
                 >
                     <Upload className="h-6 w-6 text-text-subtle" />
-                    <span className="text-sm text-text-muted">Klikněte nebo přetáhněte obrázek</span>
+                    <span className="text-sm text-text-muted">
+                        {uploading ? 'Nahrávám...' : 'Klikněte nebo přetáhněte obrázek'}
+                    </span>
                     <span className="text-[0.6875rem] text-text-subtle">
                         JPG, PNG nebo WebP · Max 2 MB · Min 128×128 px
                     </span>

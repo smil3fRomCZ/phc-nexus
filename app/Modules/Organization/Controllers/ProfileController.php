@@ -9,6 +9,7 @@ use App\Models\User;
 use App\Modules\Organization\Models\Team;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Storage;
 use Inertia\Inertia;
 use Inertia\Response;
 
@@ -45,5 +46,44 @@ final class ProfileController extends Controller
 
         return redirect()->back()
             ->with('success', 'Profil aktualizován.');
+    }
+
+    public function uploadAvatar(Request $request): RedirectResponse
+    {
+        $request->validate([
+            'avatar' => ['required', 'image', 'mimes:jpg,jpeg,png,webp', 'max:2048', 'dimensions:min_width=128,min_height=128'],
+        ]);
+
+        $user = $request->user();
+
+        // Smazat starý upload
+        if ($user->avatar_path) {
+            Storage::disk('public')->delete($user->avatar_path);
+        }
+
+        $path = $request->file('avatar')->store('avatars', 'public');
+
+        $user->update([
+            'avatar_path' => $path,
+        ]);
+
+        return redirect()->back()
+            ->with('success', 'Avatar aktualizován.');
+    }
+
+    public function removeAvatar(Request $request): RedirectResponse
+    {
+        $user = $request->user();
+
+        if ($user->avatar_path) {
+            Storage::disk('public')->delete($user->avatar_path);
+        }
+
+        $user->update([
+            'avatar_path' => null,
+        ]);
+
+        return redirect()->back()
+            ->with('success', 'Avatar odstraněn.');
     }
 }

@@ -1,12 +1,17 @@
 import AppLayout from '@/Layouts/AppLayout';
 import type { Breadcrumb } from '@/Layouts/AppLayout';
+import Avatar from '@/Components/Avatar';
 import Button from '@/Components/Button';
+import ConfirmModal from '@/Components/ConfirmModal';
 import FormInput from '@/Components/FormInput';
 import FormTextarea from '@/Components/FormTextarea';
+import Modal from '@/Components/Modal';
 import PersonChip from '@/Components/PersonChip';
+import StatusBadge from '@/Components/StatusBadge';
+import { USER_STATUS } from '@/constants/status';
 import { router } from '@inertiajs/react';
-import { Mail, Shield, Users, Calendar, Save } from 'lucide-react';
-import { useState } from 'react';
+import { Camera, Mail, Shield, Trash2, Upload, Users, Calendar, Save, X } from 'lucide-react';
+import { useRef, useState } from 'react';
 import { formatDate } from '@/utils/formatDate';
 
 interface UserProfile {
@@ -19,6 +24,8 @@ interface UserProfile {
     job_title: string | null;
     phone: string | null;
     bio: string | null;
+    avatar_url: string | null;
+    avatar_path: string | null;
     capacity_h_week: string | null;
     created_at: string;
 }
@@ -48,6 +55,12 @@ const ROLE_LABELS: Record<string, string> = {
 
 const BREADCRUMBS: Breadcrumb[] = [{ label: 'Domů', href: '/' }, { label: 'Můj profil' }];
 
+function getAvatarSrc(user: UserProfile): string | null {
+    if (user.avatar_path) return `/storage/${user.avatar_path}`;
+    if (user.avatar_url) return user.avatar_url;
+    return null;
+}
+
 export default function ProfileIndex({ user, directReports }: Props) {
     const [form, setForm] = useState({
         job_title: user.job_title ?? '',
@@ -55,6 +68,12 @@ export default function ProfileIndex({ user, directReports }: Props) {
         bio: user.bio ?? '',
     });
     const [saving, setSaving] = useState(false);
+    const [avatarModal, setAvatarModal] = useState(false);
+    const [showRemoveConfirm, setShowRemoveConfirm] = useState(false);
+    const fileInputRef = useRef<HTMLInputElement>(null);
+    const [uploading, setUploading] = useState(false);
+
+    const avatarSrc = getAvatarSrc(user);
 
     const hasChanges =
         form.job_title !== (user.job_title ?? '') || form.phone !== (user.phone ?? '') || form.bio !== (user.bio ?? '');
@@ -74,6 +93,30 @@ export default function ProfileIndex({ user, directReports }: Props) {
         );
     }
 
+    function handleAvatarUpload(file: File) {
+        setUploading(true);
+        router.post(
+            '/profile/avatar',
+            { avatar: file },
+            {
+                forceFormData: true,
+                onFinish: () => {
+                    setUploading(false);
+                    setAvatarModal(false);
+                },
+            },
+        );
+    }
+
+    function handleAvatarRemove() {
+        router.delete('/profile/avatar', {
+            onSuccess: () => {
+                setShowRemoveConfirm(false);
+                setAvatarModal(false);
+            },
+        });
+    }
+
     return (
         <AppLayout title="Můj profil" breadcrumbs={BREADCRUMBS}>
             <div className="max-w-screen-sm">
@@ -82,27 +125,21 @@ export default function ProfileIndex({ user, directReports }: Props) {
                 {/* Header card */}
                 <div className="rounded-lg border border-border-subtle bg-surface-primary">
                     <div className="flex items-center gap-4 border-b border-border-subtle px-6 py-5">
-                        <div className="flex h-14 w-14 items-center justify-center rounded-full bg-brand-primary text-lg font-bold text-text-inverse">
-                            {user.name
-                                .split(' ')
-                                .map((w) => w[0])
-                                .join('')
-                                .slice(0, 2)
-                                .toUpperCase()}
+                        <div className="relative">
+                            <Avatar name={user.name} size="xl" avatarUrl={avatarSrc} />
+                            <button
+                                type="button"
+                                onClick={() => setAvatarModal(true)}
+                                className="absolute -right-0.5 -bottom-0.5 flex h-7 w-7 items-center justify-center rounded-full border border-border-default bg-surface-primary shadow-sm transition-colors hover:bg-surface-hover"
+                            >
+                                <Camera className="h-3.5 w-3.5 text-text-muted" />
+                            </button>
                         </div>
                         <div className="min-w-0 flex-1">
                             <h2 className="text-lg font-semibold text-text-strong">{user.name}</h2>
                             {user.job_title && <p className="text-sm text-text-muted">{user.job_title}</p>}
                         </div>
-                        <span
-                            className={`inline-flex rounded-full px-2 py-px text-xs font-semibold ${
-                                user.status === 'active'
-                                    ? 'bg-status-success-subtle text-status-success'
-                                    : 'bg-status-danger-subtle text-status-danger'
-                            }`}
-                        >
-                            {user.status === 'active' ? 'Aktivní' : 'Deaktivován'}
-                        </span>
+                        <StatusBadge statusMap={USER_STATUS} value={user.status} />
                     </div>
 
                     {/* Read-only details */}
@@ -174,6 +211,72 @@ export default function ProfileIndex({ user, directReports }: Props) {
                     </div>
                 )}
             </div>
+
+            {/* Avatar edit modal */}
+            <Modal open={avatarModal} onClose={() => setAvatarModal(false)} showClose={false}>
+                <div className="mb-4 flex items-center justify-between">
+                    <h2 className="text-lg font-semibold text-text-strong">Změnit profilový obrázek</h2>
+                    <button
+                        onClick={() => setAvatarModal(false)}
+                        className="rounded p-2 text-text-muted hover:bg-surface-hover"
+                    >
+                        <X className="h-4 w-4" />
+                    </button>
+                </div>
+
+                <div className="mb-5 flex flex-col items-center gap-3">
+                    <Avatar name={user.name} size="xl" avatarUrl={avatarSrc} />
+                    <span className="text-[0.6875rem] font-semibold uppercase tracking-wider text-text-subtle">
+                        {user.avatar_path ? 'Vlastní obrázek' : user.avatar_url ? 'Z Google účtu' : 'Iniciály'}
+                    </span>
+                </div>
+
+                <input
+                    ref={fileInputRef}
+                    type="file"
+                    accept="image/jpeg,image/png,image/webp"
+                    className="hidden"
+                    onChange={(e) => {
+                        const file = e.target.files?.[0];
+                        if (file) handleAvatarUpload(file);
+                    }}
+                />
+
+                <button
+                    type="button"
+                    onClick={() => fileInputRef.current?.click()}
+                    className="mb-4 flex w-full cursor-pointer flex-col items-center gap-2 rounded-lg border-2 border-dashed border-border-default p-6 transition-colors hover:border-brand-primary hover:bg-brand-soft"
+                >
+                    <Upload className="h-6 w-6 text-text-subtle" />
+                    <span className="text-sm text-text-muted">Klikněte nebo přetáhněte obrázek</span>
+                    <span className="text-[0.6875rem] text-text-subtle">
+                        JPG, PNG nebo WebP · Max 2 MB · Min 128×128 px
+                    </span>
+                </button>
+
+                <div className="flex gap-2">
+                    {user.avatar_path && (
+                        <Button
+                            variant="danger"
+                            size="sm"
+                            icon={<Trash2 className="h-3.5 w-3.5" />}
+                            onClick={() => setShowRemoveConfirm(true)}
+                        >
+                            Odstranit
+                        </Button>
+                    )}
+                </div>
+            </Modal>
+
+            <ConfirmModal
+                open={showRemoveConfirm}
+                variant="danger"
+                title="Odstranit avatar"
+                message="Opravdu chcete odstranit profilový obrázek? Bude zobrazen Google avatar nebo iniciály."
+                confirmLabel="Odstranit"
+                onConfirm={handleAvatarRemove}
+                onCancel={() => setShowRemoveConfirm(false)}
+            />
         </AppLayout>
     );
 }

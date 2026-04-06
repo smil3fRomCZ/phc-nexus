@@ -38,6 +38,7 @@ export default function ProjectTime({ project, timeEntries = [], totalHours = 0 
                         timeEntries={timeEntries}
                         totalHours={totalHours}
                         postUrl={`/projects/${project.id}/time-entries`}
+                        exportUrl={`/projects/${project.id}/export/time`}
                         currentUserId={auth.user?.id}
                         showTaskColumn
                     />

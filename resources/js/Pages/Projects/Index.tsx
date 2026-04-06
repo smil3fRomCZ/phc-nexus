@@ -2,13 +2,15 @@ import AppLayout from '@/Layouts/AppLayout';
 import type { Breadcrumb } from '@/Layouts/AppLayout';
 import Avatar from '@/Components/Avatar';
 import EmptyState from '@/Components/EmptyState';
+import FilterSelect from '@/Components/FilterSelect';
+import SearchInput from '@/Components/SearchInput';
 import StatusBadge from '@/Components/StatusBadge';
 import { PROJECT_STATUS } from '@/constants/status';
 import { formatDate } from '@/utils/formatDate';
 import SortableHeader, { PlainHeader } from '@/Components/SortableHeader';
 import { useClientSort } from '@/hooks/useSortable';
 import { Link } from '@inertiajs/react';
-import { Plus, Search } from 'lucide-react';
+import { Plus } from 'lucide-react';
 import { useState } from 'react';
 
 const BREADCRUMBS: Breadcrumb[] = [{ label: 'Domů', href: '/' }, { label: 'Projekty' }];
@@ -70,6 +72,11 @@ export default function ProjectsIndex({ projects }: Props) {
 
     const { sorted: filteredProjects, sortField, sortDir, toggle } = useClientSort(filtered, compareProjects);
 
+    const statusOptions = Object.entries(PROJECT_STATUS).map(([value, config]) => ({
+        value,
+        label: config.label,
+    }));
+
     return (
         <AppLayout title="Projekty" breadcrumbs={BREADCRUMBS}>
             {/* Page Header */}
@@ -86,29 +93,15 @@ export default function ProjectsIndex({ projects }: Props) {
 
             {/* Filter Bar */}
             <div className="mb-5 flex flex-wrap items-center gap-3">
-                <select
+                <FilterSelect
+                    label="Stav"
                     value={statusFilter}
-                    onChange={(e) => setStatusFilter(e.target.value)}
-                    className="h-8 rounded-md border border-border-default bg-surface-primary px-3 text-xs text-text-default outline-none transition-colors focus:border-brand-primary focus:ring-2 focus:ring-brand-soft"
-                >
-                    <option value="">Všechny stavy</option>
-                    <option value="active">Aktivní</option>
-                    <option value="on_hold">Pozastavený</option>
-                    <option value="draft">Návrh</option>
-                    <option value="completed">Dokončený</option>
-                    <option value="archived">Archivovaný</option>
-                </select>
+                    onChange={setStatusFilter}
+                    options={statusOptions}
+                    placeholder="Všechny"
+                />
 
-                <div className="relative">
-                    <Search className="pointer-events-none absolute left-2.5 top-1/2 h-[13px] w-[13px] -translate-y-1/2 text-text-muted" />
-                    <input
-                        type="text"
-                        placeholder="Hledat projekty..."
-                        value={searchQuery}
-                        onChange={(e) => setSearchQuery(e.target.value)}
-                        className="h-8 w-full sm:w-56 rounded-md border border-border-default bg-surface-primary pl-8 pr-3 text-xs text-text-default placeholder:text-text-subtle outline-none transition-colors focus:border-brand-primary focus:ring-2 focus:ring-brand-soft"
-                    />
-                </div>
+                <SearchInput value={searchQuery} onChange={setSearchQuery} placeholder="Hledat projekty..." />
             </div>
 
             {/* Projects Table */}

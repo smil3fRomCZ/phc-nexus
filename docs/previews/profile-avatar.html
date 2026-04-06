@@ -1,0 +1,529 @@
+<!DOCTYPE html>
+<html lang="cs">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>PHC Nexus — Profil s avatarem</title>
+<style>
+  :root {
+    --raw-orange-500: #f5a623;
+    --raw-navy-900: #172b4d;
+    --raw-slate-800: #42526e;
+    --raw-slate-700: #6b778c;
+    --raw-slate-600: #97a0af;
+    --raw-slate-300: #dfe1e6;
+    --raw-slate-200: #ebecf0;
+    --raw-slate-100: #f4f5f7;
+    --raw-slate-050: #fafbfc;
+    --raw-white: #ffffff;
+    --raw-green-100: #e3fcef;
+    --raw-green-700: #006644;
+    --raw-blue-100: #deebff;
+    --raw-blue-700: #0747a6;
+
+    --color-brand-primary: var(--raw-orange-500);
+    --color-brand-hover: #e09000;
+    --color-brand-soft: #fff5e6;
+    --color-text-strong: var(--raw-navy-900);
+    --color-text-default: var(--raw-slate-800);
+    --color-text-muted: var(--raw-slate-700);
+    --color-text-subtle: var(--raw-slate-600);
+    --color-text-inverse: var(--raw-white);
+    --color-surface-primary: var(--raw-white);
+    --color-surface-secondary: var(--raw-slate-050);
+    --color-surface-hover: var(--raw-slate-100);
+    --color-border-subtle: var(--raw-slate-200);
+    --color-border-default: var(--raw-slate-300);
+    --color-status-success-subtle: var(--raw-green-100);
+    --color-status-success: var(--raw-green-700);
+    --color-status-info-subtle: var(--raw-blue-100);
+    --color-status-info: var(--raw-blue-700);
+  }
+
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+  body {
+    font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', system-ui, sans-serif;
+    background: var(--raw-slate-100);
+    color: var(--color-text-default);
+    padding: 2rem;
+  }
+
+  .container { max-width: 560px; margin: 0 auto; }
+  .card {
+    background: var(--color-surface-primary);
+    border: 1px solid var(--color-border-subtle);
+    border-radius: 8px;
+    overflow: hidden;
+  }
+  .card + .card { margin-top: 1rem; }
+
+  /* ── Avatar Header ── */
+  .profile-header {
+    display: flex;
+    align-items: center;
+    gap: 1rem;
+    padding: 1.25rem 1.5rem;
+    border-bottom: 1px solid var(--color-border-subtle);
+  }
+
+  .avatar-wrapper {
+    position: relative;
+    flex-shrink: 0;
+  }
+
+  .avatar {
+    width: 72px;
+    height: 72px;
+    border-radius: 50%;
+    object-fit: cover;
+    border: 2px solid var(--color-border-subtle);
+  }
+
+  .avatar-initials {
+    width: 72px;
+    height: 72px;
+    border-radius: 50%;
+    background: var(--color-brand-primary);
+    color: var(--color-text-inverse);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 1.25rem;
+    font-weight: 700;
+    border: 2px solid var(--color-border-subtle);
+  }
+
+  .avatar-edit-btn {
+    position: absolute;
+    bottom: -2px;
+    right: -2px;
+    width: 28px;
+    height: 28px;
+    border-radius: 50%;
+    background: var(--color-surface-primary);
+    border: 1px solid var(--color-border-default);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+    transition: background 0.15s, border-color 0.15s;
+    box-shadow: 0 1px 3px rgba(0,0,0,0.1);
+  }
+  .avatar-edit-btn:hover {
+    background: var(--color-surface-hover);
+    border-color: var(--color-brand-primary);
+  }
+  .avatar-edit-btn svg {
+    width: 14px;
+    height: 14px;
+    color: var(--color-text-muted);
+  }
+
+  .profile-info { flex: 1; min-width: 0; }
+  .profile-name {
+    font-size: 1.125rem;
+    font-weight: 600;
+    color: var(--color-text-strong);
+  }
+  .profile-title {
+    font-size: 0.875rem;
+    color: var(--color-text-muted);
+    margin-top: 2px;
+  }
+
+  .badge {
+    display: inline-flex;
+    align-items: center;
+    border-radius: 10px;
+    padding: 1px 8px;
+    font-size: 0.75rem;
+    font-weight: 600;
+    line-height: 1.75;
+  }
+  .badge-success {
+    background: var(--color-status-info-subtle);
+    color: var(--color-status-info);
+  }
+
+  /* ── Detail rows ── */
+  .detail-row {
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+    padding: 0.75rem 1.5rem;
+    border-bottom: 1px solid var(--color-border-subtle);
+  }
+  .detail-row:last-child { border-bottom: none; }
+  .detail-row svg { flex-shrink: 0; width: 16px; height: 16px; color: var(--color-text-muted); }
+  .detail-label { width: 7rem; font-size: 0.875rem; color: var(--color-text-muted); }
+  .detail-value { font-size: 0.875rem; font-weight: 500; color: var(--color-text-strong); }
+
+  /* ── Avatar edit modal ── */
+  .modal-backdrop {
+    position: fixed; inset: 0;
+    background: rgba(23,43,77,0.5);
+    display: flex; align-items: center; justify-content: center;
+    z-index: 50;
+  }
+  .modal-backdrop.hidden { display: none; }
+
+  .modal {
+    background: var(--color-surface-primary);
+    border-radius: 12px;
+    width: 420px;
+    max-width: 95vw;
+    box-shadow: 0 12px 40px rgba(0,0,0,0.15);
+    overflow: hidden;
+  }
+  .modal-header {
+    display: flex; align-items: center; justify-content: space-between;
+    padding: 1rem 1.25rem;
+    border-bottom: 1px solid var(--color-border-subtle);
+  }
+  .modal-header h2 { font-size: 1rem; font-weight: 600; color: var(--color-text-strong); }
+  .modal-close {
+    background: none; border: none; cursor: pointer; padding: 0.5rem;
+    border-radius: 4px; color: var(--color-text-muted);
+  }
+  .modal-close:hover { background: var(--color-surface-hover); }
+
+  .modal-body { padding: 1.25rem; }
+
+  .avatar-preview-area {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 1rem;
+    margin-bottom: 1.25rem;
+  }
+
+  .avatar-preview-lg {
+    width: 96px;
+    height: 96px;
+    border-radius: 50%;
+    object-fit: cover;
+    border: 3px solid var(--color-border-subtle);
+  }
+  .avatar-preview-lg-initials {
+    width: 96px;
+    height: 96px;
+    border-radius: 50%;
+    background: var(--color-brand-primary);
+    color: var(--color-text-inverse);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 1.75rem;
+    font-weight: 700;
+    border: 3px solid var(--color-border-subtle);
+  }
+
+  .avatar-source-label {
+    font-size: 0.6875rem;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+    color: var(--color-text-subtle);
+  }
+
+  .avatar-actions { display: flex; gap: 0.5rem; }
+
+  .btn {
+    display: inline-flex; align-items: center; justify-content: center; gap: 0.5rem;
+    padding: 0.5rem 1rem; border-radius: 6px;
+    font-size: 0.8125rem; font-weight: 500;
+    cursor: pointer; border: none; transition: all 0.15s;
+  }
+  .btn-primary { background: var(--color-brand-primary); color: var(--color-text-inverse); }
+  .btn-primary:hover { background: var(--color-brand-hover); }
+  .btn-secondary {
+    background: var(--color-surface-primary);
+    color: var(--color-text-default);
+    border: 1px solid var(--color-border-default);
+  }
+  .btn-secondary:hover { background: var(--color-surface-hover); }
+  .btn-danger {
+    background: #ffebe6; color: #bf2600; border: 1px solid #ffcebf;
+  }
+  .btn-danger:hover { background: #ffd2c4; }
+  .btn svg { width: 14px; height: 14px; }
+
+  .upload-zone {
+    border: 2px dashed var(--color-border-default);
+    border-radius: 8px;
+    padding: 1.5rem;
+    text-align: center;
+    cursor: pointer;
+    transition: border-color 0.15s, background 0.15s;
+  }
+  .upload-zone:hover {
+    border-color: var(--color-brand-primary);
+    background: var(--color-brand-soft);
+  }
+  .upload-zone svg { width: 24px; height: 24px; color: var(--color-text-subtle); margin: 0 auto 0.5rem; }
+  .upload-zone p { font-size: 0.8125rem; color: var(--color-text-muted); }
+  .upload-zone .hint { font-size: 0.6875rem; color: var(--color-text-subtle); margin-top: 0.25rem; }
+
+  .modal-footer {
+    display: flex; justify-content: flex-end; gap: 0.5rem;
+    padding: 0.75rem 1.25rem;
+    border-top: 1px solid var(--color-border-subtle);
+  }
+
+  /* ── Section title ── */
+  .section-title {
+    font-size: 0.9375rem;
+    font-weight: 600;
+    color: var(--color-text-strong);
+    margin-bottom: 1rem;
+    padding: 1.25rem 1.5rem 0;
+  }
+
+  /* ── Form fields ── */
+  .form-group {
+    padding: 0 1.5rem;
+    margin-bottom: 1rem;
+  }
+  .form-group:last-child { margin-bottom: 1.25rem; }
+  .form-label {
+    display: block;
+    font-size: 0.75rem;
+    font-weight: 600;
+    color: var(--color-text-subtle);
+    margin-bottom: 0.25rem;
+  }
+  .form-input {
+    width: 100%;
+    padding: 0.5rem 0.75rem;
+    border: 1px solid var(--color-border-default);
+    border-radius: 6px;
+    font-size: 0.875rem;
+    color: var(--color-text-default);
+    background: var(--color-surface-primary);
+    outline: none;
+    transition: border-color 0.15s;
+  }
+  .form-input:focus {
+    border-color: var(--color-brand-primary);
+    box-shadow: 0 0 0 2px var(--color-brand-soft);
+  }
+  textarea.form-input { resize: vertical; min-height: 72px; }
+
+  .save-bar {
+    display: flex; justify-content: flex-end;
+    padding: 0 1.5rem 1.25rem;
+  }
+
+  /* ── Demo switch ── */
+  .demo-bar {
+    display: flex; gap: 0.5rem; margin-bottom: 1.5rem;
+    flex-wrap: wrap;
+  }
+  .demo-bar .btn { font-size: 0.75rem; padding: 0.375rem 0.75rem; }
+  .demo-bar .btn.active { background: var(--color-brand-primary); color: var(--color-text-inverse); border-color: var(--color-brand-primary); }
+</style>
+</head>
+<body>
+<div class="container">
+
+  <!-- Demo controls -->
+  <div class="demo-bar">
+    <button class="btn btn-secondary active" onclick="showGoogleAvatar()">S Google avatarem</button>
+    <button class="btn btn-secondary" onclick="showUploadedAvatar()">Vlastní upload</button>
+    <button class="btn btn-secondary" onclick="showInitials()">Bez avataru (iniciály)</button>
+    <button class="btn btn-secondary" onclick="openModal()">Otevřít editaci</button>
+  </div>
+
+  <!-- Profile card -->
+  <div class="card">
+    <div class="profile-header">
+      <div class="avatar-wrapper">
+        <!-- Avatar obrázek (Google / upload) -->
+        <img id="avatar-img"
+             src="https://lh3.googleusercontent.com/a/default-user=s96-c"
+             alt="Jan Melicherík"
+             class="avatar">
+        <!-- Fallback iniciály (skrytý default) -->
+        <div id="avatar-fallback" class="avatar-initials" style="display:none">JM</div>
+
+        <button class="avatar-edit-btn" onclick="openModal()" title="Změnit avatar">
+          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <path d="M12 20h9"/><path d="M16.376 3.622a1 1 0 0 1 3.002 3.002L7.368 18.635a2 2 0 0 1-.855.506l-2.872.838a.5.5 0 0 1-.62-.62l.838-2.872a2 2 0 0 1 .506-.854z"/>
+          </svg>
+        </button>
+      </div>
+      <div class="profile-info">
+        <div class="profile-name">Jan Melicherík</div>
+        <div class="profile-title">Head of Operations</div>
+      </div>
+      <span class="badge badge-success">Aktivní</span>
+    </div>
+
+    <div class="detail-row">
+      <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect width="20" height="16" x="2" y="4" rx="2"/><path d="m22 7-8.97 5.7a1.94 1.94 0 0 1-2.06 0L2 7"/></svg>
+      <span class="detail-label">Email</span>
+      <span class="detail-value">jan.melicherik@pearshealthcare.com</span>
+    </div>
+    <div class="detail-row">
+      <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10"/></svg>
+      <span class="detail-label">Role</span>
+      <span class="detail-value">Executive</span>
+    </div>
+    <div class="detail-row">
+      <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M22 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg>
+      <span class="detail-label">Tým</span>
+      <span class="detail-value">Operations</span>
+    </div>
+    <div class="detail-row">
+      <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect width="18" height="18" x="3" y="4" rx="2"/><path d="M16 2v4"/><path d="M8 2v4"/><path d="M3 10h18"/></svg>
+      <span class="detail-label">Účet vytvořen</span>
+      <span class="detail-value">25. března 2026</span>
+    </div>
+  </div>
+
+  <!-- Editable fields -->
+  <div class="card">
+    <div class="section-title">Osobní údaje</div>
+    <div class="form-group">
+      <label class="form-label">Pozice</label>
+      <input type="text" class="form-input" value="Head of Operations" placeholder="např. Head of Operations">
+    </div>
+    <div class="form-group">
+      <label class="form-label">Telefon</label>
+      <input type="tel" class="form-input" value="+420 123 456 789" placeholder="+420 ...">
+    </div>
+    <div class="form-group">
+      <label class="form-label">Bio</label>
+      <textarea class="form-input" placeholder="Krátký popis role, zodpovědnosti...">Zodpovídám za interní procesy, operational excellence a produktové řízení.</textarea>
+    </div>
+    <div class="save-bar">
+      <button class="btn btn-primary">
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M15.2 3a2 2 0 0 1 1.4.6l3.8 3.8a2 2 0 0 1 .6 1.4V19a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2z"/><path d="M17 21v-7a1 1 0 0 0-1-1H8a1 1 0 0 0-1 1v7"/><path d="M7 3v4a1 1 0 0 0 1 1h7"/></svg>
+        Uložit
+      </button>
+    </div>
+  </div>
+
+</div>
+
+<!-- Avatar edit modal -->
+<div id="avatar-modal" class="modal-backdrop hidden">
+  <div class="modal">
+    <div class="modal-header">
+      <h2>Změnit profilový obrázek</h2>
+      <button class="modal-close" onclick="closeModal()">
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="16" height="16"><path d="M18 6 6 18"/><path d="m6 6 12 12"/></svg>
+      </button>
+    </div>
+    <div class="modal-body">
+      <div class="avatar-preview-area">
+        <img id="modal-avatar-img"
+             src="https://lh3.googleusercontent.com/a/default-user=s96-c"
+             class="avatar-preview-lg">
+        <div id="modal-avatar-fallback" class="avatar-preview-lg-initials" style="display:none">JM</div>
+        <span id="modal-avatar-source" class="avatar-source-label">Z Google účtu</span>
+      </div>
+
+      <!-- Upload zone -->
+      <div class="upload-zone" onclick="simulateUpload()">
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="17 8 12 3 7 8"/><line x1="12" x2="12" y1="3" y2="15"/></svg>
+        <p>Klikněte nebo přetáhněte obrázek</p>
+        <p class="hint">JPG, PNG nebo WebP · Max 2 MB · Min 128×128 px</p>
+      </div>
+
+      <!-- Action buttons -->
+      <div style="display:flex; gap:0.5rem; margin-top:1rem;">
+        <button class="btn btn-secondary" onclick="resetToGoogle()" style="flex:1">
+          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="14" height="14"><path d="M3 12a9 9 0 0 1 9-9 9.75 9.75 0 0 1 6.74 2.74L21 8"/><path d="M21 3v5h-5"/><path d="M21 12a9 9 0 0 1-9 9 9.75 9.75 0 0 1-6.74-2.74L3 16"/><path d="M8 16H3v5"/></svg>
+          Obnovit z Google
+        </button>
+        <button class="btn btn-danger" onclick="removeAvatar()">
+          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="14" height="14"><path d="M3 6h18"/><path d="M19 6v14c0 1-1 2-2 2H7c-1 0-2-1-2-2V6"/><path d="M8 6V4c0-1 1-2 2-2h4c1 0 2 1 2 2v2"/></svg>
+          Odstranit
+        </button>
+      </div>
+    </div>
+    <div class="modal-footer">
+      <button class="btn btn-secondary" onclick="closeModal()">Zrušit</button>
+      <button class="btn btn-primary" onclick="closeModal()">Uložit</button>
+    </div>
+  </div>
+</div>
+
+<script>
+  const avatarImg = document.getElementById('avatar-img');
+  const avatarFallback = document.getElementById('avatar-fallback');
+  const modalImg = document.getElementById('modal-avatar-img');
+  const modalFallback = document.getElementById('modal-avatar-fallback');
+  const modalSource = document.getElementById('modal-avatar-source');
+  const modal = document.getElementById('avatar-modal');
+  const demoBtns = document.querySelectorAll('.demo-bar .btn');
+
+  function setActive(btn) {
+    demoBtns.forEach(b => b.classList.remove('active'));
+    btn.classList.add('active');
+  }
+
+  function showGoogleAvatar() {
+    setActive(event.target);
+    const url = 'https://lh3.googleusercontent.com/a/default-user=s96-c';
+    avatarImg.src = url;
+    avatarImg.style.display = '';
+    avatarFallback.style.display = 'none';
+    modalImg.src = url;
+    modalImg.style.display = '';
+    modalFallback.style.display = 'none';
+    modalSource.textContent = 'Z Google účtu';
+  }
+
+  function showUploadedAvatar() {
+    setActive(event.target);
+    // Simulate uploaded avatar with placeholder
+    const url = 'data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" width="96" height="96"><rect width="96" height="96" rx="48" fill="%230747a6"/><text x="48" y="56" text-anchor="middle" fill="white" font-size="28" font-weight="700" font-family="system-ui">JM</text></svg>';
+    avatarImg.src = url;
+    avatarImg.style.display = '';
+    avatarFallback.style.display = 'none';
+    modalImg.src = url;
+    modalImg.style.display = '';
+    modalFallback.style.display = 'none';
+    modalSource.textContent = 'Vlastní obrázek';
+  }
+
+  function showInitials() {
+    setActive(event.target);
+    avatarImg.style.display = 'none';
+    avatarFallback.style.display = '';
+    modalImg.style.display = 'none';
+    modalFallback.style.display = '';
+    modalSource.textContent = 'Žádný obrázek — zobrazeny iniciály';
+  }
+
+  function openModal() { modal.classList.remove('hidden'); }
+  function closeModal() { modal.classList.add('hidden'); }
+
+  function simulateUpload() {
+    showUploadedAvatar();
+    modalSource.textContent = 'Nový obrázek (neulozený)';
+  }
+
+  function resetToGoogle() {
+    const url = 'https://lh3.googleusercontent.com/a/default-user=s96-c';
+    modalImg.src = url;
+    modalImg.style.display = '';
+    modalFallback.style.display = 'none';
+    modalSource.textContent = 'Z Google účtu';
+  }
+
+  function removeAvatar() {
+    modalImg.style.display = 'none';
+    modalFallback.style.display = '';
+    modalSource.textContent = 'Žádný obrázek — zobrazeny iniciály';
+  }
+
+  // Close modal on backdrop click
+  modal.addEventListener('click', function(e) {
+    if (e.target === modal) closeModal();
+  });
+</script>
+</body>
+</html>

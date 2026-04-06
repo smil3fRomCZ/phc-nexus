@@ -19,11 +19,23 @@ function getColor(name: string): string {
 
 interface AvatarProps {
     name: string;
-    size?: 'sm' | 'md';
+    size?: 'sm' | 'md' | 'lg' | 'xl';
+    avatarUrl?: string | null;
 }
 
-export default function Avatar({ name, size = 'sm' }: AvatarProps) {
-    const sizeClasses = size === 'md' ? 'h-7 w-7 text-xs' : 'h-6 w-6 text-[9px]';
+const SIZE_MAP = {
+    sm: 'h-6 w-6 text-[9px]',
+    md: 'h-7 w-7 text-xs',
+    lg: 'h-10 w-10 text-sm',
+    xl: 'h-14 w-14 text-lg',
+} as const;
+
+export default function Avatar({ name, size = 'sm', avatarUrl }: AvatarProps) {
+    const sizeClasses = SIZE_MAP[size];
+
+    if (avatarUrl) {
+        return <img src={avatarUrl} alt={name} className={`flex-shrink-0 rounded-full object-cover ${sizeClasses}`} />;
+    }
 
     return (
         <div

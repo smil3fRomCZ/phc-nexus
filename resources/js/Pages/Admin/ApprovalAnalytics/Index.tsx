@@ -2,6 +2,8 @@ import AppLayout from '@/Layouts/AppLayout';
 import type { Breadcrumb } from '@/Layouts/AppLayout';
 import EmptyState from '@/Components/EmptyState';
 import SortableHeader from '@/Components/SortableHeader';
+import StatusBadge from '@/Components/StatusBadge';
+import { APPROVAL_STATUS } from '@/constants/status';
 import { useClientSort } from '@/hooks/useSortable';
 import { formatDate } from '@/utils/formatDate';
 import { BarChart3, Clock, CheckCircle, XCircle, Ban } from 'lucide-react';
@@ -37,13 +39,6 @@ const BREADCRUMBS: Breadcrumb[] = [
     { label: 'Administrace' },
     { label: 'Analytika schvalování' },
 ];
-
-const STATUS_CONFIG: Record<string, { color: string; bg: string }> = {
-    pending: { color: 'text-status-warning', bg: 'bg-status-warning-subtle' },
-    approved: { color: 'text-status-info', bg: 'bg-status-info-subtle' },
-    rejected: { color: 'text-status-danger', bg: 'bg-status-danger-subtle' },
-    cancelled: { color: 'text-status-neutral', bg: 'bg-status-neutral-subtle' },
-};
 
 function formatHours(hours: number): string {
     if (hours < 1) return `${Math.round(hours * 60)}m`;
@@ -154,45 +149,38 @@ export default function ApprovalAnalyticsIndex({ stats, history }: Props) {
                         </tr>
                     </thead>
                     <tbody>
-                        {sorted.map((item) => {
-                            const sc = STATUS_CONFIG[item.status] ?? STATUS_CONFIG.pending;
-                            return (
-                                <tr
-                                    key={item.id}
-                                    className={`transition-colors hover:bg-brand-soft ${item.project_id ? 'cursor-pointer' : ''}`}
-                                    onClick={
-                                        item.project_id
-                                            ? () => {
-                                                  window.location.href = `/projects/${item.project_id}/approvals/${item.id}`;
-                                              }
-                                            : undefined
-                                    }
-                                >
-                                    <td className="border-b border-border-subtle px-5 py-3 text-sm font-medium text-text-strong">
-                                        {item.approvable_title || item.description || 'Žádost o schválení'}
-                                    </td>
-                                    <td className="border-b border-border-subtle px-5 py-3 text-sm text-text-muted">
-                                        {item.requester_name}
-                                    </td>
-                                    <td className="border-b border-border-subtle px-5 py-3">
-                                        <span
-                                            className={`inline-flex rounded-[10px] px-2 py-px text-xs font-semibold leading-relaxed ${sc.bg} ${sc.color}`}
-                                        >
-                                            {item.status}
-                                        </span>
-                                    </td>
-                                    <td className="border-b border-border-subtle px-5 py-3 text-xs text-text-muted">
-                                        {formatDate(item.created_at)}
-                                    </td>
-                                    <td className="border-b border-border-subtle px-5 py-3 text-xs text-text-muted">
-                                        {item.decided_at ? formatDate(item.decided_at) : '\u2014'}
-                                    </td>
-                                    <td className="border-b border-border-subtle px-5 py-3 text-sm font-medium text-text-default">
-                                        {item.resolution_hours !== null ? formatHours(item.resolution_hours) : '\u2014'}
-                                    </td>
-                                </tr>
-                            );
-                        })}
+                        {sorted.map((item) => (
+                            <tr
+                                key={item.id}
+                                className={`transition-colors hover:bg-brand-soft ${item.project_id ? 'cursor-pointer' : ''}`}
+                                onClick={
+                                    item.project_id
+                                        ? () => {
+                                              window.location.href = `/projects/${item.project_id}/approvals/${item.id}`;
+                                          }
+                                        : undefined
+                                }
+                            >
+                                <td className="border-b border-border-subtle px-5 py-3 text-sm font-medium text-text-strong">
+                                    {item.approvable_title || item.description || 'Žádost o schválení'}
+                                </td>
+                                <td className="border-b border-border-subtle px-5 py-3 text-sm text-text-muted">
+                                    {item.requester_name}
+                                </td>
+                                <td className="border-b border-border-subtle px-5 py-3">
+                                    <StatusBadge statusMap={APPROVAL_STATUS} value={item.status} />
+                                </td>
+                                <td className="border-b border-border-subtle px-5 py-3 text-xs text-text-muted">
+                                    {formatDate(item.created_at)}
+                                </td>
+                                <td className="border-b border-border-subtle px-5 py-3 text-xs text-text-muted">
+                                    {item.decided_at ? formatDate(item.decided_at) : '\u2014'}
+                                </td>
+                                <td className="border-b border-border-subtle px-5 py-3 text-sm font-medium text-text-default">
+                                    {item.resolution_hours !== null ? formatHours(item.resolution_hours) : '\u2014'}
+                                </td>
+                            </tr>
+                        ))}
                         {history.length === 0 && <EmptyState colSpan={6} message="Žádné žádosti o schválení." />}
                     </tbody>
                 </table>

@@ -1,5 +1,5 @@
 import ConfirmModal from '@/Components/ConfirmModal';
-import { Trash2 } from 'lucide-react';
+import { Download, Trash2 } from 'lucide-react';
 import { formatDate } from '@/utils/formatDate';
 import { router } from '@inertiajs/react';
 import { useState, type FormEvent } from 'react';
@@ -23,15 +23,23 @@ interface Props {
     timeEntries: TimeEntryData[];
     totalHours: number;
     postUrl: string;
+    exportUrl?: string;
     currentUserId?: string;
     summaryItems?: SummaryItem[];
     showTaskColumn?: boolean;
 }
 
+const EXPORT_FORMATS = [
+    { value: 'csv', label: 'CSV' },
+    { value: 'xml', label: 'XML' },
+    { value: 'md', label: 'Markdown' },
+] as const;
+
 export default function TimeLogSection({
     timeEntries,
     totalHours,
     postUrl,
+    exportUrl,
     currentUserId,
     summaryItems,
     showTaskColumn = false,
@@ -80,8 +88,8 @@ export default function TimeLogSection({
 
     return (
         <div>
-            {/* Summary */}
-            <div className="mb-4 flex gap-4">
+            {/* Summary + Export */}
+            <div className="mb-4 flex flex-wrap items-end gap-4">
                 {summary.map((item) => (
                     <div
                         key={item.label}
@@ -99,6 +107,20 @@ export default function TimeLogSection({
                         <div className="text-lg font-bold text-text-strong">{item.value}</div>
                     </div>
                 ))}
+                {exportUrl && timeEntries.length > 0 && (
+                    <div className="ml-auto flex items-center gap-1.5">
+                        <Download className="h-3.5 w-3.5 text-text-muted" />
+                        {EXPORT_FORMATS.map((fmt) => (
+                            <a
+                                key={fmt.value}
+                                href={`${exportUrl}?format=${fmt.value}`}
+                                className="rounded-md border border-border-default bg-surface-primary px-2.5 py-1.5 text-xs font-medium text-text-default no-underline transition-colors hover:bg-surface-hover"
+                            >
+                                {fmt.label}
+                            </a>
+                        ))}
+                    </div>
+                )}
             </div>
 
             {/* Add form */}

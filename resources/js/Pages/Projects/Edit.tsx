@@ -1,6 +1,9 @@
 import AppLayout from '@/Layouts/AppLayout';
 import type { Breadcrumb } from '@/Layouts/AppLayout';
-import Spinner from '@/Components/Spinner';
+import Button from '@/Components/Button';
+import FormInput from '@/Components/FormInput';
+import FormSelect from '@/Components/FormSelect';
+import FormTextarea from '@/Components/FormTextarea';
 import { toDateInputValue } from '@/utils/formatDate';
 import { useForm } from '@inertiajs/react';
 import type { FormEvent } from 'react';
@@ -55,6 +58,8 @@ export default function ProjectEdit({ project, statuses, classifications, teams 
         target_date: toDateInputValue(project.target_date),
     });
 
+    const teamOptions = teams.map((t) => ({ value: t.id, label: t.name }));
+
     function submit(e: FormEvent) {
         e.preventDefault();
         put(`/projects/${project.id}`);
@@ -63,159 +68,118 @@ export default function ProjectEdit({ project, statuses, classifications, teams 
     return (
         <AppLayout title={`Upravit ${project.name}`} breadcrumbs={breadcrumbs}>
             <div className="mx-auto max-w-2xl">
-                <h1 className="mb-6 text-xl md:text-2xl font-bold leading-tight text-text-strong">
+                <h1 className="mb-6 text-xl font-bold leading-tight text-text-strong md:text-2xl">
                     Upravit projekt <span className="font-mono text-text-muted">{project.key}</span>
                 </h1>
 
                 <form onSubmit={submit} className="space-y-5">
-                    <Field label="Název *" error={errors.name}>
-                        <input
-                            type="text"
-                            value={data.name}
-                            onChange={(e) => setData('name', e.target.value)}
-                            className="mt-1 w-full rounded-md border border-border-default bg-surface-primary px-3 py-2 text-base focus:border-border-focus focus:outline-none focus:shadow-[0_0_0_2px_var(--color-brand-soft)]"
-                        />
-                    </Field>
+                    <FormInput
+                        id="project-name"
+                        label="Název"
+                        required
+                        value={data.name}
+                        onChange={(e) => setData('name', e.target.value)}
+                        error={errors.name}
+                    />
 
-                    <Field label="Popis">
-                        <textarea
-                            value={data.description}
-                            onChange={(e) => setData('description', e.target.value)}
-                            rows={3}
-                            className="mt-1 w-full rounded-md border border-border-default bg-surface-primary px-3 py-2 text-base focus:border-border-focus focus:outline-none focus:shadow-[0_0_0_2px_var(--color-brand-soft)]"
-                        />
-                    </Field>
+                    <FormTextarea
+                        id="project-desc"
+                        label="Popis"
+                        value={data.description}
+                        onChange={(e) => setData('description', e.target.value)}
+                        rows={3}
+                    />
 
-                    <Field label="Klasifikace dat">
-                        <select
-                            value={data.data_classification}
-                            onChange={(e) => setData('data_classification', e.target.value)}
-                            className="mt-1 rounded-md border border-border-default bg-surface-primary px-3 py-2 text-base focus:border-border-focus focus:outline-none focus:shadow-[0_0_0_2px_var(--color-brand-soft)]"
-                        >
-                            {classifications.map((c) => (
-                                <option key={c.value} value={c.value}>
-                                    {c.label}
-                                </option>
-                            ))}
-                        </select>
-                    </Field>
+                    <FormSelect
+                        id="project-classification"
+                        label="Klasifikace dat"
+                        value={data.data_classification}
+                        onChange={(e) => setData('data_classification', e.target.value)}
+                        options={classifications}
+                    />
 
-                    <Field label="Tým">
-                        <select
-                            value={data.team_id}
-                            onChange={(e) => setData('team_id', e.target.value)}
-                            className="mt-1 rounded-md border border-border-default bg-surface-primary px-3 py-2 text-base focus:border-border-focus focus:outline-none focus:shadow-[0_0_0_2px_var(--color-brand-soft)]"
-                        >
-                            <option value="">Bez týmu</option>
-                            {teams.map((t) => (
-                                <option key={t.id} value={t.id}>
-                                    {t.name}
-                                </option>
-                            ))}
-                        </select>
-                    </Field>
+                    <FormSelect
+                        id="project-team"
+                        label="Tým"
+                        value={data.team_id}
+                        onChange={(e) => setData('team_id', e.target.value)}
+                        options={teamOptions}
+                        placeholder="Bez týmu"
+                    />
 
-                    <Field label="Stav">
-                        <select
-                            value={data.status}
-                            onChange={(e) => setData('status', e.target.value)}
-                            className="mt-1 rounded-md border border-border-default bg-surface-primary px-3 py-2 text-base focus:border-border-focus focus:outline-none focus:shadow-[0_0_0_2px_var(--color-brand-soft)]"
-                        >
-                            {statuses.map((s) => (
-                                <option key={s.value} value={s.value}>
-                                    {s.label}
-                                </option>
-                            ))}
-                        </select>
-                    </Field>
+                    <FormSelect
+                        id="project-status"
+                        label="Stav"
+                        value={data.status}
+                        onChange={(e) => setData('status', e.target.value)}
+                        options={statuses}
+                    />
 
-                    <Field label="Přínos">
-                        <select
-                            value={data.benefit_type}
-                            onChange={(e) => {
-                                setData((prev) => ({
-                                    ...prev,
-                                    benefit_type: e.target.value,
-                                    benefit_amount: '',
-                                    benefit_note: '',
-                                }));
-                            }}
-                            className="mt-1 rounded-md border border-border-default bg-surface-primary px-3 py-2 text-base focus:border-border-focus focus:outline-none focus:shadow-[0_0_0_2px_var(--color-brand-soft)]"
-                        >
-                            <option value="">Bez přínosu</option>
-                            {benefitTypes.map((b) => (
-                                <option key={b.value} value={b.value}>
-                                    {b.label}
-                                </option>
-                            ))}
-                        </select>
-                    </Field>
+                    <FormSelect
+                        id="project-benefit"
+                        label="Přínos"
+                        value={data.benefit_type}
+                        onChange={(e) => {
+                            setData((prev) => ({
+                                ...prev,
+                                benefit_type: e.target.value,
+                                benefit_amount: '',
+                                benefit_note: '',
+                            }));
+                        }}
+                        options={benefitTypes.map((b) => ({ value: b.value, label: b.label }))}
+                        placeholder="Bez přínosu"
+                    />
 
                     {data.benefit_type && benefitTypes.find((b) => b.value === data.benefit_type)?.hasMoney && (
-                        <Field label="Částka (Kč)" error={errors.benefit_amount}>
-                            <input
-                                type="number"
-                                value={data.benefit_amount}
-                                onChange={(e) => setData('benefit_amount', e.target.value)}
-                                placeholder="0"
-                                className="mt-1 w-full rounded-md border border-border-default bg-surface-primary px-3 py-2 text-base focus:border-border-focus focus:outline-none focus:shadow-[0_0_0_2px_var(--color-brand-soft)]"
-                            />
-                        </Field>
+                        <FormInput
+                            id="project-benefit-amount"
+                            label="Částka (Kč)"
+                            type="number"
+                            value={data.benefit_amount}
+                            onChange={(e) => setData('benefit_amount', e.target.value)}
+                            placeholder="0"
+                            error={errors.benefit_amount}
+                        />
                     )}
 
                     {data.benefit_type && !benefitTypes.find((b) => b.value === data.benefit_type)?.hasMoney && (
-                        <Field label="Odůvodnění" error={errors.benefit_note}>
-                            <textarea
-                                value={data.benefit_note}
-                                onChange={(e) => setData('benefit_note', e.target.value)}
-                                rows={2}
-                                placeholder="Textové odůvodnění přínosu..."
-                                className="mt-1 w-full rounded-md border border-border-default bg-surface-primary px-3 py-2 text-base focus:border-border-focus focus:outline-none focus:shadow-[0_0_0_2px_var(--color-brand-soft)]"
-                            />
-                        </Field>
+                        <FormTextarea
+                            id="project-benefit-note"
+                            label="Odůvodnění"
+                            value={data.benefit_note}
+                            onChange={(e) => setData('benefit_note', e.target.value)}
+                            rows={2}
+                            placeholder="Textové odůvodnění přínosu..."
+                            error={errors.benefit_note}
+                        />
                     )}
 
                     <div className="grid grid-cols-2 gap-4">
-                        <Field label="Datum zahájení">
-                            <input
-                                type="date"
-                                value={data.start_date}
-                                onChange={(e) => setData('start_date', e.target.value)}
-                                className="mt-1 w-full rounded-md border border-border-default bg-surface-primary px-3 py-2 text-base focus:border-border-focus focus:outline-none focus:shadow-[0_0_0_2px_var(--color-brand-soft)]"
-                            />
-                        </Field>
-                        <Field label="Cílové datum" error={errors.target_date}>
-                            <input
-                                type="date"
-                                value={data.target_date}
-                                onChange={(e) => setData('target_date', e.target.value)}
-                                className="mt-1 w-full rounded-md border border-border-default bg-surface-primary px-3 py-2 text-base focus:border-border-focus focus:outline-none focus:shadow-[0_0_0_2px_var(--color-brand-soft)]"
-                            />
-                        </Field>
+                        <FormInput
+                            id="project-start-date"
+                            label="Datum zahájení"
+                            type="date"
+                            value={data.start_date}
+                            onChange={(e) => setData('start_date', e.target.value)}
+                        />
+                        <FormInput
+                            id="project-target-date"
+                            label="Cílové datum"
+                            type="date"
+                            value={data.target_date}
+                            onChange={(e) => setData('target_date', e.target.value)}
+                            error={errors.target_date}
+                        />
                     </div>
 
                     <div className="pt-4">
-                        <button
-                            type="submit"
-                            disabled={processing}
-                            className="inline-flex items-center gap-2 rounded-md bg-brand-primary px-6 py-2 text-sm font-medium text-text-inverse transition-colors hover:bg-brand-hover disabled:opacity-50"
-                        >
-                            {processing && <Spinner size="sm" />}
+                        <Button type="submit" loading={processing}>
                             Uložit změny
-                        </button>
+                        </Button>
                     </div>
                 </form>
             </div>
         </AppLayout>
-    );
-}
-
-function Field({ label, error, children }: { label: string; error?: string; children: React.ReactNode }) {
-    return (
-        <div>
-            <label className="block text-sm font-medium text-text-default">{label}</label>
-            {children}
-            {error && <p className="mt-1 text-xs text-status-danger">{error}</p>}
-        </div>
     );
 }

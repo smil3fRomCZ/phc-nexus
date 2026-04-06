@@ -336,6 +336,7 @@ export default function EpicShow({
                                 timeEntries={timeEntries}
                                 totalHours={totalHours}
                                 postUrl={`/projects/${project.id}/epics/${epic.id}/time-entries`}
+                                exportUrl={`/projects/${project.id}/epics/${epic.id}/export/time`}
                                 currentUserId={auth.user?.id}
                                 showTaskColumn
                                 summaryItems={[

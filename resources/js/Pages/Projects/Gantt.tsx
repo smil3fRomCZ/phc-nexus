@@ -1,6 +1,7 @@
 import 'frappe-gantt-css';
 import AppLayout from '@/Layouts/AppLayout';
 import type { Breadcrumb } from '@/Layouts/AppLayout';
+import Button from '@/Components/Button';
 import ProjectHeaderCompact from '@/Components/ProjectHeaderCompact';
 import ProjectTabs from '@/Components/ProjectTabs';
 import EmptyState from '@/Components/EmptyState';
@@ -107,17 +108,14 @@ export default function ProjectGantt({ project, tasks, epics }: Props) {
                     <>
                         <div className="flex flex-wrap gap-2">
                             {(['Day', 'Week', 'Month'] as const).map((mode) => (
-                                <button
+                                <Button
                                     key={mode}
+                                    variant={viewMode === mode ? 'primary' : 'secondary'}
+                                    size="sm"
                                     onClick={() => setViewMode(mode)}
-                                    className={`rounded-md border px-3 py-1.5 text-xs font-medium transition-colors ${
-                                        viewMode === mode
-                                            ? 'border-brand-primary bg-brand-soft text-brand-primary'
-                                            : 'border-border-default text-text-muted hover:bg-surface-hover'
-                                    }`}
                                 >
                                     {mode === 'Day' ? 'Den' : mode === 'Week' ? 'Týden' : 'Měsíc'}
-                                </button>
+                                </Button>
                             ))}
                         </div>
 

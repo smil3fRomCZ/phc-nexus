@@ -14,6 +14,7 @@ use App\Modules\Work\Models\Epic;
 use App\Modules\Work\Models\Task;
 use App\Modules\Work\Models\TimeEntry;
 use Illuminate\Http\Request;
+use Illuminate\Support\Collection;
 use Illuminate\Support\Facades\Gate;
 use Symfony\Component\HttpFoundation\StreamedResponse;
 
@@ -83,9 +84,9 @@ final class TimeExportController extends Controller
     }
 
     /**
-     * @param  \Illuminate\Support\Collection<int, TimeEntry>  $entries
+     * @param  Collection<int, TimeEntry>  $entries
      */
-    private function export($entries, string $format, string $projectKey, string $contextName): StreamedResponse
+    private function export(Collection $entries, string $format, string $projectKey, string $contextName): StreamedResponse
     {
         $date = now()->format('Y-m-d');
         $ext = match ($format) {

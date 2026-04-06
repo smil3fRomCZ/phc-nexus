@@ -61,7 +61,7 @@ final class TimeEntryExporter
             foreach ($rows as $row) {
                 echo "  <Entry>\n";
                 foreach (self::HEADERS as $i => $header) {
-                    $tag = self::TAG_MAP[$header] ?? $header;
+                    $tag = self::TAG_MAP[$header];
                     echo '    <'.$tag.'>'.htmlspecialchars($row[$i]).'</'.$tag.">\n";
                 }
                 echo "  </Entry>\n";

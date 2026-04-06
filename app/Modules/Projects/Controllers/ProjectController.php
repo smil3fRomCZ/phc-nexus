@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace App\Modules\Projects\Controllers;
 
 use App\Http\Controllers\Controller;
+use App\Models\User;
 use App\Modules\Audit\Enums\PhiClassification;
 use App\Modules\Organization\Models\Team;
 use App\Modules\Projects\Actions\SeedDefaultWorkflow;
@@ -131,10 +132,24 @@ final class ProjectController extends Controller
             ->latest()
             ->first();
 
+        $canManageMembers = Gate::allows('manageMembers', $project);
+
+        $availableUsers = $canManageMembers
+            ? User::query()
+                ->where('status', 'active')
+                ->whereNotIn('id', $project->members->pluck('id'))
+                ->orderBy('name')
+                ->get(['id', 'name', 'email'])
+            : [];
+
         return Inertia::render('Projects/Show', [
             'project' => $project,
             'totalHours' => $totalHours,
             'latestUpdate' => $latestUpdate,
+            'availableUsers' => $availableUsers,
+            'can' => [
+                'manageMembers' => $canManageMembers,
+            ],
         ]);
     }
 

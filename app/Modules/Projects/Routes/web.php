@@ -6,6 +6,7 @@ use App\Modules\Projects\Controllers\ProjectAttachmentController;
 use App\Modules\Projects\Controllers\ProjectCommentController;
 use App\Modules\Projects\Controllers\ProjectController;
 use App\Modules\Projects\Controllers\ProjectExportController;
+use App\Modules\Projects\Controllers\ProjectMemberController;
 use App\Modules\Projects\Controllers\TimeExportController;
 use App\Modules\Projects\Controllers\WorkflowController;
 use Illuminate\Support\Facades\Route;
@@ -26,6 +27,11 @@ Route::middleware('auth')->group(function () {
     Route::get('projects/{project}/export/time', [TimeExportController::class, 'project'])->name('projects.export.time');
     Route::get('projects/{project}/epics/{epic}/export/time', [TimeExportController::class, 'epic'])->name('projects.epics.export.time');
     Route::get('projects/{project}/tasks/{task}/export/time', [TimeExportController::class, 'task'])->name('projects.tasks.export.time');
+
+    // Project members
+    Route::post('projects/{project}/members', [ProjectMemberController::class, 'store'])->name('projects.members.store');
+    Route::patch('projects/{project}/members/{user}', [ProjectMemberController::class, 'updateRole'])->name('projects.members.updateRole');
+    Route::delete('projects/{project}/members/{user}', [ProjectMemberController::class, 'destroy'])->name('projects.members.destroy');
 
     // Project comments & attachments
     Route::post('projects/{project}/comments', [ProjectCommentController::class, 'store'])->name('projects.comments.store');

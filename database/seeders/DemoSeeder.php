@@ -74,6 +74,12 @@ class DemoSeeder extends Seeder
             'capacity_h_week' => 40,
         ]);
 
+        // Testeři — reálné účty s plným přístupem přes Google SSO
+        $this->createUser('Filip Učesaný', 'filip.ucesany@pearseurope.com', SystemRole::Executive);
+        $this->createUser('Lukáš Pítra', 'lukas.pitra@pearshealthcyber.com', SystemRole::Executive);
+        $this->createUser('Tomáš Provazník', 'tomas.provaznik@pearseurope.com', SystemRole::Executive);
+        $this->createUser('Veronika Černá', 'veronika.cerna@pearshealthcyber.com', SystemRole::Executive);
+
         $exec = $this->createUser('Jiří Kratochvíl', 'jiri.kratochvil@example.cz', SystemRole::Executive, null, [
             'job_title' => 'CEO',
             'phone' => '+420 777 333 444',

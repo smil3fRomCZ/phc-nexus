@@ -41,7 +41,7 @@ export default function TasksIndex({ project, epic, tasks }: Props) {
 
     function submit(e: FormEvent) {
         e.preventDefault();
-        post(storeUrl, { onSuccess: () => reset() });
+        post(storeUrl, { onSuccess: () => reset(), preserveScroll: true });
     }
 
     const breadcrumbs: Breadcrumb[] = [

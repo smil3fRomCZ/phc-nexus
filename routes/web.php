@@ -34,7 +34,7 @@ Route::middleware('auth')->group(function () {
         ]);
         $request->user()->update(['board_settings' => $validated]);
 
-        return response()->json(['success' => true]);
+        return back();
     })->name('user.board-settings');
 });
 

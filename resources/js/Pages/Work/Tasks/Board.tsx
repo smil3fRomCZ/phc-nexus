@@ -50,6 +50,7 @@ interface Props {
     epics: EpicOption[];
     filters: Record<string, string | undefined>;
     boardSettings: BoardSettings;
+    transitionMap: Record<string, string[]>;
 }
 
 const CARD_FIELD_OPTIONS = [
@@ -72,6 +73,7 @@ export default function TaskBoard({
     epics = [],
     filters = {},
     boardSettings,
+    transitionMap = {},
 }: Props) {
     const [columns, setColumns] = useState(initialColumns);
     const [createOpen, setCreateOpen] = useState(false);
@@ -103,6 +105,20 @@ export default function TaskBoard({
         router.patch('/user/board-settings', { card_fields: next }, { preserveState: true, preserveScroll: true });
     }
 
+    // Povolené cílové sloupce pro aktuálně přetahovaný úkol
+    const allowedTargets: Set<string> = (() => {
+        if (!dragging) return new Set<string>();
+        let sourceStatus: string | undefined;
+        for (const col of columns) {
+            if (col.tasks.some((t) => t.id === dragging)) {
+                sourceStatus = col.status;
+                break;
+            }
+        }
+        if (!sourceStatus) return new Set<string>();
+        return new Set(transitionMap[sourceStatus] ?? []);
+    })();
+
     function handleDragStart(e: DragEvent, taskId: string) {
         e.dataTransfer.effectAllowed = 'move';
         e.dataTransfer.setData('text/plain', taskId);
@@ -110,6 +126,10 @@ export default function TaskBoard({
     }
 
     function handleDragOver(e: DragEvent, status: string) {
+        if (!allowedTargets.has(status)) {
+            e.dataTransfer.dropEffect = 'none';
+            return;
+        }
         e.preventDefault();
         e.dataTransfer.dropEffect = 'move';
         setDropTarget(status);
@@ -123,6 +143,8 @@ export default function TaskBoard({
         e.preventDefault();
         setDropTarget(null);
         setDragging(null);
+
+        if (!allowedTargets.has(targetStatus)) return;
 
         const taskId = e.dataTransfer.getData('text/plain');
         if (!taskId) return;
@@ -284,51 +306,60 @@ export default function TaskBoard({
 
             {/* Board columns */}
             <div className="flex gap-3 overflow-x-auto pb-4">
-                {columns.map((col) => (
-                    <div
-                        key={col.status}
-                        className={`flex min-w-[14rem] flex-1 flex-col overflow-hidden rounded-lg border border-border-subtle ${
-                            dropTarget === col.status && !col.color ? 'ring-2 ring-inset ring-brand-primary' : ''
-                        }`}
-                        style={
-                            dropTarget === col.status && col.color
-                                ? { boxShadow: `inset 0 0 0 2px ${col.color}` }
-                                : undefined
-                        }
-                        onDragOver={(e) => handleDragOver(e, col.status)}
-                        onDragLeave={handleDragLeave}
-                        onDrop={(e) => handleDrop(e, col.status)}
-                    >
+                {columns.map((col) => {
+                    const isDragActive = !!dragging;
+                    const isAllowed = allowedTargets.has(col.status);
+                    const isDisabled = isDragActive && !isAllowed;
+                    const isHighlighted = dropTarget === col.status && isAllowed;
+
+                    return (
                         <div
-                            className={`rounded-t-lg px-3 py-2 ${!col.color ? (COLUMN_COLORS[col.status] ?? 'bg-surface-secondary') : ''}`}
-                            style={col.color ? { backgroundColor: col.color } : undefined}
+                            key={col.status}
+                            className={`flex min-w-[14rem] flex-1 flex-col overflow-hidden rounded-lg border transition-opacity ${
+                                isDisabled
+                                    ? 'border-border-subtle opacity-40'
+                                    : isHighlighted && !col.color
+                                      ? 'border-border-subtle ring-2 ring-inset ring-brand-primary'
+                                      : 'border-border-subtle'
+                            }`}
+                            style={
+                                isHighlighted && col.color ? { boxShadow: `inset 0 0 0 2px ${col.color}` } : undefined
+                            }
+                            onDragOver={(e) => handleDragOver(e, col.status)}
+                            onDragLeave={handleDragLeave}
+                            onDrop={(e) => handleDrop(e, col.status)}
                         >
-                            <div className="flex items-center justify-between">
-                                <span className="text-xs font-semibold uppercase tracking-wide text-text-strong">
-                                    {col.label}
-                                </span>
-                                <span className="rounded-full bg-surface-primary px-2 py-px text-xs font-semibold text-text-muted">
-                                    {col.tasks.length}
-                                </span>
+                            <div
+                                className={`rounded-t-lg px-3 py-2 ${!col.color ? (COLUMN_COLORS[col.status] ?? 'bg-surface-secondary') : ''}`}
+                                style={col.color ? { backgroundColor: col.color } : undefined}
+                            >
+                                <div className="flex items-center justify-between">
+                                    <span className="text-xs font-semibold uppercase tracking-wide text-text-strong">
+                                        {col.label}
+                                    </span>
+                                    <span className="rounded-full bg-surface-primary px-2 py-px text-xs font-semibold text-text-muted">
+                                        {col.tasks.length}
+                                    </span>
+                                </div>
+                            </div>
+
+                            <div className="flex flex-1 flex-col gap-2 p-2" style={{ minHeight: '150px' }}>
+                                {col.tasks.map((task) => (
+                                    <BoardCard
+                                        key={task.id}
+                                        task={task}
+                                        projectId={project.id}
+                                        projectKey={project.key}
+                                        cardFields={cardFields}
+                                        isDragging={dragging === task.id}
+                                        isDone={!!(col.is_done || col.is_cancelled)}
+                                        onDragStart={handleDragStart}
+                                    />
+                                ))}
                             </div>
                         </div>
-
-                        <div className="flex flex-1 flex-col gap-2 p-2" style={{ minHeight: '150px' }}>
-                            {col.tasks.map((task) => (
-                                <BoardCard
-                                    key={task.id}
-                                    task={task}
-                                    projectId={project.id}
-                                    projectKey={project.key}
-                                    cardFields={cardFields}
-                                    isDragging={dragging === task.id}
-                                    isDone={!!(col.is_done || col.is_cancelled)}
-                                    onDragStart={handleDragStart}
-                                />
-                            ))}
-                        </div>
-                    </div>
-                ))}
+                    );
+                })}
             </div>
 
             <ConfirmModal
@@ -370,6 +401,7 @@ function TaskCreateDialog({
         status: 'backlog',
         assignee_id: '',
         epic_id: '',
+        start_date: '',
         due_date: '',
     });
 
@@ -445,6 +477,16 @@ function TaskCreateDialog({
                         options={epics.map((ep) => ({ value: ep.id, label: ep.title }))}
                         placeholder="Bez epicu"
                     />
+                    <FormInput
+                        id="task-start-date"
+                        label="Začátek"
+                        type="date"
+                        value={data.start_date}
+                        onChange={(e) => setData('start_date', e.target.value)}
+                    />
+                </div>
+
+                <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
                     <FormInput
                         id="task-due-date"
                         label="Termín"

@@ -74,6 +74,7 @@ final class TaskController extends Controller
             'priority' => ['required', 'string', 'in:'.implode(',', array_column(TaskPriority::cases(), 'value'))],
             'assignee_id' => ['nullable', 'uuid', 'exists:users,id'],
             'reporter_id' => ['nullable', 'uuid', 'exists:users,id'],
+            'start_date' => ['nullable', 'date'],
             'due_date' => ['nullable', 'date'],
             'story_points' => ['nullable', 'integer', 'in:1,2,3,5,8,13,21'],
             'estimated_hours' => ['nullable', 'numeric', 'min:0'],
@@ -278,6 +279,7 @@ final class TaskController extends Controller
             'assignee_id' => ['nullable', 'uuid', 'exists:users,id'],
             'reporter_id' => ['nullable', 'uuid', 'exists:users,id'],
             'epic_id' => ['nullable', 'uuid', 'exists:epics,id'],
+            'start_date' => ['nullable', 'date'],
             'due_date' => ['nullable', 'date'],
             'story_points' => ['nullable', 'integer', 'in:1,2,3,5,8,13,21'],
             'estimated_hours' => ['nullable', 'numeric', 'min:0'],
@@ -377,6 +379,13 @@ final class TaskController extends Controller
             || $project->getAttribute('owner_id') === $user->id
             || $project->epics()->where('pm_id', $user->id)->exists();
 
+        // Mapa povolených přechodů: statusId → [targetId, ...]
+        $transitionMap = [];
+        foreach ($workflowStatuses as $ws) {
+            /** @var WorkflowStatus $ws */
+            $transitionMap[$ws->id] = $ws->allowedTargets()->pluck('id')->all();
+        }
+
         return Inertia::render('Work/Tasks/Board', [
             'project' => $project->only('id', 'name', 'key', 'status'),
             'columns' => $columns,
@@ -385,6 +394,7 @@ final class TaskController extends Controller
             'epics' => $epics,
             'filters' => $request->only(['assignee_id', 'epic_id']),
             'boardSettings' => $request->user()->board_settings ?? ['card_fields' => ['priority', 'assignee', 'comments_count']],
+            'transitionMap' => $transitionMap,
         ]);
     }
 

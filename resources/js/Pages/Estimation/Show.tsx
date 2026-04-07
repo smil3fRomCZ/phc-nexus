@@ -61,8 +61,6 @@ export default function EstimationShow({ project, session, members }: Props) {
     const { auth } = usePage<PageProps>().props;
     const currentUserId = auth.user?.id;
 
-    // Najdi aktuální kolo (první nevyřešené nebo poslední)
-    const activeRounds = session.rounds.filter((r) => r.status !== 'confirmed');
     const confirmedRounds = session.rounds.filter((r) => r.status === 'confirmed');
 
     // Group rounds by task — keep only the latest round per task

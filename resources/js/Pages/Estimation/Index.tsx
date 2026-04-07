@@ -6,7 +6,7 @@ import Modal from '@/Components/Modal';
 import ProjectHeaderCompact from '@/Components/ProjectHeaderCompact';
 import ProjectTabs from '@/Components/ProjectTabs';
 import { formatDate } from '@/utils/formatDate';
-import { Link, router, useForm } from '@inertiajs/react';
+import { Link, useForm } from '@inertiajs/react';
 import { Dices, Plus, X } from 'lucide-react';
 import { useState } from 'react';
 

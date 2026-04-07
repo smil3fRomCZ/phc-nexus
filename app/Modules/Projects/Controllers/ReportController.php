@@ -43,16 +43,17 @@ class ReportController extends Controller
     private function taskStats(Project $project): array
     {
         $total = $project->tasks()->count();
-        $statuses = $project->workflowStatuses()
+        /** @var \Illuminate\Database\Eloquent\Collection<int, WorkflowStatus> $wsCollection */
+        $wsCollection = $project->workflowStatuses()
             ->withCount(['tasks' => fn ($q) => $q->where('project_id', $project->id)])
-            ->get()
-            ->map(fn (WorkflowStatus $ws) => [
-                'name' => $ws->name,
-                'color' => $ws->color,
-                'count' => $ws->tasks_count,
-                'is_done' => $ws->is_done,
-                'is_cancelled' => $ws->is_cancelled,
-            ]);
+            ->get();
+        $statuses = $wsCollection->map(fn (WorkflowStatus $ws) => [
+            'name' => $ws->name,
+            'color' => $ws->color,
+            'count' => $ws->tasks_count,
+            'is_done' => $ws->is_done,
+            'is_cancelled' => $ws->is_cancelled,
+        ]);
 
         $completed = $statuses->where('is_done', true)->sum('count');
         $overdue = $project->tasks()
@@ -122,7 +123,8 @@ class ReportController extends Controller
      */
     private function epicProgress(Project $project): array
     {
-        return $project->epics()
+        /** @var \Illuminate\Database\Eloquent\Collection<int, Epic> $epics */
+        $epics = $project->epics()
             ->withCount([
                 'tasks',
                 'tasks as tasks_done_count' => fn ($q) => $q->whereHas('workflowStatus', fn ($ws) => $ws->where('is_done', true)),
@@ -130,19 +132,19 @@ class ReportController extends Controller
             ->withSum('tasks', 'story_points')
             ->withSum(['tasks as tasks_done_sp_sum' => fn ($q) => $q->whereHas('workflowStatus', fn ($ws) => $ws->where('is_done', true))], 'story_points')
             ->orderBy('title')
-            ->get()
-            ->map(fn (Epic $epic) => [
-                'id' => $epic->id,
-                'title' => $epic->title,
-                'tasks_count' => $epic->tasks_count,
-                'tasks_done_count' => $epic->tasks_done_count,
-                'total_sp' => (int) $epic->tasks_sum_story_points,
-                'done_sp' => (int) $epic->tasks_done_sp_sum,
-                'percent' => $epic->tasks_count > 0
-                    ? round($epic->tasks_done_count / $epic->tasks_count * 100)
-                    : 0,
-            ])
-            ->all();
+            ->get();
+
+        return $epics->map(fn (Epic $epic) => [
+            'id' => $epic->id,
+            'title' => $epic->title,
+            'tasks_count' => $epic->tasks_count,
+            'tasks_done_count' => $epic->tasks_done_count,
+            'total_sp' => (int) $epic->tasks_sum_story_points,
+            'done_sp' => (int) $epic->tasks_done_sp_sum,
+            'percent' => $epic->tasks_count > 0
+                ? round($epic->tasks_done_count / $epic->tasks_count * 100)
+                : 0,
+        ])->all();
     }
 
     /**
@@ -150,6 +152,7 @@ class ReportController extends Controller
      */
     private function memberActivity(Project $project): array
     {
+        /** @var \Illuminate\Database\Eloquent\Collection<int, User> $members */
         $members = $project->members()->select('users.id', 'users.name')->get();
 
         return $members->map(function (User $member) use ($project) {

@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace App\Modules\Projects\Models;
 
 use App\Models\Concerns\HasUuidV7;
+use App\Modules\Work\Models\Task;
 use Database\Factories\WorkflowStatusFactory;
 use Illuminate\Database\Eloquent\Collection;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
@@ -12,6 +13,9 @@ use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\HasMany;
 
+/**
+ * @property-read int $tasks_count
+ */
 class WorkflowStatus extends Model
 {
     /** @use HasFactory<WorkflowStatusFactory> */
@@ -49,6 +53,11 @@ class WorkflowStatus extends Model
     public function project(): BelongsTo
     {
         return $this->belongsTo(Project::class);
+    }
+
+    public function tasks(): HasMany
+    {
+        return $this->hasMany(Task::class);
     }
 
     public function transitionsFrom(): HasMany

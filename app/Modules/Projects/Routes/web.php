@@ -9,6 +9,7 @@ use App\Modules\Projects\Controllers\ProjectExportController;
 use App\Modules\Projects\Controllers\ProjectMemberController;
 use App\Modules\Projects\Controllers\TimeExportController;
 use App\Modules\Projects\Controllers\WorkflowController;
+use App\Modules\Projects\Controllers\WorkflowTemplateController;
 use Illuminate\Support\Facades\Route;
 
 Route::middleware('auth')->group(function () {
@@ -44,5 +45,17 @@ Route::middleware('auth')->group(function () {
     Route::delete('projects/{project}/workflow/statuses/{workflowStatus}', [WorkflowController::class, 'destroyStatus'])->name('projects.workflow.statuses.destroy');
     Route::post('projects/{project}/workflow/transitions', [WorkflowController::class, 'storeTransition'])->name('projects.workflow.transitions.store');
     Route::delete('projects/{project}/workflow/transitions/{workflowTransition}', [WorkflowController::class, 'destroyTransition'])->name('projects.workflow.transitions.destroy');
+
+    // Workflow Templates
+    Route::get('workflow-templates', [WorkflowTemplateController::class, 'index'])->name('workflow-templates.index');
+    Route::post('workflow-templates', [WorkflowTemplateController::class, 'store'])->name('workflow-templates.store');
+    Route::get('workflow-templates/{template}', [WorkflowTemplateController::class, 'show'])->name('workflow-templates.show');
+    Route::delete('workflow-templates/{template}', [WorkflowTemplateController::class, 'destroy'])->name('workflow-templates.destroy');
+    Route::post('workflow-templates/{template}/statuses', [WorkflowTemplateController::class, 'addStatus'])->name('workflow-templates.statuses.store');
+    Route::put('workflow-templates/{template}/statuses/{status}', [WorkflowTemplateController::class, 'updateStatus'])->name('workflow-templates.statuses.update');
+    Route::delete('workflow-templates/{template}/statuses/{status}', [WorkflowTemplateController::class, 'deleteStatus'])->name('workflow-templates.statuses.destroy');
+    Route::post('workflow-templates/{template}/transitions', [WorkflowTemplateController::class, 'addTransition'])->name('workflow-templates.transitions.store');
+    Route::delete('workflow-templates/{template}/transitions/{transition}', [WorkflowTemplateController::class, 'deleteTransition'])->name('workflow-templates.transitions.destroy');
+    Route::post('workflow-templates/{template}/apply/{project}', [WorkflowTemplateController::class, 'applyToProject'])->name('workflow-templates.apply');
 
 });

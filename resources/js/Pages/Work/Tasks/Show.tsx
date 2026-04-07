@@ -104,6 +104,11 @@ interface BenefitTypeOption {
     hasMoney: boolean;
 }
 
+interface EpicOption {
+    id: string;
+    title: string;
+}
+
 interface Props {
     project: { id: string; name: string; key: string };
     task: Task;
@@ -116,6 +121,7 @@ interface Props {
     projectTasks: ProjectTask[];
     recurrenceRules: SelectOption[];
     benefitTypes: BenefitTypeOption[];
+    epics: EpicOption[];
     timeEntries: TimeEntryData[];
     totalHours: number;
 }
@@ -131,6 +137,7 @@ export default function TaskShow({
     projectTasks,
     recurrenceRules,
     benefitTypes = [],
+    epics = [],
     hasPendingApproval = false,
     timeEntries = [],
     totalHours = 0,
@@ -266,6 +273,7 @@ export default function TaskShow({
                             members={members}
                             statuses={statuses}
                             priorities={priorities}
+                            epics={epics}
                             onClose={() => setEditing(false)}
                         />
                     )}
@@ -644,6 +652,7 @@ function TaskEditDialog({
     members,
     statuses,
     priorities,
+    epics,
     onClose,
 }: {
     project: { id: string };
@@ -651,6 +660,7 @@ function TaskEditDialog({
     members: Member[];
     statuses: SelectOption[];
     priorities: SelectOption[];
+    epics: EpicOption[];
     onClose: () => void;
 }) {
     const { data, setData, put, processing, errors } = useForm({
@@ -660,6 +670,7 @@ function TaskEditDialog({
         priority: task.priority,
         assignee_id: task.assignee?.id ?? '',
         reporter_id: task.reporter?.id ?? '',
+        epic_id: task.epic?.id ?? '',
         due_date: toDateInputValue(task.due_date),
     });
 
@@ -761,14 +772,31 @@ function TaskEditDialog({
                     </EditField>
                 </div>
 
-                <EditField label="Termín" error={errors.due_date}>
-                    <input
-                        type="date"
-                        value={data.due_date}
-                        onChange={(e) => setData('due_date', e.target.value)}
-                        className="mt-1 w-full rounded-md border border-border-default bg-surface-primary px-3 py-2 text-sm focus:border-border-focus focus:outline-none focus:shadow-[0_0_0_2px_var(--color-brand-soft)]"
-                    />
-                </EditField>
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                    <EditField label="Epic" error={errors.epic_id}>
+                        <select
+                            value={data.epic_id}
+                            onChange={(e) => setData('epic_id', e.target.value)}
+                            className="mt-1 w-full rounded-md border border-border-default bg-surface-primary px-3 py-2 text-sm focus:border-border-focus focus:outline-none focus:shadow-[0_0_0_2px_var(--color-brand-soft)]"
+                        >
+                            <option value="">Bez epicu</option>
+                            {epics.map((ep) => (
+                                <option key={ep.id} value={ep.id}>
+                                    {ep.title}
+                                </option>
+                            ))}
+                        </select>
+                    </EditField>
+
+                    <EditField label="Termín" error={errors.due_date}>
+                        <input
+                            type="date"
+                            value={data.due_date}
+                            onChange={(e) => setData('due_date', e.target.value)}
+                            className="mt-1 w-full rounded-md border border-border-default bg-surface-primary px-3 py-2 text-sm focus:border-border-focus focus:outline-none focus:shadow-[0_0_0_2px_var(--color-brand-soft)]"
+                        />
+                    </EditField>
+                </div>
 
                 <div className="flex justify-end gap-3 pt-2">
                     <button

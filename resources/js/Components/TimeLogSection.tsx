@@ -1,5 +1,5 @@
 import ConfirmModal from '@/Components/ConfirmModal';
-import { Download, Trash2 } from 'lucide-react';
+import { Download, Pencil, Trash2, X, Check } from 'lucide-react';
 import { formatDate } from '@/utils/formatDate';
 import { router } from '@inertiajs/react';
 import { useState, type FormEvent } from 'react';
@@ -50,6 +50,10 @@ export default function TimeLogSection({
     const [submitting, setSubmitting] = useState(false);
     const [error, setError] = useState<string | null>(null);
     const [deleteTarget, setDeleteTarget] = useState<string | null>(null);
+    const [editingId, setEditingId] = useState<string | null>(null);
+    const [editDate, setEditDate] = useState('');
+    const [editHours, setEditHours] = useState('');
+    const [editNote, setEditNote] = useState('');
 
     const defaultSummary: SummaryItem[] = [
         { label: 'Celkem', value: `${totalHours} h`, variant: 'info' },
@@ -76,6 +80,26 @@ export default function TimeLogSection({
                 },
                 preserveScroll: true,
             },
+        );
+    }
+
+    function startEdit(entry: TimeEntryData) {
+        setEditingId(entry.id);
+        setEditDate(entry.date);
+        setEditHours(entry.hours);
+        setEditNote(entry.note ?? '');
+    }
+
+    function cancelEdit() {
+        setEditingId(null);
+    }
+
+    function submitEdit() {
+        if (!editingId) return;
+        router.put(
+            `/time-entries/${editingId}`,
+            { date: editDate, hours: parseFloat(editHours), note: editNote || null },
+            { preserveScroll: true, onSuccess: () => setEditingId(null) },
         );
     }
 
@@ -197,39 +221,109 @@ export default function TimeLogSection({
                         <tbody>
                             {timeEntries.map((entry) => (
                                 <tr key={entry.id} className="transition-colors hover:bg-brand-soft">
-                                    <td className="border-b border-border-subtle px-3 py-2 text-sm">
-                                        {formatDate(entry.date)}
-                                    </td>
-                                    <td className="border-b border-border-subtle px-3 py-2 text-sm font-bold text-text-strong">
-                                        {entry.hours} h
-                                    </td>
-                                    {showTaskColumn && (
-                                        <td className="border-b border-border-subtle px-3 py-2 text-sm text-text-muted">
-                                            {entry.task ? (
-                                                <span className="font-medium text-brand-primary">
-                                                    {entry.task.title}
-                                                </span>
-                                            ) : (
-                                                <em className="text-text-subtle">Epic</em>
+                                    {editingId === entry.id ? (
+                                        <>
+                                            <td className="border-b border-border-subtle px-3 py-2">
+                                                <input
+                                                    type="date"
+                                                    value={editDate}
+                                                    onChange={(e) => setEditDate(e.target.value)}
+                                                    className="w-36 rounded-md border border-border-default bg-surface-primary px-2 py-1 text-sm focus:border-border-focus focus:outline-none"
+                                                />
+                                            </td>
+                                            <td className="border-b border-border-subtle px-3 py-2">
+                                                <input
+                                                    type="number"
+                                                    value={editHours}
+                                                    onChange={(e) => setEditHours(e.target.value)}
+                                                    step="0.25"
+                                                    min="0.25"
+                                                    max="24"
+                                                    className="w-20 rounded-md border border-border-default bg-surface-primary px-2 py-1 text-sm focus:border-border-focus focus:outline-none"
+                                                />
+                                            </td>
+                                            {showTaskColumn && (
+                                                <td className="border-b border-border-subtle px-3 py-2 text-sm text-text-muted">
+                                                    {entry.task ? (
+                                                        entry.task.title
+                                                    ) : (
+                                                        <em className="text-text-subtle">Epic</em>
+                                                    )}
+                                                </td>
                                             )}
-                                        </td>
+                                            <td className="border-b border-border-subtle px-3 py-2 text-sm text-text-muted">
+                                                {entry.user.name}
+                                            </td>
+                                            <td className="border-b border-border-subtle px-3 py-2">
+                                                <input
+                                                    type="text"
+                                                    value={editNote}
+                                                    onChange={(e) => setEditNote(e.target.value)}
+                                                    className="w-full rounded-md border border-border-default bg-surface-primary px-2 py-1 text-sm focus:border-border-focus focus:outline-none"
+                                                />
+                                            </td>
+                                            <td className="border-b border-border-subtle px-3 py-2 text-right">
+                                                <div className="flex items-center justify-end gap-1">
+                                                    <button
+                                                        onClick={submitEdit}
+                                                        className="rounded p-1 text-status-success transition-colors hover:bg-status-success-subtle"
+                                                    >
+                                                        <Check className="h-3.5 w-3.5" />
+                                                    </button>
+                                                    <button
+                                                        onClick={cancelEdit}
+                                                        className="rounded p-1 text-text-subtle transition-colors hover:bg-surface-hover"
+                                                    >
+                                                        <X className="h-3.5 w-3.5" />
+                                                    </button>
+                                                </div>
+                                            </td>
+                                        </>
+                                    ) : (
+                                        <>
+                                            <td className="border-b border-border-subtle px-3 py-2 text-sm">
+                                                {formatDate(entry.date)}
+                                            </td>
+                                            <td className="border-b border-border-subtle px-3 py-2 text-sm font-bold text-text-strong">
+                                                {entry.hours} h
+                                            </td>
+                                            {showTaskColumn && (
+                                                <td className="border-b border-border-subtle px-3 py-2 text-sm text-text-muted">
+                                                    {entry.task ? (
+                                                        <span className="font-medium text-brand-primary">
+                                                            {entry.task.title}
+                                                        </span>
+                                                    ) : (
+                                                        <em className="text-text-subtle">Epic</em>
+                                                    )}
+                                                </td>
+                                            )}
+                                            <td className="border-b border-border-subtle px-3 py-2 text-sm text-text-muted">
+                                                {entry.user.name}
+                                            </td>
+                                            <td className="border-b border-border-subtle px-3 py-2 text-sm text-text-muted">
+                                                {entry.note ?? '\u2014'}
+                                            </td>
+                                            <td className="border-b border-border-subtle px-3 py-2 text-right">
+                                                {entry.user.id === currentUserId && (
+                                                    <div className="flex items-center justify-end gap-1">
+                                                        <button
+                                                            onClick={() => startEdit(entry)}
+                                                            className="rounded p-1 text-xs text-text-subtle transition-colors hover:text-brand-primary hover:bg-brand-soft"
+                                                        >
+                                                            <Pencil className="h-3.5 w-3.5" />
+                                                        </button>
+                                                        <button
+                                                            onClick={() => handleDelete(entry.id)}
+                                                            className="rounded p-1 text-xs text-text-subtle transition-colors hover:text-status-danger"
+                                                        >
+                                                            <Trash2 className="h-3.5 w-3.5" />
+                                                        </button>
+                                                    </div>
+                                                )}
+                                            </td>
+                                        </>
                                     )}
-                                    <td className="border-b border-border-subtle px-3 py-2 text-sm text-text-muted">
-                                        {entry.user.name}
-                                    </td>
-                                    <td className="border-b border-border-subtle px-3 py-2 text-sm text-text-muted">
-                                        {entry.note ?? '\u2014'}
-                                    </td>
-                                    <td className="border-b border-border-subtle px-3 py-2 text-right">
-                                        {entry.user.id === currentUserId && (
-                                            <button
-                                                onClick={() => handleDelete(entry.id)}
-                                                className="text-xs text-text-subtle transition-colors hover:text-status-danger"
-                                            >
-                                                <Trash2 className="h-3.5 w-3.5" />
-                                            </button>
-                                        )}
-                                    </td>
                                 </tr>
                             ))}
                         </tbody>

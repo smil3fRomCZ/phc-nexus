@@ -217,6 +217,10 @@ final class TaskController extends Controller
         $recurrenceRules = collect(RecurrenceRule::cases())
             ->map(fn (RecurrenceRule $r) => ['value' => $r->value, 'label' => $r->label()]);
 
+        $epics = $project->epics()
+            ->orderBy('title')
+            ->get(['id', 'title']);
+
         return Inertia::render('Work/Tasks/Show', [
             'project' => $project->only('id', 'name', 'key', 'status'),
             'task' => $task,
@@ -228,6 +232,7 @@ final class TaskController extends Controller
             'activity' => $activity,
             'projectTasks' => $projectTasks,
             'recurrenceRules' => $recurrenceRules,
+            'epics' => $epics,
             'timeEntries' => $task->timeEntries()
                 ->with('user:id,name')
                 ->latest('date')
@@ -272,6 +277,7 @@ final class TaskController extends Controller
             'priority' => ['required', 'string', 'in:'.implode(',', array_column(TaskPriority::cases(), 'value'))],
             'assignee_id' => ['nullable', 'uuid', 'exists:users,id'],
             'reporter_id' => ['nullable', 'uuid', 'exists:users,id'],
+            'epic_id' => ['nullable', 'uuid', 'exists:epics,id'],
             'due_date' => ['nullable', 'date'],
             'story_points' => ['nullable', 'integer', 'in:1,2,3,5,8,13,21'],
             'estimated_hours' => ['nullable', 'numeric', 'min:0'],

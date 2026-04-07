@@ -7,6 +7,7 @@ use App\Modules\Projects\Controllers\ProjectCommentController;
 use App\Modules\Projects\Controllers\ProjectController;
 use App\Modules\Projects\Controllers\ProjectExportController;
 use App\Modules\Projects\Controllers\ProjectMemberController;
+use App\Modules\Projects\Controllers\ReportController;
 use App\Modules\Projects\Controllers\TimeExportController;
 use App\Modules\Projects\Controllers\WorkflowController;
 use App\Modules\Projects\Controllers\WorkflowTemplateController;
@@ -15,9 +16,10 @@ use Illuminate\Support\Facades\Route;
 Route::middleware('auth')->group(function () {
     Route::resource('projects', ProjectController::class);
 
-    // Project time & gantt
+    // Project time, gantt & reports
     Route::get('projects/{project}/time', [ProjectController::class, 'time'])->name('projects.time');
     Route::get('projects/{project}/gantt', [ProjectController::class, 'gantt'])->name('projects.gantt');
+    Route::get('projects/{project}/reports', [ReportController::class, 'index'])->name('projects.reports');
 
     // Project updates
     Route::post('projects/{project}/updates', [ProjectController::class, 'storeUpdate'])->name('projects.updates.store');

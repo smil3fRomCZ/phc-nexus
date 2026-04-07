@@ -22,6 +22,12 @@ use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Database\Eloquent\SoftDeletes;
 use Illuminate\Support\Facades\DB;
 
+/**
+ * @property-read int $tasks_count
+ * @property-read int $tasks_done_count
+ * @property-read float|null $tasks_sum_story_points
+ * @property-read float|null $tasks_done_sp_sum
+ */
 class Epic extends Model
 {
     /** @use HasFactory<EpicFactory> */

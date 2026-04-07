@@ -4,7 +4,7 @@ import ConfirmModal from '@/Components/ConfirmModal';
 import DeleteButton from '@/Components/DeleteButton';
 import ProjectHeaderCompact from '@/Components/ProjectHeaderCompact';
 import { router } from '@inertiajs/react';
-import { Plus, Trash2, X } from 'lucide-react';
+import { MousePointerClick, Plus, Trash2, X } from 'lucide-react';
 import { useState, useCallback, useMemo, useEffect } from 'react';
 import {
     ReactFlow,
@@ -297,126 +297,164 @@ export default function Workflow({ project, statuses, transitions }: Props) {
                         </ReactFlow>
                     </div>
 
-                    {/* Detail panel */}
-                    {editingStatus && (
-                        <div className="w-full flex-shrink-0 rounded-lg border border-border-subtle bg-surface-primary p-4 md:w-64">
-                            <div className="mb-3 flex items-center justify-between">
-                                <span className="text-sm font-semibold text-text-strong">Editace stavu</span>
-                                <button
-                                    onClick={() => setEditingId(null)}
-                                    className="rounded p-2 text-text-muted hover:bg-surface-hover"
-                                >
-                                    <X className="h-3.5 w-3.5" />
-                                </button>
-                            </div>
-
-                            <div className="space-y-3">
-                                <div>
-                                    <label className="block text-xs font-semibold uppercase tracking-wider text-text-subtle">
-                                        Název
-                                    </label>
-                                    <input
-                                        type="text"
-                                        defaultValue={editingStatus.name}
-                                        onBlur={(e) => {
-                                            if (e.target.value !== editingStatus.name)
-                                                updateStatus(editingStatus.id, { name: e.target.value });
-                                        }}
-                                        className="mt-1 w-full rounded-md border border-border-default px-2 py-1.5 text-sm focus:border-border-focus focus:outline-none"
-                                    />
+                    {/* Detail panel — always visible */}
+                    <div className="w-full flex-shrink-0 rounded-lg border border-border-subtle bg-surface-primary p-4 md:w-64">
+                        {editingStatus ? (
+                            <>
+                                <div className="mb-3 flex items-center justify-between">
+                                    <span className="text-sm font-semibold text-text-strong">Editace stavu</span>
+                                    <button
+                                        onClick={() => setEditingId(null)}
+                                        className="rounded p-2 text-text-muted hover:bg-surface-hover"
+                                    >
+                                        <X className="h-3.5 w-3.5" />
+                                    </button>
                                 </div>
 
-                                <div>
-                                    <label className="block text-xs font-semibold uppercase tracking-wider text-text-subtle">
-                                        Barva
-                                    </label>
-                                    <input
-                                        type="color"
-                                        value={editingStatus.color ?? '#97a0af'}
-                                        onChange={(e) => updateStatus(editingStatus.id, { color: e.target.value })}
-                                        className="mt-1 h-8 w-full cursor-pointer rounded-md border border-border-default"
-                                    />
-                                </div>
-
-                                <div>
-                                    <label className="block text-xs font-semibold uppercase tracking-wider text-text-subtle">
-                                        Flagy
-                                    </label>
-                                    <div className="mt-1 space-y-1">
-                                        {[
-                                            { key: 'is_initial', label: 'Výchozí (nové úkoly)' },
-                                            { key: 'is_done', label: 'Hotovo (progress)' },
-                                            { key: 'is_cancelled', label: 'Zrušeno' },
-                                            { key: 'allow_transition_from_any', label: 'Přechod odkudkoliv' },
-                                        ].map((flag) => (
-                                            <label
-                                                key={flag.key}
-                                                className="flex cursor-pointer items-center gap-2 text-xs text-text-default"
-                                            >
-                                                <input
-                                                    type="checkbox"
-                                                    checked={editingStatus[flag.key as keyof WorkflowStatus] as boolean}
-                                                    onChange={(e) =>
-                                                        updateStatus(editingStatus.id, {
-                                                            [flag.key]: e.target.checked,
-                                                        })
-                                                    }
-                                                    className="accent-brand-primary"
-                                                />
-                                                {flag.label}
-                                            </label>
-                                        ))}
+                                <div className="space-y-3">
+                                    <div>
+                                        <label className="block text-xs font-semibold uppercase tracking-wider text-text-subtle">
+                                            Název
+                                        </label>
+                                        <input
+                                            type="text"
+                                            defaultValue={editingStatus.name}
+                                            key={editingStatus.id}
+                                            onBlur={(e) => {
+                                                if (e.target.value !== editingStatus.name)
+                                                    updateStatus(editingStatus.id, { name: e.target.value });
+                                            }}
+                                            className="mt-1 w-full rounded-md border border-border-default px-2 py-1.5 text-sm focus:border-border-focus focus:outline-none"
+                                        />
                                     </div>
-                                </div>
 
-                                <div>
-                                    <label className="block text-xs font-semibold uppercase tracking-wider text-text-subtle">
-                                        Přechody z tohoto stavu
-                                    </label>
-                                    <div className="mt-1 space-y-0.5">
-                                        {transitions
-                                            .filter((t) => t.from_status_id === editingStatus.id)
-                                            .map((t) => (
-                                                <div
-                                                    key={t.id}
-                                                    className="flex items-center justify-between rounded px-2 py-1 text-xs hover:bg-surface-secondary"
+                                    <div>
+                                        <label className="block text-xs font-semibold uppercase tracking-wider text-text-subtle">
+                                            Barva
+                                        </label>
+                                        <input
+                                            type="color"
+                                            value={editingStatus.color ?? '#97a0af'}
+                                            onChange={(e) => updateStatus(editingStatus.id, { color: e.target.value })}
+                                            className="mt-1 h-8 w-full cursor-pointer rounded-md border border-border-default"
+                                        />
+                                    </div>
+
+                                    <div>
+                                        <label className="block text-xs font-semibold uppercase tracking-wider text-text-subtle">
+                                            Flagy
+                                        </label>
+                                        <div className="mt-1 space-y-1">
+                                            {[
+                                                { key: 'is_initial', label: 'Výchozí (nové úkoly)' },
+                                                { key: 'is_done', label: 'Hotovo (progress)' },
+                                                { key: 'is_cancelled', label: 'Zrušeno' },
+                                                { key: 'allow_transition_from_any', label: 'Přechod odkudkoliv' },
+                                            ].map((flag) => (
+                                                <label
+                                                    key={flag.key}
+                                                    className="flex cursor-pointer items-center gap-2 text-xs text-text-default"
                                                 >
-                                                    <span>→ {t.to_status.name}</span>
-                                                    <button
-                                                        onClick={() => deleteTransition(t.id)}
-                                                        className="text-text-subtle hover:text-status-danger"
+                                                    <input
+                                                        type="checkbox"
+                                                        checked={
+                                                            editingStatus[flag.key as keyof WorkflowStatus] as boolean
+                                                        }
+                                                        onChange={(e) =>
+                                                            updateStatus(editingStatus.id, {
+                                                                [flag.key]: e.target.checked,
+                                                            })
+                                                        }
+                                                        className="accent-brand-primary"
+                                                    />
+                                                    {flag.label}
+                                                </label>
+                                            ))}
+                                        </div>
+                                    </div>
+
+                                    <div>
+                                        <label className="block text-xs font-semibold uppercase tracking-wider text-text-subtle">
+                                            Přechody z tohoto stavu
+                                        </label>
+                                        <div className="mt-1 space-y-0.5">
+                                            {transitions
+                                                .filter((t) => t.from_status_id === editingStatus.id)
+                                                .map((t) => (
+                                                    <div
+                                                        key={t.id}
+                                                        className="flex items-center justify-between rounded px-2 py-1 text-xs hover:bg-surface-secondary"
                                                     >
-                                                        <Trash2 className="h-3 w-3" />
-                                                    </button>
-                                                </div>
-                                            ))}
+                                                        <span>→ {t.to_status.name}</span>
+                                                        <button
+                                                            onClick={() => deleteTransition(t.id)}
+                                                            className="text-text-subtle hover:text-status-danger"
+                                                        >
+                                                            <Trash2 className="h-3 w-3" />
+                                                        </button>
+                                                    </div>
+                                                ))}
+                                        </div>
+                                    </div>
+
+                                    <div>
+                                        <label className="block text-xs font-semibold uppercase tracking-wider text-text-subtle">
+                                            Přechody do tohoto stavu
+                                        </label>
+                                        <div className="mt-1 space-y-0.5">
+                                            {transitions
+                                                .filter((t) => t.to_status_id === editingStatus.id)
+                                                .map((t) => (
+                                                    <div
+                                                        key={t.id}
+                                                        className="rounded px-2 py-1 text-xs text-text-muted"
+                                                    >
+                                                        ← {t.from_status.name}
+                                                    </div>
+                                                ))}
+                                        </div>
+                                    </div>
+
+                                    <DeleteButton
+                                        onClick={() => deleteStatus(editingStatus.id, editingStatus.name)}
+                                        className="w-full rounded-md border border-status-danger/30 px-3 py-1.5 text-xs font-medium text-status-danger transition-colors hover:bg-status-danger-subtle"
+                                    >
+                                        Smazat stav
+                                    </DeleteButton>
+                                </div>
+                            </>
+                        ) : (
+                            <div className="flex h-full flex-col items-center justify-center text-center">
+                                <MousePointerClick className="mb-3 h-10 w-10 text-text-subtle" />
+                                <p className="text-sm font-semibold text-text-strong">Klikněte na stav pro úpravu</p>
+                                <p className="mt-1 text-xs text-text-muted">
+                                    Nebo táhněte z uzlu na uzel pro vytvoření přechodu
+                                </p>
+                                <div className="mt-4 w-full space-y-2 rounded-md bg-surface-secondary p-3">
+                                    <div className="flex items-center justify-between text-xs">
+                                        <span className="text-text-muted">Stavů</span>
+                                        <span className="font-semibold text-text-strong">{statuses.length}</span>
+                                    </div>
+                                    <div className="flex items-center justify-between text-xs">
+                                        <span className="text-text-muted">Přechodů</span>
+                                        <span className="font-semibold text-text-strong">{transitions.length}</span>
+                                    </div>
+                                    <div className="flex items-center justify-between text-xs">
+                                        <span className="text-text-muted">Výchozí stav</span>
+                                        <span className="font-semibold text-text-strong">
+                                            {statuses.find((s) => s.is_initial)?.name ?? '—'}
+                                        </span>
+                                    </div>
+                                    <div className="flex items-center justify-between text-xs">
+                                        <span className="text-text-muted">Koncové stavy</span>
+                                        <span className="font-semibold text-text-strong">
+                                            {statuses.filter((s) => s.is_done || s.is_cancelled).length}
+                                        </span>
                                     </div>
                                 </div>
-
-                                <div>
-                                    <label className="block text-xs font-semibold uppercase tracking-wider text-text-subtle">
-                                        Přechody do tohoto stavu
-                                    </label>
-                                    <div className="mt-1 space-y-0.5">
-                                        {transitions
-                                            .filter((t) => t.to_status_id === editingStatus.id)
-                                            .map((t) => (
-                                                <div key={t.id} className="rounded px-2 py-1 text-xs text-text-muted">
-                                                    ← {t.from_status.name}
-                                                </div>
-                                            ))}
-                                    </div>
-                                </div>
-
-                                <DeleteButton
-                                    onClick={() => deleteStatus(editingStatus.id, editingStatus.name)}
-                                    className="w-full rounded-md border border-status-danger/30 px-3 py-1.5 text-xs font-medium text-status-danger transition-colors hover:bg-status-danger-subtle"
-                                >
-                                    Smazat stav
-                                </DeleteButton>
                             </div>
-                        </div>
-                    )}
+                        )}
+                    </div>
                 </div>
             </div>
             <ConfirmModal

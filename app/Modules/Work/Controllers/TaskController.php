@@ -28,15 +28,25 @@ use Inertia\Response;
 
 final class TaskController extends Controller
 {
-    public function index(Project $project, ?Epic $epic = null): Response
+    public function index(Request $request, Project $project, ?Epic $epic = null): Response|JsonResponse
     {
         Gate::authorize('view', $project);
 
         $query = $epic
             ? $epic->tasks()
-            : $project->tasks()->whereNull('epic_id');
+            : $project->tasks();
+
+        // JSON response pro API volání (např. estimation session create)
+        if ($request->input('format') === 'json') {
+            $tasks = $query->select('id', 'number', 'title', 'story_points')
+                ->orderBy('number')
+                ->get();
+
+            return response()->json(['tasks' => $tasks]);
+        }
 
         $tasks = $query
+            ->when(! $epic, fn ($q) => $q->whereNull('epic_id'))
             ->with(['assignee:id,name', 'reporter:id,name', 'workflowStatus:id,name,color'])
             ->orderBy('sort_order')
             ->get();

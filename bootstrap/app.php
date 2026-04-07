@@ -29,6 +29,8 @@ return Application::configure(basePath: dirname(__DIR__))
                 ->group(base_path('app/Modules/Audit/Routes/web.php'));
             Route::middleware('web')
                 ->group(base_path('app/Modules/Wiki/Routes/web.php'));
+            Route::middleware('web')
+                ->group(base_path('app/Modules/Estimation/Routes/web.php'));
         },
     )
     ->withMiddleware(function (Middleware $middleware): void {

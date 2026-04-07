@@ -46,6 +46,8 @@ class Task extends Model
         'recurrence_next_at',
         'recurrence_source_id',
         'workflow_status_id',
+        'story_points',
+        'estimated_hours',
         'benefit_type',
         'benefit_amount',
         'benefit_note',
@@ -58,6 +60,8 @@ class Task extends Model
             'due_date' => 'date',
             'recurrence_rule' => RecurrenceRule::class,
             'recurrence_next_at' => 'date',
+            'story_points' => 'integer',
+            'estimated_hours' => 'decimal:2',
             'benefit_type' => BenefitType::class,
             'benefit_amount' => 'decimal:2',
         ];

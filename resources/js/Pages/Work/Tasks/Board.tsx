@@ -61,6 +61,7 @@ const CARD_FIELD_OPTIONS = [
     { value: 'comments_count', label: 'Komentáře' },
     { value: 'phi', label: 'PHI' },
     { value: 'reporter', label: 'Zadavatel' },
+    { value: 'story_points', label: 'Story Points' },
 ];
 
 export default function TaskBoard({

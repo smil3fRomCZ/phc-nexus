@@ -11,7 +11,7 @@ use Symfony\Component\HttpFoundation\StreamedResponse;
 
 final class TaskExporter
 {
-    private const HEADERS = ['Title', 'Status', 'Priority', 'Assignee', 'Reporter', 'Epic', 'Due Date', 'Created'];
+    private const HEADERS = ['Title', 'Status', 'Priority', 'Story Points', 'Est. Hours', 'Assignee', 'Reporter', 'Epic', 'Due Date', 'Created'];
 
     /**
      * @param  Collection<int, Task>  $tasks
@@ -23,10 +23,15 @@ final class TaskExporter
             /** @var WorkflowStatus|null $ws */
             $ws = $task->workflowStatus;
 
+            $sp = $task->story_points;
+            $estHours = $task->estimated_hours ?? ($sp !== null ? (string) ($sp * 4) : '');
+
             return [
                 $task->title,
                 $ws !== null ? $ws->name : '',
                 is_object($task->priority) ? $task->priority->value : (string) $task->priority,
+                $sp !== null ? (string) $sp : '',
+                $estHours !== '' ? $estHours : '',
                 $task->assignee->name ?? '',
                 $task->reporter->name ?? '',
                 $task->epic->title ?? '',

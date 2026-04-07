@@ -140,8 +140,6 @@ export default function TaskBoard({
 
         if (!sourceTask || sourceStatus === targetStatus) return;
 
-        const snapshot = columns;
-
         setColumns((prev) =>
             prev.map((col) => {
                 if (col.status === sourceStatus) {

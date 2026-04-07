@@ -22,6 +22,7 @@ interface Task {
     status: string;
     priority: string;
     due_date: string | null;
+    story_points: number | null;
     assignee: { id: string; name: string } | null;
     reporter: { id: string; name: string } | null;
     epic: { id: string; title: string } | null;
@@ -164,6 +165,7 @@ export default function TaskTable({ project, tasks, filters, statuses, prioritie
                                 { field: 'priority', label: 'Priorita', sortable: true },
                                 { field: 'assignee', label: 'Řešitel', sortable: false },
                                 { field: 'epic', label: 'Epic', sortable: false },
+                                { field: 'story_points', label: 'SP', sortable: true },
                                 { field: 'due_date', label: 'Termín', sortable: true },
                             ].map((col) =>
                                 col.sortable ? (
@@ -248,12 +250,29 @@ export default function TaskTable({ project, tasks, filters, statuses, prioritie
                                         '\u2014'
                                     )}
                                 </td>
+                                <td className="border-b border-border-subtle px-5 py-3 text-center text-sm">
+                                    {task.story_points != null ? (
+                                        <span
+                                            className={`inline-block min-w-[1.5rem] rounded-full px-1.5 py-0.5 text-[10px] font-bold ${
+                                                task.story_points <= 2
+                                                    ? 'bg-status-success-subtle text-status-success'
+                                                    : task.story_points <= 5
+                                                      ? 'bg-status-warning-subtle text-status-warning'
+                                                      : 'bg-status-danger-subtle text-status-danger'
+                                            }`}
+                                        >
+                                            {task.story_points}
+                                        </span>
+                                    ) : (
+                                        <span className="text-text-muted">{'\u2014'}</span>
+                                    )}
+                                </td>
                                 <td className="border-b border-border-subtle px-5 py-3 text-sm text-text-muted">
                                     {task.due_date ? formatDate(task.due_date) : '\u2014'}
                                 </td>
                             </tr>
                         ))}
-                        {tasks.length === 0 && <EmptyState message="Žádné úkoly neodpovídají filtrům." colSpan={7} />}
+                        {tasks.length === 0 && <EmptyState message="Žádné úkoly neodpovídají filtrům." colSpan={8} />}
                     </tbody>
                 </table>
             </div>

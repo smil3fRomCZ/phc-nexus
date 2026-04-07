@@ -66,6 +66,8 @@ interface Task {
     epic: { id: string; title: string } | null;
     due_date: string | null;
     data_classification: string;
+    story_points: number | null;
+    estimated_hours: string | null;
     benefit_type: string | null;
     benefit_amount: string | null;
     benefit_note: string | null;
@@ -159,6 +161,8 @@ export default function TaskShow({
                 assignee_id: task.assignee?.id ?? '',
                 reporter_id: task.reporter?.id ?? '',
                 due_date: toDateInputValue(task.due_date),
+                story_points: task.story_points,
+                estimated_hours: task.estimated_hours,
                 ...fields,
             },
             { preserveScroll: true },
@@ -463,6 +467,77 @@ export default function TaskShow({
                                     </p>
                                 )}
                             </SidebarSection>
+                        </div>
+
+                        {/* Group: Estimation */}
+                        <div className="pb-4 mb-4 border-b border-border-subtle space-y-3">
+                            <SidebarSection label="Story Points">
+                                <div className="flex flex-wrap gap-1">
+                                    {[1, 2, 3, 5, 8, 13, 21].map((sp) => (
+                                        <button
+                                            key={sp}
+                                            onClick={() =>
+                                                inlineUpdate({
+                                                    story_points: task.story_points === sp ? null : sp,
+                                                    estimated_hours:
+                                                        task.story_points === sp ? null : task.estimated_hours,
+                                                })
+                                            }
+                                            className={`min-w-[2rem] rounded-md px-2 py-1 text-xs font-bold transition-colors ${
+                                                task.story_points === sp
+                                                    ? 'bg-brand-primary text-text-inverse'
+                                                    : sp <= 2
+                                                      ? 'bg-status-success-subtle text-status-success hover:bg-status-success-subtle/80'
+                                                      : sp <= 5
+                                                        ? 'bg-status-warning-subtle text-status-warning hover:bg-status-warning-subtle/80'
+                                                        : 'bg-status-danger-subtle text-status-danger hover:bg-status-danger-subtle/80'
+                                            }`}
+                                        >
+                                            {sp}
+                                        </button>
+                                    ))}
+                                </div>
+                            </SidebarSection>
+                            {task.story_points && (
+                                <SidebarSection label="Odhad hodin">
+                                    <div className="flex items-center gap-2">
+                                        <span className="text-sm font-semibold text-text-strong">
+                                            {task.estimated_hours ?? task.story_points * 4}h
+                                        </span>
+                                        <span className="text-xs text-text-muted">({task.story_points} SP × 4h)</span>
+                                    </div>
+                                    {totalHours > 0 && (
+                                        <div className="mt-2">
+                                            <div className="flex items-center justify-between text-xs">
+                                                <span className="text-text-muted">Odpracováno</span>
+                                                <span className="font-semibold text-text-strong">
+                                                    {totalHours}h / {task.estimated_hours ?? task.story_points * 4}h
+                                                </span>
+                                            </div>
+                                            <div className="mt-1 h-1.5 w-full overflow-hidden rounded-full bg-surface-secondary">
+                                                <div
+                                                    className={`h-full rounded-full transition-all ${
+                                                        totalHours /
+                                                            Number(task.estimated_hours ?? task.story_points * 4) >
+                                                        1
+                                                            ? 'bg-status-danger'
+                                                            : totalHours /
+                                                                    Number(
+                                                                        task.estimated_hours ?? task.story_points * 4,
+                                                                    ) >
+                                                                0.8
+                                                              ? 'bg-status-warning'
+                                                              : 'bg-status-success'
+                                                    }`}
+                                                    style={{
+                                                        width: `${Math.min(100, (totalHours / Number(task.estimated_hours ?? task.story_points * 4)) * 100)}%`,
+                                                    }}
+                                                />
+                                            </div>
+                                        </div>
+                                    )}
+                                </SidebarSection>
+                            )}
                         </div>
 
                         {/* Group: Classification */}

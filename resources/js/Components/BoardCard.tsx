@@ -16,6 +16,7 @@ export interface BoardTask {
     data_classification: string;
     due_date: string | null;
     comments_count: number;
+    story_points: number | null;
     assignee: { id: string; name: string } | null;
     reporter: { id: string; name: string } | null;
     epic: { id: string; title: string } | null;
@@ -97,6 +98,19 @@ export default function BoardCard({ task, projectId, projectKey, cardFields, isD
                         <span className="inline-flex items-center gap-0.5 text-xs text-text-muted">
                             <MessageSquare className="h-2.5 w-2.5" />
                             {task.comments_count}
+                        </span>
+                    )}
+                    {shows('story_points') && task.story_points != null && (
+                        <span
+                            className={`rounded-full px-1.5 py-0.5 text-[10px] font-bold leading-tight ${
+                                task.story_points <= 2
+                                    ? 'bg-status-success-subtle text-status-success'
+                                    : task.story_points <= 5
+                                      ? 'bg-status-warning-subtle text-status-warning'
+                                      : 'bg-status-danger-subtle text-status-danger'
+                            }`}
+                        >
+                            {task.story_points} SP
                         </span>
                     )}
                 </div>

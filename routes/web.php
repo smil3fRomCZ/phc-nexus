@@ -30,7 +30,7 @@ Route::middleware('auth')->group(function () {
     Route::patch('/user/board-settings', function (Request $request) {
         $validated = $request->validate([
             'card_fields' => ['required', 'array'],
-            'card_fields.*' => ['string', 'in:status,priority,assignee,epic,due_date,comments_count,phi,reporter'],
+            'card_fields.*' => ['string', 'in:status,priority,assignee,epic,due_date,comments_count,phi,reporter,story_points'],
         ]);
         $request->user()->update(['board_settings' => $validated]);
 

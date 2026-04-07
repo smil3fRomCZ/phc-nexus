@@ -244,7 +244,11 @@ export default function TimeLogSection({
                                             </td>
                                             {showTaskColumn && (
                                                 <td className="border-b border-border-subtle px-3 py-2 text-sm text-text-muted">
-                                                    {entry.task ? entry.task.title : <em className="text-text-subtle">Epic</em>}
+                                                    {entry.task ? (
+                                                        entry.task.title
+                                                    ) : (
+                                                        <em className="text-text-subtle">Epic</em>
+                                                    )}
                                                 </td>
                                             )}
                                             <td className="border-b border-border-subtle px-3 py-2 text-sm text-text-muted">

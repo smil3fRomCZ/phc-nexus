@@ -14,6 +14,7 @@ use App\Modules\Organization\Models\Team;
 use App\Modules\Projects\Enums\BenefitType;
 use App\Modules\Projects\Enums\ProjectStatus;
 use App\Modules\Projects\Enums\ProjectType;
+use App\Modules\Estimation\Models\EstimationSession;
 use App\Modules\Wiki\Models\WikiPage;
 use App\Modules\Work\Models\Epic;
 use App\Modules\Work\Models\Task;
@@ -94,6 +95,11 @@ class Project extends Model
     public function wikiPages(): HasMany
     {
         return $this->hasMany(WikiPage::class);
+    }
+
+    public function estimationSessions(): HasMany
+    {
+        return $this->hasMany(EstimationSession::class);
     }
 
     public function workflowStatuses(): HasMany

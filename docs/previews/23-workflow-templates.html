@@ -1,0 +1,1335 @@
+<!DOCTYPE html>
+<html lang="cs">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Preview — Global Workflow Templates</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <style>
+        *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+        :root {
+            --raw-orange-500: #f5a623;
+            --raw-orange-600: #e09000;
+            --raw-navy-900: #172b4d;
+            --raw-slate-800: #42526e;
+            --raw-slate-700: #6b778c;
+            --raw-slate-600: #97a0af;
+            --raw-slate-500: #b3bac5;
+            --raw-slate-300: #dfe1e6;
+            --raw-slate-200: #ebecf0;
+            --raw-slate-100: #f4f5f7;
+            --raw-slate-050: #fafbfc;
+            --raw-white: #ffffff;
+            --raw-green-100: #e3fcef;
+            --raw-green-700: #006644;
+            --raw-red-100: #ffebe6;
+            --raw-red-700: #bf2600;
+            --raw-blue-100: #deebff;
+            --raw-blue-700: #0747a6;
+            --raw-purple-100: #eae6ff;
+            --raw-purple-700: #5243aa;
+            --raw-yellow-100: #fff0b3;
+            --raw-yellow-700: #974f0c;
+
+            --color-brand-primary: var(--raw-orange-500);
+            --color-brand-primary-hover: var(--raw-orange-600);
+            --color-brand-primary-soft: #fff8eb;
+            --color-text-strong: var(--raw-navy-900);
+            --color-text-default: var(--raw-slate-800);
+            --color-text-muted: var(--raw-slate-700);
+            --color-text-subtle: var(--raw-slate-600);
+            --color-text-disabled: var(--raw-slate-500);
+            --color-surface-canvas: var(--raw-slate-100);
+            --color-surface-panel: var(--raw-white);
+            --color-surface-panel-subtle: var(--raw-slate-050);
+            --color-border-subtle: var(--raw-slate-200);
+            --color-border-default: var(--raw-slate-300);
+
+            --status-success-bg: var(--raw-green-100);
+            --status-success-fg: var(--raw-green-700);
+            --status-danger-bg: var(--raw-red-100);
+            --status-danger-fg: var(--raw-red-700);
+            --status-info-bg: var(--raw-blue-100);
+            --status-info-fg: var(--raw-blue-700);
+            --status-review-bg: var(--raw-purple-100);
+            --status-review-fg: var(--raw-purple-700);
+            --status-warning-bg: var(--raw-yellow-100);
+            --status-warning-fg: var(--raw-yellow-700);
+
+            --radius-sm: 4px;
+            --radius-md: 8px;
+            --radius-lg: 12px;
+            --shadow-sm: 0 1px 2px rgba(0,0,0,0.05);
+            --shadow-md: 0 4px 6px rgba(0,0,0,0.07);
+            --shadow-lg: 0 8px 24px rgba(23,43,77,0.12);
+
+            --font-sans: "Inter", -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+        }
+
+        body {
+            font-family: var(--font-sans);
+            background: var(--color-surface-canvas);
+            color: var(--color-text-default);
+            font-size: 14px;
+            line-height: 1.5;
+        }
+
+        /* Page header */
+        .page-header {
+            background: var(--color-surface-panel);
+            border-bottom: 1px solid var(--color-border-subtle);
+            padding: 16px 24px;
+        }
+        .page-header h1 {
+            font-size: 18px;
+            font-weight: 700;
+            color: var(--color-text-strong);
+            margin-bottom: 4px;
+        }
+        .page-header p {
+            font-size: 13px;
+            color: var(--color-text-muted);
+        }
+
+        /* Tabs */
+        .tabs {
+            display: flex;
+            gap: 0;
+            margin: 16px 24px 0;
+            border-bottom: 2px solid var(--color-border-subtle);
+        }
+        .tab-btn {
+            padding: 10px 20px;
+            font-size: 13px;
+            font-weight: 500;
+            border: none;
+            background: none;
+            color: var(--color-text-muted);
+            cursor: pointer;
+            transition: all 0.15s;
+            font-family: var(--font-sans);
+            border-bottom: 2px solid transparent;
+            margin-bottom: -2px;
+        }
+        .tab-btn.active {
+            color: var(--color-brand-primary);
+            border-bottom-color: var(--color-brand-primary);
+            font-weight: 600;
+        }
+        .tab-btn:not(.active):hover {
+            color: var(--color-text-default);
+        }
+
+        .tab-content {
+            display: none;
+            padding: 24px;
+        }
+        .tab-content.active {
+            display: block;
+        }
+
+        /* Buttons */
+        .btn {
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+            padding: 8px 16px;
+            font-size: 13px;
+            font-weight: 500;
+            border-radius: var(--radius-md);
+            border: 1px solid var(--color-border-default);
+            background: var(--color-surface-panel);
+            color: var(--color-text-default);
+            cursor: pointer;
+            font-family: var(--font-sans);
+            transition: all 0.15s;
+        }
+        .btn:hover { background: var(--color-surface-panel-subtle); }
+        .btn-primary {
+            background: var(--color-brand-primary);
+            color: white;
+            border-color: var(--color-brand-primary);
+        }
+        .btn-primary:hover {
+            background: var(--color-brand-primary-hover);
+            border-color: var(--color-brand-primary-hover);
+        }
+        .btn-sm { padding: 5px 12px; font-size: 12px; }
+        .btn-outline-primary {
+            background: transparent;
+            color: var(--color-brand-primary);
+            border-color: var(--color-brand-primary);
+        }
+        .btn-outline-primary:hover {
+            background: var(--color-brand-primary-soft);
+        }
+
+        /* Badge */
+        .badge {
+            display: inline-flex;
+            align-items: center;
+            padding: 2px 8px;
+            font-size: 11px;
+            font-weight: 600;
+            border-radius: 999px;
+            line-height: 1.5;
+        }
+        .badge-system { background: #eae6ff; color: #5243aa; }
+        .badge-draft { background: var(--raw-yellow-100); color: var(--raw-yellow-700); }
+        .badge-published { background: var(--raw-green-100); color: var(--raw-green-700); }
+        .badge-version { background: var(--raw-slate-200); color: var(--raw-slate-800); font-size: 11px; }
+
+        /* Search bar */
+        .search-bar {
+            display: flex;
+            gap: 12px;
+            margin-bottom: 20px;
+            align-items: center;
+        }
+        .search-input {
+            flex: 1;
+            padding: 8px 12px 8px 36px;
+            border: 1px solid var(--color-border-default);
+            border-radius: var(--radius-md);
+            font-size: 13px;
+            font-family: var(--font-sans);
+            background: var(--color-surface-panel);
+            color: var(--color-text-default);
+            position: relative;
+        }
+        .search-input:focus { outline: none; border-color: var(--color-brand-primary); box-shadow: 0 0 0 3px rgba(245,166,35,0.15); }
+        .search-wrapper {
+            position: relative;
+            flex: 1;
+        }
+        .search-icon {
+            position: absolute;
+            left: 12px;
+            top: 50%;
+            transform: translateY(-50%);
+            color: var(--color-text-subtle);
+            font-size: 14px;
+        }
+        .filter-select {
+            padding: 8px 12px;
+            border: 1px solid var(--color-border-default);
+            border-radius: var(--radius-md);
+            font-size: 13px;
+            font-family: var(--font-sans);
+            background: var(--color-surface-panel);
+            color: var(--color-text-default);
+            cursor: pointer;
+        }
+
+        /* Template grid */
+        .template-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(320px, 1fr));
+            gap: 16px;
+        }
+        .template-card {
+            background: var(--color-surface-panel);
+            border: 1px solid var(--color-border-subtle);
+            border-radius: var(--radius-lg);
+            padding: 20px;
+            box-shadow: var(--shadow-sm);
+            transition: all 0.15s;
+            cursor: pointer;
+        }
+        .template-card:hover {
+            box-shadow: var(--shadow-md);
+            border-color: var(--color-border-default);
+        }
+        .template-card-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: flex-start;
+            margin-bottom: 8px;
+        }
+        .template-card-title {
+            font-size: 15px;
+            font-weight: 600;
+            color: var(--color-text-strong);
+        }
+        .template-card-desc {
+            font-size: 13px;
+            color: var(--color-text-muted);
+            margin-bottom: 14px;
+            line-height: 1.4;
+        }
+
+        /* Mini workflow preview */
+        .mini-workflow {
+            display: flex;
+            align-items: center;
+            gap: 4px;
+            padding: 10px 12px;
+            background: var(--color-surface-canvas);
+            border-radius: var(--radius-md);
+            margin-bottom: 14px;
+            overflow-x: auto;
+        }
+        .mini-state {
+            width: 10px;
+            height: 10px;
+            border-radius: 50%;
+            flex-shrink: 0;
+        }
+        .mini-state.open { background: var(--raw-slate-500); }
+        .mini-state.progress { background: #2563eb; }
+        .mini-state.review { background: #7c3aed; }
+        .mini-state.done { background: var(--status-success-fg); }
+        .mini-state.pending { background: var(--raw-yellow-700); }
+        .mini-state.approved { background: var(--status-success-fg); }
+        .mini-state.rejected { background: var(--status-danger-fg); }
+        .mini-arrow {
+            width: 16px;
+            height: 2px;
+            background: var(--raw-slate-300);
+            flex-shrink: 0;
+            position: relative;
+        }
+        .mini-arrow::after {
+            content: '';
+            position: absolute;
+            right: 0;
+            top: -3px;
+            width: 0;
+            height: 0;
+            border-left: 4px solid var(--raw-slate-300);
+            border-top: 4px solid transparent;
+            border-bottom: 4px solid transparent;
+        }
+
+        .template-card-meta {
+            display: flex;
+            gap: 16px;
+            font-size: 12px;
+            color: var(--color-text-subtle);
+            margin-bottom: 14px;
+        }
+        .template-card-meta span {
+            display: flex;
+            align-items: center;
+            gap: 4px;
+        }
+        .template-card-footer {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding-top: 12px;
+            border-top: 1px solid var(--color-border-subtle);
+        }
+        .template-card-footer .author {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            font-size: 12px;
+            color: var(--color-text-muted);
+        }
+        .avatar {
+            width: 24px;
+            height: 24px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 11px;
+            font-weight: 600;
+            color: white;
+            flex-shrink: 0;
+        }
+        .avatar-blue { background: #2563eb; }
+        .avatar-purple { background: #7c3aed; }
+        .avatar-green { background: #059669; }
+        .avatar-orange { background: var(--raw-orange-500); }
+        .template-card-footer .date {
+            font-size: 12px;
+            color: var(--color-text-subtle);
+        }
+
+        /* Editor layout */
+        .editor-layout {
+            display: flex;
+            gap: 0;
+            height: calc(100vh - 180px);
+            min-height: 500px;
+            border: 1px solid var(--color-border-subtle);
+            border-radius: var(--radius-lg);
+            overflow: hidden;
+            background: var(--color-surface-panel);
+        }
+        .editor-sidebar {
+            width: 280px;
+            border-right: 1px solid var(--color-border-subtle);
+            background: var(--color-surface-panel);
+            display: flex;
+            flex-direction: column;
+        }
+        .editor-sidebar-header {
+            padding: 16px;
+            border-bottom: 1px solid var(--color-border-subtle);
+        }
+        .editor-sidebar-header h3 {
+            font-size: 14px;
+            font-weight: 600;
+            color: var(--color-text-strong);
+            margin-bottom: 12px;
+        }
+        .sidebar-field {
+            margin-bottom: 12px;
+        }
+        .sidebar-field label {
+            display: block;
+            font-size: 12px;
+            font-weight: 500;
+            color: var(--color-text-muted);
+            margin-bottom: 4px;
+        }
+        .sidebar-field input,
+        .sidebar-field textarea,
+        .sidebar-field select {
+            width: 100%;
+            padding: 7px 10px;
+            border: 1px solid var(--color-border-default);
+            border-radius: var(--radius-sm);
+            font-size: 13px;
+            font-family: var(--font-sans);
+            color: var(--color-text-default);
+        }
+        .sidebar-field textarea { resize: vertical; min-height: 60px; }
+        .sidebar-field input:focus,
+        .sidebar-field textarea:focus,
+        .sidebar-field select:focus {
+            outline: none;
+            border-color: var(--color-brand-primary);
+            box-shadow: 0 0 0 3px rgba(245,166,35,0.15);
+        }
+        .editor-sidebar-body {
+            padding: 16px;
+            flex: 1;
+            overflow-y: auto;
+        }
+        .editor-sidebar-footer {
+            padding: 12px 16px;
+            border-top: 1px solid var(--color-border-subtle);
+            display: flex;
+            gap: 8px;
+        }
+
+        /* Canvas */
+        .editor-canvas {
+            flex: 1;
+            background: var(--color-surface-canvas);
+            position: relative;
+            overflow: hidden;
+        }
+        .editor-canvas-toolbar {
+            position: absolute;
+            top: 12px;
+            left: 12px;
+            display: flex;
+            gap: 6px;
+            z-index: 10;
+        }
+        .canvas-placeholder {
+            position: absolute;
+            inset: 0;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        /* Workflow nodes on canvas */
+        .wf-node {
+            position: absolute;
+            padding: 10px 18px;
+            border-radius: var(--radius-md);
+            font-size: 13px;
+            font-weight: 500;
+            border: 2px solid;
+            background: white;
+            box-shadow: var(--shadow-sm);
+            white-space: nowrap;
+        }
+        .wf-node.open { border-color: var(--raw-slate-500); color: var(--raw-slate-800); }
+        .wf-node.progress { border-color: #2563eb; color: #1e40af; }
+        .wf-node.review { border-color: #7c3aed; color: #5b21b6; }
+        .wf-node.done { border-color: var(--status-success-fg); color: var(--status-success-fg); }
+        .wf-node.selected { box-shadow: 0 0 0 3px rgba(245,166,35,0.3), var(--shadow-md); }
+
+        /* SVG arrows */
+        .canvas-svg {
+            position: absolute;
+            inset: 0;
+            pointer-events: none;
+        }
+
+        /* State list in sidebar */
+        .state-list {
+            list-style: none;
+        }
+        .state-list li {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            padding: 6px 0;
+            font-size: 13px;
+            color: var(--color-text-default);
+        }
+        .state-dot {
+            width: 8px;
+            height: 8px;
+            border-radius: 50%;
+            flex-shrink: 0;
+        }
+
+        /* Assignment page */
+        .assignment-container {
+            max-width: 640px;
+        }
+        .assignment-section {
+            background: var(--color-surface-panel);
+            border: 1px solid var(--color-border-subtle);
+            border-radius: var(--radius-lg);
+            padding: 20px;
+            margin-bottom: 16px;
+            box-shadow: var(--shadow-sm);
+        }
+        .assignment-section h3 {
+            font-size: 14px;
+            font-weight: 600;
+            color: var(--color-text-strong);
+            margin-bottom: 12px;
+        }
+        .custom-select {
+            width: 100%;
+            padding: 10px 14px;
+            border: 1px solid var(--color-border-default);
+            border-radius: var(--radius-md);
+            font-size: 14px;
+            font-family: var(--font-sans);
+            color: var(--color-text-default);
+            background: var(--color-surface-panel);
+            cursor: pointer;
+        }
+        .custom-select:focus {
+            outline: none;
+            border-color: var(--color-brand-primary);
+            box-shadow: 0 0 0 3px rgba(245,166,35,0.15);
+        }
+
+        .template-preview-panel {
+            background: var(--color-surface-canvas);
+            border: 1px solid var(--color-border-subtle);
+            border-radius: var(--radius-md);
+            padding: 16px;
+            margin-top: 12px;
+        }
+        .template-preview-panel h4 {
+            font-size: 13px;
+            font-weight: 600;
+            color: var(--color-text-strong);
+            margin-bottom: 4px;
+        }
+        .template-preview-panel p {
+            font-size: 12px;
+            color: var(--color-text-muted);
+            margin-bottom: 10px;
+        }
+
+        .warning-banner {
+            display: flex;
+            align-items: flex-start;
+            gap: 10px;
+            padding: 12px 16px;
+            background: var(--raw-yellow-100);
+            border: 1px solid #fcd34d;
+            border-radius: var(--radius-md);
+            margin-top: 16px;
+        }
+        .warning-banner .icon { font-size: 16px; flex-shrink: 0; margin-top: 1px; }
+        .warning-banner .text { font-size: 13px; color: var(--raw-yellow-700); line-height: 1.4; }
+
+        .toggle-group {
+            display: flex;
+            gap: 0;
+            margin-top: 16px;
+        }
+        .toggle-option {
+            flex: 1;
+            padding: 12px 16px;
+            border: 1px solid var(--color-border-default);
+            background: var(--color-surface-panel);
+            cursor: pointer;
+            text-align: center;
+            font-family: var(--font-sans);
+            transition: all 0.15s;
+        }
+        .toggle-option:first-child { border-radius: var(--radius-md) 0 0 var(--radius-md); }
+        .toggle-option:last-child { border-radius: 0 var(--radius-md) var(--radius-md) 0; border-left: none; }
+        .toggle-option.selected {
+            background: var(--color-brand-primary-soft);
+            border-color: var(--color-brand-primary);
+            position: relative;
+            z-index: 1;
+        }
+        .toggle-option.selected + .toggle-option { border-left: none; }
+        .toggle-option .toggle-title {
+            font-size: 13px;
+            font-weight: 600;
+            color: var(--color-text-strong);
+            margin-bottom: 2px;
+        }
+        .toggle-option .toggle-desc {
+            font-size: 11px;
+            color: var(--color-text-muted);
+        }
+        .toggle-option.selected .toggle-title { color: var(--color-brand-primary-hover); }
+
+        /* Architecture section */
+        .arch-section {
+            background: var(--color-surface-panel);
+            border: 1px solid var(--color-border-subtle);
+            border-radius: var(--radius-lg);
+            margin-bottom: 16px;
+            box-shadow: var(--shadow-sm);
+            overflow: hidden;
+        }
+        .arch-section-header {
+            padding: 14px 20px;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            cursor: pointer;
+            user-select: none;
+        }
+        .arch-section-header:hover { background: var(--color-surface-panel-subtle); }
+        .arch-section-header h3 {
+            font-size: 14px;
+            font-weight: 600;
+            color: var(--color-text-strong);
+        }
+        .arch-section-header .chevron {
+            color: var(--color-text-subtle);
+            transition: transform 0.2s;
+            font-size: 12px;
+        }
+        .arch-section.open .chevron { transform: rotate(180deg); }
+        .arch-section-body {
+            display: none;
+            padding: 0 20px 16px;
+        }
+        .arch-section.open .arch-section-body { display: block; }
+
+        .schema-table {
+            width: 100%;
+            border-collapse: collapse;
+            font-size: 13px;
+            margin-bottom: 12px;
+        }
+        .schema-table th {
+            text-align: left;
+            padding: 8px 10px;
+            background: var(--color-surface-canvas);
+            color: var(--color-text-muted);
+            font-weight: 600;
+            font-size: 12px;
+            text-transform: uppercase;
+            letter-spacing: 0.3px;
+            border-bottom: 1px solid var(--color-border-subtle);
+        }
+        .schema-table td {
+            padding: 7px 10px;
+            border-bottom: 1px solid var(--color-border-subtle);
+            color: var(--color-text-default);
+        }
+        .schema-table td code {
+            font-family: "SF Mono", "Fira Code", monospace;
+            font-size: 12px;
+            background: var(--color-surface-canvas);
+            padding: 1px 5px;
+            border-radius: var(--radius-sm);
+            color: var(--status-review-fg);
+        }
+        .schema-table tr:last-child td { border-bottom: none; }
+
+        .code-block {
+            background: #1e293b;
+            color: #e2e8f0;
+            padding: 14px 16px;
+            border-radius: var(--radius-md);
+            font-family: "SF Mono", "Fira Code", monospace;
+            font-size: 12px;
+            line-height: 1.6;
+            overflow-x: auto;
+            margin-bottom: 12px;
+        }
+        .code-block .comment { color: #64748b; }
+        .code-block .keyword { color: #c084fc; }
+        .code-block .string { color: #86efac; }
+        .code-block .method { color: #93c5fd; }
+
+        .perm-list {
+            list-style: none;
+            margin: 0;
+        }
+        .perm-list li {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            padding: 6px 0;
+            font-size: 13px;
+            color: var(--color-text-default);
+        }
+        .perm-role {
+            display: inline-block;
+            min-width: 90px;
+            font-weight: 600;
+            color: var(--color-text-strong);
+            font-size: 12px;
+        }
+
+        /* Breadcrumb */
+        .breadcrumb {
+            font-size: 12px;
+            color: var(--color-text-subtle);
+            margin-bottom: 16px;
+        }
+        .breadcrumb a {
+            color: var(--color-text-muted);
+            text-decoration: none;
+        }
+        .breadcrumb a:hover { color: var(--color-brand-primary); text-decoration: underline; }
+        .breadcrumb .sep { margin: 0 6px; }
+
+        .section-title {
+            font-size: 15px;
+            font-weight: 600;
+            color: var(--color-text-strong);
+            margin-bottom: 16px;
+        }
+    </style>
+</head>
+<body>
+
+<!-- Page Header -->
+<div class="page-header">
+    <h1>Preview: Global Workflow Templates</h1>
+    <p>Navrhovaná funkce pro sdileni a znovupouziti workflow sablon naprec projekty (obdobne JIRA workflow schemes)</p>
+</div>
+
+<!-- Tabs -->
+<div class="tabs">
+    <button class="tab-btn active" onclick="switchTab('library')">Knihovna sablon</button>
+    <button class="tab-btn" onclick="switchTab('editor')">Editor sablony</button>
+    <button class="tab-btn" onclick="switchTab('assignment')">Prirazeni k projektu</button>
+    <button class="tab-btn" onclick="switchTab('architecture')">Architektura</button>
+</div>
+
+<!-- Tab 1: Template Library -->
+<div id="tab-library" class="tab-content active">
+
+    <!-- Header row -->
+    <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:20px;">
+        <h2 class="section-title" style="margin-bottom:0;">Sablony workflow</h2>
+        <button class="btn btn-primary">
+            <svg width="14" height="14" viewBox="0 0 14 14" fill="none"><path d="M7 1v12M1 7h12" stroke="currentColor" stroke-width="2" stroke-linecap="round"/></svg>
+            Vytvorit sablonu
+        </button>
+    </div>
+
+    <!-- Search/filter -->
+    <div class="search-bar">
+        <div class="search-wrapper">
+            <span class="search-icon">
+                <svg width="14" height="14" viewBox="0 0 14 14" fill="none"><circle cx="6" cy="6" r="4.5" stroke="currentColor" stroke-width="1.5"/><path d="M9.5 9.5L13 13" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/></svg>
+            </span>
+            <input type="text" class="search-input" placeholder="Hledat sablony..." style="padding-left:36px;">
+        </div>
+        <select class="filter-select">
+            <option>Vsechny kategorie</option>
+            <option>Systemove</option>
+            <option>Vlastni</option>
+        </select>
+        <select class="filter-select">
+            <option>Seradit: Naposledy upraveno</option>
+            <option>Seradit: Nazev A-Z</option>
+            <option>Seradit: Nejpouzivanejsi</option>
+        </select>
+    </div>
+
+    <!-- Template Grid -->
+    <div class="template-grid">
+
+        <!-- System: Software -->
+        <div class="template-card">
+            <div class="template-card-header">
+                <span class="template-card-title">Software Development</span>
+                <span class="badge badge-system">Systemova</span>
+            </div>
+            <div class="template-card-desc">Standardni workflow pro softwarovy vyvoj s code review a testovanim.</div>
+            <div class="mini-workflow">
+                <div class="mini-state open"></div>
+                <div class="mini-arrow"></div>
+                <div class="mini-state progress"></div>
+                <div class="mini-arrow"></div>
+                <div class="mini-state review"></div>
+                <div class="mini-arrow"></div>
+                <div class="mini-state progress"></div>
+                <div class="mini-arrow"></div>
+                <div class="mini-state done"></div>
+            </div>
+            <div class="template-card-meta">
+                <span>
+                    <svg width="12" height="12" viewBox="0 0 12 12" fill="none"><circle cx="6" cy="6" r="3" fill="currentColor"/></svg>
+                    5 stavu
+                </span>
+                <span>
+                    <svg width="12" height="12" viewBox="0 0 12 12" fill="none"><path d="M2 6h8M7 3l3 3-3 3" stroke="currentColor" stroke-width="1.2" stroke-linecap="round" stroke-linejoin="round"/></svg>
+                    8 prechodu
+                </span>
+                <span>Pouzito v 12 projektech</span>
+            </div>
+            <div class="template-card-footer">
+                <div class="author">
+                    <div class="avatar avatar-purple">S</div>
+                    System
+                </div>
+                <div class="date">Aktualizovano 15.3.2026</div>
+            </div>
+        </div>
+
+        <!-- System: Task Management -->
+        <div class="template-card">
+            <div class="template-card-header">
+                <span class="template-card-title">Sprava ukolu</span>
+                <span class="badge badge-system">Systemova</span>
+            </div>
+            <div class="template-card-desc">Jednoduche workflow pro rizeni ukolu a backlogu.</div>
+            <div class="mini-workflow">
+                <div class="mini-state open"></div>
+                <div class="mini-arrow"></div>
+                <div class="mini-state progress"></div>
+                <div class="mini-arrow"></div>
+                <div class="mini-state done"></div>
+            </div>
+            <div class="template-card-meta">
+                <span>
+                    <svg width="12" height="12" viewBox="0 0 12 12" fill="none"><circle cx="6" cy="6" r="3" fill="currentColor"/></svg>
+                    3 stavy
+                </span>
+                <span>
+                    <svg width="12" height="12" viewBox="0 0 12 12" fill="none"><path d="M2 6h8M7 3l3 3-3 3" stroke="currentColor" stroke-width="1.2" stroke-linecap="round" stroke-linejoin="round"/></svg>
+                    4 prechody
+                </span>
+                <span>Pouzito v 8 projektech</span>
+            </div>
+            <div class="template-card-footer">
+                <div class="author">
+                    <div class="avatar avatar-purple">S</div>
+                    System
+                </div>
+                <div class="date">Aktualizovano 15.3.2026</div>
+            </div>
+        </div>
+
+        <!-- System: Approval -->
+        <div class="template-card">
+            <div class="template-card-header">
+                <span class="template-card-title">Schvalovani</span>
+                <span class="badge badge-system">Systemova</span>
+            </div>
+            <div class="template-card-desc">Workflow se schvalovacim procesem a moznosti zamitnutí.</div>
+            <div class="mini-workflow">
+                <div class="mini-state open"></div>
+                <div class="mini-arrow"></div>
+                <div class="mini-state pending"></div>
+                <div class="mini-arrow"></div>
+                <div class="mini-state approved"></div>
+            </div>
+            <div class="template-card-meta">
+                <span>
+                    <svg width="12" height="12" viewBox="0 0 12 12" fill="none"><circle cx="6" cy="6" r="3" fill="currentColor"/></svg>
+                    5 stavu
+                </span>
+                <span>
+                    <svg width="12" height="12" viewBox="0 0 12 12" fill="none"><path d="M2 6h8M7 3l3 3-3 3" stroke="currentColor" stroke-width="1.2" stroke-linecap="round" stroke-linejoin="round"/></svg>
+                    6 prechodu
+                </span>
+                <span>Pouzito v 5 projektech</span>
+            </div>
+            <div class="template-card-footer">
+                <div class="author">
+                    <div class="avatar avatar-purple">S</div>
+                    System
+                </div>
+                <div class="date">Aktualizovano 15.3.2026</div>
+            </div>
+        </div>
+
+        <!-- System: Custom -->
+        <div class="template-card">
+            <div class="template-card-header">
+                <span class="template-card-title">Vlastni (zakladni)</span>
+                <span class="badge badge-system">Systemova</span>
+            </div>
+            <div class="template-card-desc">Minimalni workflow se dvema stavy pro vlastni upravy.</div>
+            <div class="mini-workflow">
+                <div class="mini-state open"></div>
+                <div class="mini-arrow"></div>
+                <div class="mini-state done"></div>
+            </div>
+            <div class="template-card-meta">
+                <span>
+                    <svg width="12" height="12" viewBox="0 0 12 12" fill="none"><circle cx="6" cy="6" r="3" fill="currentColor"/></svg>
+                    2 stavy
+                </span>
+                <span>
+                    <svg width="12" height="12" viewBox="0 0 12 12" fill="none"><path d="M2 6h8M7 3l3 3-3 3" stroke="currentColor" stroke-width="1.2" stroke-linecap="round" stroke-linejoin="round"/></svg>
+                    2 prechody
+                </span>
+                <span>Pouzito v 3 projektech</span>
+            </div>
+            <div class="template-card-footer">
+                <div class="author">
+                    <div class="avatar avatar-purple">S</div>
+                    System
+                </div>
+                <div class="date">Aktualizovano 15.3.2026</div>
+            </div>
+        </div>
+
+        <!-- User: Marketing -->
+        <div class="template-card">
+            <div class="template-card-header">
+                <span class="template-card-title">Marketing kampane</span>
+                <span class="badge badge-published">Publikovana</span>
+            </div>
+            <div class="template-card-desc">Workflow pro marketingove kampane vcetne schvalovani obsahu.</div>
+            <div class="mini-workflow">
+                <div class="mini-state open"></div>
+                <div class="mini-arrow"></div>
+                <div class="mini-state progress"></div>
+                <div class="mini-arrow"></div>
+                <div class="mini-state review"></div>
+                <div class="mini-arrow"></div>
+                <div class="mini-state pending"></div>
+                <div class="mini-arrow"></div>
+                <div class="mini-state done"></div>
+            </div>
+            <div class="template-card-meta">
+                <span>
+                    <svg width="12" height="12" viewBox="0 0 12 12" fill="none"><circle cx="6" cy="6" r="3" fill="currentColor"/></svg>
+                    6 stavu
+                </span>
+                <span>
+                    <svg width="12" height="12" viewBox="0 0 12 12" fill="none"><path d="M2 6h8M7 3l3 3-3 3" stroke="currentColor" stroke-width="1.2" stroke-linecap="round" stroke-linejoin="round"/></svg>
+                    9 prechodu
+                </span>
+                <span>Pouzito ve 2 projektech</span>
+            </div>
+            <div class="template-card-footer">
+                <div class="author">
+                    <div class="avatar avatar-blue">KN</div>
+                    Katerina Novakova
+                </div>
+                <div class="date">Aktualizovano 2.4.2026</div>
+            </div>
+        </div>
+
+        <!-- User: HR Onboarding -->
+        <div class="template-card">
+            <div class="template-card-header">
+                <span class="template-card-title">HR Onboarding</span>
+                <span class="badge badge-draft">Koncept</span>
+            </div>
+            <div class="template-card-desc">Proces onboardingu novych zamestnancu s checklisty a schvalovanim.</div>
+            <div class="mini-workflow">
+                <div class="mini-state open"></div>
+                <div class="mini-arrow"></div>
+                <div class="mini-state progress"></div>
+                <div class="mini-arrow"></div>
+                <div class="mini-state review"></div>
+                <div class="mini-arrow"></div>
+                <div class="mini-state done"></div>
+            </div>
+            <div class="template-card-meta">
+                <span>
+                    <svg width="12" height="12" viewBox="0 0 12 12" fill="none"><circle cx="6" cy="6" r="3" fill="currentColor"/></svg>
+                    4 stavy
+                </span>
+                <span>
+                    <svg width="12" height="12" viewBox="0 0 12 12" fill="none"><path d="M2 6h8M7 3l3 3-3 3" stroke="currentColor" stroke-width="1.2" stroke-linecap="round" stroke-linejoin="round"/></svg>
+                    5 prechodu
+                </span>
+                <span>Dosud nepouzito</span>
+            </div>
+            <div class="template-card-footer">
+                <div class="author">
+                    <div class="avatar avatar-green">PD</div>
+                    Petr Dvorak
+                </div>
+                <div class="date">Aktualizovano 5.4.2026</div>
+            </div>
+        </div>
+
+    </div>
+</div>
+
+<!-- Tab 2: Template Editor -->
+<div id="tab-editor" class="tab-content">
+    <div class="editor-layout">
+        <!-- Sidebar -->
+        <div class="editor-sidebar">
+            <div class="editor-sidebar-header">
+                <h3>Metadata sablony</h3>
+                <div class="sidebar-field">
+                    <label>Nazev sablony</label>
+                    <input type="text" value="Software Development">
+                </div>
+                <div class="sidebar-field">
+                    <label>Popis</label>
+                    <textarea>Standardni workflow pro softwarovy vyvoj s code review a testovanim.</textarea>
+                </div>
+                <div class="sidebar-field">
+                    <label>Kategorie</label>
+                    <select>
+                        <option selected>Vyvoj</option>
+                        <option>Management</option>
+                        <option>HR</option>
+                        <option>Marketing</option>
+                        <option>Vlastni</option>
+                    </select>
+                </div>
+                <div style="display:flex; align-items:center; gap:8px; margin-top:4px;">
+                    <span class="badge badge-version">v2.1</span>
+                    <span class="badge badge-published">Publikovana</span>
+                </div>
+            </div>
+            <div class="editor-sidebar-body">
+                <h3 style="font-size:13px; font-weight:600; color:var(--color-text-strong); margin-bottom:10px;">Stavy (5)</h3>
+                <ul class="state-list">
+                    <li><div class="state-dot" style="background:var(--raw-slate-500)"></div> Otevreny</li>
+                    <li><div class="state-dot" style="background:#2563eb"></div> Rozpracovany</li>
+                    <li><div class="state-dot" style="background:#7c3aed"></div> Code Review</li>
+                    <li><div class="state-dot" style="background:#2563eb"></div> Testovani</li>
+                    <li><div class="state-dot" style="background:var(--status-success-fg)"></div> Hotovo</li>
+                </ul>
+                <div style="margin-top:16px;">
+                    <h3 style="font-size:13px; font-weight:600; color:var(--color-text-strong); margin-bottom:10px;">Prechody (8)</h3>
+                    <div style="font-size:12px; color:var(--color-text-muted); line-height:1.8;">
+                        Otevreny &rarr; Rozpracovany<br>
+                        Rozpracovany &rarr; Code Review<br>
+                        Code Review &rarr; Rozpracovany<br>
+                        Code Review &rarr; Testovani<br>
+                        Testovani &rarr; Rozpracovany<br>
+                        Testovani &rarr; Hotovo<br>
+                        Hotovo &rarr; Otevreny<br>
+                        * &rarr; Otevreny (reopen)
+                    </div>
+                </div>
+            </div>
+            <div class="editor-sidebar-footer">
+                <button class="btn btn-primary" style="flex:1;">Publikovat</button>
+                <button class="btn" style="flex:1;">Ulozit koncept</button>
+            </div>
+        </div>
+
+        <!-- Canvas -->
+        <div class="editor-canvas">
+            <div class="editor-canvas-toolbar">
+                <button class="btn btn-sm">
+                    <svg width="12" height="12" viewBox="0 0 12 12" fill="none"><path d="M6 1v10M1 6h10" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/></svg>
+                    Pridat stav
+                </button>
+                <button class="btn btn-sm">
+                    <svg width="12" height="12" viewBox="0 0 12 12" fill="none"><path d="M2 6h8M7 3l3 3-3 3" stroke="currentColor" stroke-width="1.2" stroke-linecap="round" stroke-linejoin="round"/></svg>
+                    Pridat prechod
+                </button>
+                <button class="btn btn-sm">Zarovnat</button>
+            </div>
+
+            <!-- SVG arrows -->
+            <svg class="canvas-svg" width="100%" height="100%">
+                <!-- Open -> InProgress -->
+                <line x1="120" y1="100" x2="240" y2="100" stroke="#dfe1e6" stroke-width="2" marker-end="url(#arrow)"/>
+                <!-- InProgress -> Review -->
+                <line x1="385" y1="100" x2="500" y2="100" stroke="#dfe1e6" stroke-width="2" marker-end="url(#arrow)"/>
+                <!-- Review -> Testing -->
+                <line x1="605" y1="100" x2="500" y2="200" stroke="#dfe1e6" stroke-width="2" marker-end="url(#arrow)"/>
+                <!-- Review -> InProgress (back) -->
+                <path d="M500,115 Q420,160 385,115" stroke="#dfe1e6" stroke-width="1.5" fill="none" stroke-dasharray="4,3" marker-end="url(#arrow)"/>
+                <!-- Testing -> Done -->
+                <line x1="575" y1="200" x2="665" y2="200" stroke="#dfe1e6" stroke-width="2" marker-end="url(#arrow)"/>
+                <!-- Testing -> InProgress (back) -->
+                <path d="M500,215 Q400,260 340,115" stroke="#dfe1e6" stroke-width="1.5" fill="none" stroke-dasharray="4,3" marker-end="url(#arrow)"/>
+                <defs>
+                    <marker id="arrow" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
+                        <path d="M 0 0 L 10 5 L 0 10 z" fill="#b3bac5"/>
+                    </marker>
+                </defs>
+            </svg>
+
+            <!-- Nodes -->
+            <div class="wf-node open" style="left:50px; top:80px;">Otevreny</div>
+            <div class="wf-node progress selected" style="left:260px; top:80px;">Rozpracovany</div>
+            <div class="wf-node review" style="left:510px; top:80px;">Code Review</div>
+            <div class="wf-node progress" style="left:490px; top:185px;">Testovani</div>
+            <div class="wf-node done" style="left:670px; top:185px;">Hotovo</div>
+        </div>
+    </div>
+</div>
+
+<!-- Tab 3: Project Assignment -->
+<div id="tab-assignment" class="tab-content">
+    <div class="breadcrumb">
+        <a href="#">Projekty</a>
+        <span class="sep">/</span>
+        <a href="#">PHC Nexus v2</a>
+        <span class="sep">/</span>
+        <span>Nastaveni</span>
+        <span class="sep">/</span>
+        <span style="color:var(--color-text-strong);">Workflow</span>
+    </div>
+
+    <div class="assignment-container">
+        <h2 class="section-title">Workflow projektu</h2>
+
+        <!-- Template selector -->
+        <div class="assignment-section">
+            <h3>Vybrat workflow sablonu</h3>
+            <select class="custom-select">
+                <option>Software Development (systemova)</option>
+                <option>Sprava ukolu (systemova)</option>
+                <option>Schvalovani (systemova)</option>
+                <option>Vlastni - zakladni (systemova)</option>
+                <option>Marketing kampane</option>
+                <option selected>Software Development (systemova)</option>
+            </select>
+
+            <!-- Preview card -->
+            <div class="template-preview-panel">
+                <h4>Software Development</h4>
+                <p>Standardni workflow pro softwarovy vyvoj s code review a testovanim.</p>
+                <div class="mini-workflow" style="margin-bottom:10px;">
+                    <div class="mini-state open"></div>
+                    <div class="mini-arrow"></div>
+                    <div class="mini-state progress"></div>
+                    <div class="mini-arrow"></div>
+                    <div class="mini-state review"></div>
+                    <div class="mini-arrow"></div>
+                    <div class="mini-state progress"></div>
+                    <div class="mini-arrow"></div>
+                    <div class="mini-state done"></div>
+                </div>
+                <div style="display:flex; gap:16px; font-size:12px; color:var(--color-text-subtle);">
+                    <span>5 stavu</span>
+                    <span>8 prechodu</span>
+                    <span>Pouzito v 12 projektech</span>
+                    <span class="badge badge-system" style="margin-left:auto;">Systemova</span>
+                </div>
+            </div>
+
+            <!-- Warning -->
+            <div class="warning-banner">
+                <span class="icon">
+                    <svg width="16" height="16" viewBox="0 0 16 16" fill="none"><path d="M8 1L1 14h14L8 1z" stroke="#974f0c" stroke-width="1.5" stroke-linejoin="round"/><path d="M8 6v4" stroke="#974f0c" stroke-width="1.5" stroke-linecap="round"/><circle cx="8" cy="12" r="0.5" fill="#974f0c"/></svg>
+                </span>
+                <div class="text">
+                    <strong>Pozor:</strong> Zmena workflow priradi existujici ukoly do vychoziho stavu (Otevreny). Ukoly ve stavech, ktere v nove sablone neexistuji, budou automaticky prerazeny. Tuto akci nelze vzit zpet.
+                </div>
+            </div>
+        </div>
+
+        <!-- Usage mode toggle -->
+        <div class="assignment-section">
+            <h3>Rezim pouziti</h3>
+            <div class="toggle-group">
+                <div class="toggle-option selected" onclick="selectToggle(this)">
+                    <div class="toggle-title">Pouzit sablonu</div>
+                    <div class="toggle-desc">Projekt sleduje sablonu. Zmeny v sablone se automaticky propagují.</div>
+                </div>
+                <div class="toggle-option" onclick="selectToggle(this)">
+                    <div class="toggle-title">Vlastni workflow (fork)</div>
+                    <div class="toggle-desc">Vytvori kopii sablony. Dalsi zmeny sablony se nepromitnou.</div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Apply button -->
+        <div style="display:flex; gap:12px; justify-content:flex-end;">
+            <button class="btn">Zrusit</button>
+            <button class="btn btn-primary">Aplikovat sablonu</button>
+        </div>
+    </div>
+</div>
+
+<!-- Tab 4: Architecture -->
+<div id="tab-architecture" class="tab-content">
+
+    <!-- DB Schema -->
+    <div class="arch-section open">
+        <div class="arch-section-header" onclick="toggleArch(this)">
+            <h3>Databazove schema</h3>
+            <span class="chevron">&#9660;</span>
+        </div>
+        <div class="arch-section-body">
+            <p style="font-size:13px; color:var(--color-text-muted); margin-bottom:14px;">Nove tabulky zrcadli strukturu existujicich project-bound workflow tabulek, ale na urovni organizace.</p>
+
+            <h4 style="font-size:13px; font-weight:600; margin-bottom:8px; color:var(--color-text-strong);">workflow_templates</h4>
+            <table class="schema-table">
+                <thead><tr><th>Sloupec</th><th>Typ</th><th>Poznamka</th></tr></thead>
+                <tbody>
+                    <tr><td><code>id</code></td><td><code>uuid v7</code></td><td>PK</td></tr>
+                    <tr><td><code>name</code></td><td><code>varchar(255)</code></td><td>Nazev sablony</td></tr>
+                    <tr><td><code>slug</code></td><td><code>varchar(255)</code></td><td>Unique, URL-friendly</td></tr>
+                    <tr><td><code>description</code></td><td><code>text</code></td><td>Nullable</td></tr>
+                    <tr><td><code>is_system</code></td><td><code>boolean</code></td><td>default false</td></tr>
+                    <tr><td><code>category</code></td><td><code>varchar(50)</code></td><td>Enum: development, management, hr, marketing, custom</td></tr>
+                    <tr><td><code>author_id</code></td><td><code>uuid</code></td><td>FK &rarr; users.id, nullable pro systemove</td></tr>
+                    <tr><td><code>version</code></td><td><code>varchar(20)</code></td><td>Semver, napr. "2.1"</td></tr>
+                    <tr><td><code>published_at</code></td><td><code>timestamp</code></td><td>Nullable = koncept</td></tr>
+                    <tr><td><code>created_at</code></td><td><code>timestamp</code></td><td></td></tr>
+                    <tr><td><code>updated_at</code></td><td><code>timestamp</code></td><td></td></tr>
+                    <tr><td><code>deleted_at</code></td><td><code>timestamp</code></td><td>Soft delete</td></tr>
+                </tbody>
+            </table>
+
+            <h4 style="font-size:13px; font-weight:600; margin-bottom:8px; margin-top:16px; color:var(--color-text-strong);">workflow_template_statuses</h4>
+            <table class="schema-table">
+                <thead><tr><th>Sloupec</th><th>Typ</th><th>Poznamka</th></tr></thead>
+                <tbody>
+                    <tr><td><code>id</code></td><td><code>uuid v7</code></td><td>PK</td></tr>
+                    <tr><td><code>workflow_template_id</code></td><td><code>uuid</code></td><td>FK &rarr; workflow_templates.id</td></tr>
+                    <tr><td><code>name</code></td><td><code>varchar(255)</code></td><td></td></tr>
+                    <tr><td><code>slug</code></td><td><code>varchar(255)</code></td><td></td></tr>
+                    <tr><td><code>category</code></td><td><code>varchar(50)</code></td><td>open / in_progress / review / done</td></tr>
+                    <tr><td><code>color</code></td><td><code>varchar(7)</code></td><td>HEX barva</td></tr>
+                    <tr><td><code>position</code></td><td><code>integer</code></td><td>Poradi na canvasu</td></tr>
+                    <tr><td><code>is_initial</code></td><td><code>boolean</code></td><td></td></tr>
+                    <tr><td><code>is_final</code></td><td><code>boolean</code></td><td></td></tr>
+                </tbody>
+            </table>
+
+            <h4 style="font-size:13px; font-weight:600; margin-bottom:8px; margin-top:16px; color:var(--color-text-strong);">workflow_template_transitions</h4>
+            <table class="schema-table">
+                <thead><tr><th>Sloupec</th><th>Typ</th><th>Poznamka</th></tr></thead>
+                <tbody>
+                    <tr><td><code>id</code></td><td><code>uuid v7</code></td><td>PK</td></tr>
+                    <tr><td><code>workflow_template_id</code></td><td><code>uuid</code></td><td>FK &rarr; workflow_templates.id</td></tr>
+                    <tr><td><code>name</code></td><td><code>varchar(255)</code></td><td>Nazev prechodu</td></tr>
+                    <tr><td><code>from_status_id</code></td><td><code>uuid</code></td><td>FK &rarr; workflow_template_statuses.id</td></tr>
+                    <tr><td><code>to_status_id</code></td><td><code>uuid</code></td><td>FK &rarr; workflow_template_statuses.id</td></tr>
+                </tbody>
+            </table>
+
+            <h4 style="font-size:13px; font-weight:600; margin-bottom:8px; margin-top:16px; color:var(--color-text-strong);">Zmena v projects</h4>
+            <table class="schema-table">
+                <thead><tr><th>Sloupec</th><th>Typ</th><th>Poznamka</th></tr></thead>
+                <tbody>
+                    <tr><td><code>workflow_template_id</code></td><td><code>uuid</code></td><td>Nullable FK &rarr; workflow_templates.id. NULL = vlastni workflow (fork).</td></tr>
+                </tbody>
+            </table>
+        </div>
+    </div>
+
+    <!-- Migration strategy -->
+    <div class="arch-section open">
+        <div class="arch-section-header" onclick="toggleArch(this)">
+            <h3>Migracni strategie</h3>
+            <span class="chevron">&#9660;</span>
+        </div>
+        <div class="arch-section-body">
+            <div class="code-block">
+<span class="comment">// Migrace: existujici per-project workflows zustávaji jako "custom" (fork).</span>
+<span class="comment">// Systemove seedy (Software, TaskManagement, Approval, Custom)</span>
+<span class="comment">// se stanou workflow_templates s is_system = true.</span>
+
+<span class="keyword">Schema</span>::<span class="method">create</span>(<span class="string">'workflow_templates'</span>, <span class="keyword">function</span> (Blueprint $table) {
+    $table-><span class="method">uuid</span>(<span class="string">'id'</span>)-><span class="method">primary</span>();
+    $table-><span class="method">string</span>(<span class="string">'name'</span>);
+    $table-><span class="method">string</span>(<span class="string">'slug'</span>)-><span class="method">unique</span>();
+    $table-><span class="method">text</span>(<span class="string">'description'</span>)-><span class="method">nullable</span>();
+    $table-><span class="method">boolean</span>(<span class="string">'is_system'</span>)-><span class="method">default</span>(<span class="keyword">false</span>);
+    $table-><span class="method">string</span>(<span class="string">'category'</span>, 50);
+    $table-><span class="method">foreignUuid</span>(<span class="string">'author_id'</span>)-><span class="method">nullable</span>()-><span class="method">constrained</span>(<span class="string">'users'</span>);
+    $table-><span class="method">string</span>(<span class="string">'version'</span>, 20)-><span class="method">default</span>(<span class="string">'1.0'</span>);
+    $table-><span class="method">timestamp</span>(<span class="string">'published_at'</span>)-><span class="method">nullable</span>();
+    $table-><span class="method">timestamps</span>();
+    $table-><span class="method">softDeletes</span>();
+});
+
+<span class="comment">// Pridat FK do projects tabulky</span>
+<span class="keyword">Schema</span>::<span class="method">table</span>(<span class="string">'projects'</span>, <span class="keyword">function</span> (Blueprint $table) {
+    $table-><span class="method">foreignUuid</span>(<span class="string">'workflow_template_id'</span>)
+          -><span class="method">nullable</span>()
+          -><span class="method">constrained</span>(<span class="string">'workflow_templates'</span>)
+          -><span class="method">nullOnDelete</span>();
+});
+            </div>
+        </div>
+    </div>
+
+    <!-- API Endpoints -->
+    <div class="arch-section open">
+        <div class="arch-section-header" onclick="toggleArch(this)">
+            <h3>API endpointy</h3>
+            <span class="chevron">&#9660;</span>
+        </div>
+        <div class="arch-section-body">
+            <table class="schema-table">
+                <thead><tr><th>Metoda</th><th>Endpoint</th><th>Popis</th></tr></thead>
+                <tbody>
+                    <tr><td><code>GET</code></td><td><code>/api/workflow-templates</code></td><td>Seznam vsech sablon (filtry: category, is_system, search)</td></tr>
+                    <tr><td><code>POST</code></td><td><code>/api/workflow-templates</code></td><td>Vytvorit novou sablonu</td></tr>
+                    <tr><td><code>GET</code></td><td><code>/api/workflow-templates/{id}</code></td><td>Detail sablony vcetne stavu a prechodu</td></tr>
+                    <tr><td><code>PUT</code></td><td><code>/api/workflow-templates/{id}</code></td><td>Aktualizovat sablonu (bumpne verzi)</td></tr>
+                    <tr><td><code>DELETE</code></td><td><code>/api/workflow-templates/{id}</code></td><td>Soft delete (pouze pokud neni pouzita)</td></tr>
+                    <tr><td><code>POST</code></td><td><code>/api/workflow-templates/{id}/publish</code></td><td>Publikovat koncept</td></tr>
+                    <tr><td><code>POST</code></td><td><code>/api/projects/{id}/apply-template</code></td><td>Aplikovat sablonu na projekt (mode: link / fork)</td></tr>
+                </tbody>
+            </table>
+        </div>
+    </div>
+
+    <!-- Permissions -->
+    <div class="arch-section open">
+        <div class="arch-section-header" onclick="toggleArch(this)">
+            <h3>Opravneni</h3>
+            <span class="chevron">&#9660;</span>
+        </div>
+        <div class="arch-section-body">
+            <ul class="perm-list">
+                <li><span class="perm-role">Org Admin</span> Vytvarit, upravovat, mazat a publikovat sablony</li>
+                <li><span class="perm-role">PM</span> Prirazovat sablony k projektum, forkovat sablonu</li>
+                <li><span class="perm-role">Clen</span> Pouze cteni sablony v kontextu projektu</li>
+                <li><span class="perm-role">System</span> Systemove sablony nelze smazat, pouze deaktivovat</li>
+            </ul>
+        </div>
+    </div>
+
+</div>
+
+<script>
+function switchTab(name) {
+    document.querySelectorAll('.tab-content').forEach(el => el.classList.remove('active'));
+    document.querySelectorAll('.tab-btn').forEach(el => el.classList.remove('active'));
+    document.getElementById('tab-' + name).classList.add('active');
+    event.target.classList.add('active');
+}
+
+function toggleArch(header) {
+    header.parentElement.classList.toggle('open');
+}
+
+function selectToggle(el) {
+    el.parentElement.querySelectorAll('.toggle-option').forEach(o => o.classList.remove('selected'));
+    el.classList.add('selected');
+}
+</script>
+
+</body>
+</html>

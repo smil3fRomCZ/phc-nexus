@@ -61,5 +61,6 @@ Route::middleware('auth')->scopeBindings()->group(function () {
     Route::post('projects/{project}/time-entries', [TimeEntryController::class, 'store'])->name('projects.time-entries.store');
     Route::post('projects/{project}/epics/{epic}/time-entries', [TimeEntryController::class, 'storeForEpic'])->name('projects.epics.time-entries.store');
     Route::post('projects/{project}/tasks/{task}/time-entries', [TimeEntryController::class, 'store'])->name('projects.tasks.time-entries.store');
+    Route::put('time-entries/{timeEntry}', [TimeEntryController::class, 'update'])->name('time-entries.update');
     Route::delete('time-entries/{timeEntry}', [TimeEntryController::class, 'destroy'])->name('time-entries.destroy');
 });

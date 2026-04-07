@@ -57,6 +57,23 @@ final class TimeEntryController extends Controller
         return back();
     }
 
+    public function update(Request $request, TimeEntry $timeEntry): RedirectResponse
+    {
+        if ($timeEntry->user_id !== $request->user()->id) {
+            abort(403);
+        }
+
+        $validated = $request->validate([
+            'date' => ['required', 'date'],
+            'hours' => ['required', 'numeric', 'min:0.25', 'max:24'],
+            'note' => ['nullable', 'string', 'max:500'],
+        ]);
+
+        $timeEntry->update($validated);
+
+        return back();
+    }
+
     public function destroy(Request $request, TimeEntry $timeEntry): RedirectResponse
     {
         if ($timeEntry->user_id !== $request->user()->id) {

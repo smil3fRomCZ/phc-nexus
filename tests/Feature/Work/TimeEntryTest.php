@@ -148,4 +148,47 @@ class TimeEntryTest extends TestCase
         $response->assertForbidden();
         $this->assertDatabaseHas('time_entries', ['id' => $entry->id]);
     }
+
+    public function test_owner_can_update_own_time_entry(): void
+    {
+        $user = User::factory()->create();
+        $project = Project::factory()->create(['owner_id' => $user->id]);
+        $entry = TimeEntry::factory()->create([
+            'project_id' => $project->id,
+            'user_id' => $user->id,
+            'hours' => 2.0,
+            'note' => 'Původní',
+        ]);
+
+        $response = $this->actingAs($user)->putJson("/time-entries/{$entry->id}", [
+            'date' => '2026-04-02',
+            'hours' => 3.5,
+            'note' => 'Opraveno',
+        ]);
+
+        $response->assertRedirect();
+        $this->assertDatabaseHas('time_entries', [
+            'id' => $entry->id,
+            'hours' => '3.50',
+            'note' => 'Opraveno',
+        ]);
+    }
+
+    public function test_user_cannot_update_other_users_time_entry(): void
+    {
+        $user = User::factory()->create();
+        $otherUser = User::factory()->create();
+        $project = Project::factory()->create(['owner_id' => $user->id]);
+        $entry = TimeEntry::factory()->create([
+            'project_id' => $project->id,
+            'user_id' => $otherUser->id,
+        ]);
+
+        $response = $this->actingAs($user)->putJson("/time-entries/{$entry->id}", [
+            'date' => '2026-04-02',
+            'hours' => 1.0,
+        ]);
+
+        $response->assertForbidden();
+    }
 }

@@ -15,7 +15,7 @@ import AttachmentsSection from '@/Components/AttachmentsSection';
 import type { Attachment } from '@/Components/AttachmentsSection';
 import { PROJECT_STATUS } from '@/constants/status';
 import { formatDate } from '@/utils/formatDate';
-import { Link, router } from '@inertiajs/react';
+import { Link, router, useForm } from '@inertiajs/react';
 import {
     Trash2,
     Pencil,
@@ -30,6 +30,7 @@ import {
     X,
     MoreVertical,
     UserPlus,
+    Plus,
 } from 'lucide-react';
 import ActionIconButton from '@/Components/ActionIconButton';
 import Modal from '@/Components/Modal';
@@ -245,6 +246,9 @@ export default function ProjectShow({
                 {/* Metrics */}
                 <ProjectMetrics project={project} totalHours={totalHours} />
 
+                {/* Quick add task */}
+                <QuickAddTask projectId={project.id} />
+
                 {/* Members */}
                 <ProjectMembers project={project} availableUsers={availableUsers} canManage={can.manageMembers} />
 
@@ -288,6 +292,52 @@ export default function ProjectShow({
                 />
             </ConfirmModal>
         </AppLayout>
+    );
+}
+
+function QuickAddTask({ projectId }: { projectId: string }) {
+    const { data, setData, post, processing, reset, errors } = useForm({
+        title: '',
+        priority: 'medium',
+    });
+
+    function submit(e: React.FormEvent) {
+        e.preventDefault();
+        post(`/projects/${projectId}/tasks`, { onSuccess: () => reset(), preserveScroll: true });
+    }
+
+    return (
+        <div className="rounded-lg border border-border-subtle bg-surface-primary p-4">
+            <div className="mb-2 text-xs font-semibold uppercase tracking-wider text-text-subtle">Rychlý úkol</div>
+            <form onSubmit={submit} className="flex items-center gap-2">
+                <input
+                    type="text"
+                    value={data.title}
+                    onChange={(e) => setData('title', e.target.value)}
+                    placeholder="Název nového úkolu..."
+                    className="flex-1 rounded-md border border-border-default bg-surface-primary px-3 py-1.5 text-sm focus:border-border-focus focus:outline-none focus:shadow-[0_0_0_2px_var(--color-brand-soft)]"
+                />
+                <select
+                    value={data.priority}
+                    onChange={(e) => setData('priority', e.target.value)}
+                    className="rounded-md border border-border-default bg-surface-primary px-2 py-1.5 text-sm focus:border-border-focus focus:outline-none"
+                >
+                    <option value="low">Nízká</option>
+                    <option value="medium">Střední</option>
+                    <option value="high">Vysoká</option>
+                    <option value="urgent">Urgentní</option>
+                </select>
+                <button
+                    type="submit"
+                    disabled={processing || !data.title}
+                    className="flex items-center gap-1 rounded-md bg-brand-primary px-3 py-1.5 text-xs font-semibold text-text-inverse transition-colors hover:bg-brand-hover disabled:opacity-50"
+                >
+                    <Plus className="h-3.5 w-3.5" strokeWidth={2.5} />
+                    Přidat
+                </button>
+            </form>
+            {errors.title && <p className="mt-1 text-xs text-status-danger">{errors.title}</p>}
+        </div>
     );
 }
 

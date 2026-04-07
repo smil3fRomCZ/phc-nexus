@@ -31,9 +31,19 @@ interface Props {
     isDragging: boolean;
     isDone: boolean;
     onDragStart: (e: DragEvent, taskId: string) => void;
+    onDragEnd?: () => void;
 }
 
-export default function BoardCard({ task, projectId, projectKey, cardFields, isDragging, isDone, onDragStart }: Props) {
+export default function BoardCard({
+    task,
+    projectId,
+    projectKey,
+    cardFields,
+    isDragging,
+    isDone,
+    onDragStart,
+    onDragEnd,
+}: Props) {
     const priority = getPriority(task.priority);
 
     function shows(field: string) {
@@ -44,6 +54,7 @@ export default function BoardCard({ task, projectId, projectKey, cardFields, isD
         <div
             draggable
             onDragStart={(e) => onDragStart(e, task.id)}
+            onDragEnd={onDragEnd}
             className={`cursor-grab rounded-md border border-border-subtle bg-surface-primary p-2.5 shadow-sm transition-opacity hover:border-brand-muted hover:shadow-md active:cursor-grabbing ${
                 isDragging ? 'opacity-50' : ''
             } ${isDone ? 'opacity-65' : ''}`}

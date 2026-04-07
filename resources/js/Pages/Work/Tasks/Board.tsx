@@ -119,6 +119,11 @@ export default function TaskBoard({
         return new Set(transitionMap[sourceStatus] ?? []);
     })();
 
+    function handleDragEnd() {
+        setDragging(null);
+        setDropTarget(null);
+    }
+
     function handleDragStart(e: DragEvent, taskId: string) {
         e.dataTransfer.effectAllowed = 'move';
         e.dataTransfer.setData('text/plain', taskId);
@@ -354,6 +359,7 @@ export default function TaskBoard({
                                         isDragging={dragging === task.id}
                                         isDone={!!(col.is_done || col.is_cancelled)}
                                         onDragStart={handleDragStart}
+                                        onDragEnd={handleDragEnd}
                                     />
                                 ))}
                             </div>

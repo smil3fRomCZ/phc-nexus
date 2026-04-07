@@ -330,9 +330,9 @@ function QuickAddTask({ projectId }: { projectId: string }) {
                 <button
                     type="submit"
                     disabled={processing || !data.title}
-                    className="flex items-center gap-1 rounded-md bg-brand-primary px-3 py-1.5 text-xs font-semibold text-text-inverse transition-colors hover:bg-brand-hover disabled:opacity-50"
+                    className="flex items-center gap-1.5 rounded-md bg-brand-primary px-4 py-1.5 text-sm font-semibold text-text-inverse transition-colors hover:bg-brand-hover disabled:opacity-50"
                 >
-                    <Plus className="h-3.5 w-3.5" strokeWidth={2.5} />
+                    <Plus className="h-4 w-4" strokeWidth={2.5} />
                     Přidat
                 </button>
             </form>

@@ -1,0 +1,432 @@
+<!DOCTYPE html>
+<html lang="cs">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Preview — Backlog Inline Add (Jira-style)</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <style>
+        *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+        :root {
+            --raw-orange-500: #f5a623;
+            --raw-orange-600: #e09000;
+            --raw-navy-900: #172b4d;
+            --raw-slate-800: #42526e;
+            --raw-slate-700: #6b778c;
+            --raw-slate-600: #97a0af;
+            --raw-slate-500: #b3bac5;
+            --raw-slate-300: #dfe1e6;
+            --raw-slate-200: #ebecf0;
+            --raw-slate-100: #f4f5f7;
+            --raw-slate-050: #fafbfc;
+            --raw-white: #ffffff;
+            --raw-green-100: #e3fcef;
+            --raw-green-700: #006644;
+            --raw-red-100: #ffebe6;
+            --raw-red-700: #bf2600;
+            --raw-blue-100: #deebff;
+            --raw-blue-700: #0747a6;
+            --raw-purple-100: #eae6ff;
+            --raw-purple-700: #5243aa;
+            --raw-yellow-100: #fff0b3;
+            --raw-yellow-700: #974f0c;
+
+            --color-brand-primary: var(--raw-orange-500);
+            --color-brand-primary-hover: var(--raw-orange-600);
+            --color-brand-primary-soft: #fff8eb;
+            --color-text-strong: var(--raw-navy-900);
+            --color-text-default: var(--raw-slate-800);
+            --color-text-muted: var(--raw-slate-700);
+            --color-text-subtle: var(--raw-slate-600);
+            --color-text-disabled: var(--raw-slate-500);
+            --color-text-inverse: var(--raw-white);
+            --color-surface-canvas: var(--raw-slate-100);
+            --color-surface-panel: var(--raw-white);
+            --color-surface-panel-subtle: var(--raw-slate-050);
+            --color-border-subtle: var(--raw-slate-200);
+            --color-border-default: var(--raw-slate-300);
+
+            --status-success-bg: var(--raw-green-100);
+            --status-success-fg: var(--raw-green-700);
+            --status-danger-bg: var(--raw-red-100);
+            --status-danger-fg: var(--raw-red-700);
+            --status-info-bg: var(--raw-blue-100);
+            --status-info-fg: var(--raw-blue-700);
+            --status-review-bg: var(--raw-purple-100);
+            --status-review-fg: var(--raw-purple-700);
+            --status-warning-bg: var(--raw-yellow-100);
+            --status-warning-fg: var(--raw-yellow-700);
+
+            --radius-sm: 4px;
+            --radius-md: 8px;
+            --radius-lg: 12px;
+            --shadow-sm: 0 1px 2px rgba(0,0,0,0.05);
+            --font-sans: "Inter", -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+        }
+
+        body {
+            font-family: var(--font-sans);
+            background: var(--color-surface-canvas);
+            color: var(--color-text-default);
+            font-size: 14px;
+            line-height: 1.5;
+            padding: 32px;
+        }
+
+        .page-title {
+            font-size: 20px;
+            font-weight: 700;
+            color: var(--color-text-strong);
+            margin-bottom: 8px;
+        }
+
+        .page-subtitle {
+            font-size: 13px;
+            color: var(--color-text-muted);
+            margin-bottom: 24px;
+        }
+
+        /* Tabs */
+        .tabs {
+            display: flex;
+            gap: 0;
+            border-bottom: 2px solid var(--color-border-subtle);
+            margin-bottom: 20px;
+        }
+        .tab {
+            padding: 8px 16px;
+            font-size: 13px;
+            font-weight: 600;
+            color: var(--color-text-muted);
+            cursor: pointer;
+            border-bottom: 2px solid transparent;
+            margin-bottom: -2px;
+            text-decoration: none;
+        }
+        .tab.active {
+            color: var(--color-brand-primary);
+            border-bottom-color: var(--color-brand-primary);
+        }
+        .tab:hover:not(.active) {
+            color: var(--color-text-strong);
+        }
+
+        /* Table */
+        .backlog-table {
+            width: 100%;
+            border-collapse: collapse;
+            background: var(--color-surface-panel);
+            border: 1px solid var(--color-border-subtle);
+            border-radius: var(--radius-md);
+            overflow: hidden;
+        }
+
+        .backlog-table th {
+            text-align: left;
+            padding: 10px 16px;
+            font-size: 11px;
+            font-weight: 600;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            color: var(--color-text-subtle);
+            background: var(--color-surface-panel-subtle);
+            border-bottom: 1px solid var(--color-border-default);
+        }
+
+        .backlog-table td {
+            padding: 10px 16px;
+            font-size: 14px;
+            border-bottom: 1px solid var(--color-border-subtle);
+            vertical-align: middle;
+        }
+
+        .backlog-table tbody tr:hover {
+            background: var(--color-brand-primary-soft);
+        }
+
+        .task-key {
+            font-size: 12px;
+            font-weight: 600;
+            color: var(--color-text-muted);
+            margin-right: 6px;
+        }
+
+        .task-title {
+            font-weight: 500;
+            color: var(--color-text-strong);
+            text-decoration: none;
+        }
+        .task-title:hover {
+            color: var(--color-brand-primary);
+        }
+
+        .status-badge {
+            display: inline-block;
+            padding: 2px 8px;
+            border-radius: 10px;
+            font-size: 11px;
+            font-weight: 600;
+        }
+
+        .status-backlog {
+            background: var(--raw-slate-200);
+            color: var(--raw-slate-800);
+        }
+        .status-todo {
+            background: var(--status-info-bg);
+            color: var(--status-info-fg);
+        }
+
+        .priority-medium {
+            color: var(--status-warning-fg);
+            font-size: 12px;
+            font-weight: 600;
+        }
+        .priority-high {
+            color: var(--status-danger-fg);
+            font-size: 12px;
+            font-weight: 600;
+        }
+        .priority-low {
+            color: var(--status-success-fg);
+            font-size: 12px;
+            font-weight: 600;
+        }
+
+        .sp-badge {
+            display: inline-block;
+            min-width: 24px;
+            text-align: center;
+            padding: 2px 6px;
+            border-radius: 10px;
+            font-size: 11px;
+            font-weight: 700;
+        }
+        .sp-low { background: var(--status-success-bg); color: var(--status-success-fg); }
+        .sp-mid { background: var(--status-warning-bg); color: var(--status-warning-fg); }
+        .sp-high { background: var(--status-danger-bg); color: var(--status-danger-fg); }
+
+        .text-muted {
+            color: var(--color-text-muted);
+            font-size: 13px;
+        }
+
+        /* Inline add row */
+        .inline-add-row td {
+            padding: 6px 16px;
+            border-bottom: none;
+            background: var(--color-surface-panel-subtle);
+        }
+
+        .inline-add-row:hover {
+            background: transparent !important;
+        }
+
+        .inline-add-form {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .inline-add-icon {
+            color: var(--color-text-subtle);
+            flex-shrink: 0;
+            width: 16px;
+            height: 16px;
+        }
+
+        .inline-add-input {
+            flex: 1;
+            border: none;
+            background: transparent;
+            font-family: var(--font-sans);
+            font-size: 14px;
+            color: var(--color-text-default);
+            outline: none;
+            padding: 6px 0;
+        }
+
+        .inline-add-input::placeholder {
+            color: var(--color-text-disabled);
+        }
+
+        .inline-add-input:focus {
+            border-bottom: 2px solid var(--color-brand-primary);
+            margin-bottom: -2px;
+        }
+
+        .inline-add-btn {
+            display: inline-flex;
+            align-items: center;
+            gap: 4px;
+            padding: 4px 12px;
+            border: none;
+            border-radius: var(--radius-sm);
+            background: var(--color-brand-primary);
+            color: var(--color-text-inverse);
+            font-family: var(--font-sans);
+            font-size: 12px;
+            font-weight: 600;
+            cursor: pointer;
+            opacity: 0;
+            transition: opacity 0.15s;
+        }
+
+        .inline-add-input:focus ~ .inline-add-btn,
+        .inline-add-btn:hover,
+        .inline-add-form:focus-within .inline-add-btn {
+            opacity: 1;
+        }
+
+        .inline-add-btn:hover {
+            background: var(--color-brand-primary-hover);
+        }
+
+        /* Label */
+        .demo-label {
+            display: inline-block;
+            margin-bottom: 16px;
+            padding: 4px 10px;
+            border-radius: var(--radius-sm);
+            background: var(--status-info-bg);
+            color: var(--status-info-fg);
+            font-size: 11px;
+            font-weight: 600;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+
+        .annotation {
+            margin-top: 20px;
+            padding: 12px 16px;
+            background: var(--status-info-bg);
+            border-radius: var(--radius-md);
+            font-size: 13px;
+            color: var(--status-info-fg);
+            line-height: 1.6;
+        }
+        .annotation strong {
+            font-weight: 700;
+        }
+
+        .checkbox {
+            width: 14px;
+            height: 14px;
+            border-radius: 3px;
+        }
+
+        .epic-badge {
+            display: inline-flex;
+            align-items: center;
+            gap: 4px;
+            padding: 2px 8px;
+            border-radius: 10px;
+            background: var(--color-surface-panel-subtle);
+            font-size: 12px;
+            font-weight: 500;
+            color: var(--color-text-default);
+        }
+    </style>
+</head>
+<body>
+
+<span class="demo-label">Preview</span>
+<h1 class="page-title">PROJ — Backlog</h1>
+<p class="page-subtitle">Inline pridavani ukolu na konci tabulky (Jira-style)</p>
+
+<!-- Tabs -->
+<div class="tabs">
+    <a class="tab" href="#">Kanban</a>
+    <a class="tab active" href="#">Backlog</a>
+    <a class="tab" href="#">Epiky</a>
+    <a class="tab" href="#">Estimation</a>
+</div>
+
+<!-- Backlog table -->
+<table class="backlog-table">
+    <thead>
+        <tr>
+            <th style="width: 40px"><input type="checkbox" class="checkbox"></th>
+            <th>Nazev</th>
+            <th>Stav</th>
+            <th>Priorita</th>
+            <th>Resitel</th>
+            <th>Epic</th>
+            <th style="text-align: center">SP</th>
+            <th>Termin</th>
+        </tr>
+    </thead>
+    <tbody>
+        <!-- Existing tasks -->
+        <tr>
+            <td><input type="checkbox" class="checkbox"></td>
+            <td><span class="task-key">PROJ-12</span><a class="task-title" href="#">Implementovat notifikace</a></td>
+            <td><span class="status-badge status-backlog">Backlog</span></td>
+            <td><span class="priority-high">Vysoka</span></td>
+            <td class="text-muted">Jan M.</td>
+            <td><span class="epic-badge">
+                <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="7" height="7"/><rect x="14" y="3" width="7" height="7"/><rect x="3" y="14" width="7" height="7"/><rect x="14" y="14" width="7" height="7"/></svg>
+                Auth modul
+            </span></td>
+            <td style="text-align: center"><span class="sp-badge sp-mid">5</span></td>
+            <td class="text-muted">15. 4. 2026</td>
+        </tr>
+        <tr>
+            <td><input type="checkbox" class="checkbox"></td>
+            <td><span class="task-key">PROJ-13</span><a class="task-title" href="#">Navrhnout dashboard layout</a></td>
+            <td><span class="status-badge status-backlog">Backlog</span></td>
+            <td><span class="priority-medium">Stredni</span></td>
+            <td class="text-muted">Petra K.</td>
+            <td class="text-muted">&mdash;</td>
+            <td style="text-align: center"><span class="sp-badge sp-low">2</span></td>
+            <td class="text-muted">&mdash;</td>
+        </tr>
+        <tr>
+            <td><input type="checkbox" class="checkbox"></td>
+            <td><span class="task-key">PROJ-14</span><a class="task-title" href="#">Opravit export CSV encoding</a></td>
+            <td><span class="status-badge status-todo">To Do</span></td>
+            <td><span class="priority-low">Nizka</span></td>
+            <td class="text-muted">&mdash;</td>
+            <td class="text-muted">&mdash;</td>
+            <td style="text-align: center" class="text-muted">&mdash;</td>
+            <td class="text-muted">20. 4. 2026</td>
+        </tr>
+        <tr>
+            <td><input type="checkbox" class="checkbox"></td>
+            <td><span class="task-key">PROJ-15</span><a class="task-title" href="#">Pridat filtr dle epiku</a></td>
+            <td><span class="status-badge status-backlog">Backlog</span></td>
+            <td><span class="priority-medium">Stredni</span></td>
+            <td class="text-muted">Jan M.</td>
+            <td class="text-muted">&mdash;</td>
+            <td style="text-align: center"><span class="sp-badge sp-high">8</span></td>
+            <td class="text-muted">&mdash;</td>
+        </tr>
+
+        <!-- INLINE ADD ROW -->
+        <tr class="inline-add-row">
+            <td></td>
+            <td colspan="7">
+                <div class="inline-add-form">
+                    <svg class="inline-add-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
+                    <input type="text" class="inline-add-input" placeholder="Novy ukol..." autofocus>
+                    <button class="inline-add-btn">
+                        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
+                        Pridat
+                    </button>
+                </div>
+            </td>
+        </tr>
+    </tbody>
+</table>
+
+<div class="annotation">
+    <strong>Inline add radek:</strong> Posledni radek tabulky — input pro nazev ukolu s tlacitkem "Pridat".
+    Tlacitko se zobrazi az po kliknuti do inputu (focus). Enter = odeslani.
+    Vytvori ukol se stavem <em>Backlog</em> a prioritou <em>Stredni</em>.
+    Po odeslani se input vyprazdni a zustane aktivni pro dalsi zadani.
+</div>
+
+</body>
+</html>

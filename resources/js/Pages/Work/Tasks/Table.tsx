@@ -9,9 +9,9 @@ import { useFilterRouter } from '@/hooks/useFilterRouter';
 import { getPriority } from '@/constants/priority';
 import { displayKey } from '@/utils/displayKey';
 import { formatDate } from '@/utils/formatDate';
-import { Link, router } from '@inertiajs/react';
-import { Layers } from 'lucide-react';
-import { useState } from 'react';
+import { Link, router, useForm } from '@inertiajs/react';
+import { Layers, Plus } from 'lucide-react';
+import { useRef, useState } from 'react';
 import ProjectHeaderCompact from '@/Components/ProjectHeaderCompact';
 import ProjectTabs from '@/Components/ProjectTabs';
 
@@ -273,9 +273,53 @@ export default function TaskTable({ project, tasks, filters, statuses, prioritie
                             </tr>
                         ))}
                         {tasks.length === 0 && <EmptyState message="Žádné úkoly neodpovídají filtrům." colSpan={8} />}
+                        <InlineAddRow projectId={project.id} />
                     </tbody>
                 </table>
             </div>
         </AppLayout>
+    );
+}
+
+function InlineAddRow({ projectId }: { projectId: string }) {
+    const { data, setData, post, processing, reset } = useForm({ title: '', priority: 'medium' });
+    const inputRef = useRef<HTMLInputElement>(null);
+
+    function submit(e: React.FormEvent) {
+        e.preventDefault();
+        if (!data.title.trim()) return;
+        post(`/projects/${projectId}/tasks`, {
+            onSuccess: () => {
+                reset();
+                inputRef.current?.focus();
+            },
+            preserveScroll: true,
+        });
+    }
+
+    return (
+        <tr className="group">
+            <td className="border-b border-border-subtle bg-surface-secondary px-3 py-2" />
+            <td colSpan={7} className="border-b border-border-subtle bg-surface-secondary px-5 py-2">
+                <form onSubmit={submit} className="flex items-center gap-2">
+                    <Plus className="h-4 w-4 flex-shrink-0 text-text-subtle" />
+                    <input
+                        ref={inputRef}
+                        type="text"
+                        value={data.title}
+                        onChange={(e) => setData('title', e.target.value)}
+                        placeholder="Nový úkol..."
+                        className="flex-1 border-0 bg-transparent px-0 py-1 text-sm text-text-default placeholder:text-text-disabled focus:outline-none"
+                    />
+                    <button
+                        type="submit"
+                        disabled={processing || !data.title.trim()}
+                        className="flex items-center gap-1 rounded-md bg-brand-primary px-3 py-1 text-xs font-semibold text-text-inverse opacity-0 transition-opacity group-focus-within:opacity-100 hover:bg-brand-hover disabled:opacity-50"
+                    >
+                        Přidat
+                    </button>
+                </form>
+            </td>
+        </tr>
     );
 }

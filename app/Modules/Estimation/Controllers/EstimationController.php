@@ -13,6 +13,7 @@ use App\Modules\Work\Models\Task;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Gate;
+use Illuminate\Validation\Rule;
 use Inertia\Inertia;
 use Inertia\Response;
 
@@ -42,7 +43,7 @@ class EstimationController extends Controller
             'name' => ['required', 'string', 'max:255'],
             'scale_type' => ['required', 'string', 'in:fibonacci,tshirt'],
             'task_ids' => ['required', 'array', 'min:1'],
-            'task_ids.*' => ['uuid', 'exists:tasks,id'],
+            'task_ids.*' => ['uuid', Rule::exists('tasks', 'id')->where('project_id', $project->id)],
         ]);
 
         $session = EstimationSession::create([

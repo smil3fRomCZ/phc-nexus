@@ -1,0 +1,1206 @@
+<!DOCTYPE html>
+<html lang="cs">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>PHC Nexus — Planning Poker</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&display=swap" rel="stylesheet">
+  <script>
+    tailwind.config = {
+      theme: {
+        extend: {
+          fontFamily: { sans: ['Inter', 'system-ui', 'sans-serif'] },
+          colors: {
+            brand: {
+              DEFAULT: '#f5a623',
+              hover: '#e09000',
+              soft: '#fff8eb',
+              muted: '#ffd080',
+            },
+            navy: { 900: '#172b4d' },
+            primary: { DEFAULT: '#2563eb', hover: '#1d4ed8', light: '#dbeafe', soft: '#eff6ff' },
+            slate: {
+              50: '#fafbfc',
+              100: '#f4f5f7',
+              200: '#ebecf0',
+              300: '#dfe1e6',
+              500: '#b3bac5',
+              600: '#97a0af',
+              700: '#6b778c',
+              800: '#42526e',
+            },
+            status: {
+              'green-bg': '#e3fcef', 'green-fg': '#006644',
+              'blue-bg': '#deebff', 'blue-fg': '#0747a6',
+              'yellow-bg': '#fff0b3', 'yellow-fg': '#974f0c',
+              'red-bg': '#ffebe6', 'red-fg': '#bf2600',
+              'purple-bg': '#eae6ff', 'purple-fg': '#5243aa',
+            },
+          },
+        },
+      },
+    }
+  </script>
+  <style>
+    body { background: #f8fafc; }
+
+    /* Tab styles */
+    .tab-btn { transition: all 0.2s; }
+    .tab-btn.active {
+      color: #2563eb;
+      border-bottom-color: #2563eb;
+      font-weight: 600;
+    }
+    .tab-panel { display: none; }
+    .tab-panel.active { display: block; }
+
+    /* Voting card styles */
+    .poker-card {
+      width: 80px;
+      height: 112px;
+      border-radius: 12px;
+      border: 2px solid #dfe1e6;
+      background: white;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 1.75rem;
+      font-weight: 800;
+      color: #42526e;
+      cursor: pointer;
+      transition: all 0.25s cubic-bezier(0.4, 0, 0.2, 1);
+      position: relative;
+      user-select: none;
+      box-shadow: 0 2px 4px rgba(23,43,77,0.06);
+    }
+    .poker-card:hover {
+      transform: translateY(-12px) scale(1.05);
+      box-shadow: 0 12px 24px rgba(37,99,235,0.15);
+      border-color: #2563eb;
+    }
+    .poker-card.selected {
+      background: #2563eb;
+      color: white;
+      border-color: #1d4ed8;
+      transform: translateY(-16px) scale(1.08);
+      box-shadow: 0 16px 32px rgba(37,99,235,0.3);
+    }
+    .poker-card::before {
+      content: '';
+      position: absolute;
+      top: 6px;
+      left: 8px;
+      font-size: 0.65rem;
+      font-weight: 600;
+      opacity: 0.4;
+    }
+    .poker-card::after {
+      content: '';
+      position: absolute;
+      bottom: 6px;
+      right: 8px;
+      font-size: 0.65rem;
+      font-weight: 600;
+      opacity: 0.4;
+      transform: rotate(180deg);
+    }
+
+    /* Card back (not voted) */
+    .card-back {
+      width: 40px;
+      height: 56px;
+      border-radius: 6px;
+      background: linear-gradient(135deg, #2563eb 0%, #1e40af 100%);
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      color: white;
+      font-size: 0.6rem;
+      font-weight: 700;
+      box-shadow: 0 2px 4px rgba(37,99,235,0.2);
+    }
+    .card-back.revealed {
+      background: white;
+      color: #2563eb;
+      border: 2px solid #2563eb;
+      font-size: 1rem;
+      font-weight: 800;
+    }
+
+    /* Consensus glow */
+    .consensus-glow {
+      box-shadow: 0 0 20px rgba(22,163,74,0.3), 0 0 40px rgba(22,163,74,0.1);
+      border-color: #16a34a;
+    }
+    .no-consensus {
+      box-shadow: 0 0 20px rgba(217,119,6,0.3), 0 0 40px rgba(217,119,6,0.1);
+      border-color: #d97706;
+    }
+
+    /* Timer */
+    .timer-ring {
+      stroke-dasharray: 283;
+      stroke-dashoffset: 0;
+      transition: stroke-dashoffset 1s linear;
+    }
+
+    /* Participant vote indicator */
+    .vote-dot {
+      width: 10px;
+      height: 10px;
+      border-radius: 50%;
+      transition: all 0.3s;
+    }
+
+    /* Architecture table */
+    .db-table { border-collapse: collapse; }
+    .db-table th { background: #f1f5f9; }
+    .db-table th, .db-table td {
+      border: 1px solid #e2e8f0;
+      padding: 6px 12px;
+      text-align: left;
+      font-size: 0.8rem;
+    }
+
+    /* Collapsible */
+    .collapsible-content { max-height: 0; overflow: hidden; transition: max-height 0.3s ease; }
+    .collapsible-content.open { max-height: 2000px; }
+
+    /* Checkbox custom */
+    .task-check { accent-color: #2563eb; }
+  </style>
+</head>
+<body class="min-h-screen font-sans text-slate-800">
+
+  <!-- Top Bar -->
+  <header class="bg-white border-b border-slate-200 px-6 py-3 flex items-center justify-between">
+    <div class="flex items-center gap-3">
+      <div class="w-8 h-8 rounded-lg bg-brand flex items-center justify-center text-white font-bold text-sm">N</div>
+      <span class="font-semibold text-navy-900">PHC Nexus</span>
+      <span class="text-slate-600 mx-2">/</span>
+      <span class="text-slate-700">PHC Platform</span>
+      <span class="text-slate-600 mx-2">/</span>
+      <span class="text-primary font-medium">Planning Poker</span>
+    </div>
+    <div class="flex items-center gap-3">
+      <div class="w-8 h-8 rounded-full bg-primary text-white flex items-center justify-center text-sm font-semibold">JM</div>
+    </div>
+  </header>
+
+  <!-- Tabs -->
+  <nav class="bg-white border-b border-slate-200 px-6">
+    <div class="flex gap-0">
+      <button class="tab-btn active px-4 py-3 text-sm border-b-2 border-transparent text-slate-600 hover:text-primary" data-tab="setup">
+        1. Nastaveni session
+      </button>
+      <button class="tab-btn px-4 py-3 text-sm border-b-2 border-transparent text-slate-600 hover:text-primary" data-tab="active">
+        2. Aktivni session
+      </button>
+      <button class="tab-btn px-4 py-3 text-sm border-b-2 border-transparent text-slate-600 hover:text-primary" data-tab="results">
+        3. Vysledky
+      </button>
+      <button class="tab-btn px-4 py-3 text-sm border-b-2 border-transparent text-slate-600 hover:text-primary" data-tab="architecture">
+        4. Architektura
+      </button>
+    </div>
+  </nav>
+
+  <!-- ===================== PAGE 1: SESSION SETUP ===================== -->
+  <div id="tab-setup" class="tab-panel active max-w-3xl mx-auto py-8 px-4">
+    <div class="bg-white rounded-xl shadow-sm border border-slate-200 p-8">
+      <div class="flex items-center gap-3 mb-6">
+        <div class="w-10 h-10 rounded-lg bg-primary-light flex items-center justify-center">
+          <svg class="w-5 h-5 text-primary" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+            <path stroke-linecap="round" stroke-linejoin="round" d="M3 10h4l3-7 4 14 3-7h4"/>
+          </svg>
+        </div>
+        <div>
+          <h1 class="text-xl font-bold text-navy-900">Nova estimation session</h1>
+          <p class="text-sm text-slate-600">Vytvorte planning poker session pro odhad story pointu</p>
+        </div>
+      </div>
+
+      <!-- Session Name -->
+      <div class="mb-5">
+        <label class="block text-sm font-medium text-slate-700 mb-1.5">Nazev session</label>
+        <input type="text" value="Sprint 14 planning" class="w-full px-3 py-2 border border-slate-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary">
+      </div>
+
+      <!-- Estimation Scale -->
+      <div class="mb-5">
+        <label class="block text-sm font-medium text-slate-700 mb-1.5">Estimation skala</label>
+        <div class="flex gap-3">
+          <label class="flex-1 cursor-pointer">
+            <input type="radio" name="scale" value="fibonacci" checked class="sr-only peer">
+            <div class="peer-checked:border-primary peer-checked:bg-primary-soft border-2 border-slate-200 rounded-lg p-3 transition-all">
+              <div class="font-semibold text-sm mb-1">Fibonacci</div>
+              <div class="flex gap-1.5">
+                <span class="inline-flex items-center justify-center w-7 h-7 rounded bg-slate-100 text-xs font-bold text-slate-700">1</span>
+                <span class="inline-flex items-center justify-center w-7 h-7 rounded bg-slate-100 text-xs font-bold text-slate-700">2</span>
+                <span class="inline-flex items-center justify-center w-7 h-7 rounded bg-slate-100 text-xs font-bold text-slate-700">3</span>
+                <span class="inline-flex items-center justify-center w-7 h-7 rounded bg-slate-100 text-xs font-bold text-slate-700">5</span>
+                <span class="inline-flex items-center justify-center w-7 h-7 rounded bg-slate-100 text-xs font-bold text-slate-700">8</span>
+                <span class="inline-flex items-center justify-center w-7 h-7 rounded bg-slate-100 text-xs font-bold text-slate-700">13</span>
+                <span class="inline-flex items-center justify-center w-7 h-7 rounded bg-slate-100 text-xs font-bold text-slate-700">21</span>
+              </div>
+            </div>
+          </label>
+          <label class="flex-1 cursor-pointer">
+            <input type="radio" name="scale" value="tshirt" class="sr-only peer">
+            <div class="peer-checked:border-primary peer-checked:bg-primary-soft border-2 border-slate-200 rounded-lg p-3 transition-all">
+              <div class="font-semibold text-sm mb-1">T-shirt</div>
+              <div class="flex gap-1.5">
+                <span class="inline-flex items-center justify-center w-7 h-7 rounded bg-slate-100 text-xs font-bold text-slate-700">XS</span>
+                <span class="inline-flex items-center justify-center w-7 h-7 rounded bg-slate-100 text-xs font-bold text-slate-700">S</span>
+                <span class="inline-flex items-center justify-center w-7 h-7 rounded bg-slate-100 text-xs font-bold text-slate-700">M</span>
+                <span class="inline-flex items-center justify-center w-7 h-7 rounded bg-slate-100 text-xs font-bold text-slate-700">L</span>
+                <span class="inline-flex items-center justify-center w-7 h-7 rounded bg-slate-100 text-xs font-bold text-slate-700">XL</span>
+              </div>
+            </div>
+          </label>
+        </div>
+      </div>
+
+      <!-- Tasks to estimate -->
+      <div class="mb-5">
+        <label class="block text-sm font-medium text-slate-700 mb-1.5">Ukoly k odhadu</label>
+        <div class="border border-slate-200 rounded-lg divide-y divide-slate-100">
+          <!-- Filter -->
+          <div class="p-3 flex gap-2 items-center bg-slate-50 rounded-t-lg">
+            <select class="text-xs border border-slate-300 rounded px-2 py-1.5 bg-white">
+              <option>Vsechny epiky</option>
+              <option selected>Auth & Onboarding</option>
+              <option>Projektove rizeni</option>
+            </select>
+            <select class="text-xs border border-slate-300 rounded px-2 py-1.5 bg-white">
+              <option selected>Backlog</option>
+              <option>To Do</option>
+              <option>Vsechny stavy</option>
+            </select>
+            <span class="text-xs text-slate-500 ml-auto">7 ukolu nalezeno</span>
+          </div>
+          <!-- Task list -->
+          <label class="flex items-center gap-3 px-4 py-2.5 hover:bg-slate-50 cursor-pointer">
+            <input type="checkbox" checked class="task-check rounded">
+            <span class="inline-flex items-center px-1.5 py-0.5 rounded text-[10px] font-semibold bg-status-purple-bg text-status-purple-fg">AUTH</span>
+            <span class="text-sm flex-1">Implementovat Google SSO callback</span>
+            <span class="text-xs text-slate-500">PHC-42</span>
+          </label>
+          <label class="flex items-center gap-3 px-4 py-2.5 hover:bg-slate-50 cursor-pointer">
+            <input type="checkbox" checked class="task-check rounded">
+            <span class="inline-flex items-center px-1.5 py-0.5 rounded text-[10px] font-semibold bg-status-purple-bg text-status-purple-fg">AUTH</span>
+            <span class="text-sm flex-1">Invite flow - email verifikace</span>
+            <span class="text-xs text-slate-500">PHC-43</span>
+          </label>
+          <label class="flex items-center gap-3 px-4 py-2.5 hover:bg-slate-50 cursor-pointer">
+            <input type="checkbox" checked class="task-check rounded">
+            <span class="inline-flex items-center px-1.5 py-0.5 rounded text-[10px] font-semibold bg-status-purple-bg text-status-purple-fg">AUTH</span>
+            <span class="text-sm flex-1">Role-based access control middleware</span>
+            <span class="text-xs text-slate-500">PHC-44</span>
+          </label>
+          <label class="flex items-center gap-3 px-4 py-2.5 hover:bg-slate-50 cursor-pointer">
+            <input type="checkbox" checked class="task-check rounded">
+            <span class="inline-flex items-center px-1.5 py-0.5 rounded text-[10px] font-semibold bg-status-blue-bg text-status-blue-fg">PROJ</span>
+            <span class="text-sm flex-1">Kanban board - drag & drop</span>
+            <span class="text-xs text-slate-500">PHC-51</span>
+          </label>
+          <label class="flex items-center gap-3 px-4 py-2.5 hover:bg-slate-50 cursor-pointer">
+            <input type="checkbox" checked class="task-check rounded">
+            <span class="inline-flex items-center px-1.5 py-0.5 rounded text-[10px] font-semibold bg-status-blue-bg text-status-blue-fg">PROJ</span>
+            <span class="text-sm flex-1">Export ukolu do CSV</span>
+            <span class="text-xs text-slate-500">PHC-55</span>
+          </label>
+          <label class="flex items-center gap-3 px-4 py-2.5 hover:bg-slate-50 cursor-pointer">
+            <input type="checkbox" class="task-check rounded">
+            <span class="inline-flex items-center px-1.5 py-0.5 rounded text-[10px] font-semibold bg-status-green-bg text-status-green-fg">NOTIF</span>
+            <span class="text-sm flex-1">Email notifikace - queue worker</span>
+            <span class="text-xs text-slate-500">PHC-61</span>
+          </label>
+          <label class="flex items-center gap-3 px-4 py-2.5 hover:bg-slate-50 cursor-pointer">
+            <input type="checkbox" class="task-check rounded">
+            <span class="inline-flex items-center px-1.5 py-0.5 rounded text-[10px] font-semibold bg-status-green-bg text-status-green-fg">NOTIF</span>
+            <span class="text-sm flex-1">In-app notifikacni centrum</span>
+            <span class="text-xs text-slate-500">PHC-62</span>
+          </label>
+        </div>
+        <p class="text-xs text-slate-500 mt-1.5">5 ukolu vybrano</p>
+      </div>
+
+      <!-- Participants -->
+      <div class="mb-5">
+        <label class="block text-sm font-medium text-slate-700 mb-1.5">Ucastnici</label>
+        <div class="flex flex-wrap gap-2">
+          <span class="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full bg-primary-light text-primary text-sm font-medium">
+            <span class="w-5 h-5 rounded-full bg-primary text-white flex items-center justify-center text-[10px] font-bold">JM</span>
+            Jan Melicherik
+            <svg class="w-3.5 h-3.5 cursor-pointer opacity-60 hover:opacity-100" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M6 18L18 6M6 6l12 12"/></svg>
+          </span>
+          <span class="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full bg-primary-light text-primary text-sm font-medium">
+            <span class="w-5 h-5 rounded-full bg-emerald-600 text-white flex items-center justify-center text-[10px] font-bold">PK</span>
+            Petr Kratochvil
+            <svg class="w-3.5 h-3.5 cursor-pointer opacity-60 hover:opacity-100" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M6 18L18 6M6 6l12 12"/></svg>
+          </span>
+          <span class="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full bg-primary-light text-primary text-sm font-medium">
+            <span class="w-5 h-5 rounded-full bg-violet-600 text-white flex items-center justify-center text-[10px] font-bold">LN</span>
+            Lucie Novakova
+            <svg class="w-3.5 h-3.5 cursor-pointer opacity-60 hover:opacity-100" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M6 18L18 6M6 6l12 12"/></svg>
+          </span>
+          <span class="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full bg-primary-light text-primary text-sm font-medium">
+            <span class="w-5 h-5 rounded-full bg-orange-500 text-white flex items-center justify-center text-[10px] font-bold">MH</span>
+            Martin Horak
+            <svg class="w-3.5 h-3.5 cursor-pointer opacity-60 hover:opacity-100" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M6 18L18 6M6 6l12 12"/></svg>
+          </span>
+          <button class="inline-flex items-center gap-1 px-3 py-1.5 rounded-full border border-dashed border-slate-300 text-sm text-slate-600 hover:border-primary hover:text-primary transition-colors">
+            <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M12 4v16m8-8H4"/></svg>
+            Pridat
+          </button>
+        </div>
+      </div>
+
+      <!-- Timer -->
+      <div class="mb-8">
+        <label class="block text-sm font-medium text-slate-700 mb-1.5">Casovac na ukol</label>
+        <div class="flex gap-2">
+          <label class="cursor-pointer">
+            <input type="radio" name="timer" class="sr-only peer">
+            <span class="peer-checked:bg-primary peer-checked:text-white px-3 py-1.5 rounded-lg border border-slate-200 text-sm text-slate-600 inline-block transition-all hover:border-primary">Zadny</span>
+          </label>
+          <label class="cursor-pointer">
+            <input type="radio" name="timer" class="sr-only peer">
+            <span class="peer-checked:bg-primary peer-checked:text-white px-3 py-1.5 rounded-lg border border-slate-200 text-sm text-slate-600 inline-block transition-all hover:border-primary">30s</span>
+          </label>
+          <label class="cursor-pointer">
+            <input type="radio" name="timer" checked class="sr-only peer">
+            <span class="peer-checked:bg-primary peer-checked:text-white px-3 py-1.5 rounded-lg border border-slate-200 text-sm text-slate-600 inline-block transition-all hover:border-primary">1 min</span>
+          </label>
+          <label class="cursor-pointer">
+            <input type="radio" name="timer" class="sr-only peer">
+            <span class="peer-checked:bg-primary peer-checked:text-white px-3 py-1.5 rounded-lg border border-slate-200 text-sm text-slate-600 inline-block transition-all hover:border-primary">2 min</span>
+          </label>
+          <label class="cursor-pointer">
+            <input type="radio" name="timer" class="sr-only peer">
+            <span class="peer-checked:bg-primary peer-checked:text-white px-3 py-1.5 rounded-lg border border-slate-200 text-sm text-slate-600 inline-block transition-all hover:border-primary">5 min</span>
+          </label>
+        </div>
+      </div>
+
+      <!-- Submit -->
+      <div class="flex items-center justify-between pt-4 border-t border-slate-100">
+        <button class="text-sm text-slate-600 hover:text-slate-800 transition-colors">Zrusit</button>
+        <button class="px-6 py-2.5 bg-primary hover:bg-primary-hover text-white font-semibold text-sm rounded-lg shadow-sm transition-colors">
+          Zahajit session
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <!-- ===================== PAGE 2: ACTIVE SESSION ===================== -->
+  <div id="tab-active" class="tab-panel">
+    <!-- Session Header -->
+    <div class="bg-white border-b border-slate-200 px-6 py-3 flex items-center justify-between">
+      <div class="flex items-center gap-4">
+        <h2 class="font-semibold text-navy-900">Sprint 14 planning</h2>
+        <span class="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full bg-status-green-bg text-status-green-fg text-xs font-semibold">
+          <span class="w-1.5 h-1.5 rounded-full bg-status-green-fg animate-pulse"></span>
+          Aktivni
+        </span>
+      </div>
+      <div class="flex items-center gap-4">
+        <div class="flex items-center gap-2 text-sm text-slate-600">
+          <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2"/></svg>
+          <span class="font-medium">3 / 5 ukolu</span>
+        </div>
+        <!-- Timer -->
+        <div class="flex items-center gap-2">
+          <svg class="w-9 h-9" viewBox="0 0 36 36">
+            <circle cx="18" cy="18" r="15" fill="none" stroke="#e2e8f0" stroke-width="3"/>
+            <circle cx="18" cy="18" r="15" fill="none" stroke="#2563eb" stroke-width="3" stroke-linecap="round" class="timer-ring" style="stroke-dashoffset: 85; transform: rotate(-90deg); transform-origin: center;"/>
+          </svg>
+          <span class="text-sm font-mono font-semibold text-slate-700">0:42</span>
+        </div>
+      </div>
+    </div>
+
+    <div class="flex" style="height: calc(100vh - 180px);">
+      <!-- Main content -->
+      <div class="flex-1 flex flex-col items-center justify-between py-6 px-8">
+        <!-- Current task card -->
+        <div class="w-full max-w-2xl">
+          <div class="bg-white rounded-xl border border-slate-200 shadow-sm p-6" id="task-card">
+            <div class="flex items-start justify-between mb-3">
+              <div class="flex items-center gap-2">
+                <span class="inline-flex items-center px-1.5 py-0.5 rounded text-[10px] font-semibold bg-status-blue-bg text-status-blue-fg">PROJ</span>
+                <span class="text-xs text-slate-500 font-mono">PHC-51</span>
+              </div>
+              <span class="inline-flex items-center px-2 py-0.5 rounded text-[10px] font-semibold bg-status-red-bg text-status-red-fg">Vysoka priorita</span>
+            </div>
+            <h3 class="text-lg font-bold text-navy-900 mb-2">Kanban board - drag & drop</h3>
+            <p class="text-sm text-slate-600 mb-4">Implementovat drag & drop funkcionalitu pro kanban board. Karty musi jit presunout mezi sloupci (stavy) a v ramci sloupce (zmena poradi). Optimisticke UI aktualizace.</p>
+            <div class="flex items-center gap-4 text-xs text-slate-500">
+              <span class="flex items-center gap-1">
+                <svg class="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M7 7h.01M7 3h5c.512 0 1.024.195 1.414.586l7 7a2 2 0 010 2.828l-7 7a2 2 0 01-2.828 0l-7-7A1.994 1.994 0 013 12V7a4 4 0 014-4z"/></svg>
+                Epic: Projektove rizeni
+              </span>
+              <span class="flex items-center gap-1">
+                <svg class="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
+                3 acceptance criteria
+              </span>
+            </div>
+            <!-- Acceptance Criteria -->
+            <div class="mt-4 pt-4 border-t border-slate-100">
+              <p class="text-xs font-semibold text-slate-500 uppercase tracking-wide mb-2">Acceptance Criteria</p>
+              <ul class="text-sm text-slate-600 space-y-1.5">
+                <li class="flex items-start gap-2">
+                  <span class="text-slate-400 mt-0.5">-</span>
+                  Karty lze pretahovat mezi sloupci (zmena stavu)
+                </li>
+                <li class="flex items-start gap-2">
+                  <span class="text-slate-400 mt-0.5">-</span>
+                  Zmena poradi v ramci sloupce funguje
+                </li>
+                <li class="flex items-start gap-2">
+                  <span class="text-slate-400 mt-0.5">-</span>
+                  UI aktualizace je optimisticka (okamzita odezva)
+                </li>
+              </ul>
+            </div>
+          </div>
+        </div>
+
+        <!-- Voting cards -->
+        <div class="w-full max-w-2xl">
+          <p class="text-center text-sm text-slate-500 mb-4" id="vote-prompt">Vyberte svuj odhad:</p>
+          <div class="flex items-end justify-center gap-3" id="voting-cards">
+            <div class="poker-card" data-value="1" onclick="selectCard(this)">1</div>
+            <div class="poker-card" data-value="2" onclick="selectCard(this)">2</div>
+            <div class="poker-card" data-value="3" onclick="selectCard(this)">3</div>
+            <div class="poker-card" data-value="5" onclick="selectCard(this)">5</div>
+            <div class="poker-card" data-value="8" onclick="selectCard(this)">8</div>
+            <div class="poker-card" data-value="13" onclick="selectCard(this)">13</div>
+            <div class="poker-card" data-value="21" onclick="selectCard(this)">21</div>
+            <div class="poker-card text-lg" data-value="?" onclick="selectCard(this)">?</div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Right sidebar -->
+      <div class="w-80 bg-white border-l border-slate-200 p-5 overflow-y-auto">
+        <h3 class="text-sm font-semibold text-slate-700 mb-4">Ucastnici (4)</h3>
+
+        <!-- Participants -->
+        <div class="space-y-3 mb-6" id="participants-list">
+          <div class="flex items-center justify-between">
+            <div class="flex items-center gap-2.5">
+              <span class="w-8 h-8 rounded-full bg-primary text-white flex items-center justify-center text-xs font-bold">JM</span>
+              <div>
+                <p class="text-sm font-medium text-slate-800">Jan Melicherik</p>
+                <p class="text-[10px] text-slate-500">Scrum Master</p>
+              </div>
+            </div>
+            <div class="card-back" id="vote-jm">?</div>
+          </div>
+          <div class="flex items-center justify-between">
+            <div class="flex items-center gap-2.5">
+              <span class="w-8 h-8 rounded-full bg-emerald-600 text-white flex items-center justify-center text-xs font-bold">PK</span>
+              <div>
+                <p class="text-sm font-medium text-slate-800">Petr Kratochvil</p>
+                <p class="text-[10px] text-slate-500">Backend Dev</p>
+              </div>
+            </div>
+            <div class="card-back" id="vote-pk">?</div>
+          </div>
+          <div class="flex items-center justify-between">
+            <div class="flex items-center gap-2.5">
+              <span class="w-8 h-8 rounded-full bg-violet-600 text-white flex items-center justify-center text-xs font-bold">LN</span>
+              <div>
+                <p class="text-sm font-medium text-slate-800">Lucie Novakova</p>
+                <p class="text-[10px] text-slate-500">Frontend Dev</p>
+              </div>
+            </div>
+            <div class="card-back waiting" id="vote-ln">?</div>
+          </div>
+          <div class="flex items-center justify-between">
+            <div class="flex items-center gap-2.5">
+              <span class="w-8 h-8 rounded-full bg-orange-500 text-white flex items-center justify-center text-xs font-bold">MH</span>
+              <div>
+                <p class="text-sm font-medium text-slate-800">Martin Horak</p>
+                <p class="text-[10px] text-slate-500">QA Engineer</p>
+              </div>
+            </div>
+            <div class="card-back waiting" id="vote-mh">?</div>
+          </div>
+        </div>
+
+        <!-- Reveal button -->
+        <button class="w-full py-2.5 bg-primary hover:bg-primary-hover text-white font-semibold text-sm rounded-lg shadow-sm transition-colors mb-3" id="reveal-btn" onclick="revealVotes()">
+          Odhalit karty
+        </button>
+
+        <!-- After reveal section (hidden initially) -->
+        <div id="reveal-results" class="hidden">
+          <div class="rounded-lg border-2 p-4 mb-4" id="consensus-box">
+            <div class="flex items-center justify-between mb-3">
+              <span class="text-sm font-semibold text-slate-700">Vysledek</span>
+              <span class="text-2xl font-black" id="average-value">--</span>
+            </div>
+            <div class="flex items-center gap-2 mb-2" id="consensus-indicator">
+              <!-- filled by JS -->
+            </div>
+            <div class="text-xs text-slate-500" id="vote-spread">
+              <!-- filled by JS -->
+            </div>
+          </div>
+
+          <!-- No consensus actions -->
+          <div id="no-consensus-actions" class="hidden space-y-2 mb-4">
+            <button class="w-full py-2 bg-amber-50 hover:bg-amber-100 text-amber-700 font-medium text-sm rounded-lg border border-amber-200 transition-colors" onclick="startDiscussion()">
+              Diskuze (2 min)
+            </button>
+            <button class="w-full py-2 bg-white hover:bg-slate-50 text-slate-700 font-medium text-sm rounded-lg border border-slate-200 transition-colors" onclick="revote()">
+              Prehlasovat
+            </button>
+          </div>
+
+          <!-- Final value -->
+          <div class="mb-4" id="final-value-section">
+            <label class="block text-xs font-semibold text-slate-500 uppercase tracking-wide mb-1.5">Finalni odhad</label>
+            <select class="w-full px-3 py-2 border border-slate-300 rounded-lg text-sm font-bold" id="final-select">
+              <option value="1">1 SP</option>
+              <option value="2">2 SP</option>
+              <option value="3">3 SP</option>
+              <option value="5" selected>5 SP</option>
+              <option value="8">8 SP</option>
+              <option value="13">13 SP</option>
+              <option value="21">21 SP</option>
+            </select>
+          </div>
+
+          <button class="w-full py-2.5 bg-emerald-600 hover:bg-emerald-700 text-white font-semibold text-sm rounded-lg shadow-sm transition-colors mb-2" onclick="confirmEstimate()">
+            Potvrdit odhad
+          </button>
+          <button class="w-full py-2 bg-white hover:bg-slate-50 text-slate-700 font-medium text-sm rounded-lg border border-slate-200 transition-colors">
+            Dalsi ukol &rarr;
+          </button>
+        </div>
+
+        <!-- Progress -->
+        <div class="mt-6 pt-4 border-t border-slate-100">
+          <p class="text-xs font-semibold text-slate-500 uppercase tracking-wide mb-3">Prubeh session</p>
+          <div class="space-y-2">
+            <div class="flex items-center gap-2 text-sm">
+              <svg class="w-4 h-4 text-emerald-500" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5"><path stroke-linecap="round" stroke-linejoin="round" d="M5 13l4 4L19 7"/></svg>
+              <span class="text-slate-600 line-through">Google SSO callback</span>
+              <span class="ml-auto text-xs font-bold text-slate-500">5 SP</span>
+            </div>
+            <div class="flex items-center gap-2 text-sm">
+              <svg class="w-4 h-4 text-emerald-500" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5"><path stroke-linecap="round" stroke-linejoin="round" d="M5 13l4 4L19 7"/></svg>
+              <span class="text-slate-600 line-through">Invite flow - email</span>
+              <span class="ml-auto text-xs font-bold text-slate-500">3 SP</span>
+            </div>
+            <div class="flex items-center gap-2 text-sm">
+              <svg class="w-4 h-4 text-emerald-500" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5"><path stroke-linecap="round" stroke-linejoin="round" d="M5 13l4 4L19 7"/></svg>
+              <span class="text-slate-600 line-through">RBAC middleware</span>
+              <span class="ml-auto text-xs font-bold text-slate-500">8 SP</span>
+            </div>
+            <div class="flex items-center gap-2 text-sm">
+              <div class="w-4 h-4 rounded-full border-2 border-primary bg-primary-light flex items-center justify-center">
+                <div class="w-1.5 h-1.5 rounded-full bg-primary"></div>
+              </div>
+              <span class="text-slate-800 font-medium">Kanban drag & drop</span>
+              <span class="ml-auto text-xs font-bold text-primary">hlasovani</span>
+            </div>
+            <div class="flex items-center gap-2 text-sm">
+              <div class="w-4 h-4 rounded-full border-2 border-slate-300"></div>
+              <span class="text-slate-400">CSV export</span>
+              <span class="ml-auto text-xs text-slate-400">ceka</span>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ===================== PAGE 3: RESULTS ===================== -->
+  <div id="tab-results" class="tab-panel max-w-4xl mx-auto py-8 px-4">
+    <div class="flex items-center justify-between mb-6">
+      <div>
+        <h1 class="text-xl font-bold text-navy-900">Vysledky: Sprint 14 planning</h1>
+        <p class="text-sm text-slate-600 mt-0.5">5 ukolu odhadnuto &middot; 7. dubna 2026 &middot; 4 ucastnici</p>
+      </div>
+      <div class="flex items-center gap-2">
+        <button class="px-4 py-2 bg-white border border-slate-200 rounded-lg text-sm font-medium text-slate-700 hover:bg-slate-50 transition-colors">
+          <span class="flex items-center gap-1.5">
+            <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M12 10v6m0 0l-3-3m3 3l3-3m2 8H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"/></svg>
+            Export
+          </span>
+        </button>
+        <button class="px-5 py-2 bg-primary hover:bg-primary-hover text-white font-semibold text-sm rounded-lg shadow-sm transition-colors">
+          Ulozit odhady do ukolu
+        </button>
+      </div>
+    </div>
+
+    <!-- Results Table -->
+    <div class="bg-white rounded-xl border border-slate-200 shadow-sm overflow-hidden mb-6">
+      <table class="w-full">
+        <thead>
+          <tr class="bg-slate-50 border-b border-slate-200">
+            <th class="text-left text-xs font-semibold text-slate-500 uppercase tracking-wide px-5 py-3">Ukol</th>
+            <th class="text-center text-xs font-semibold text-slate-500 uppercase tracking-wide px-3 py-3">Konsenzus</th>
+            <th class="text-center text-xs font-semibold text-slate-500 uppercase tracking-wide px-3 py-3">Finalni SP</th>
+            <th class="text-center text-xs font-semibold text-slate-500 uppercase tracking-wide px-3 py-3">Pocet kol</th>
+            <th class="text-center text-xs font-semibold text-slate-500 uppercase tracking-wide px-3 py-3">Rozptyl</th>
+            <th class="text-center text-xs font-semibold text-slate-500 uppercase tracking-wide px-3 py-3">Hlasy</th>
+          </tr>
+        </thead>
+        <tbody class="divide-y divide-slate-100">
+          <tr class="hover:bg-slate-50">
+            <td class="px-5 py-3.5">
+              <div class="flex items-center gap-2">
+                <span class="inline-flex items-center px-1.5 py-0.5 rounded text-[10px] font-semibold bg-status-purple-bg text-status-purple-fg">AUTH</span>
+                <span class="text-sm font-medium text-slate-800">Google SSO callback</span>
+                <span class="text-xs text-slate-400 font-mono">PHC-42</span>
+              </div>
+            </td>
+            <td class="text-center px-3 py-3.5">
+              <span class="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-xs font-semibold bg-status-green-bg text-status-green-fg">
+                <svg class="w-3 h-3" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="3"><path stroke-linecap="round" stroke-linejoin="round" d="M5 13l4 4L19 7"/></svg>
+                Ano
+              </span>
+            </td>
+            <td class="text-center px-3 py-3.5">
+              <span class="text-lg font-black text-primary">5</span>
+            </td>
+            <td class="text-center px-3 py-3.5 text-sm text-slate-600">1</td>
+            <td class="text-center px-3 py-3.5 text-sm text-slate-600">0</td>
+            <td class="text-center px-3 py-3.5">
+              <div class="flex items-center justify-center gap-1">
+                <span class="w-6 h-6 rounded bg-primary-light text-primary text-[10px] font-bold flex items-center justify-center">5</span>
+                <span class="w-6 h-6 rounded bg-primary-light text-primary text-[10px] font-bold flex items-center justify-center">5</span>
+                <span class="w-6 h-6 rounded bg-primary-light text-primary text-[10px] font-bold flex items-center justify-center">5</span>
+                <span class="w-6 h-6 rounded bg-primary-light text-primary text-[10px] font-bold flex items-center justify-center">5</span>
+              </div>
+            </td>
+          </tr>
+          <tr class="hover:bg-slate-50">
+            <td class="px-5 py-3.5">
+              <div class="flex items-center gap-2">
+                <span class="inline-flex items-center px-1.5 py-0.5 rounded text-[10px] font-semibold bg-status-purple-bg text-status-purple-fg">AUTH</span>
+                <span class="text-sm font-medium text-slate-800">Invite flow - email verifikace</span>
+                <span class="text-xs text-slate-400 font-mono">PHC-43</span>
+              </div>
+            </td>
+            <td class="text-center px-3 py-3.5">
+              <span class="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-xs font-semibold bg-status-green-bg text-status-green-fg">
+                <svg class="w-3 h-3" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="3"><path stroke-linecap="round" stroke-linejoin="round" d="M5 13l4 4L19 7"/></svg>
+                Ano
+              </span>
+            </td>
+            <td class="text-center px-3 py-3.5">
+              <span class="text-lg font-black text-primary">3</span>
+            </td>
+            <td class="text-center px-3 py-3.5 text-sm text-slate-600">1</td>
+            <td class="text-center px-3 py-3.5 text-sm text-slate-600">0</td>
+            <td class="text-center px-3 py-3.5">
+              <div class="flex items-center justify-center gap-1">
+                <span class="w-6 h-6 rounded bg-primary-light text-primary text-[10px] font-bold flex items-center justify-center">3</span>
+                <span class="w-6 h-6 rounded bg-primary-light text-primary text-[10px] font-bold flex items-center justify-center">3</span>
+                <span class="w-6 h-6 rounded bg-primary-light text-primary text-[10px] font-bold flex items-center justify-center">3</span>
+                <span class="w-6 h-6 rounded bg-primary-light text-primary text-[10px] font-bold flex items-center justify-center">3</span>
+              </div>
+            </td>
+          </tr>
+          <tr class="hover:bg-slate-50">
+            <td class="px-5 py-3.5">
+              <div class="flex items-center gap-2">
+                <span class="inline-flex items-center px-1.5 py-0.5 rounded text-[10px] font-semibold bg-status-purple-bg text-status-purple-fg">AUTH</span>
+                <span class="text-sm font-medium text-slate-800">RBAC middleware</span>
+                <span class="text-xs text-slate-400 font-mono">PHC-44</span>
+              </div>
+            </td>
+            <td class="text-center px-3 py-3.5">
+              <span class="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-xs font-semibold bg-status-yellow-bg text-status-yellow-fg">
+                <svg class="w-3 h-3" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5"><path stroke-linecap="round" stroke-linejoin="round" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"/></svg>
+                Kolo 2
+              </span>
+            </td>
+            <td class="text-center px-3 py-3.5">
+              <span class="text-lg font-black text-primary">8</span>
+            </td>
+            <td class="text-center px-3 py-3.5 text-sm text-slate-600">2</td>
+            <td class="text-center px-3 py-3.5 text-sm text-amber-600 font-medium">5-13</td>
+            <td class="text-center px-3 py-3.5">
+              <div class="flex items-center justify-center gap-1">
+                <span class="w-6 h-6 rounded bg-primary-light text-primary text-[10px] font-bold flex items-center justify-center">8</span>
+                <span class="w-6 h-6 rounded bg-primary-light text-primary text-[10px] font-bold flex items-center justify-center">5</span>
+                <span class="w-6 h-6 rounded bg-amber-100 text-amber-700 text-[10px] font-bold flex items-center justify-center">13</span>
+                <span class="w-6 h-6 rounded bg-primary-light text-primary text-[10px] font-bold flex items-center justify-center">8</span>
+              </div>
+            </td>
+          </tr>
+          <tr class="hover:bg-slate-50">
+            <td class="px-5 py-3.5">
+              <div class="flex items-center gap-2">
+                <span class="inline-flex items-center px-1.5 py-0.5 rounded text-[10px] font-semibold bg-status-blue-bg text-status-blue-fg">PROJ</span>
+                <span class="text-sm font-medium text-slate-800">Kanban drag & drop</span>
+                <span class="text-xs text-slate-400 font-mono">PHC-51</span>
+              </div>
+            </td>
+            <td class="text-center px-3 py-3.5">
+              <span class="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-xs font-semibold bg-status-green-bg text-status-green-fg">
+                <svg class="w-3 h-3" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="3"><path stroke-linecap="round" stroke-linejoin="round" d="M5 13l4 4L19 7"/></svg>
+                Ano
+              </span>
+            </td>
+            <td class="text-center px-3 py-3.5">
+              <span class="text-lg font-black text-primary">5</span>
+            </td>
+            <td class="text-center px-3 py-3.5 text-sm text-slate-600">1</td>
+            <td class="text-center px-3 py-3.5 text-sm text-slate-600">0-2</td>
+            <td class="text-center px-3 py-3.5">
+              <div class="flex items-center justify-center gap-1">
+                <span class="w-6 h-6 rounded bg-primary-light text-primary text-[10px] font-bold flex items-center justify-center">5</span>
+                <span class="w-6 h-6 rounded bg-primary-light text-primary text-[10px] font-bold flex items-center justify-center">5</span>
+                <span class="w-6 h-6 rounded bg-primary-light text-primary text-[10px] font-bold flex items-center justify-center">5</span>
+                <span class="w-6 h-6 rounded bg-primary-light text-primary text-[10px] font-bold flex items-center justify-center">3</span>
+              </div>
+            </td>
+          </tr>
+          <tr class="hover:bg-slate-50">
+            <td class="px-5 py-3.5">
+              <div class="flex items-center gap-2">
+                <span class="inline-flex items-center px-1.5 py-0.5 rounded text-[10px] font-semibold bg-status-blue-bg text-status-blue-fg">PROJ</span>
+                <span class="text-sm font-medium text-slate-800">Export ukolu do CSV</span>
+                <span class="text-xs text-slate-400 font-mono">PHC-55</span>
+              </div>
+            </td>
+            <td class="text-center px-3 py-3.5">
+              <span class="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-xs font-semibold bg-status-green-bg text-status-green-fg">
+                <svg class="w-3 h-3" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="3"><path stroke-linecap="round" stroke-linejoin="round" d="M5 13l4 4L19 7"/></svg>
+                Ano
+              </span>
+            </td>
+            <td class="text-center px-3 py-3.5">
+              <span class="text-lg font-black text-primary">2</span>
+            </td>
+            <td class="text-center px-3 py-3.5 text-sm text-slate-600">1</td>
+            <td class="text-center px-3 py-3.5 text-sm text-slate-600">0</td>
+            <td class="text-center px-3 py-3.5">
+              <div class="flex items-center justify-center gap-1">
+                <span class="w-6 h-6 rounded bg-primary-light text-primary text-[10px] font-bold flex items-center justify-center">2</span>
+                <span class="w-6 h-6 rounded bg-primary-light text-primary text-[10px] font-bold flex items-center justify-center">2</span>
+                <span class="w-6 h-6 rounded bg-primary-light text-primary text-[10px] font-bold flex items-center justify-center">2</span>
+                <span class="w-6 h-6 rounded bg-primary-light text-primary text-[10px] font-bold flex items-center justify-center">2</span>
+              </div>
+            </td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+
+    <!-- Summary cards -->
+    <div class="grid grid-cols-3 gap-4 mb-6">
+      <div class="bg-white rounded-xl border border-slate-200 shadow-sm p-5">
+        <p class="text-xs font-semibold text-slate-500 uppercase tracking-wide mb-1">Celkem story pointu</p>
+        <p class="text-3xl font-black text-navy-900">23 <span class="text-base font-semibold text-slate-500">SP</span></p>
+      </div>
+      <div class="bg-white rounded-xl border border-slate-200 shadow-sm p-5">
+        <p class="text-xs font-semibold text-slate-500 uppercase tracking-wide mb-1">Prumerna shoda</p>
+        <p class="text-3xl font-black text-emerald-600">80%</p>
+        <p class="text-xs text-slate-500 mt-0.5">4/5 v prvnim kole</p>
+      </div>
+      <div class="bg-white rounded-xl border border-slate-200 shadow-sm p-5">
+        <p class="text-xs font-semibold text-slate-500 uppercase tracking-wide mb-1">Velocity predikce</p>
+        <p class="text-lg font-bold text-navy-900 mt-1">Pri kapacite <span class="text-primary">20 SP/sprint</span></p>
+        <p class="text-sm text-slate-600">= <span class="font-bold">1.15 sprintu</span> (~2 tydny)</p>
+      </div>
+    </div>
+
+    <!-- Export dropdown mock -->
+    <div class="bg-white rounded-xl border border-slate-200 shadow-sm p-5">
+      <div class="flex items-center justify-between">
+        <div>
+          <p class="font-semibold text-navy-900">Export & ulozeni</p>
+          <p class="text-sm text-slate-600">Exportujte vysledky nebo ulozte odhady primo do ukolu</p>
+        </div>
+        <div class="flex gap-2">
+          <button class="px-4 py-2 bg-white border border-slate-200 rounded-lg text-sm font-medium text-slate-700 hover:bg-slate-50 transition-colors">CSV</button>
+          <button class="px-4 py-2 bg-white border border-slate-200 rounded-lg text-sm font-medium text-slate-700 hover:bg-slate-50 transition-colors">PDF</button>
+          <button class="px-5 py-2 bg-emerald-600 hover:bg-emerald-700 text-white font-semibold text-sm rounded-lg shadow-sm transition-colors">
+            Ulozit odhady do ukolu
+          </button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ===================== PAGE 4: ARCHITECTURE ===================== -->
+  <div id="tab-architecture" class="tab-panel max-w-4xl mx-auto py-8 px-4">
+    <div class="bg-white rounded-xl border border-slate-200 shadow-sm p-6 mb-6">
+      <h1 class="text-xl font-bold text-navy-900 mb-1">Architektura: Planning Poker</h1>
+      <p class="text-sm text-slate-600 mb-6">Datovy model, real-time komunikace a integracni body</p>
+
+      <!-- DB Schema -->
+      <div class="mb-8">
+        <button class="w-full flex items-center justify-between py-2 text-left" onclick="toggleCollapsible('schema')">
+          <h2 class="text-base font-semibold text-navy-900 flex items-center gap-2">
+            <svg class="w-5 h-5 text-primary" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M4 7v10c0 2.21 3.582 4 8 4s8-1.79 8-4V7M4 7c0 2.21 3.582 4 8 4s8-1.79 8-4M4 7c0-2.21 3.582-4 8-4s8 1.79 8 4m0 5c0 2.21-3.582 4-8 4s-8-1.79-8-4"/></svg>
+            Databazove tabulky
+          </h2>
+          <svg class="w-5 h-5 text-slate-400 transition-transform" id="schema-arrow" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M19 9l-7 7-7-7"/></svg>
+        </button>
+        <div class="collapsible-content open" id="schema-content">
+          <div class="mt-4 space-y-6">
+            <!-- estimation_sessions -->
+            <div>
+              <h3 class="text-sm font-bold text-slate-700 mb-2 font-mono">estimation_sessions</h3>
+              <table class="db-table w-full">
+                <thead>
+                  <tr>
+                    <th>Sloupec</th>
+                    <th>Typ</th>
+                    <th>Popis</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  <tr><td class="font-mono text-primary font-bold">id</td><td>uuid (v7)</td><td>Primarni klic</td></tr>
+                  <tr><td class="font-mono">project_id</td><td>uuid FK</td><td>Vazba na projekt</td></tr>
+                  <tr><td class="font-mono">name</td><td>varchar(255)</td><td>Nazev session</td></tr>
+                  <tr><td class="font-mono">scale_type</td><td>enum</td><td>'fibonacci' | 'tshirt'</td></tr>
+                  <tr><td class="font-mono">timer_seconds</td><td>integer?</td><td>Casovac na ukol (null = bez)</td></tr>
+                  <tr><td class="font-mono">status</td><td>enum</td><td>'draft' | 'active' | 'completed'</td></tr>
+                  <tr><td class="font-mono">created_by</td><td>uuid FK</td><td>Uzivatel (SM/PM)</td></tr>
+                  <tr><td class="font-mono">created_at</td><td>timestamp</td><td></td></tr>
+                  <tr><td class="font-mono">completed_at</td><td>timestamp?</td><td></td></tr>
+                </tbody>
+              </table>
+            </div>
+
+            <!-- estimation_rounds -->
+            <div>
+              <h3 class="text-sm font-bold text-slate-700 mb-2 font-mono">estimation_rounds</h3>
+              <table class="db-table w-full">
+                <thead>
+                  <tr>
+                    <th>Sloupec</th>
+                    <th>Typ</th>
+                    <th>Popis</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  <tr><td class="font-mono text-primary font-bold">id</td><td>uuid (v7)</td><td>Primarni klic</td></tr>
+                  <tr><td class="font-mono">session_id</td><td>uuid FK</td><td>Vazba na session</td></tr>
+                  <tr><td class="font-mono">task_id</td><td>uuid FK</td><td>Odhadovany ukol</td></tr>
+                  <tr><td class="font-mono">round_number</td><td>integer</td><td>Cislo kola (1, 2, ...)</td></tr>
+                  <tr><td class="font-mono">final_value</td><td>varchar(10)?</td><td>Finalni odhad po potvrzeni</td></tr>
+                  <tr><td class="font-mono">status</td><td>enum</td><td>'voting' | 'revealed' | 'confirmed'</td></tr>
+                  <tr><td class="font-mono">created_at</td><td>timestamp</td><td></td></tr>
+                </tbody>
+              </table>
+            </div>
+
+            <!-- estimation_votes -->
+            <div>
+              <h3 class="text-sm font-bold text-slate-700 mb-2 font-mono">estimation_votes</h3>
+              <table class="db-table w-full">
+                <thead>
+                  <tr>
+                    <th>Sloupec</th>
+                    <th>Typ</th>
+                    <th>Popis</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  <tr><td class="font-mono text-primary font-bold">id</td><td>uuid (v7)</td><td>Primarni klic</td></tr>
+                  <tr><td class="font-mono">round_id</td><td>uuid FK</td><td>Vazba na kolo</td></tr>
+                  <tr><td class="font-mono">user_id</td><td>uuid FK</td><td>Hlasujici uzivatel</td></tr>
+                  <tr><td class="font-mono">value</td><td>varchar(10)</td><td>'1', '5', 'XL', '?'</td></tr>
+                  <tr><td class="font-mono">voted_at</td><td>timestamp</td><td>Cas hlasovani</td></tr>
+                </tbody>
+              </table>
+              <p class="text-xs text-slate-500 mt-1">UNIQUE(round_id, user_id) - jeden hlas na kolo</p>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- ER Diagram text -->
+      <div class="mb-8">
+        <button class="w-full flex items-center justify-between py-2 text-left" onclick="toggleCollapsible('relations')">
+          <h2 class="text-base font-semibold text-navy-900 flex items-center gap-2">
+            <svg class="w-5 h-5 text-primary" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M13.828 10.172a4 4 0 00-5.656 0l-4 4a4 4 0 105.656 5.656l1.102-1.101m-.758-4.899a4 4 0 005.656 0l4-4a4 4 0 00-5.656-5.656l-1.1 1.1"/></svg>
+            Relace & integrace
+          </h2>
+          <svg class="w-5 h-5 text-slate-400 transition-transform" id="relations-arrow" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M19 9l-7 7-7-7"/></svg>
+        </button>
+        <div class="collapsible-content open" id="relations-content">
+          <div class="mt-4 bg-slate-50 rounded-lg p-5 font-mono text-xs leading-relaxed text-slate-700">
+            <pre>projects 1 ---- * estimation_sessions
+estimation_sessions 1 ---- * estimation_rounds
+estimation_rounds 1 ---- * estimation_votes
+tasks 1 ---- * estimation_rounds
+users 1 ---- * estimation_votes
+users 1 ---- * estimation_sessions (created_by)
+
+-- Po potvrzeni kola:
+-- UPDATE tasks SET story_points = round.final_value
+-- WHERE id = round.task_id</pre>
+          </div>
+        </div>
+      </div>
+
+      <!-- Real-time -->
+      <div class="mb-8">
+        <button class="w-full flex items-center justify-between py-2 text-left" onclick="toggleCollapsible('realtime')">
+          <h2 class="text-base font-semibold text-navy-900 flex items-center gap-2">
+            <svg class="w-5 h-5 text-primary" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M13 10V3L4 14h7v7l9-11h-7z"/></svg>
+            Real-time (WebSocket)
+          </h2>
+          <svg class="w-5 h-5 text-slate-400 transition-transform" id="realtime-arrow" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M19 9l-7 7-7-7"/></svg>
+        </button>
+        <div class="collapsible-content open" id="realtime-content">
+          <div class="mt-4 space-y-4">
+            <div class="bg-slate-50 rounded-lg p-5 font-mono text-xs leading-relaxed text-slate-700">
+              <pre>// Laravel Echo + Reverb / Pusher
+// Presence channel pro sledovani online ucastniku
+
+Echo.join(`estimation.${sessionId}`)
+  .here(users => setParticipants(users))
+  .joining(user => addParticipant(user))
+  .leaving(user => removeParticipant(user))
+  .listen('VoteCast', e => updateVoteStatus(e))
+  .listen('VotesRevealed', e => showResults(e))
+  .listen('RoundConfirmed', e => nextTask(e))
+  .listen('SessionCompleted', e => showSummary(e))</pre>
+            </div>
+            <div class="grid grid-cols-2 gap-3">
+              <div class="rounded-lg border border-slate-200 p-3">
+                <p class="text-xs font-bold text-slate-600 mb-2">Broadcast Events</p>
+                <ul class="text-xs text-slate-600 space-y-1">
+                  <li class="flex items-center gap-1.5"><span class="w-1.5 h-1.5 rounded-full bg-emerald-500"></span> VoteCast (private, bez hodnoty)</li>
+                  <li class="flex items-center gap-1.5"><span class="w-1.5 h-1.5 rounded-full bg-primary"></span> VotesRevealed (vsechny hlasy)</li>
+                  <li class="flex items-center gap-1.5"><span class="w-1.5 h-1.5 rounded-full bg-amber-500"></span> RoundConfirmed (final value)</li>
+                  <li class="flex items-center gap-1.5"><span class="w-1.5 h-1.5 rounded-full bg-violet-500"></span> SessionCompleted</li>
+                </ul>
+              </div>
+              <div class="rounded-lg border border-slate-200 p-3">
+                <p class="text-xs font-bold text-slate-600 mb-2">Integrace s Work modulem</p>
+                <ul class="text-xs text-slate-600 space-y-1">
+                  <li class="flex items-center gap-1.5"><span class="w-1.5 h-1.5 rounded-full bg-slate-400"></span> Task.story_points aktualizovan</li>
+                  <li class="flex items-center gap-1.5"><span class="w-1.5 h-1.5 rounded-full bg-slate-400"></span> Audit trail zapis</li>
+                  <li class="flex items-center gap-1.5"><span class="w-1.5 h-1.5 rounded-full bg-slate-400"></span> Notifikace ucastnikum</li>
+                  <li class="flex items-center gap-1.5"><span class="w-1.5 h-1.5 rounded-full bg-slate-400"></span> Activity feed na projektu</li>
+                </ul>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Module structure -->
+      <div>
+        <button class="w-full flex items-center justify-between py-2 text-left" onclick="toggleCollapsible('module')">
+          <h2 class="text-base font-semibold text-navy-900 flex items-center gap-2">
+            <svg class="w-5 h-5 text-primary" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M3 7v10a2 2 0 002 2h14a2 2 0 002-2V9a2 2 0 00-2-2h-6l-2-2H5a2 2 0 00-2 2z"/></svg>
+            Modulova struktura
+          </h2>
+          <svg class="w-5 h-5 text-slate-400 transition-transform" id="module-arrow" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M19 9l-7 7-7-7"/></svg>
+        </button>
+        <div class="collapsible-content open" id="module-content">
+          <div class="mt-4 bg-slate-50 rounded-lg p-5 font-mono text-xs leading-relaxed text-slate-700">
+            <pre>app/Modules/Estimation/
+  Models/
+    EstimationSession.php
+    EstimationRound.php
+    EstimationVote.php
+  Actions/
+    CreateSession.php
+    CastVote.php
+    RevealVotes.php
+    ConfirmRound.php
+    CompleteSession.php
+  Controllers/
+    EstimationSessionController.php
+    EstimationVoteController.php
+  Events/
+    VoteCast.php
+    VotesRevealed.php
+    RoundConfirmed.php
+    SessionCompleted.php
+  Policies/
+    EstimationSessionPolicy.php
+  Enums/
+    ScaleType.php        // fibonacci, tshirt
+    SessionStatus.php    // draft, active, completed
+    RoundStatus.php      // voting, revealed, confirmed
+  Resources/
+    SessionResource.php
+  Routes/
+    estimation.php
+  Tests/
+    Feature/
+      EstimationSessionTest.php
+      CastVoteTest.php
+    Unit/
+      ConsensusCalculatorTest.php</pre>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- JavaScript -->
+  <script>
+    // Tab switching
+    document.querySelectorAll('.tab-btn').forEach(btn => {
+      btn.addEventListener('click', () => {
+        document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
+        document.querySelectorAll('.tab-panel').forEach(p => p.classList.remove('active'));
+        btn.classList.add('active');
+        document.getElementById('tab-' + btn.dataset.tab).classList.add('active');
+      });
+    });
+
+    // Card selection
+    let selectedCard = null;
+    function selectCard(card) {
+      if (selectedCard) {
+        selectedCard.classList.remove('selected');
+      }
+      if (selectedCard === card) {
+        selectedCard = null;
+        document.getElementById('vote-prompt').textContent = 'Vyberte svuj odhad:';
+        // Reset own vote indicator
+        document.getElementById('vote-jm').textContent = '?';
+        return;
+      }
+      card.classList.add('selected');
+      selectedCard = card;
+      document.getElementById('vote-prompt').textContent = 'Odhlasovano: ' + card.dataset.value + ' SP';
+
+      // Update own vote card (face down but voted)
+      const ownVote = document.getElementById('vote-jm');
+      ownVote.style.background = 'linear-gradient(135deg, #16a34a 0%, #15803d 100%)';
+      ownVote.innerHTML = '<svg class="w-3 h-3" fill="none" viewBox="0 0 24 24" stroke="white" stroke-width="3"><path stroke-linecap="round" stroke-linejoin="round" d="M5 13l4 4L19 7"/></svg>';
+
+      // Simulate PK voting after a delay
+      setTimeout(() => {
+        const pk = document.getElementById('vote-pk');
+        pk.style.background = 'linear-gradient(135deg, #16a34a 0%, #15803d 100%)';
+        pk.innerHTML = '<svg class="w-3 h-3" fill="none" viewBox="0 0 24 24" stroke="white" stroke-width="3"><path stroke-linecap="round" stroke-linejoin="round" d="M5 13l4 4L19 7"/></svg>';
+      }, 800);
+
+      setTimeout(() => {
+        const ln = document.getElementById('vote-ln');
+        ln.style.background = 'linear-gradient(135deg, #16a34a 0%, #15803d 100%)';
+        ln.innerHTML = '<svg class="w-3 h-3" fill="none" viewBox="0 0 24 24" stroke="white" stroke-width="3"><path stroke-linecap="round" stroke-linejoin="round" d="M5 13l4 4L19 7"/></svg>';
+      }, 1600);
+
+      setTimeout(() => {
+        const mh = document.getElementById('vote-mh');
+        mh.style.background = 'linear-gradient(135deg, #16a34a 0%, #15803d 100%)';
+        mh.innerHTML = '<svg class="w-3 h-3" fill="none" viewBox="0 0 24 24" stroke="white" stroke-width="3"><path stroke-linecap="round" stroke-linejoin="round" d="M5 13l4 4L19 7"/></svg>';
+      }, 2400);
+    }
+
+    // Reveal votes
+    function revealVotes() {
+      if (!selectedCard) {
+        alert('Nejprve odhlasujte!');
+        return;
+      }
+
+      const myVote = selectedCard.dataset.value;
+      const votes = {
+        jm: myVote,
+        pk: String(Math.max(1, parseInt(myVote) || 5)),
+        ln: myVote,
+        mh: String(Math.min(21, (parseInt(myVote) || 5) + 2))
+      };
+
+      // Reveal each card
+      Object.entries(votes).forEach(([key, val]) => {
+        const el = document.getElementById('vote-' + key);
+        el.classList.add('revealed');
+        el.style.background = 'white';
+        el.innerHTML = val;
+      });
+
+      // Calculate average
+      const numericVotes = Object.values(votes).map(v => parseInt(v) || 0).filter(v => v > 0);
+      const avg = numericVotes.reduce((a, b) => a + b, 0) / numericVotes.length;
+      const min = Math.min(...numericVotes);
+      const max = Math.max(...numericVotes);
+      const hasConsensus = max - min <= 2;
+
+      // Show results
+      document.getElementById('reveal-btn').classList.add('hidden');
+      document.getElementById('reveal-results').classList.remove('hidden');
+      document.getElementById('average-value').textContent = avg.toFixed(1);
+
+      const box = document.getElementById('consensus-box');
+      const indicator = document.getElementById('consensus-indicator');
+      const spread = document.getElementById('vote-spread');
+
+      if (hasConsensus) {
+        box.classList.add('consensus-glow');
+        box.style.borderColor = '#16a34a';
+        indicator.innerHTML = '<span class="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-xs font-semibold bg-green-50 text-green-700"><svg class="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5"><path stroke-linecap="round" stroke-linejoin="round" d="M5 13l4 4L19 7"/></svg> Konsenzus!</span>';
+      } else {
+        box.classList.add('no-consensus');
+        box.style.borderColor = '#d97706';
+        indicator.innerHTML = '<span class="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-xs font-semibold bg-amber-50 text-amber-700"><svg class="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M12 9v2m0 4h.01"/></svg> Neni konsenzus</span>';
+        document.getElementById('no-consensus-actions').classList.remove('hidden');
+      }
+
+      spread.textContent = 'Rozsah: ' + min + ' - ' + max + ' SP';
+
+      // Set final select to nearest fibonacci
+      const fibs = [1, 2, 3, 5, 8, 13, 21];
+      const nearest = fibs.reduce((prev, curr) => Math.abs(curr - avg) < Math.abs(prev - avg) ? curr : prev);
+      document.getElementById('final-select').value = nearest;
+    }
+
+    function startDiscussion() {
+      alert('Diskuzni casovac spusten na 2 minuty');
+    }
+
+    function revote() {
+      // Reset votes
+      ['jm', 'pk', 'ln', 'mh'].forEach(key => {
+        const el = document.getElementById('vote-' + key);
+        el.classList.remove('revealed');
+        el.style.background = '';
+        el.innerHTML = '?';
+      });
+      if (selectedCard) {
+        selectedCard.classList.remove('selected');
+        selectedCard = null;
+      }
+      document.getElementById('vote-prompt').textContent = 'Vyberte svuj odhad:';
+      document.getElementById('reveal-btn').classList.remove('hidden');
+      document.getElementById('reveal-results').classList.add('hidden');
+      document.getElementById('no-consensus-actions').classList.add('hidden');
+      const box = document.getElementById('consensus-box');
+      box.classList.remove('consensus-glow', 'no-consensus');
+      box.style.borderColor = '';
+    }
+
+    function confirmEstimate() {
+      const val = document.getElementById('final-select').value;
+      alert('Odhad ' + val + ' SP potvrzen pro "Kanban board - drag & drop"');
+    }
+
+    // Collapsible sections
+    function toggleCollapsible(id) {
+      const content = document.getElementById(id + '-content');
+      const arrow = document.getElementById(id + '-arrow');
+      content.classList.toggle('open');
+      arrow.style.transform = content.classList.contains('open') ? '' : 'rotate(-90deg)';
+    }
+  </script>
+
+</body>
+</html>

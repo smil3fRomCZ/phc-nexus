@@ -52,6 +52,7 @@ Každý modul obsahuje: `Models/`, `Actions/` (use-cases), `Controllers/`, `Poli
 - **Conventional Commits**: `type(scope): summary`
 - **Squash merge** do `main`, minimálně 1 review, CI zelená
 - PR velikost: 300–600 řádků diffu
+- **HTML Previews:** Po dokončení a mergnutí branche přesunout všechny nové HTML preview soubory z `docs/previews/` do `docs/previews/archive/`. Aktivní previews v `docs/previews/` jsou pouze ty z aktuální rozpracované branche.
 
 ## Docker Development
 

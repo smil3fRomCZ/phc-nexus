@@ -1,0 +1,892 @@
+<!DOCTYPE html>
+<html lang="cs">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Preview — Story Points & Estimation</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script>
+        tailwindcss.config = {
+            theme: {
+                extend: {
+                    colors: {
+                        brand: { primary: '#2563eb', hover: '#1d4ed8', soft: '#eff6ff', muted: '#93c5fd' },
+                        surface: { primary: '#ffffff', secondary: '#f8fafc', canvas: '#f1f5f9', hover: '#f1f5f9' },
+                        text: { strong: '#0f172a', default: '#334155', muted: '#64748b', subtle: '#94a3b8', inverse: '#ffffff' },
+                        border: { default: '#e2e8f0', subtle: '#f1f5f9' },
+                    },
+                    fontFamily: {
+                        sans: ['Inter', 'system-ui', 'sans-serif'],
+                    },
+                },
+            },
+        };
+    </script>
+    <style>
+        .tab-btn { transition: all 0.15s ease; }
+        .tab-btn.active { color: #2563eb; border-bottom-color: #2563eb; }
+        .sp-chip { transition: all 0.15s ease; cursor: pointer; }
+        .sp-chip:hover { transform: scale(1.1); }
+        .sp-chip.selected { ring: 2px; box-shadow: 0 0 0 2px #2563eb; }
+        .progress-bar { transition: width 0.4s ease; }
+        .kanban-card { transition: box-shadow 0.15s ease; }
+        .kanban-card:hover { box-shadow: 0 4px 12px rgba(0,0,0,0.08); }
+        .collapsible-content { max-height: 0; overflow: hidden; transition: max-height 0.3s ease; }
+        .collapsible-content.open { max-height: 2000px; }
+    </style>
+</head>
+<body class="bg-surface-canvas min-h-screen font-sans">
+
+    <!-- Header -->
+    <div class="bg-surface-primary border-b border-border-default px-8 py-6">
+        <h1 class="text-2xl font-bold text-text-strong">Story Points & Estimation</h1>
+        <p class="mt-1 text-sm text-text-muted">Preview #25 &mdash; Fibonacci SP, hodinove odhady, rollup do epiku, kanban integrace</p>
+    </div>
+
+    <!-- Tabs -->
+    <div class="border-b border-border-default bg-surface-primary px-8">
+        <nav class="flex gap-1" id="tabNav">
+            <button class="tab-btn active px-4 py-3 text-sm font-medium border-b-2 border-transparent text-text-muted" data-tab="task-detail" onclick="switchTab('task-detail')">Task Detail</button>
+            <button class="tab-btn px-4 py-3 text-sm font-medium border-b-2 border-transparent text-text-muted" data-tab="kanban" onclick="switchTab('kanban')">Kanban Board</button>
+            <button class="tab-btn px-4 py-3 text-sm font-medium border-b-2 border-transparent text-text-muted" data-tab="epic" onclick="switchTab('epic')">Epic Rollup</button>
+            <button class="tab-btn px-4 py-3 text-sm font-medium border-b-2 border-transparent text-text-muted" data-tab="backlog" onclick="switchTab('backlog')">Backlog Table</button>
+            <button class="tab-btn px-4 py-3 text-sm font-medium border-b-2 border-transparent text-text-muted" data-tab="architecture" onclick="switchTab('architecture')">Architektura</button>
+        </nav>
+    </div>
+
+    <!-- Tab Content -->
+    <div class="px-8 py-6">
+
+        <!-- VIEW 1: Task Detail -->
+        <div id="tab-task-detail" class="tab-content">
+            <div class="max-w-5xl flex gap-6">
+                <!-- Main content area (left) -->
+                <div class="flex-1 space-y-4">
+                    <div class="rounded-lg border border-border-default bg-surface-primary p-6">
+                        <div class="flex items-center gap-2 mb-3">
+                            <span class="inline-flex items-center rounded bg-brand-soft px-2 py-0.5 text-xs font-medium text-brand-primary">TASK-142</span>
+                            <span class="inline-flex items-center rounded bg-amber-100 px-2 py-0.5 text-xs font-medium text-amber-700">In Progress</span>
+                        </div>
+                        <h2 class="text-lg font-semibold text-text-strong mb-2">Implementace Google SSO login flow</h2>
+                        <p class="text-sm text-text-default leading-relaxed">Implementovat prihlaseni pres Google OAuth 2.0 s podporou invite-only rezimu. Zahrnuje callback handler, session management a error handling pro neautorizovane domeny.</p>
+                        <div class="mt-4 flex gap-2">
+                            <span class="text-xs text-text-muted bg-surface-secondary rounded px-2 py-1">auth</span>
+                            <span class="text-xs text-text-muted bg-surface-secondary rounded px-2 py-1">google-sso</span>
+                            <span class="text-xs text-text-muted bg-surface-secondary rounded px-2 py-1">mvp</span>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Sidebar (right) - Estimation Section -->
+                <div class="w-80 space-y-4">
+                    <div class="rounded-lg border border-border-default bg-surface-primary p-5">
+                        <h3 class="text-xs font-semibold uppercase tracking-wider text-text-subtle mb-4">Odhad</h3>
+
+                        <!-- Story Points Selector -->
+                        <div class="mb-5">
+                            <label class="block text-sm font-medium text-text-default mb-2">Story Points</label>
+                            <div class="flex gap-2" id="spSelector">
+                                <button class="sp-chip w-9 h-9 rounded-full text-sm font-semibold bg-emerald-100 text-emerald-700 flex items-center justify-center" data-sp="1" onclick="selectSP(this, 1)">1</button>
+                                <button class="sp-chip w-9 h-9 rounded-full text-sm font-semibold bg-emerald-100 text-emerald-700 flex items-center justify-center" data-sp="2" onclick="selectSP(this, 2)">2</button>
+                                <button class="sp-chip w-9 h-9 rounded-full text-sm font-semibold bg-amber-100 text-amber-700 flex items-center justify-center" data-sp="3" onclick="selectSP(this, 3)">3</button>
+                                <button class="sp-chip w-9 h-9 rounded-full text-sm font-semibold selected bg-amber-100 text-amber-700 flex items-center justify-center" data-sp="5" onclick="selectSP(this, 5)">5</button>
+                                <button class="sp-chip w-9 h-9 rounded-full text-sm font-semibold bg-red-100 text-red-700 flex items-center justify-center" data-sp="8" onclick="selectSP(this, 8)">8</button>
+                                <button class="sp-chip w-9 h-9 rounded-full text-sm font-semibold bg-red-100 text-red-700 flex items-center justify-center" data-sp="13" onclick="selectSP(this, 13)">13</button>
+                                <button class="sp-chip w-9 h-9 rounded-full text-sm font-semibold bg-purple-100 text-purple-700 flex items-center justify-center" data-sp="21" onclick="selectSP(this, 21)">21</button>
+                            </div>
+                        </div>
+
+                        <!-- Estimated Hours -->
+                        <div class="mb-5">
+                            <label class="block text-sm font-medium text-text-default mb-1">Odhadovane hodiny</label>
+                            <div class="flex items-center gap-2">
+                                <span class="text-2xl font-bold text-text-strong" id="estHours">20h</span>
+                                <span class="text-xs text-text-subtle" id="estSource">(5 SP &times; 4h)</span>
+                            </div>
+                            <button class="mt-1 text-xs text-brand-primary hover:underline" onclick="toggleManualOverride()">Manualni prepis</button>
+                            <div id="manualOverride" class="hidden mt-2">
+                                <input type="number" class="w-24 rounded-md border border-border-default px-3 py-1.5 text-sm" placeholder="hodiny" value="20">
+                                <span class="text-xs text-text-subtle ml-1">h</span>
+                            </div>
+                        </div>
+
+                        <!-- Actual Hours -->
+                        <div class="mb-5">
+                            <label class="block text-sm font-medium text-text-default mb-1">Skutecne hodiny</label>
+                            <span class="text-2xl font-bold text-text-strong">14h</span>
+                            <span class="text-xs text-text-subtle ml-1">ze zaznamu casu</span>
+                        </div>
+
+                        <!-- Progress Bar -->
+                        <div class="mb-4">
+                            <div class="flex items-center justify-between mb-1">
+                                <label class="text-sm font-medium text-text-default">Prubeh</label>
+                                <span class="text-xs font-medium text-emerald-600">70%</span>
+                            </div>
+                            <div class="h-2.5 w-full rounded-full bg-surface-canvas overflow-hidden">
+                                <div class="progress-bar h-full rounded-full bg-emerald-500" style="width: 70%"></div>
+                            </div>
+                        </div>
+
+                        <!-- Efficiency Indicator -->
+                        <div class="flex items-center gap-2 rounded-md bg-emerald-50 px-3 py-2">
+                            <svg class="w-4 h-4 text-emerald-600" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"/></svg>
+                            <span class="text-sm font-medium text-emerald-700">6h zbyva</span>
+                        </div>
+                    </div>
+
+                    <!-- Other sidebar fields -->
+                    <div class="rounded-lg border border-border-default bg-surface-primary p-5 space-y-3">
+                        <div class="flex justify-between text-sm">
+                            <span class="text-text-muted">Resitel</span>
+                            <span class="text-text-strong font-medium">Tomas Dvorak</span>
+                        </div>
+                        <div class="flex justify-between text-sm">
+                            <span class="text-text-muted">Priorita</span>
+                            <span class="text-amber-600 font-medium">Vysoka</span>
+                        </div>
+                        <div class="flex justify-between text-sm">
+                            <span class="text-text-muted">Epic</span>
+                            <span class="text-brand-primary font-medium">Autentizace</span>
+                        </div>
+                        <div class="flex justify-between text-sm">
+                            <span class="text-text-muted">Deadline</span>
+                            <span class="text-text-strong font-medium">15. 4. 2026</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Example states -->
+            <div class="mt-8 max-w-5xl">
+                <h3 class="text-sm font-semibold text-text-strong mb-3">Stavy progress baru</h3>
+                <div class="grid grid-cols-3 gap-4">
+                    <!-- Green: under 80% -->
+                    <div class="rounded-lg border border-border-default bg-surface-primary p-4">
+                        <div class="flex justify-between text-xs mb-1">
+                            <span class="text-text-muted">12h / 20h</span>
+                            <span class="font-medium text-emerald-600">60%</span>
+                        </div>
+                        <div class="h-2 w-full rounded-full bg-surface-canvas overflow-hidden">
+                            <div class="h-full rounded-full bg-emerald-500" style="width:60%"></div>
+                        </div>
+                        <div class="mt-2 text-xs text-emerald-600 font-medium">8h zbyva</div>
+                    </div>
+                    <!-- Amber: 80-100% -->
+                    <div class="rounded-lg border border-border-default bg-surface-primary p-4">
+                        <div class="flex justify-between text-xs mb-1">
+                            <span class="text-text-muted">18h / 20h</span>
+                            <span class="font-medium text-amber-600">90%</span>
+                        </div>
+                        <div class="h-2 w-full rounded-full bg-surface-canvas overflow-hidden">
+                            <div class="h-full rounded-full bg-amber-500" style="width:90%"></div>
+                        </div>
+                        <div class="mt-2 text-xs text-amber-600 font-medium">2h zbyva</div>
+                    </div>
+                    <!-- Red: over 100% -->
+                    <div class="rounded-lg border border-border-default bg-surface-primary p-4">
+                        <div class="flex justify-between text-xs mb-1">
+                            <span class="text-text-muted">24h / 20h</span>
+                            <span class="font-medium text-red-600">120%</span>
+                        </div>
+                        <div class="h-2 w-full rounded-full bg-surface-canvas overflow-hidden">
+                            <div class="h-full rounded-full bg-red-500" style="width:100%"></div>
+                        </div>
+                        <div class="mt-2 text-xs text-red-600 font-medium">Prekroceno o 4h</div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- VIEW 2: Kanban Board -->
+        <div id="tab-kanban" class="tab-content hidden">
+            <div class="flex gap-4 overflow-x-auto pb-4">
+                <!-- Column: To Do -->
+                <div class="w-72 flex-shrink-0">
+                    <div class="rounded-t-lg bg-surface-secondary px-4 py-3 border border-border-default border-b-0">
+                        <div class="flex items-center justify-between">
+                            <h3 class="text-sm font-semibold text-text-strong">To Do</h3>
+                            <div class="flex items-center gap-2">
+                                <span class="text-xs text-text-subtle">3 ukoly</span>
+                                <span class="inline-flex items-center rounded-full bg-brand-soft px-2 py-0.5 text-xs font-bold text-brand-primary">11 SP</span>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="space-y-2 rounded-b-lg border border-border-default border-t bg-surface-canvas p-3">
+                        <!-- Card 1 -->
+                        <div class="kanban-card relative rounded-lg border border-border-default bg-surface-primary p-3">
+                            <div class="absolute top-2 right-2 inline-flex items-center justify-center w-7 h-7 rounded-full bg-amber-100 text-xs font-bold text-amber-700">5</div>
+                            <p class="text-sm font-medium text-text-strong pr-8">Nastaveni notifikaci</p>
+                            <p class="text-xs text-text-muted mt-1">TASK-201</p>
+                            <div class="mt-2 flex items-center gap-2">
+                                <div class="w-5 h-5 rounded-full bg-blue-200 flex items-center justify-center text-[10px] font-bold text-blue-800">PK</div>
+                                <span class="text-xs text-text-subtle">20h odhad</span>
+                            </div>
+                        </div>
+                        <!-- Card 2 -->
+                        <div class="kanban-card relative rounded-lg border border-border-default bg-surface-primary p-3">
+                            <div class="absolute top-2 right-2 inline-flex items-center justify-center w-7 h-7 rounded-full bg-amber-100 text-xs font-bold text-amber-700">3</div>
+                            <p class="text-sm font-medium text-text-strong pr-8">Export CSV</p>
+                            <p class="text-xs text-text-muted mt-1">TASK-203</p>
+                            <div class="mt-2 flex items-center gap-2">
+                                <div class="w-5 h-5 rounded-full bg-green-200 flex items-center justify-center text-[10px] font-bold text-green-800">TD</div>
+                                <span class="text-xs text-text-subtle">12h odhad</span>
+                            </div>
+                        </div>
+                        <!-- Card 3 -->
+                        <div class="kanban-card relative rounded-lg border border-border-default bg-surface-primary p-3">
+                            <div class="absolute top-2 right-2 inline-flex items-center justify-center w-7 h-7 rounded-full bg-amber-100 text-xs font-bold text-amber-700">3</div>
+                            <p class="text-sm font-medium text-text-strong pr-8">Filtrace backlogu</p>
+                            <p class="text-xs text-text-muted mt-1">TASK-210</p>
+                            <div class="mt-2 flex items-center gap-2">
+                                <div class="w-5 h-5 rounded-full bg-pink-200 flex items-center justify-center text-[10px] font-bold text-pink-800">JM</div>
+                                <span class="text-xs text-text-subtle">12h odhad</span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Column: In Progress -->
+                <div class="w-72 flex-shrink-0">
+                    <div class="rounded-t-lg bg-surface-secondary px-4 py-3 border border-border-default border-b-0">
+                        <div class="flex items-center justify-between">
+                            <h3 class="text-sm font-semibold text-text-strong">In Progress</h3>
+                            <div class="flex items-center gap-2">
+                                <span class="text-xs text-text-subtle">2 ukoly</span>
+                                <span class="inline-flex items-center rounded-full bg-brand-soft px-2 py-0.5 text-xs font-bold text-brand-primary">13 SP</span>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="space-y-2 rounded-b-lg border border-border-default border-t bg-surface-canvas p-3">
+                        <!-- Card -->
+                        <div class="kanban-card relative rounded-lg border border-border-default bg-surface-primary p-3">
+                            <div class="absolute top-2 right-2 inline-flex items-center justify-center w-7 h-7 rounded-full bg-red-100 text-xs font-bold text-red-700">8</div>
+                            <p class="text-sm font-medium text-text-strong pr-8">Approval workflow engine</p>
+                            <p class="text-xs text-text-muted mt-1">TASK-155</p>
+                            <div class="mt-2 flex items-center gap-2">
+                                <div class="w-5 h-5 rounded-full bg-blue-200 flex items-center justify-center text-[10px] font-bold text-blue-800">PK</div>
+                                <span class="text-xs text-text-subtle">18h / 32h</span>
+                            </div>
+                            <div class="mt-2 h-1.5 w-full rounded-full bg-surface-canvas overflow-hidden">
+                                <div class="h-full rounded-full bg-emerald-500" style="width:56%"></div>
+                            </div>
+                        </div>
+                        <!-- Card -->
+                        <div class="kanban-card relative rounded-lg border border-border-default bg-surface-primary p-3">
+                            <div class="absolute top-2 right-2 inline-flex items-center justify-center w-7 h-7 rounded-full bg-amber-100 text-xs font-bold text-amber-700">5</div>
+                            <p class="text-sm font-medium text-text-strong pr-8">Google SSO login</p>
+                            <p class="text-xs text-text-muted mt-1">TASK-142</p>
+                            <div class="mt-2 flex items-center gap-2">
+                                <div class="w-5 h-5 rounded-full bg-green-200 flex items-center justify-center text-[10px] font-bold text-green-800">TD</div>
+                                <span class="text-xs text-text-subtle">14h / 20h</span>
+                            </div>
+                            <div class="mt-2 h-1.5 w-full rounded-full bg-surface-canvas overflow-hidden">
+                                <div class="h-full rounded-full bg-emerald-500" style="width:70%"></div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Column: Review -->
+                <div class="w-72 flex-shrink-0">
+                    <div class="rounded-t-lg bg-surface-secondary px-4 py-3 border border-border-default border-b-0">
+                        <div class="flex items-center justify-between">
+                            <h3 class="text-sm font-semibold text-text-strong">Review</h3>
+                            <div class="flex items-center gap-2">
+                                <span class="text-xs text-text-subtle">1 ukol</span>
+                                <span class="inline-flex items-center rounded-full bg-brand-soft px-2 py-0.5 text-xs font-bold text-brand-primary">3 SP</span>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="space-y-2 rounded-b-lg border border-border-default border-t bg-surface-canvas p-3">
+                        <div class="kanban-card relative rounded-lg border border-border-default bg-surface-primary p-3">
+                            <div class="absolute top-2 right-2 inline-flex items-center justify-center w-7 h-7 rounded-full bg-amber-100 text-xs font-bold text-amber-700">3</div>
+                            <p class="text-sm font-medium text-text-strong pr-8">Audit trail middleware</p>
+                            <p class="text-xs text-text-muted mt-1">TASK-178</p>
+                            <div class="mt-2 flex items-center gap-2">
+                                <div class="w-5 h-5 rounded-full bg-pink-200 flex items-center justify-center text-[10px] font-bold text-pink-800">JM</div>
+                                <span class="text-xs text-text-subtle">11h / 12h</span>
+                            </div>
+                            <div class="mt-2 h-1.5 w-full rounded-full bg-surface-canvas overflow-hidden">
+                                <div class="h-full rounded-full bg-amber-500" style="width:92%"></div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Column: Done -->
+                <div class="w-72 flex-shrink-0">
+                    <div class="rounded-t-lg bg-surface-secondary px-4 py-3 border border-border-default border-b-0">
+                        <div class="flex items-center justify-between">
+                            <h3 class="text-sm font-semibold text-text-strong">Done</h3>
+                            <div class="flex items-center gap-2">
+                                <span class="text-xs text-text-subtle">2 ukoly</span>
+                                <span class="inline-flex items-center rounded-full bg-brand-soft px-2 py-0.5 text-xs font-bold text-brand-primary">4 SP</span>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="space-y-2 rounded-b-lg border border-border-default border-t bg-surface-canvas p-3">
+                        <div class="kanban-card relative rounded-lg border border-border-default bg-surface-primary p-3 opacity-70">
+                            <div class="absolute top-2 right-2 inline-flex items-center justify-center w-7 h-7 rounded-full bg-emerald-100 text-xs font-bold text-emerald-700">2</div>
+                            <p class="text-sm font-medium text-text-strong pr-8 line-through">DB migrace schema</p>
+                            <p class="text-xs text-text-muted mt-1">TASK-130</p>
+                        </div>
+                        <div class="kanban-card relative rounded-lg border border-border-default bg-surface-primary p-3 opacity-70">
+                            <div class="absolute top-2 right-2 inline-flex items-center justify-center w-7 h-7 rounded-full bg-emerald-100 text-xs font-bold text-emerald-700">2</div>
+                            <p class="text-sm font-medium text-text-strong pr-8 line-through">Env konfigurace</p>
+                            <p class="text-xs text-text-muted mt-1">TASK-128</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- SP Badge Legend -->
+            <div class="mt-6 flex items-center gap-4">
+                <span class="text-xs font-semibold text-text-subtle uppercase tracking-wider">Legenda SP:</span>
+                <div class="flex items-center gap-1.5"><span class="w-6 h-6 rounded-full bg-emerald-100 text-emerald-700 text-xs font-bold flex items-center justify-center">1</span><span class="text-xs text-text-muted">-</span><span class="w-6 h-6 rounded-full bg-emerald-100 text-emerald-700 text-xs font-bold flex items-center justify-center">2</span><span class="text-xs text-text-muted ml-1">maly</span></div>
+                <div class="flex items-center gap-1.5"><span class="w-6 h-6 rounded-full bg-amber-100 text-amber-700 text-xs font-bold flex items-center justify-center">3</span><span class="text-xs text-text-muted">-</span><span class="w-6 h-6 rounded-full bg-amber-100 text-amber-700 text-xs font-bold flex items-center justify-center">5</span><span class="text-xs text-text-muted ml-1">stredni</span></div>
+                <div class="flex items-center gap-1.5"><span class="w-6 h-6 rounded-full bg-red-100 text-red-700 text-xs font-bold flex items-center justify-center">8</span><span class="text-xs text-text-muted">-</span><span class="w-6 h-6 rounded-full bg-red-100 text-red-700 text-xs font-bold flex items-center justify-center">13</span><span class="text-xs text-text-muted ml-1">velky</span></div>
+                <div class="flex items-center gap-1.5"><span class="w-6 h-6 rounded-full bg-purple-100 text-purple-700 text-xs font-bold flex items-center justify-center">21</span><span class="text-xs text-text-muted ml-1">epicky</span></div>
+            </div>
+        </div>
+
+        <!-- VIEW 3: Epic Detail -->
+        <div id="tab-epic" class="tab-content hidden">
+            <div class="max-w-5xl">
+                <!-- Epic Header -->
+                <div class="rounded-lg border border-border-default bg-surface-primary p-6 mb-6">
+                    <div class="flex items-center gap-2 mb-2">
+                        <span class="inline-flex items-center rounded bg-purple-100 px-2 py-0.5 text-xs font-medium text-purple-700">EPIC</span>
+                        <span class="inline-flex items-center rounded bg-brand-soft px-2 py-0.5 text-xs font-medium text-brand-primary">EPIC-12</span>
+                    </div>
+                    <h2 class="text-xl font-bold text-text-strong mb-4">Autentizace & Autorizace</h2>
+
+                    <!-- Aggregated Stats -->
+                    <div class="grid grid-cols-5 gap-4 mb-6">
+                        <div class="rounded-lg bg-surface-secondary p-4 text-center">
+                            <div class="text-2xl font-bold text-text-strong">34</div>
+                            <div class="text-xs text-text-muted mt-1">Celkem SP</div>
+                        </div>
+                        <div class="rounded-lg bg-surface-secondary p-4 text-center">
+                            <div class="text-2xl font-bold text-text-strong">136h</div>
+                            <div class="text-xs text-text-muted mt-1">Odhad hodin</div>
+                        </div>
+                        <div class="rounded-lg bg-surface-secondary p-4 text-center">
+                            <div class="text-2xl font-bold text-text-strong">87h</div>
+                            <div class="text-xs text-text-muted mt-1">Skutecne hodiny</div>
+                        </div>
+                        <div class="rounded-lg bg-surface-secondary p-4 text-center">
+                            <div class="text-2xl font-bold text-emerald-600">18 / 34</div>
+                            <div class="text-xs text-text-muted mt-1">SP hotovo</div>
+                        </div>
+                        <div class="rounded-lg bg-surface-secondary p-4 text-center">
+                            <div class="text-2xl font-bold text-brand-primary">53%</div>
+                            <div class="text-xs text-text-muted mt-1">Dokonceno</div>
+                        </div>
+                    </div>
+
+                    <!-- Progress Bar -->
+                    <div class="mb-6">
+                        <div class="flex justify-between text-xs text-text-muted mb-1">
+                            <span>Prubeh (SP)</span>
+                            <span>18 / 34 SP (53%)</span>
+                        </div>
+                        <div class="h-3 w-full rounded-full bg-surface-canvas overflow-hidden">
+                            <div class="h-full rounded-full bg-brand-primary" style="width:53%"></div>
+                        </div>
+                    </div>
+
+                    <!-- Burndown Mini-Chart -->
+                    <div class="mb-2">
+                        <h4 class="text-sm font-semibold text-text-strong mb-3">Burndown (SP zbyvajici)</h4>
+                        <div class="relative h-32 border-l border-b border-border-default">
+                            <!-- Y axis labels -->
+                            <span class="absolute -left-8 top-0 text-[10px] text-text-subtle">34</span>
+                            <span class="absolute -left-8 top-1/2 -translate-y-1/2 text-[10px] text-text-subtle">17</span>
+                            <span class="absolute -left-8 bottom-0 text-[10px] text-text-subtle">0</span>
+                            <!-- Ideal line -->
+                            <svg class="absolute inset-0 w-full h-full" viewBox="0 0 100 100" preserveAspectRatio="none">
+                                <line x1="0" y1="0" x2="100" y2="100" stroke="#e2e8f0" stroke-width="1" stroke-dasharray="4,3"/>
+                                <!-- Actual burndown -->
+                                <polyline fill="none" stroke="#2563eb" stroke-width="2"
+                                    points="0,0 15,6 30,18 45,29 60,38 75,47 85,47"/>
+                                <!-- Dots -->
+                                <circle cx="0" cy="0" r="2" fill="#2563eb"/>
+                                <circle cx="15" cy="6" r="2" fill="#2563eb"/>
+                                <circle cx="30" cy="18" r="2" fill="#2563eb"/>
+                                <circle cx="45" cy="29" r="2" fill="#2563eb"/>
+                                <circle cx="60" cy="38" r="2" fill="#2563eb"/>
+                                <circle cx="75" cy="47" r="2" fill="#2563eb"/>
+                                <circle cx="85" cy="47" r="2" fill="#2563eb"/>
+                            </svg>
+                            <!-- X axis labels -->
+                            <div class="absolute -bottom-5 left-0 right-0 flex justify-between text-[10px] text-text-subtle px-1">
+                                <span>T1</span><span>T2</span><span>T3</span><span>T4</span><span>T5</span><span>T6</span><span>Dnes</span>
+                            </div>
+                        </div>
+                        <div class="flex items-center gap-4 mt-8 text-[10px] text-text-subtle">
+                            <span class="flex items-center gap-1"><span class="w-4 h-0.5 bg-border-default inline-block" style="border-top:1px dashed #e2e8f0"></span> Idealni</span>
+                            <span class="flex items-center gap-1"><span class="w-4 h-0.5 bg-brand-primary inline-block"></span> Skutecny</span>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Task Table within Epic -->
+                <div class="rounded-lg border border-border-default bg-surface-primary overflow-hidden">
+                    <table class="w-full text-sm">
+                        <thead class="bg-surface-secondary">
+                            <tr>
+                                <th class="text-left px-4 py-3 font-semibold text-text-strong">Ukol</th>
+                                <th class="text-center px-3 py-3 font-semibold text-text-strong w-16">SP</th>
+                                <th class="text-center px-3 py-3 font-semibold text-text-strong w-20">Odhad</th>
+                                <th class="text-center px-3 py-3 font-semibold text-text-strong w-20">Skutecne</th>
+                                <th class="text-left px-3 py-3 font-semibold text-text-strong w-28">Stav</th>
+                                <th class="text-left px-3 py-3 font-semibold text-text-strong w-28">Resitel</th>
+                            </tr>
+                        </thead>
+                        <tbody class="divide-y divide-border-subtle">
+                            <tr class="hover:bg-surface-hover">
+                                <td class="px-4 py-3"><span class="text-text-muted text-xs mr-2">TASK-142</span>Google SSO login</td>
+                                <td class="text-center px-3 py-3"><span class="inline-flex items-center justify-center w-7 h-7 rounded-full bg-amber-100 text-xs font-bold text-amber-700">5</span></td>
+                                <td class="text-center px-3 py-3 text-text-default">20h</td>
+                                <td class="text-center px-3 py-3 text-text-default">14h</td>
+                                <td class="px-3 py-3"><span class="inline-flex items-center rounded-full bg-blue-100 px-2.5 py-0.5 text-xs font-medium text-blue-700">In Progress</span></td>
+                                <td class="px-3 py-3 text-text-default">T. Dvorak</td>
+                            </tr>
+                            <tr class="hover:bg-surface-hover">
+                                <td class="px-4 py-3"><span class="text-text-muted text-xs mr-2">TASK-155</span>Approval workflow</td>
+                                <td class="text-center px-3 py-3"><span class="inline-flex items-center justify-center w-7 h-7 rounded-full bg-red-100 text-xs font-bold text-red-700">8</span></td>
+                                <td class="text-center px-3 py-3 text-text-default">32h</td>
+                                <td class="text-center px-3 py-3 text-text-default">18h</td>
+                                <td class="px-3 py-3"><span class="inline-flex items-center rounded-full bg-blue-100 px-2.5 py-0.5 text-xs font-medium text-blue-700">In Progress</span></td>
+                                <td class="px-3 py-3 text-text-default">P. Krejci</td>
+                            </tr>
+                            <tr class="hover:bg-surface-hover">
+                                <td class="px-4 py-3"><span class="text-text-muted text-xs mr-2">TASK-178</span>Audit trail middleware</td>
+                                <td class="text-center px-3 py-3"><span class="inline-flex items-center justify-center w-7 h-7 rounded-full bg-amber-100 text-xs font-bold text-amber-700">3</span></td>
+                                <td class="text-center px-3 py-3 text-text-default">12h</td>
+                                <td class="text-center px-3 py-3 text-text-default">11h</td>
+                                <td class="px-3 py-3"><span class="inline-flex items-center rounded-full bg-amber-100 px-2.5 py-0.5 text-xs font-medium text-amber-700">Review</span></td>
+                                <td class="px-3 py-3 text-text-default">J. Melicherik</td>
+                            </tr>
+                            <tr class="hover:bg-surface-hover">
+                                <td class="px-4 py-3"><span class="text-text-muted text-xs mr-2">TASK-190</span>Role-based policies</td>
+                                <td class="text-center px-3 py-3"><span class="inline-flex items-center justify-center w-7 h-7 rounded-full bg-amber-100 text-xs font-bold text-amber-700">5</span></td>
+                                <td class="text-center px-3 py-3 text-text-default">20h</td>
+                                <td class="text-center px-3 py-3 text-text-muted">-</td>
+                                <td class="px-3 py-3"><span class="inline-flex items-center rounded-full bg-gray-100 px-2.5 py-0.5 text-xs font-medium text-gray-600">To Do</span></td>
+                                <td class="px-3 py-3 text-text-muted">Neprirazeno</td>
+                            </tr>
+                            <tr class="hover:bg-surface-hover bg-emerald-50/30">
+                                <td class="px-4 py-3"><span class="text-text-muted text-xs mr-2">TASK-130</span><span class="line-through text-text-muted">DB migrace schema</span></td>
+                                <td class="text-center px-3 py-3"><span class="inline-flex items-center justify-center w-7 h-7 rounded-full bg-emerald-100 text-xs font-bold text-emerald-700">2</span></td>
+                                <td class="text-center px-3 py-3 text-text-muted">8h</td>
+                                <td class="text-center px-3 py-3 text-text-muted">6h</td>
+                                <td class="px-3 py-3"><span class="inline-flex items-center rounded-full bg-emerald-100 px-2.5 py-0.5 text-xs font-medium text-emerald-700">Done</span></td>
+                                <td class="px-3 py-3 text-text-muted">T. Dvorak</td>
+                            </tr>
+                            <tr class="hover:bg-surface-hover bg-emerald-50/30">
+                                <td class="px-4 py-3"><span class="text-text-muted text-xs mr-2">TASK-128</span><span class="line-through text-text-muted">Env konfigurace</span></td>
+                                <td class="text-center px-3 py-3"><span class="inline-flex items-center justify-center w-7 h-7 rounded-full bg-emerald-100 text-xs font-bold text-emerald-700">2</span></td>
+                                <td class="text-center px-3 py-3 text-text-muted">8h</td>
+                                <td class="text-center px-3 py-3 text-text-muted">7h</td>
+                                <td class="px-3 py-3"><span class="inline-flex items-center rounded-full bg-emerald-100 px-2.5 py-0.5 text-xs font-medium text-emerald-700">Done</span></td>
+                                <td class="px-3 py-3 text-text-muted">P. Krejci</td>
+                            </tr>
+                            <tr class="hover:bg-surface-hover">
+                                <td class="px-4 py-3"><span class="text-text-muted text-xs mr-2">TASK-215</span>Session management</td>
+                                <td class="text-center px-3 py-3"><span class="inline-flex items-center justify-center w-7 h-7 rounded-full bg-red-100 text-xs font-bold text-red-700">9</span><br><span class="text-[10px] text-red-500">mimo Fibonacci!</span></td>
+                                <td class="text-center px-3 py-3 text-text-default">36h</td>
+                                <td class="text-center px-3 py-3 text-text-muted">-</td>
+                                <td class="px-3 py-3"><span class="inline-flex items-center rounded-full bg-gray-100 px-2.5 py-0.5 text-xs font-medium text-gray-600">To Do</span></td>
+                                <td class="px-3 py-3 text-text-muted">Neprirazeno</td>
+                            </tr>
+                        </tbody>
+                        <tfoot class="bg-surface-secondary font-semibold">
+                            <tr>
+                                <td class="px-4 py-3 text-text-strong">Celkem (7 ukolu)</td>
+                                <td class="text-center px-3 py-3 text-text-strong">34 SP</td>
+                                <td class="text-center px-3 py-3 text-text-strong">136h</td>
+                                <td class="text-center px-3 py-3 text-text-strong">56h</td>
+                                <td class="px-3 py-3"></td>
+                                <td class="px-3 py-3"></td>
+                            </tr>
+                        </tfoot>
+                    </table>
+                </div>
+            </div>
+        </div>
+
+        <!-- VIEW 4: Backlog Table -->
+        <div id="tab-backlog" class="tab-content hidden">
+            <div class="max-w-6xl">
+                <!-- Toolbar -->
+                <div class="flex items-center justify-between mb-4">
+                    <div class="flex items-center gap-3">
+                        <button class="inline-flex items-center gap-1.5 rounded-md bg-brand-primary px-3 py-1.5 text-sm font-medium text-white hover:bg-brand-hover">
+                            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"/></svg>
+                            Novy ukol
+                        </button>
+                        <div class="h-5 w-px bg-border-default"></div>
+                        <button class="inline-flex items-center gap-1.5 rounded-md border border-border-default bg-surface-primary px-3 py-1.5 text-sm text-text-default hover:bg-surface-hover" id="bulkSpBtn" onclick="toggleBulkSp()">
+                            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 7h.01M7 3h5c.512 0 1.024.195 1.414.586l7 7a2 2 0 010 2.828l-7 7a2 2 0 01-2.828 0l-7-7A1.994 1.994 0 013 12V7a4 4 0 014-4z"/></svg>
+                            Hromadne prirazeni SP
+                        </button>
+                    </div>
+                    <div class="flex items-center gap-2 text-xs text-text-muted">
+                        <span>Razeni:</span>
+                        <button class="font-medium text-brand-primary">SP (sestupne)</button>
+                    </div>
+                </div>
+
+                <!-- Bulk SP panel (hidden by default) -->
+                <div id="bulkSpPanel" class="hidden mb-4 rounded-lg border border-brand-primary bg-brand-soft p-4">
+                    <div class="flex items-center justify-between">
+                        <div class="flex items-center gap-3">
+                            <span class="text-sm font-medium text-text-strong">Prirazeni SP vybranym ukolum (2 vybrano):</span>
+                            <div class="flex gap-1.5">
+                                <button class="sp-chip w-8 h-8 rounded-full text-xs font-semibold bg-emerald-100 text-emerald-700 flex items-center justify-center">1</button>
+                                <button class="sp-chip w-8 h-8 rounded-full text-xs font-semibold bg-emerald-100 text-emerald-700 flex items-center justify-center">2</button>
+                                <button class="sp-chip w-8 h-8 rounded-full text-xs font-semibold bg-amber-100 text-amber-700 flex items-center justify-center">3</button>
+                                <button class="sp-chip w-8 h-8 rounded-full text-xs font-semibold bg-amber-100 text-amber-700 flex items-center justify-center">5</button>
+                                <button class="sp-chip w-8 h-8 rounded-full text-xs font-semibold bg-red-100 text-red-700 flex items-center justify-center">8</button>
+                                <button class="sp-chip w-8 h-8 rounded-full text-xs font-semibold bg-red-100 text-red-700 flex items-center justify-center">13</button>
+                                <button class="sp-chip w-8 h-8 rounded-full text-xs font-semibold bg-purple-100 text-purple-700 flex items-center justify-center">21</button>
+                            </div>
+                            <button class="rounded-md bg-brand-primary px-3 py-1.5 text-xs font-medium text-white">Aplikovat</button>
+                        </div>
+                        <button class="text-xs text-text-muted hover:text-text-default" onclick="toggleBulkSp()">Zavrit</button>
+                    </div>
+                </div>
+
+                <!-- Table -->
+                <div class="rounded-lg border border-border-default bg-surface-primary overflow-hidden">
+                    <table class="w-full text-sm">
+                        <thead class="bg-surface-secondary">
+                            <tr>
+                                <th class="w-10 px-3 py-3"><input type="checkbox" class="rounded border-gray-300"></th>
+                                <th class="text-left px-4 py-3 font-semibold text-text-strong">Ukol</th>
+                                <th class="text-left px-3 py-3 font-semibold text-text-strong w-32">Epic</th>
+                                <th class="text-center px-3 py-3 font-semibold text-text-strong w-16 cursor-pointer hover:text-brand-primary">SP <span class="text-[10px]">&#9660;</span></th>
+                                <th class="text-center px-3 py-3 font-semibold text-text-strong w-20">Odhad h</th>
+                                <th class="text-center px-3 py-3 font-semibold text-text-strong w-20">Skutecne h</th>
+                                <th class="text-left px-3 py-3 font-semibold text-text-strong w-28">Stav</th>
+                                <th class="text-left px-3 py-3 font-semibold text-text-strong w-24">Resitel</th>
+                            </tr>
+                        </thead>
+                        <tbody class="divide-y divide-border-subtle">
+                            <tr class="hover:bg-surface-hover">
+                                <td class="px-3 py-3"><input type="checkbox" class="rounded border-gray-300"></td>
+                                <td class="px-4 py-3"><span class="text-text-muted text-xs mr-2">TASK-220</span><span class="font-medium text-text-strong">Dashboard analytics</span></td>
+                                <td class="px-3 py-3 text-brand-primary text-xs">Reporting</td>
+                                <td class="text-center px-3 py-3"><span class="inline-flex items-center justify-center w-7 h-7 rounded-full bg-purple-100 text-xs font-bold text-purple-700">21</span></td>
+                                <td class="text-center px-3 py-3">84h</td>
+                                <td class="text-center px-3 py-3 text-text-muted">-</td>
+                                <td class="px-3 py-3"><span class="inline-flex items-center rounded-full bg-gray-100 px-2.5 py-0.5 text-xs font-medium text-gray-600">To Do</span></td>
+                                <td class="px-3 py-3 text-text-muted">-</td>
+                            </tr>
+                            <tr class="hover:bg-surface-hover">
+                                <td class="px-3 py-3"><input type="checkbox" class="rounded border-gray-300"></td>
+                                <td class="px-4 py-3"><span class="text-text-muted text-xs mr-2">TASK-199</span><span class="font-medium text-text-strong">File versioning</span></td>
+                                <td class="px-3 py-3 text-brand-primary text-xs">Soubory</td>
+                                <td class="text-center px-3 py-3"><span class="inline-flex items-center justify-center w-7 h-7 rounded-full bg-red-100 text-xs font-bold text-red-700">13</span></td>
+                                <td class="text-center px-3 py-3">52h</td>
+                                <td class="text-center px-3 py-3 text-text-muted">-</td>
+                                <td class="px-3 py-3"><span class="inline-flex items-center rounded-full bg-gray-100 px-2.5 py-0.5 text-xs font-medium text-gray-600">To Do</span></td>
+                                <td class="px-3 py-3 text-text-muted">-</td>
+                            </tr>
+                            <tr class="hover:bg-surface-hover">
+                                <td class="px-3 py-3"><input type="checkbox" class="rounded border-gray-300 checked" checked></td>
+                                <td class="px-4 py-3"><span class="text-text-muted text-xs mr-2">TASK-155</span><span class="font-medium text-text-strong">Approval workflow engine</span></td>
+                                <td class="px-3 py-3 text-brand-primary text-xs">Auth</td>
+                                <td class="text-center px-3 py-3"><span class="inline-flex items-center justify-center w-7 h-7 rounded-full bg-red-100 text-xs font-bold text-red-700">8</span></td>
+                                <td class="text-center px-3 py-3">32h</td>
+                                <td class="text-center px-3 py-3">18h</td>
+                                <td class="px-3 py-3"><span class="inline-flex items-center rounded-full bg-blue-100 px-2.5 py-0.5 text-xs font-medium text-blue-700">In Progress</span></td>
+                                <td class="px-3 py-3">P. Krejci</td>
+                            </tr>
+                            <tr class="hover:bg-surface-hover">
+                                <td class="px-3 py-3"><input type="checkbox" class="rounded border-gray-300"></td>
+                                <td class="px-4 py-3"><span class="text-text-muted text-xs mr-2">TASK-142</span><span class="font-medium text-text-strong">Google SSO login</span></td>
+                                <td class="px-3 py-3 text-brand-primary text-xs">Auth</td>
+                                <td class="text-center px-3 py-3"><span class="inline-flex items-center justify-center w-7 h-7 rounded-full bg-amber-100 text-xs font-bold text-amber-700">5</span></td>
+                                <td class="text-center px-3 py-3">20h</td>
+                                <td class="text-center px-3 py-3">14h</td>
+                                <td class="px-3 py-3"><span class="inline-flex items-center rounded-full bg-blue-100 px-2.5 py-0.5 text-xs font-medium text-blue-700">In Progress</span></td>
+                                <td class="px-3 py-3">T. Dvorak</td>
+                            </tr>
+                            <tr class="hover:bg-surface-hover">
+                                <td class="px-3 py-3"><input type="checkbox" class="rounded border-gray-300"></td>
+                                <td class="px-4 py-3"><span class="text-text-muted text-xs mr-2">TASK-201</span><span class="font-medium text-text-strong">Nastaveni notifikaci</span></td>
+                                <td class="px-3 py-3 text-brand-primary text-xs">Notifikace</td>
+                                <td class="text-center px-3 py-3"><span class="inline-flex items-center justify-center w-7 h-7 rounded-full bg-amber-100 text-xs font-bold text-amber-700">5</span></td>
+                                <td class="text-center px-3 py-3">20h</td>
+                                <td class="text-center px-3 py-3 text-text-muted">-</td>
+                                <td class="px-3 py-3"><span class="inline-flex items-center rounded-full bg-gray-100 px-2.5 py-0.5 text-xs font-medium text-gray-600">To Do</span></td>
+                                <td class="px-3 py-3">P. Krejci</td>
+                            </tr>
+                            <tr class="hover:bg-surface-hover">
+                                <td class="px-3 py-3"><input type="checkbox" class="rounded border-gray-300 checked" checked></td>
+                                <td class="px-4 py-3"><span class="text-text-muted text-xs mr-2">TASK-203</span><span class="font-medium text-text-strong">Export CSV</span></td>
+                                <td class="px-3 py-3 text-brand-primary text-xs">Reporting</td>
+                                <td class="text-center px-3 py-3"><span class="inline-flex items-center justify-center w-7 h-7 rounded-full bg-amber-100 text-xs font-bold text-amber-700">3</span></td>
+                                <td class="text-center px-3 py-3">12h</td>
+                                <td class="text-center px-3 py-3 text-text-muted">-</td>
+                                <td class="px-3 py-3"><span class="inline-flex items-center rounded-full bg-gray-100 px-2.5 py-0.5 text-xs font-medium text-gray-600">To Do</span></td>
+                                <td class="px-3 py-3">T. Dvorak</td>
+                            </tr>
+                            <tr class="hover:bg-surface-hover">
+                                <td class="px-3 py-3"><input type="checkbox" class="rounded border-gray-300"></td>
+                                <td class="px-4 py-3"><span class="text-text-muted text-xs mr-2">TASK-178</span><span class="font-medium text-text-strong">Audit trail middleware</span></td>
+                                <td class="px-3 py-3 text-brand-primary text-xs">Auth</td>
+                                <td class="text-center px-3 py-3"><span class="inline-flex items-center justify-center w-7 h-7 rounded-full bg-amber-100 text-xs font-bold text-amber-700">3</span></td>
+                                <td class="text-center px-3 py-3">12h</td>
+                                <td class="text-center px-3 py-3">11h</td>
+                                <td class="px-3 py-3"><span class="inline-flex items-center rounded-full bg-amber-100 px-2.5 py-0.5 text-xs font-medium text-amber-700">Review</span></td>
+                                <td class="px-3 py-3">J. Melicherik</td>
+                            </tr>
+                            <tr class="hover:bg-surface-hover">
+                                <td class="px-3 py-3"><input type="checkbox" class="rounded border-gray-300"></td>
+                                <td class="px-4 py-3"><span class="text-text-muted text-xs mr-2">TASK-130</span><span class="font-medium text-text-strong line-through text-text-muted">DB migrace schema</span></td>
+                                <td class="px-3 py-3 text-brand-primary text-xs">Auth</td>
+                                <td class="text-center px-3 py-3"><span class="inline-flex items-center justify-center w-7 h-7 rounded-full bg-emerald-100 text-xs font-bold text-emerald-700">2</span></td>
+                                <td class="text-center px-3 py-3 text-text-muted">8h</td>
+                                <td class="text-center px-3 py-3 text-text-muted">6h</td>
+                                <td class="px-3 py-3"><span class="inline-flex items-center rounded-full bg-emerald-100 px-2.5 py-0.5 text-xs font-medium text-emerald-700">Done</span></td>
+                                <td class="px-3 py-3 text-text-muted">T. Dvorak</td>
+                            </tr>
+                        </tbody>
+                        <tfoot class="bg-surface-secondary font-semibold border-t-2 border-border-default">
+                            <tr>
+                                <td class="px-3 py-3"></td>
+                                <td class="px-4 py-3 text-text-strong">Celkem (8 ukolu)</td>
+                                <td class="px-3 py-3"></td>
+                                <td class="text-center px-3 py-3 text-text-strong">60 SP</td>
+                                <td class="text-center px-3 py-3 text-text-strong">240h</td>
+                                <td class="text-center px-3 py-3 text-text-strong">49h</td>
+                                <td class="px-3 py-3"></td>
+                                <td class="px-3 py-3"></td>
+                            </tr>
+                        </tfoot>
+                    </table>
+                </div>
+            </div>
+        </div>
+
+        <!-- VIEW 5: Architecture -->
+        <div id="tab-architecture" class="tab-content hidden">
+            <div class="max-w-4xl space-y-4">
+
+                <!-- DB Changes -->
+                <div class="rounded-lg border border-border-default bg-surface-primary overflow-hidden">
+                    <button class="w-full flex items-center justify-between px-5 py-4 text-left hover:bg-surface-hover" onclick="toggleSection('db')">
+                        <h3 class="text-sm font-semibold text-text-strong">DB zmeny</h3>
+                        <svg id="db-arrow" class="w-4 h-4 text-text-subtle transform transition-transform" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"/></svg>
+                    </button>
+                    <div id="db-content" class="collapsible-content open border-t border-border-default">
+                        <div class="p-5 space-y-3">
+                            <div class="rounded bg-gray-900 text-gray-100 p-4 text-sm font-mono overflow-x-auto">
+<pre>-- tasks table: pridani sloupcu
+ALTER TABLE tasks
+  ADD COLUMN story_points SMALLINT UNSIGNED NULL
+    CHECK (story_points IN (1, 2, 3, 5, 8, 13, 21)),
+  ADD COLUMN estimated_hours DECIMAL(6,2) NULL;
+
+-- epics: zadne nove sloupce
+-- aggregace pres withSum() / withCount() na urovni Eloquent</pre>
+                            </div>
+                            <div class="rounded bg-gray-900 text-gray-100 p-4 text-sm font-mono overflow-x-auto">
+<pre>// Laravel migrace
+Schema::table('tasks', function (Blueprint $table) {
+    $table->unsignedSmallInteger('story_points')->nullable();
+    $table->decimal('estimated_hours', 6, 2)->nullable();
+});</pre>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Backend Model -->
+                <div class="rounded-lg border border-border-default bg-surface-primary overflow-hidden">
+                    <button class="w-full flex items-center justify-between px-5 py-4 text-left hover:bg-surface-hover" onclick="toggleSection('model')">
+                        <h3 class="text-sm font-semibold text-text-strong">Backend: Task Model</h3>
+                        <svg id="model-arrow" class="w-4 h-4 text-text-subtle transform transition-transform" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"/></svg>
+                    </button>
+                    <div id="model-content" class="collapsible-content border-t border-border-default">
+                        <div class="p-5">
+                            <div class="rounded bg-gray-900 text-gray-100 p-4 text-sm font-mono overflow-x-auto">
+<pre>// Task model accessor
+// SP x 4h pokud SP nastaveno, jinak manualni estimated_hours
+public function getComputedEstimatedHoursAttribute(): ?float
+{
+    if ($this->story_points !== null) {
+        return $this->story_points * 4;
+    }
+    return $this->estimated_hours;
+}
+
+// Fibonacci validacni pravidlo
+'story_points' => [
+    'nullable',
+    'integer',
+    Rule::in([1, 2, 3, 5, 8, 13, 21]),
+]</pre>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Epic Aggregation -->
+                <div class="rounded-lg border border-border-default bg-surface-primary overflow-hidden">
+                    <button class="w-full flex items-center justify-between px-5 py-4 text-left hover:bg-surface-hover" onclick="toggleSection('epic-agg')">
+                        <h3 class="text-sm font-semibold text-text-strong">Epic: Agregace</h3>
+                        <svg id="epic-agg-arrow" class="w-4 h-4 text-text-subtle transform transition-transform" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"/></svg>
+                    </button>
+                    <div id="epic-agg-content" class="collapsible-content border-t border-border-default">
+                        <div class="p-5">
+                            <div class="rounded bg-gray-900 text-gray-100 p-4 text-sm font-mono overflow-x-auto">
+<pre>// Epic query s agregacemi (zadne denormalizovane sloupce)
+Epic::query()
+    ->withSum('tasks', 'story_points')          // tasks_sum_story_points
+    ->withSum('tasks', 'estimated_hours')        // tasks_sum_estimated_hours
+    ->withSum('tasks.timeEntries', 'hours')      // actual hours
+    ->withCount([
+        'tasks',
+        'tasks as completed_tasks_count' => fn($q) =>
+            $q->whereIn('status', ['done', 'closed']),
+    ])
+    ->get();</pre>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Kanban Integration -->
+                <div class="rounded-lg border border-border-default bg-surface-primary overflow-hidden">
+                    <button class="w-full flex items-center justify-between px-5 py-4 text-left hover:bg-surface-hover" onclick="toggleSection('kanban-int')">
+                        <h3 class="text-sm font-semibold text-text-strong">Kanban integrace</h3>
+                        <svg id="kanban-int-arrow" class="w-4 h-4 text-text-subtle transform transition-transform" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"/></svg>
+                    </button>
+                    <div id="kanban-int-content" class="collapsible-content border-t border-border-default">
+                        <div class="p-5 space-y-3">
+                            <div class="rounded bg-gray-900 text-gray-100 p-4 text-sm font-mono overflow-x-auto">
+<pre>// CARD_FIELD_OPTIONS - pridat story_points
+const CARD_FIELD_OPTIONS = [
+    'assignee',
+    'priority',
+    'due_date',
+    'story_points',  // &lt;-- novy
+    'estimated_hours',
+];
+
+// Board settings validace
+'card_fields.*' => Rule::in(CARD_FIELD_OPTIONS),</pre>
+                            </div>
+                            <p class="text-sm text-text-default">SP badge se zobrazi v pravem hornim rohu karty jako maly kruhovy chip s barvou podle velikosti.</p>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Export -->
+                <div class="rounded-lg border border-border-default bg-surface-primary overflow-hidden">
+                    <button class="w-full flex items-center justify-between px-5 py-4 text-left hover:bg-surface-hover" onclick="toggleSection('export')">
+                        <h3 class="text-sm font-semibold text-text-strong">Export integrace</h3>
+                        <svg id="export-arrow" class="w-4 h-4 text-text-subtle transform transition-transform" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"/></svg>
+                    </button>
+                    <div id="export-content" class="collapsible-content border-t border-border-default">
+                        <div class="p-5">
+                            <div class="rounded bg-gray-900 text-gray-100 p-4 text-sm font-mono overflow-x-auto">
+<pre>// TaskExporter - pridat sloupce
+protected function columns(): array
+{
+    return [
+        // ... existujici sloupce
+        Column::make('story_points')->heading('SP'),
+        Column::make('computed_estimated_hours')
+              ->heading('Odhad (h)'),
+        Column::make('time_entries_sum_hours')
+              ->heading('Skutecne (h)'),
+    ];
+}</pre>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Summary Table -->
+                <div class="rounded-lg border border-border-default bg-surface-primary p-5">
+                    <h3 class="text-sm font-semibold text-text-strong mb-3">Souhrnna tabulka zmen</h3>
+                    <table class="w-full text-sm">
+                        <thead>
+                            <tr class="border-b border-border-default">
+                                <th class="text-left py-2 font-semibold text-text-strong">Oblast</th>
+                                <th class="text-left py-2 font-semibold text-text-strong">Zmena</th>
+                                <th class="text-left py-2 font-semibold text-text-strong">Soubor</th>
+                            </tr>
+                        </thead>
+                        <tbody class="divide-y divide-border-subtle text-text-default">
+                            <tr><td class="py-2">DB</td><td class="py-2">2 nove sloupce na tasks</td><td class="py-2 text-xs font-mono text-text-muted">migrations/add_story_points_to_tasks</td></tr>
+                            <tr><td class="py-2">Model</td><td class="py-2">Accessor + casts</td><td class="py-2 text-xs font-mono text-text-muted">app/Modules/Work/Models/Task.php</td></tr>
+                            <tr><td class="py-2">Validace</td><td class="py-2">Fibonacci pravidlo</td><td class="py-2 text-xs font-mono text-text-muted">app/Modules/Work/Actions/UpdateTask.php</td></tr>
+                            <tr><td class="py-2">Kanban</td><td class="py-2">card_fields + badge</td><td class="py-2 text-xs font-mono text-text-muted">resources/js/Pages/Work/Board/</td></tr>
+                            <tr><td class="py-2">Epic</td><td class="py-2">withSum agregace</td><td class="py-2 text-xs font-mono text-text-muted">app/Modules/Work/Actions/ShowEpic.php</td></tr>
+                            <tr><td class="py-2">Export</td><td class="py-2">3 nove sloupce</td><td class="py-2 text-xs font-mono text-text-muted">app/Modules/Work/Exports/TaskExporter.php</td></tr>
+                            <tr><td class="py-2">Resource</td><td class="py-2">SP + est_hours v Inertia</td><td class="py-2 text-xs font-mono text-text-muted">app/Modules/Work/Resources/TaskResource.php</td></tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // Tab switching
+        function switchTab(tabId) {
+            document.querySelectorAll('.tab-content').forEach(el => el.classList.add('hidden'));
+            document.querySelectorAll('.tab-btn').forEach(el => {
+                el.classList.remove('active');
+                el.style.color = '';
+                el.style.borderBottomColor = 'transparent';
+            });
+            document.getElementById('tab-' + tabId).classList.remove('hidden');
+            const btn = document.querySelector('[data-tab="' + tabId + '"]');
+            btn.classList.add('active');
+        }
+
+        // Fibonacci SP selector
+        function selectSP(el, sp) {
+            document.querySelectorAll('#spSelector .sp-chip').forEach(chip => {
+                chip.classList.remove('selected');
+            });
+            el.classList.add('selected');
+            const hours = sp * 4;
+            document.getElementById('estHours').textContent = hours + 'h';
+            document.getElementById('estSource').innerHTML = '(' + sp + ' SP &times; 4h)';
+        }
+
+        // Manual override toggle
+        function toggleManualOverride() {
+            const el = document.getElementById('manualOverride');
+            el.classList.toggle('hidden');
+        }
+
+        // Bulk SP toggle
+        function toggleBulkSp() {
+            const panel = document.getElementById('bulkSpPanel');
+            panel.classList.toggle('hidden');
+        }
+
+        // Collapsible sections
+        function toggleSection(id) {
+            const content = document.getElementById(id + '-content');
+            const arrow = document.getElementById(id + '-arrow');
+            content.classList.toggle('open');
+            if (content.classList.contains('open')) {
+                arrow.style.transform = 'rotate(0deg)';
+            } else {
+                arrow.style.transform = 'rotate(-90deg)';
+            }
+        }
+    </script>
+</body>
+</html>

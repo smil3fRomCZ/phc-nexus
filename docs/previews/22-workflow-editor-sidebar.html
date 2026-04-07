@@ -1,0 +1,852 @@
+<!DOCTYPE html>
+<html lang="cs">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Preview — Workflow Editor Sidebar (Always Visible)</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <style>
+        *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+        :root {
+            /* Raw */
+            --raw-orange-500: #f5a623;
+            --raw-orange-600: #e09000;
+            --raw-navy-900: #172b4d;
+            --raw-slate-800: #42526e;
+            --raw-slate-700: #6b778c;
+            --raw-slate-600: #97a0af;
+            --raw-slate-500: #b3bac5;
+            --raw-slate-300: #dfe1e6;
+            --raw-slate-200: #ebecf0;
+            --raw-slate-100: #f4f5f7;
+            --raw-slate-050: #fafbfc;
+            --raw-white: #ffffff;
+            --raw-green-100: #e3fcef;
+            --raw-green-700: #006644;
+            --raw-red-100: #ffebe6;
+            --raw-red-700: #bf2600;
+            --raw-blue-100: #deebff;
+            --raw-blue-700: #0747a6;
+            --raw-purple-100: #eae6ff;
+            --raw-purple-700: #5243aa;
+            --raw-yellow-100: #fff0b3;
+            --raw-yellow-700: #974f0c;
+
+            /* Semantic */
+            --color-brand-primary: var(--raw-orange-500);
+            --color-brand-primary-hover: var(--raw-orange-600);
+            --color-brand-primary-soft: #fff8eb;
+            --color-text-strong: var(--raw-navy-900);
+            --color-text-default: var(--raw-slate-800);
+            --color-text-muted: var(--raw-slate-700);
+            --color-text-subtle: var(--raw-slate-600);
+            --color-text-disabled: var(--raw-slate-500);
+            --color-surface-canvas: var(--raw-slate-100);
+            --color-surface-panel: var(--raw-white);
+            --color-surface-panel-subtle: var(--raw-slate-050);
+            --color-border-subtle: var(--raw-slate-200);
+            --color-border-default: var(--raw-slate-300);
+
+            /* Status */
+            --status-success-bg: var(--raw-green-100);
+            --status-success-fg: var(--raw-green-700);
+            --status-danger-bg: var(--raw-red-100);
+            --status-danger-fg: var(--raw-red-700);
+            --status-info-bg: var(--raw-blue-100);
+            --status-info-fg: var(--raw-blue-700);
+            --status-review-bg: var(--raw-purple-100);
+            --status-review-fg: var(--raw-purple-700);
+            --status-warning-bg: var(--raw-yellow-100);
+            --status-warning-fg: var(--raw-yellow-700);
+            --status-neutral-bg: var(--raw-slate-300);
+            --status-neutral-fg: var(--raw-slate-800);
+
+            /* Radii / shadow */
+            --radius-sm: 4px;
+            --radius-md: 8px;
+            --radius-lg: 12px;
+            --shadow-sm: 0 1px 2px rgba(0,0,0,0.05);
+            --shadow-md: 0 4px 6px rgba(0,0,0,0.07);
+            --shadow-lg: 0 8px 24px rgba(23,43,77,0.12);
+
+            --font-sans: "Inter", -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+        }
+
+        body {
+            font-family: var(--font-sans);
+            background: var(--color-surface-canvas);
+            color: var(--color-text-default);
+            font-size: 14px;
+            line-height: 1.5;
+        }
+
+        /* Page header */
+        .page-header {
+            background: var(--color-surface-panel);
+            border-bottom: 1px solid var(--color-border-subtle);
+            padding: 16px 24px;
+        }
+        .page-header h1 {
+            font-size: 18px;
+            font-weight: 700;
+            color: var(--color-text-strong);
+            margin-bottom: 4px;
+        }
+        .page-header p {
+            font-size: 13px;
+            color: var(--color-text-muted);
+        }
+
+        /* Demo toggle */
+        .demo-toggle {
+            display: flex;
+            gap: 0;
+            margin: 16px 24px;
+        }
+        .demo-toggle button {
+            padding: 8px 20px;
+            font-size: 13px;
+            font-weight: 500;
+            border: 1px solid var(--color-border-default);
+            background: var(--color-surface-panel);
+            color: var(--color-text-default);
+            cursor: pointer;
+            transition: all 0.15s;
+            font-family: var(--font-sans);
+        }
+        .demo-toggle button:first-child {
+            border-radius: var(--radius-md) 0 0 var(--radius-md);
+        }
+        .demo-toggle button:last-child {
+            border-radius: 0 var(--radius-md) var(--radius-md) 0;
+            border-left: none;
+        }
+        .demo-toggle button.active {
+            background: var(--color-brand-primary);
+            color: white;
+            border-color: var(--color-brand-primary);
+        }
+        .demo-toggle button:not(.active):hover {
+            background: var(--color-surface-panel-subtle);
+        }
+
+        /* Editor layout */
+        .editor-layout {
+            display: flex;
+            height: calc(100vh - 140px);
+            margin: 0 24px 24px;
+            border-radius: var(--radius-lg);
+            overflow: hidden;
+            box-shadow: var(--shadow-lg);
+            border: 1px solid var(--color-border-subtle);
+        }
+
+        /* Canvas */
+        .canvas {
+            flex: 1;
+            background: var(--color-surface-canvas);
+            position: relative;
+            overflow: hidden;
+            background-image:
+                radial-gradient(circle, var(--color-border-subtle) 1px, transparent 1px);
+            background-size: 20px 20px;
+        }
+        .canvas-toolbar {
+            position: absolute;
+            top: 12px;
+            left: 12px;
+            display: flex;
+            gap: 4px;
+            z-index: 10;
+        }
+        .canvas-toolbar button {
+            width: 36px;
+            height: 36px;
+            border: 1px solid var(--color-border-default);
+            background: var(--color-surface-panel);
+            border-radius: var(--radius-md);
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: var(--color-text-muted);
+            box-shadow: var(--shadow-sm);
+            transition: all 0.15s;
+            font-size: 16px;
+        }
+        .canvas-toolbar button:hover {
+            background: var(--color-surface-panel-subtle);
+            color: var(--color-text-strong);
+        }
+
+        /* Workflow Nodes */
+        .wf-node {
+            position: absolute;
+            width: 160px;
+            border-radius: var(--radius-md);
+            background: var(--color-surface-panel);
+            border: 2px solid var(--color-border-default);
+            box-shadow: var(--shadow-md);
+            cursor: grab;
+            transition: box-shadow 0.15s, border-color 0.15s;
+            user-select: none;
+        }
+        .wf-node:hover {
+            box-shadow: var(--shadow-lg);
+        }
+        .wf-node.selected {
+            border-color: var(--color-brand-primary);
+            box-shadow: 0 0 0 3px rgba(245, 166, 35, 0.22);
+        }
+        .wf-node-header {
+            padding: 6px 12px;
+            border-radius: 6px 6px 0 0;
+            font-size: 11px;
+            font-weight: 600;
+            text-transform: uppercase;
+            letter-spacing: 0.05em;
+        }
+        .wf-node-body {
+            padding: 10px 12px;
+            font-size: 13px;
+            font-weight: 600;
+            color: var(--color-text-strong);
+        }
+        .wf-node-badge {
+            display: inline-block;
+            font-size: 10px;
+            font-weight: 500;
+            padding: 1px 6px;
+            border-radius: 999px;
+            margin-top: 4px;
+        }
+
+        /* Connection lines (SVG) */
+        .connections {
+            position: absolute;
+            inset: 0;
+            pointer-events: none;
+            z-index: 1;
+        }
+        .connections line {
+            stroke: var(--raw-slate-500);
+            stroke-width: 2;
+            marker-end: url(#arrowhead);
+        }
+
+        /* Sidebar */
+        .sidebar {
+            width: 280px;
+            min-width: 280px;
+            background: var(--color-surface-panel);
+            border-left: 1px solid var(--color-border-subtle);
+            display: flex;
+            flex-direction: column;
+            overflow-y: auto;
+        }
+        .sidebar-header {
+            padding: 16px;
+            border-bottom: 1px solid var(--color-border-subtle);
+            font-size: 14px;
+            font-weight: 600;
+            color: var(--color-text-strong);
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        /* Sidebar: empty state */
+        .sidebar-empty {
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+        }
+        .sidebar-empty-hint {
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            padding: 24px;
+            text-align: center;
+        }
+        .sidebar-empty-icon {
+            width: 48px;
+            height: 48px;
+            border-radius: 50%;
+            background: var(--color-surface-canvas);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            margin-bottom: 16px;
+            color: var(--color-text-subtle);
+        }
+        .sidebar-empty-hint h3 {
+            font-size: 14px;
+            font-weight: 600;
+            color: var(--color-text-strong);
+            margin-bottom: 6px;
+        }
+        .sidebar-empty-hint p {
+            font-size: 12px;
+            color: var(--color-text-muted);
+            line-height: 1.5;
+        }
+        .sidebar-stats {
+            padding: 16px;
+            border-top: 1px solid var(--color-border-subtle);
+        }
+        .sidebar-stats h4 {
+            font-size: 11px;
+            font-weight: 600;
+            text-transform: uppercase;
+            letter-spacing: 0.05em;
+            color: var(--color-text-subtle);
+            margin-bottom: 10px;
+        }
+        .stat-row {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 6px 0;
+        }
+        .stat-row span:first-child {
+            font-size: 13px;
+            color: var(--color-text-default);
+        }
+        .stat-row span:last-child {
+            font-size: 13px;
+            font-weight: 600;
+            color: var(--color-text-strong);
+        }
+        .sidebar-actions {
+            padding: 16px;
+            border-top: 1px solid var(--color-border-subtle);
+        }
+
+        /* Sidebar: editing state */
+        .sidebar-edit {
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+        }
+        .sidebar-edit-content {
+            flex: 1;
+            overflow-y: auto;
+        }
+        .sidebar-section {
+            padding: 16px;
+            border-bottom: 1px solid var(--color-border-subtle);
+        }
+        .sidebar-section:last-child {
+            border-bottom: none;
+        }
+
+        /* Form elements */
+        .form-label {
+            display: block;
+            font-size: 12px;
+            font-weight: 600;
+            color: var(--color-text-muted);
+            margin-bottom: 6px;
+        }
+        .form-input {
+            width: 100%;
+            height: 36px;
+            padding: 0 12px;
+            border: 1px solid var(--color-border-default);
+            border-radius: var(--radius-md);
+            font-size: 13px;
+            font-family: var(--font-sans);
+            color: var(--color-text-strong);
+            background: var(--color-surface-panel);
+            outline: none;
+            transition: border-color 0.15s, box-shadow 0.15s;
+        }
+        .form-input:focus {
+            border-color: var(--color-brand-primary);
+            box-shadow: 0 0 0 3px rgba(245, 166, 35, 0.22);
+        }
+
+        .color-picker-row {
+            display: flex;
+            gap: 6px;
+            flex-wrap: wrap;
+        }
+        .color-swatch {
+            width: 28px;
+            height: 28px;
+            border-radius: var(--radius-sm);
+            border: 2px solid transparent;
+            cursor: pointer;
+            transition: all 0.15s;
+        }
+        .color-swatch:hover {
+            transform: scale(1.1);
+        }
+        .color-swatch.active {
+            border-color: var(--color-text-strong);
+            box-shadow: 0 0 0 2px white, 0 0 0 4px var(--color-text-strong);
+        }
+
+        .checkbox-row {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            padding: 6px 0;
+        }
+        .checkbox-row input[type="checkbox"] {
+            width: 16px;
+            height: 16px;
+            accent-color: var(--color-brand-primary);
+            cursor: pointer;
+        }
+        .checkbox-row label {
+            font-size: 13px;
+            color: var(--color-text-default);
+            cursor: pointer;
+        }
+        .checkbox-desc {
+            font-size: 11px;
+            color: var(--color-text-subtle);
+            margin-left: 24px;
+            margin-top: -2px;
+        }
+
+        /* Transition list */
+        .transition-list {
+            display: flex;
+            flex-direction: column;
+            gap: 6px;
+        }
+        .transition-item {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 8px 10px;
+            background: var(--color-surface-panel-subtle);
+            border-radius: var(--radius-sm);
+            font-size: 12px;
+            border: 1px solid var(--color-border-subtle);
+        }
+        .transition-item-name {
+            display: flex;
+            align-items: center;
+            gap: 6px;
+            color: var(--color-text-default);
+            font-weight: 500;
+        }
+        .transition-arrow {
+            color: var(--color-text-subtle);
+            font-size: 14px;
+        }
+        .transition-delete {
+            width: 24px;
+            height: 24px;
+            border: none;
+            background: transparent;
+            color: var(--color-text-subtle);
+            cursor: pointer;
+            border-radius: var(--radius-sm);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            transition: all 0.15s;
+            font-size: 14px;
+        }
+        .transition-delete:hover {
+            background: var(--status-danger-bg);
+            color: var(--status-danger-fg);
+        }
+
+        /* Buttons */
+        .btn {
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            gap: 6px;
+            height: 36px;
+            padding: 0 16px;
+            border-radius: var(--radius-md);
+            font-size: 13px;
+            font-weight: 500;
+            font-family: var(--font-sans);
+            cursor: pointer;
+            transition: all 0.15s;
+            border: 1px solid transparent;
+            width: 100%;
+        }
+        .btn-primary {
+            background: var(--color-brand-primary);
+            color: white;
+            border-color: var(--color-brand-primary);
+        }
+        .btn-primary:hover {
+            background: var(--color-brand-primary-hover);
+        }
+        .btn-ghost {
+            background: transparent;
+            color: var(--color-text-default);
+            border-color: var(--color-border-default);
+        }
+        .btn-ghost:hover {
+            background: var(--color-surface-panel-subtle);
+        }
+        .btn-danger {
+            background: transparent;
+            color: var(--status-danger-fg);
+            border-color: var(--status-danger-fg);
+        }
+        .btn-danger:hover {
+            background: var(--status-danger-bg);
+        }
+
+        /* Status dot */
+        .status-dot {
+            width: 8px;
+            height: 8px;
+            border-radius: 50%;
+            display: inline-block;
+        }
+
+        /* Hidden */
+        .hidden { display: none !important; }
+    </style>
+</head>
+<body>
+
+<div class="page-header">
+    <h1>Workflow Editor Sidebar -- Always Visible</h1>
+    <p>Preview #22 -- Sidebar zustava viditelny i bez vyberu stavu. Prepinani mezi dvema stavy sidebaru.</p>
+</div>
+
+<div class="demo-toggle">
+    <button class="active" id="btn-empty" onclick="showState('empty')">Bez vyberu (placeholder)</button>
+    <button id="btn-edit" onclick="showState('edit')">Stav vybran (editace)</button>
+</div>
+
+<div class="editor-layout">
+    <!-- Canvas -->
+    <div class="canvas" id="canvas">
+        <!-- Toolbar -->
+        <div class="canvas-toolbar">
+            <button title="Vybrat">
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 3l7.07 16.97 2.51-7.39 7.39-2.51L3 3z"/></svg>
+            </button>
+            <button title="Priblizit">
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/><line x1="11" y1="8" x2="11" y2="14"/><line x1="8" y1="11" x2="14" y2="11"/></svg>
+            </button>
+            <button title="Oddalit">
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/><line x1="8" y1="11" x2="14" y2="11"/></svg>
+            </button>
+            <button title="Zarovnat">
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="7" height="7"/><rect x="14" y="3" width="7" height="7"/><rect x="14" y="14" width="7" height="7"/><rect x="3" y="14" width="7" height="7"/></svg>
+            </button>
+        </div>
+
+        <!-- SVG Connections -->
+        <svg class="connections" id="connections-svg">
+            <defs>
+                <marker id="arrowhead" markerWidth="10" markerHeight="7" refX="9" refY="3.5" orient="auto">
+                    <polygon points="0 0, 10 3.5, 0 7" fill="#97a0af"/>
+                </marker>
+            </defs>
+        </svg>
+
+        <!-- Nodes -->
+        <!-- Backlog -->
+        <div class="wf-node" id="node-backlog" style="left: 40px; top: 40px;">
+            <div class="wf-node-header" style="background: var(--status-neutral-bg); color: var(--status-neutral-fg);">Backlog</div>
+            <div class="wf-node-body">
+                Backlog
+                <div><span class="wf-node-badge" style="background: var(--status-info-bg); color: var(--status-info-fg);">Vychozi</span></div>
+            </div>
+        </div>
+
+        <!-- Todo -->
+        <div class="wf-node" id="node-todo" style="left: 260px; top: 40px;">
+            <div class="wf-node-header" style="background: var(--status-info-bg); color: var(--status-info-fg);">Todo</div>
+            <div class="wf-node-body">Todo</div>
+        </div>
+
+        <!-- In Progress -->
+        <div class="wf-node" id="node-inprogress" style="left: 260px; top: 180px;" onclick="showState('edit')">
+            <div class="wf-node-header" style="background: var(--status-warning-bg); color: var(--status-warning-fg);">In Progress</div>
+            <div class="wf-node-body">In Progress</div>
+        </div>
+
+        <!-- Code Review -->
+        <div class="wf-node" id="node-review" style="left: 480px; top: 180px;">
+            <div class="wf-node-header" style="background: var(--status-review-bg); color: var(--status-review-fg);">Review</div>
+            <div class="wf-node-body">Code Review</div>
+        </div>
+
+        <!-- Done -->
+        <div class="wf-node" id="node-done" style="left: 480px; top: 40px;">
+            <div class="wf-node-header" style="background: var(--status-success-bg); color: var(--status-success-fg);">Hotovo</div>
+            <div class="wf-node-body">
+                Done
+                <div><span class="wf-node-badge" style="background: var(--status-success-bg); color: var(--status-success-fg);">Hotovo</span></div>
+            </div>
+        </div>
+
+        <!-- Cancelled -->
+        <div class="wf-node" id="node-cancelled" style="left: 40px; top: 300px;">
+            <div class="wf-node-header" style="background: var(--status-danger-bg); color: var(--status-danger-fg);">Zruseno</div>
+            <div class="wf-node-body">
+                Cancelled
+                <div><span class="wf-node-badge" style="background: var(--status-danger-bg); color: var(--status-danger-fg);">Zruseno</span> <span class="wf-node-badge" style="background: var(--raw-slate-200); color: var(--raw-slate-700);">Odkudkoliv</span></div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Sidebar: Empty State -->
+    <div class="sidebar" id="sidebar-empty">
+        <div class="sidebar-header">
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 20h9"/><path d="M16.5 3.5a2.121 2.121 0 0 1 3 3L7 19l-4 1 1-4L16.5 3.5z"/></svg>
+            Vlastnosti
+        </div>
+        <div class="sidebar-empty">
+            <div class="sidebar-empty-hint">
+                <div class="sidebar-empty-icon">
+                    <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5">
+                        <path d="M3 3l7.07 16.97 2.51-7.39 7.39-2.51L3 3z"/>
+                        <path d="M13 13l6 6" stroke-linecap="round"/>
+                    </svg>
+                </div>
+                <h3>Kliknete na stav pro upravu</h3>
+                <p>Nebo tahnete z uzlu na uzel pro vytvoreni prechodu</p>
+            </div>
+            <div class="sidebar-stats">
+                <h4>Prehled workflow</h4>
+                <div class="stat-row">
+                    <span>Pocet stavu</span>
+                    <span>6</span>
+                </div>
+                <div class="stat-row">
+                    <span>Pocet prechodu</span>
+                    <span>7</span>
+                </div>
+                <div class="stat-row">
+                    <span>Vychozi stav</span>
+                    <span style="display:flex; align-items:center; gap:4px;"><span class="status-dot" style="background: var(--raw-slate-500);"></span> Backlog</span>
+                </div>
+                <div class="stat-row">
+                    <span>Konecne stavy</span>
+                    <span>2</span>
+                </div>
+            </div>
+            <div class="sidebar-actions">
+                <button class="btn btn-primary">
+                    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
+                    Pridat novy stav
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Sidebar: Edit State -->
+    <div class="sidebar hidden" id="sidebar-edit">
+        <div class="sidebar-header" style="justify-content: space-between;">
+            <span style="display:flex; align-items:center; gap:8px;">
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 20h9"/><path d="M16.5 3.5a2.121 2.121 0 0 1 3 3L7 19l-4 1 1-4L16.5 3.5z"/></svg>
+                Upravit stav
+            </span>
+            <button onclick="showState('empty')" style="background:none; border:none; cursor:pointer; color:var(--color-text-subtle); padding:4px;" title="Zavrit">
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
+            </button>
+        </div>
+        <div class="sidebar-edit">
+            <div class="sidebar-edit-content">
+                <!-- Name -->
+                <div class="sidebar-section">
+                    <label class="form-label">Nazev stavu</label>
+                    <input class="form-input" type="text" value="In Progress">
+                </div>
+
+                <!-- Color -->
+                <div class="sidebar-section">
+                    <label class="form-label">Barva</label>
+                    <div class="color-picker-row">
+                        <div class="color-swatch" style="background: #dfe1e6;" title="Seda"></div>
+                        <div class="color-swatch" style="background: #deebff;" title="Modra"></div>
+                        <div class="color-swatch active" style="background: #fff0b3;" title="Zluta"></div>
+                        <div class="color-swatch" style="background: #e3fcef;" title="Zelena"></div>
+                        <div class="color-swatch" style="background: #ffebe6;" title="Cervena"></div>
+                        <div class="color-swatch" style="background: #eae6ff;" title="Fialova"></div>
+                    </div>
+                </div>
+
+                <!-- Flags -->
+                <div class="sidebar-section">
+                    <label class="form-label">Priznak</label>
+                    <div class="checkbox-row">
+                        <input type="checkbox" id="chk-default">
+                        <label for="chk-default">Vychozi stav</label>
+                    </div>
+                    <div class="checkbox-desc">Novy ukolys zacina v tomto stavu</div>
+                    <div class="checkbox-row">
+                        <input type="checkbox" id="chk-done">
+                        <label for="chk-done">Hotovo (done)</label>
+                    </div>
+                    <div class="checkbox-desc">Oznacuje ukol jako dokonceny</div>
+                    <div class="checkbox-row">
+                        <input type="checkbox" id="chk-cancelled">
+                        <label for="chk-cancelled">Zruseno (cancelled)</label>
+                    </div>
+                    <div class="checkbox-desc">Oznacuje ukol jako zruseny</div>
+                    <div class="checkbox-row">
+                        <input type="checkbox" id="chk-global">
+                        <label for="chk-global">Odkudkoliv</label>
+                    </div>
+                    <div class="checkbox-desc">Prechod z libovolneho stavu</div>
+                </div>
+
+                <!-- Transitions FROM -->
+                <div class="sidebar-section">
+                    <label class="form-label">Prechody Z tohoto stavu</label>
+                    <div class="transition-list">
+                        <div class="transition-item">
+                            <span class="transition-item-name">
+                                <span class="transition-arrow">&rarr;</span>
+                                Code Review
+                            </span>
+                            <button class="transition-delete" title="Smazat prechod">
+                                <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
+                            </button>
+                        </div>
+                        <div class="transition-item">
+                            <span class="transition-item-name">
+                                <span class="transition-arrow">&rarr;</span>
+                                Todo
+                            </span>
+                            <button class="transition-delete" title="Smazat prechod">
+                                <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
+                            </button>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Transitions TO -->
+                <div class="sidebar-section">
+                    <label class="form-label">Prechody DO tohoto stavu</label>
+                    <div class="transition-list">
+                        <div class="transition-item">
+                            <span class="transition-item-name">
+                                <span class="transition-arrow">&larr;</span>
+                                Todo
+                            </span>
+                        </div>
+                        <div class="transition-item">
+                            <span class="transition-item-name">
+                                <span class="transition-arrow">&larr;</span>
+                                Backlog
+                            </span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Delete button -->
+            <div class="sidebar-actions" style="border-top: 1px solid var(--color-border-subtle);">
+                <button class="btn btn-danger">
+                    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="3 6 5 6 21 6"/><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"/></svg>
+                    Smazat stav
+                </button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+    // Draw connections between nodes
+    function drawConnections() {
+        const svg = document.getElementById('connections-svg');
+        const canvas = document.getElementById('canvas');
+        const rect = canvas.getBoundingClientRect();
+
+        // Clear existing lines
+        svg.querySelectorAll('line').forEach(l => l.remove());
+
+        const connections = [
+            ['node-backlog', 'node-todo'],
+            ['node-backlog', 'node-inprogress'],
+            ['node-todo', 'node-inprogress'],
+            ['node-inprogress', 'node-review'],
+            ['node-review', 'node-done'],
+            ['node-review', 'node-inprogress'],
+            ['node-todo', 'node-done'],
+        ];
+
+        connections.forEach(([fromId, toId]) => {
+            const from = document.getElementById(fromId);
+            const to = document.getElementById(toId);
+            if (!from || !to) return;
+
+            const fromRect = from.getBoundingClientRect();
+            const toRect = to.getBoundingClientRect();
+
+            const x1 = fromRect.left + fromRect.width / 2 - rect.left;
+            const y1 = fromRect.top + fromRect.height / 2 - rect.top;
+            const x2 = toRect.left + toRect.width / 2 - rect.left;
+            const y2 = toRect.top + toRect.height / 2 - rect.top;
+
+            // Calculate edge intersection points
+            const dx = x2 - x1;
+            const dy = y2 - y1;
+            const len = Math.sqrt(dx * dx + dy * dy);
+            if (len === 0) return;
+
+            const nx = dx / len;
+            const ny = dy / len;
+
+            // Offset from center to edge of node
+            const sx1 = x1 + nx * (fromRect.width / 2);
+            const sy1 = y1 + ny * (fromRect.height / 2);
+            const sx2 = x2 - nx * (toRect.width / 2 + 4);
+            const sy2 = y2 - ny * (toRect.height / 2 + 4);
+
+            const line = document.createElementNS('http://www.w3.org/2000/svg', 'line');
+            line.setAttribute('x1', sx1);
+            line.setAttribute('y1', sy1);
+            line.setAttribute('x2', sx2);
+            line.setAttribute('y2', sy2);
+            svg.appendChild(line);
+        });
+    }
+
+    // State toggle
+    function showState(state) {
+        const emptyPanel = document.getElementById('sidebar-empty');
+        const editPanel = document.getElementById('sidebar-edit');
+        const btnEmpty = document.getElementById('btn-empty');
+        const btnEdit = document.getElementById('btn-edit');
+        const nodeInProgress = document.getElementById('node-inprogress');
+
+        if (state === 'empty') {
+            emptyPanel.classList.remove('hidden');
+            editPanel.classList.add('hidden');
+            btnEmpty.classList.add('active');
+            btnEdit.classList.remove('active');
+            // Deselect all nodes
+            document.querySelectorAll('.wf-node').forEach(n => n.classList.remove('selected'));
+        } else {
+            emptyPanel.classList.add('hidden');
+            editPanel.classList.remove('hidden');
+            btnEdit.classList.add('active');
+            btnEmpty.classList.remove('active');
+            // Select In Progress node
+            document.querySelectorAll('.wf-node').forEach(n => n.classList.remove('selected'));
+            nodeInProgress.classList.add('selected');
+        }
+    }
+
+    // Draw on load
+    window.addEventListener('load', drawConnections);
+    window.addEventListener('resize', drawConnections);
+</script>
+
+</body>
+</html>

@@ -5,8 +5,10 @@ declare(strict_types=1);
 namespace App\Modules\Projects\Controllers;
 
 use App\Http\Controllers\Controller;
+use App\Models\User;
 use App\Modules\Projects\Models\Project;
 use App\Modules\Projects\Models\WorkflowStatus;
+use App\Modules\Work\Models\Epic;
 use App\Modules\Work\Models\TimeEntry;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Gate;
@@ -129,7 +131,7 @@ class ReportController extends Controller
             ->withSum(['tasks as tasks_done_sp_sum' => fn ($q) => $q->whereHas('workflowStatus', fn ($ws) => $ws->where('is_done', true))], 'story_points')
             ->orderBy('title')
             ->get()
-            ->map(fn ($epic) => [
+            ->map(fn (Epic $epic) => [
                 'id' => $epic->id,
                 'title' => $epic->title,
                 'tasks_count' => $epic->tasks_count,
@@ -150,7 +152,7 @@ class ReportController extends Controller
     {
         $members = $project->members()->select('users.id', 'users.name')->get();
 
-        return $members->map(function ($member) use ($project) {
+        return $members->map(function (User $member) use ($project) {
             $assigned = $project->tasks()->where('assignee_id', $member->id)->count();
             $completed = $project->tasks()
                 ->where('assignee_id', $member->id)

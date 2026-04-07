@@ -10,6 +10,7 @@ use App\Modules\Projects\Models\Project;
 use App\Modules\Projects\Models\WorkflowStatus;
 use App\Modules\Work\Models\Epic;
 use App\Modules\Work\Models\TimeEntry;
+use Illuminate\Database\Eloquent\Collection;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Gate;
 use Inertia\Inertia;
@@ -43,7 +44,7 @@ class ReportController extends Controller
     private function taskStats(Project $project): array
     {
         $total = $project->tasks()->count();
-        /** @var \Illuminate\Database\Eloquent\Collection<int, WorkflowStatus> $wsCollection */
+        /** @var Collection<int, WorkflowStatus> $wsCollection */
         $wsCollection = $project->workflowStatuses()
             ->withCount(['tasks' => fn ($q) => $q->where('project_id', $project->id)])
             ->get();
@@ -123,7 +124,7 @@ class ReportController extends Controller
      */
     private function epicProgress(Project $project): array
     {
-        /** @var \Illuminate\Database\Eloquent\Collection<int, Epic> $epics */
+        /** @var Collection<int, Epic> $epics */
         $epics = $project->epics()
             ->withCount([
                 'tasks',
@@ -152,7 +153,7 @@ class ReportController extends Controller
      */
     private function memberActivity(Project $project): array
     {
-        /** @var \Illuminate\Database\Eloquent\Collection<int, User> $members */
+        /** @var Collection<int, User> $members */
         $members = $project->members()->select('users.id', 'users.name')->get();
 
         return $members->map(function (User $member) use ($project) {

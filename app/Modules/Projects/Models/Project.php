@@ -38,6 +38,7 @@ class Project extends Model
         'description',
         'status',
         'project_type',
+        'workflow_template_id',
         'data_classification',
         'owner_id',
         'team_id',

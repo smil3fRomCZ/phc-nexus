@@ -48,6 +48,7 @@ export default function TimeLogSection({
     const [hours, setHours] = useState('');
     const [note, setNote] = useState('');
     const [submitting, setSubmitting] = useState(false);
+    const [error, setError] = useState<string | null>(null);
     const [deleteTarget, setDeleteTarget] = useState<string | null>(null);
 
     const defaultSummary: SummaryItem[] = [
@@ -60,6 +61,7 @@ export default function TimeLogSection({
         e.preventDefault();
         if (!hours || submitting) return;
         setSubmitting(true);
+        setError(null);
         router.post(
             postUrl,
             { date, hours: parseFloat(hours), note: note || null },
@@ -68,6 +70,9 @@ export default function TimeLogSection({
                 onSuccess: () => {
                     setHours('');
                     setNote('');
+                },
+                onError: () => {
+                    setError('Nepodařilo se zalogovat čas. Zkontrolujte zadané hodnoty.');
                 },
                 preserveScroll: true,
             },
@@ -122,6 +127,13 @@ export default function TimeLogSection({
                     </div>
                 )}
             </div>
+
+            {/* Error message */}
+            {error && (
+                <div className="mb-4 rounded-md bg-status-danger-subtle px-4 py-2 text-sm text-status-danger">
+                    {error}
+                </div>
+            )}
 
             {/* Add form */}
             <form onSubmit={handleSubmit} className="mb-4 flex flex-wrap items-end gap-2">

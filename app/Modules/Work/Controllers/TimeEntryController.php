@@ -9,13 +9,13 @@ use App\Modules\Projects\Models\Project;
 use App\Modules\Work\Models\Epic;
 use App\Modules\Work\Models\Task;
 use App\Modules\Work\Models\TimeEntry;
-use Illuminate\Http\JsonResponse;
+use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Gate;
 
 final class TimeEntryController extends Controller
 {
-    public function store(Request $request, Project $project, ?Task $task = null): JsonResponse
+    public function store(Request $request, Project $project, ?Task $task = null): RedirectResponse
     {
         Gate::authorize('view', $project);
 
@@ -33,10 +33,10 @@ final class TimeEntryController extends Controller
             'user_id' => $request->user()->id,
         ]);
 
-        return response()->json(['success' => true]);
+        return back();
     }
 
-    public function storeForEpic(Request $request, Project $project, Epic $epic): JsonResponse
+    public function storeForEpic(Request $request, Project $project, Epic $epic): RedirectResponse
     {
         Gate::authorize('view', $project);
 
@@ -54,10 +54,10 @@ final class TimeEntryController extends Controller
             'user_id' => $request->user()->id,
         ]);
 
-        return response()->json(['success' => true]);
+        return back();
     }
 
-    public function destroy(Request $request, TimeEntry $timeEntry): JsonResponse
+    public function destroy(Request $request, TimeEntry $timeEntry): RedirectResponse
     {
         if ($timeEntry->user_id !== $request->user()->id) {
             abort(403);
@@ -65,6 +65,6 @@ final class TimeEntryController extends Controller
 
         $timeEntry->delete();
 
-        return response()->json(['success' => true]);
+        return back();
     }
 }

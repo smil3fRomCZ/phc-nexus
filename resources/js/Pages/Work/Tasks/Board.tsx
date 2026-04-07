@@ -16,7 +16,7 @@ import ProjectTabs from '@/Components/ProjectTabs';
 import ConfirmModal from '@/Components/ConfirmModal';
 import Modal from '@/Components/Modal';
 import { useFilterRouter } from '@/hooks/useFilterRouter';
-import { useState, type DragEvent } from 'react';
+import { useEffect, useState, type DragEvent } from 'react';
 
 interface Column {
     id: string | null;
@@ -83,6 +83,11 @@ export default function TaskBoard({
         boardSettings?.card_fields ?? ['priority', 'assignee', 'comments_count'],
     );
 
+    // Synchronizovat lokální stav sloupců s props při Inertia page visit
+    useEffect(() => {
+        setColumns(initialColumns);
+    }, [initialColumns]);
+
     const breadcrumbs: Breadcrumb[] = [
         { label: 'Domů', href: '/' },
         { label: 'Projekty', href: '/projects' },
@@ -135,8 +140,6 @@ export default function TaskBoard({
 
         if (!sourceTask || sourceStatus === targetStatus) return;
 
-        const snapshot = columns;
-
         setColumns((prev) =>
             prev.map((col) => {
                 if (col.status === sourceStatus) {
@@ -159,10 +162,11 @@ export default function TaskBoard({
             body: JSON.stringify({ status: targetStatus }),
         }).then(async (res) => {
             if (!res.ok) {
-                setColumns(snapshot);
                 const data = await res.json().catch(() => null);
                 setModalMessage(data?.error ?? 'Změna stavu se nezdařila.');
             }
+            // Vždy synchronizovat stav se serverem — ať už úspěch nebo chyba
+            router.reload();
         });
     }
 

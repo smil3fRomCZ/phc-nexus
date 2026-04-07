@@ -28,7 +28,7 @@ class TimeEntryTest extends TestCase
             'note' => 'Implementace',
         ]);
 
-        $response->assertOk();
+        $response->assertRedirect();
         $this->assertDatabaseHas('time_entries', [
             'project_id' => $project->id,
             'task_id' => $task->id,
@@ -49,7 +49,7 @@ class TimeEntryTest extends TestCase
             'hours' => 1.0,
         ]);
 
-        $response->assertOk();
+        $response->assertRedirect();
         $this->assertDatabaseHas('time_entries', [
             'project_id' => $project->id,
             'epic_id' => $epic->id,
@@ -69,7 +69,7 @@ class TimeEntryTest extends TestCase
             'note' => 'Meeting',
         ]);
 
-        $response->assertOk();
+        $response->assertRedirect();
         $this->assertDatabaseHas('time_entries', [
             'project_id' => $project->id,
             'task_id' => null,
@@ -129,7 +129,7 @@ class TimeEntryTest extends TestCase
 
         $response = $this->actingAs($user)->deleteJson("/time-entries/{$entry->id}");
 
-        $response->assertOk();
+        $response->assertRedirect();
         $this->assertDatabaseMissing('time_entries', ['id' => $entry->id]);
     }
 

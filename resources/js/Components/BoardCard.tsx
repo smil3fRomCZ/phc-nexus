@@ -34,7 +34,16 @@ interface Props {
     onDragEnd?: () => void;
 }
 
-export default function BoardCard({ task, projectId, projectKey, cardFields, isDragging, isDone, onDragStart, onDragEnd }: Props) {
+export default function BoardCard({
+    task,
+    projectId,
+    projectKey,
+    cardFields,
+    isDragging,
+    isDone,
+    onDragStart,
+    onDragEnd,
+}: Props) {
     const priority = getPriority(task.priority);
 
     function shows(field: string) {

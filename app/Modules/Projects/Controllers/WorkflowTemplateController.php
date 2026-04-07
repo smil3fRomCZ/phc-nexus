@@ -137,7 +137,9 @@ class WorkflowTemplateController extends Controller
             $project->workflowStatuses()->delete();
         }
 
+        /** @var array<string, string> $statusMap */
         $statusMap = [];
+        /** @var WorkflowTemplateStatus $ts */
         foreach ($template->statuses as $ts) {
             $ws = $project->workflowStatuses()->create([
                 'name' => $ts->name,
@@ -152,6 +154,7 @@ class WorkflowTemplateController extends Controller
             $statusMap[$ts->id] = $ws->getAttribute('id');
         }
 
+        /** @var WorkflowTemplateTransition $tt */
         foreach ($template->transitions as $tt) {
             if (isset($statusMap[$tt->from_status_id], $statusMap[$tt->to_status_id])) {
                 $project->workflowTransitions()->create([

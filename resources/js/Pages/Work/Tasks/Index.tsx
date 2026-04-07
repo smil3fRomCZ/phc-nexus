@@ -61,9 +61,12 @@ export default function TasksIndex({ project, epic, tasks }: Props) {
         <AppLayout title={`${project.key} — Úkoly`} breadcrumbs={breadcrumbs}>
             <div className="mb-6 flex items-center justify-between">
                 <h1 className="text-xl md:text-2xl font-bold leading-tight text-text-strong">
-                    Úkoly{epic ? ` — ${epic.title}` : ''}
+                    {epic ? `Úkoly — ${epic.title}` : 'Nezařazené úkoly'}
                 </h1>
             </div>
+            {!epic && (
+                <p className="mb-4 text-sm text-text-muted">Úkoly, které zatím nejsou přiřazeny žádnému epicu.</p>
+            )}
 
             {/* Quick add */}
             <form onSubmit={submit} className="mb-6 flex items-end gap-2">

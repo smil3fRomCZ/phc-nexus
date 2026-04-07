@@ -41,6 +41,7 @@ class Task extends Model
         'assignee_id',
         'reporter_id',
         'sort_order',
+        'start_date',
         'due_date',
         'recurrence_rule',
         'recurrence_next_at',
@@ -57,6 +58,7 @@ class Task extends Model
     {
         return [
             'priority' => TaskPriority::class,
+            'start_date' => 'date',
             'due_date' => 'date',
             'recurrence_rule' => RecurrenceRule::class,
             'recurrence_next_at' => 'date',

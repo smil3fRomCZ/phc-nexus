@@ -64,6 +64,7 @@ interface Task {
     assignee: { id: string; name: string } | null;
     reporter: { id: string; name: string } | null;
     epic: { id: string; title: string } | null;
+    start_date: string | null;
     due_date: string | null;
     data_classification: string;
     story_points: number | null;
@@ -167,6 +168,8 @@ export default function TaskShow({
                 priority: task.priority,
                 assignee_id: task.assignee?.id ?? '',
                 reporter_id: task.reporter?.id ?? '',
+                epic_id: task.epic?.id ?? '',
+                start_date: toDateInputValue(task.start_date),
                 due_date: toDateInputValue(task.due_date),
                 story_points: task.story_points,
                 estimated_hours: task.estimated_hours,
@@ -433,6 +436,15 @@ export default function TaskShow({
                                 </SidebarSection>
                             )}
 
+                            <SidebarSection label="Začátek">
+                                <input
+                                    type="date"
+                                    value={toDateInputValue(task.start_date)}
+                                    onChange={(e) => inlineUpdate({ start_date: e.target.value || null })}
+                                    className="w-full rounded border border-transparent bg-transparent px-0 py-0.5 text-sm transition-colors hover:border-border-default focus:border-border-focus focus:outline-none"
+                                />
+                            </SidebarSection>
+
                             <SidebarSection label="Termín">
                                 <input
                                     type="date"
@@ -671,6 +683,7 @@ function TaskEditDialog({
         assignee_id: task.assignee?.id ?? '',
         reporter_id: task.reporter?.id ?? '',
         epic_id: task.epic?.id ?? '',
+        start_date: toDateInputValue(task.start_date),
         due_date: toDateInputValue(task.due_date),
     });
 
@@ -793,6 +806,17 @@ function TaskEditDialog({
                             type="date"
                             value={data.due_date}
                             onChange={(e) => setData('due_date', e.target.value)}
+                            className="mt-1 w-full rounded-md border border-border-default bg-surface-primary px-3 py-2 text-sm focus:border-border-focus focus:outline-none focus:shadow-[0_0_0_2px_var(--color-brand-soft)]"
+                        />
+                    </EditField>
+                </div>
+
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                    <EditField label="Začátek" error={errors.start_date}>
+                        <input
+                            type="date"
+                            value={data.start_date}
+                            onChange={(e) => setData('start_date', e.target.value)}
                             className="mt-1 w-full rounded-md border border-border-default bg-surface-primary px-3 py-2 text-sm focus:border-border-focus focus:outline-none focus:shadow-[0_0_0_2px_var(--color-brand-soft)]"
                         />
                     </EditField>

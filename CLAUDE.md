@@ -25,7 +25,7 @@ Tento soubor je hlavní instrukční sada pro Claude Code agenty pracující na 
 | Auth | Laravel Socialite (Google SSO) |
 | Files | Laravel Filesystem (local / S3-compatible) |
 | Infra | Docker + Docker Compose, Caddy (reverse proxy + TLS), PHP-FPM |
-| Admin | Filament 5 / Livewire 4 (pouze technická administrace, ne core UI) |
+| Admin | Custom React/Inertia admin stránky (users, org, audit, PHI report, approval analytics) |
 | CI | GitHub Actions (lint + test + build) |
 
 ## Module Structure
@@ -34,12 +34,15 @@ Tento soubor je hlavní instrukční sada pro Claude Code agenty pracující na 
 app/Modules/
   Auth/           — Google SSO, invite flow, onboarding
   Organization/   — oddělení, týmy, tribes, uživatelé
-  Projects/       — projekty CRUD, členství, role
-  Work/           — epiky, úkoly, stavové přechody, kanban, tabulka
+  Projects/       — projekty CRUD, členství, workflow engine, šablony, reporty, export
+  Work/           — epiky, úkoly, kanban, tabulka, dependencies, recurrence, time logging, story points
   Approvals/      — requesty, votes, delegace, reminders
   Notifications/  — in-app (DB-backed), email
   Audit/          — append-only audit trail, PHI access log
+  Comments/       — polymorfní threaded komentáře
+  Estimation/     — Planning Poker, multi-round hlasování, story point odhady
   Files/          — upload, verzování, storage contract
+  Wiki/           — projektová a epic dokumentace, stromová struktura stránek
 ```
 
 Každý modul obsahuje: `Models/`, `Actions/` (use-cases), `Controllers/`, `Policies/`, `Resources/` (Inertia), `Events/`, `Listeners/`, `Jobs/`, `Enums/`, `Routes/`, `Tests/`
@@ -57,7 +60,7 @@ Každý modul obsahuje: `Models/`, `Actions/` (use-cases), `Controllers/`, `Poli
 ## Docker Development
 
 - `docker compose -f docker-compose.yml -f docker-compose.dev.yml up` spustí dev prostředí — žádné lokální PHP/Node instalace
-- Kontejnery: `app` (PHP-FPM), `worker`, `scheduler`, `postgres`, `redis-cache`, `redis-data`, `caddy`
+- Kontejnery: `app` (PHP-FPM), `worker`, `scheduler`, `vite` (dev HMR), `postgres`, `redis-cache`, `redis-data`, `caddy`, `mailpit`
 - Jeden Dockerfile, jeden image, více runtime rolí (CMD override)
 - Stejný image pro local / staging / production
 - Detaily: `docs/dev-workflow.md`

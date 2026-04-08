@@ -8,15 +8,19 @@ Navrženo pro 50–200 uživatelů. Invite-only přístup přes Google SSO.
 
 ### Projektové řízení
 
-- **Projekty** — CRUD, členství, projektové klíče, export do CSV/Excel/HTML/Markdown
-- **Epiky a úkoly** — hierarchie, přiřazení, priority, due dates, benefit type, popis (rich text)
-- **Kanban board** — drag & drop sloupce podle workflow statusu, per-user nastavení polí na kartách, filtry (řešitel, epic)
+- **Projekty** — CRUD, členství, projektové klíče, projektové typy, export do CSV/Excel/HTML/Markdown
+- **Epiky a úkoly** — hierarchie, přiřazení, priority, due dates, start date, benefit type, popis (rich text)
+- **Kanban board** — drag & drop sloupce podle workflow statusu, per-user nastavení polí na kartách, filtry (řešitel, epic), drag&drop validace
 - **Tabulkový view** — řazení, filtrování, inline změna statusu, bulk operace
-- **Workflow engine** — vlastní stavy a přechody per projekt, vizuální editor (React Flow), dynamický StatusBadge
+- **Workflow engine** — vlastní stavy a přechody per projekt, vizuální editor (React Flow), dynamický StatusBadge, vždy viditelný sidebar
+- **Workflow templates** — globální šablony workflow nezávislé na projektu, aplikovatelné na libovolný projekt
+- **Story points** — odhady na úkolech, vazba na Planning Poker
 - **Task dependencies** — blocker/blocked by vazby mezi úkoly
 - **Recurring tasks** — denní, týdenní, dvoutýdenní, měsíční opakování
 - **Calendar** — měsíční pohled úkolů podle due date
-- **Time logging** — záznamy odpracovaného času na úkolech a epicích
+- **Time logging** — záznamy odpracovaného času na úkolech a epicích, editace záznamů, export času
+- **Reporty** — záložka Reporty s přehledem projektu (metriky, statistiky)
+- **Planning Poker** — estimační sessions s multi-round hlasováním, reveal, confirm/revote, finální story points
 
 ### Dokumentace
 
@@ -43,6 +47,7 @@ Navrženo pro 50–200 uživatelů. Invite-only přístup přes Google SSO.
 
 - **User management** — seznam, role, status, vyhledávání, pozvánky
 - **Organizační struktura** — oddělení → týmy → uživatelé
+- **Profil** — editovatelný uživatelský profil s avatarem, bio, titul, telefon
 - **Audit log** — kompletní trail všech akcí, filtrování
 - **PHI access report** — kdo přistupoval k chráněným zdravotním údajům
 - **PHI klasifikace** — PHI/Non-PHI/Unknown na entitách, export guard
@@ -59,7 +64,9 @@ Navrženo pro 50–200 uživatelů. Invite-only přístup přes Google SSO.
 - **Activity timeline** — vizualizace historie změn na úkolech
 - **Action icon buttons** — kompaktní icon-only akce s tooltip popisem (edit, delete, duplicate…)
 - **Inline editace** — assignee, priorita, due date přímo v sidebaru
+- **Editace komentářů** — inline editace existujících komentářů
 - **Pagination** — na všech seznamech
+- **Klávesové zkratky** — Shift+Enter pro komentáře, Cmd+Enter pro formuláře
 - **Error handling** — globální error modal pro HTTP chyby (404/500), zavíratelný křížkem/klikem mimo/Escape
 
 ## Quick Start
@@ -99,23 +106,24 @@ Google SSO (invite-only). Nové uživatele zvou Executive nebo Project Manager z
 | DB           | PostgreSQL 17 (UUIDv7 PK, JSONB)                                         |
 | Cache/Queues | Redis dual (cache allkeys-lru + data noeviction), Horizon                |
 | Auth         | Laravel Socialite (Google SSO)                                           |
-| Infra        | Docker Compose (8 kontejnerů), Caddy (reverse proxy + TLS), PHP-FPM      |
+| Infra        | Docker Compose (9 kontejnerů), Caddy (reverse proxy + TLS), PHP-FPM      |
 | CI           | GitHub Actions (Pint + PHPStan + ESLint + Prettier + testy + Vite build) |
 
 ### Architektura
 
-Modulární monolit s 10 doménovými moduly:
+Modulární monolit s 11 doménovými moduly:
 
 ```
 app/Modules/
   Auth/           — Google SSO, invite flow, login/logout
   Organization/   — Division, Team, Tribe, User management
-  Projects/       — Projekty CRUD, membership, export
-  Work/           — Epiky, úkoly, kanban, tabulka, dependencies, recurrence, time logging, workflow engine
+  Projects/       — Projekty CRUD, membership, workflow engine, šablony, reporty, export
+  Work/           — Epiky, úkoly, kanban, tabulka, dependencies, recurrence, time logging, story points
   Approvals/      — Approval requesty, hlasování, analytics
   Notifications/  — In-app (DB) + email notifikace
   Audit/          — Append-only audit trail, PHI klasifikace a access guard
   Comments/       — Polymorfní threaded komentáře
+  Estimation/     — Planning Poker, multi-round hlasování, story point odhady
   Files/          — Polymorfní přílohy, upload/download, PHI guard
   Wiki/           — Projektová a epic dokumentace, stromová struktura stránek
 ```
@@ -126,7 +134,8 @@ app/Modules/
 | ----------- | -------------------- | ------------------------------------------------------------------- |
 | app         | PHP 8.4-FPM Alpine   | Hlavní aplikace (entrypoint sync public assets do sdíleného volume) |
 | worker      | Horizon              | Queue processing                                                    |
-| scheduler   | Laravel Scheduler    | Cron úlohy (recurring tasks)                                        |
+| scheduler   | Laravel Scheduler    | Cron úlohy (recurring tasks, approval reminders)                    |
+| vite        | Node 22 Alpine       | Vite dev server s HMR (pouze dev)                                   |
 | caddy       | Caddy 2 Alpine       | Reverse proxy, auto-TLS (Let's Encrypt v produkci)                  |
 | postgres    | PostgreSQL 17 Alpine | Databáze                                                            |
 | redis-cache | Redis 7 Alpine       | Cache (allkeys-lru)                                                 |

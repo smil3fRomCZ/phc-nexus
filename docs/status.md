@@ -2,7 +2,7 @@
 
 Živý dokument mapující co je **reálně implementováno** vs. plánováno. Aktualizuje se po každém milestone a významné změně.
 
-> Poslední aktualizace: 2026-04-01
+> Poslední aktualizace: 2026-04-08
 
 ---
 
@@ -29,6 +29,10 @@
 | — | Staging Environment | **DONE** | Staging na dev.phc-nexus.eu, sdílený Caddy, DB sync s anonymizací, deploy workflow (staging auto + prod approve) |
 | — | Workflow & Wiki Sprint | **DONE** | Workflow engine, dynamický StatusBadge, wiki → dokumentace, epic dokumentace, error modal, RichTextEditor fix |
 | — | E-commerce Demo Seed | **DONE** | Nový DemoSeeder s e-commerce daty, 4 vlastní workflow, staging auto-seed |
+| — | UI Polish Sprint | **DONE** | 9 kol UI polishingu — reusable komponenty, profil, avatar, tooltips, icon buttony, klávesové zkratky, projektové typy |
+| — | Story Points & Estimation | **DONE** | Story points na úkolech, Planning Poker modul (multi-round hlasování) |
+| — | Workflow Templates & Reports | **DONE** | Globální workflow šablony, záložka Reporty, workflow editor sidebar |
+| — | Planning UX | **DONE** | Start date úkolů, drag&drop validace, editace worklogu, epic linking, backlog UX |
 
 ---
 
@@ -199,13 +203,14 @@
 |-------|--------|---------------|
 | Auth | **Aktivní** | Google SSO, login/logout, invite flow (72h expirace), HandleInertiaRequests middleware |
 | Organization | **Aktivní** | Division, Team, Tribe modely, SystemRole + UserStatus enumy, User management stránka, invite UI, org structure view |
-| Projects | **Aktivní** | Project CRUD, membership, comments, attachments, CSV/Excel/HTML/MD export, ProjectPolicy |
-| Work | **Aktivní** | Epic CRUD + edit dialog, Task CRUD + full edit dialog, kanban board (drag&drop, per-user card settings, filtry), tabulkový view (bulk status change), workflow engine (custom stavy/přechody, vizuální editor), dynamický StatusBadge, task dependencies, recurring tasks, calendar view, activity timeline, inline editace, time logging, benefit type |
+| Projects | **Aktivní** | Project CRUD, membership, projektové typy, comments, attachments, CSV/Excel/HTML/MD export, workflow engine (custom stavy/přechody, vizuální editor, sidebar), workflow templates (globální šablony), reporty, ProjectPolicy |
+| Work | **Aktivní** | Epic CRUD + edit dialog, Task CRUD + full edit dialog, kanban board (drag&drop validace, per-user card settings, filtry), tabulkový view (bulk status change), dynamický StatusBadge, task dependencies, recurring tasks, calendar view, activity timeline, inline editace, time logging (CRUD + export), story points, start date, benefit type, epic linking |
 | Approvals | **Aktivní** | Approval request/vote flow, create approval UI, global approvals stránka, approval analytics (statistiky, avg resolution), cancel, expirace, approval blocking (blokuje status change) |
 | Notifications | **Aktivní** | 4 notification třídy, DB + email kanály, deep links, toast zprávy, TaskAssigned/TaskStatusChanged triggery |
 | Audit | **Aktivní** | AuditEntry (append-only), AuditService, Auditable trait, PHI klasifikace/guard, audit log viewer, PHI access report |
 | Comments | **Aktivní** | Polymorfní threaded komentáře na tasks, projects, epics, wiki stránky, sdílená CommentsSection komponenta |
 | Files | **Aktivní** | Polymorfní přílohy na tasks, projects, epics, wiki stránky, sdílená AttachmentsSection komponenta, PHI download guard |
+| Estimation | **Aktivní** | Planning Poker sessions, multi-round hlasování (vote/reveal/confirm/revote), vazba na story points úkolů |
 | Wiki | **Aktivní** | Projektová dokumentace (stromová struktura), epic dokumentace (vlastní stránky), komentáře + přílohy na stránkách, rich text editor (TipTap) |
 
 ---
@@ -256,14 +261,108 @@
 
 ---
 
+## UI Polish Sprint (DONE)
+
+> 2026-04-02 – 2026-04-04, PR #106–#119
+
+### Reusable komponenty a architektura
+- MetadataGrid, FilterBar, TabBar, PersonChip, StatusBadge — sdílené komponenty napříč celou aplikací
+- Sjednocení filtrů a řazení (useSortable hook)
+- Modaly vyextrahované do sdílených komponent
+
+### Profil a avatar
+- Editovatelný uživatelský profil (bio, titul, telefon)
+- Upload avataru, avatar v headeru aplikace
+- Profilové stránky s avatarem
+
+### UX vylepšení
+- Editace komentářů inline
+- Icon-only action buttony s tooltips
+- Shift+Enter pro odeslání komentářů, Cmd+Enter pro formuláře
+- Inline description editace
+- Projektové typy (typ projektu na Create/Edit)
+- Správa členů projektu s role managementem
+- DateRangePicker sjednocení
+- Export času (TimeExportController + TimeEntryExporter)
+- Organizace redesign (admin stránky)
+- Lucide ikony v notifikacích
+- Kalendář fix, závislosti v main content
+
+### Seed a previews
+- Testerské účty s executive rolí v DemoSeederu
+- HTML previews přesunuty do docs/previews/
+
+---
+
+## Story Points & Estimation (DONE)
+
+> 2026-04-07, PR #121–#122
+
+### Story points
+- `story_points` sloupec na tasks tabulce
+- Odhady hodin na úkolech
+- Zobrazení na kartách kanbanu a v tabulce
+
+### Planning Poker (nový modul: Estimation)
+- `EstimationSession`, `EstimationRound`, `EstimationVote` modely
+- EstimationController s CRUD sessions + round operacemi
+- Multi-round hlasování: vote → reveal → confirm/revote
+- Session completion s finálním story points
+- React stránky: Estimation/Index.tsx, Estimation/Show.tsx
+- Routes: `/projects/{project}/estimation/`
+
+---
+
+## Workflow Templates & Reports (DONE)
+
+> 2026-04-07, PR #120, #123–#124
+
+### Workflow templates
+- `WorkflowTemplate`, `WorkflowTemplateStatus`, `WorkflowTemplateTransition` modely
+- Globální šablony nezávislé na projektu
+- CRUD šablon + aplikace na projekt (applyToProject)
+- React stránky: WorkflowTemplates.tsx, WorkflowTemplateEdit.tsx
+
+### Workflow editor UX
+- Vždy viditelný sidebar s placeholder stavem (místo skrytého panelu)
+
+### Project Reports
+- ReportController s přehledem projektu
+- React stránka: Projects/Reports.tsx
+- Záložka Reporty na project detail
+
+---
+
+## Planning UX (DONE)
+
+> 2026-04-07 – 2026-04-08, PR #125–#128
+
+### Vylepšení plánování
+- `start_date` sloupec na tasks tabulce
+- Drag&drop validace na kanbanu (reset při neplatném přesunu)
+- Přejmenování backlogu v UI
+- Quick-add proporce a backlog inline-add
+
+### Worklog a vazby
+- Editace worklogu (time entries CRUD)
+- Epic linking v úkolu (přiřazení úkolu k epiku)
+- Quick-add z projektu (rychlé vytvoření úkolu)
+
+### Opravy
+- Stale state fix v time log, boardu a backlogu
+- Estimation 500 error fix
+- Staging deploy zachová existující data (místo migrate:fresh)
+
+---
+
 ## Známé limitace a technický dluh
 
-1. ~~**Worker nefunguje**~~ — Vyřešeno: Horizon nainstalován, worker běží. Dashboard na `/horizon`.
-2. ~~**Vite HMR v Dockeru**~~ — Vyřešeno: separátní `vite` kontejner (node:22-alpine), Caddy proxy na `vite:5173` včetně WebSocket.
-3. ~~**Testy běží na SQLite in-memory**~~ — Vyřešeno: `phpunit.pgsql.xml` pro opt-in PostgreSQL testy (`composer test:pgsql`). SQLite zůstává default pro rychlý feedback.
-4. ~~**Žádné seed data**~~ — Vyřešeno: DemoSeeder s e-commerce demo daty — 4 projekty (ESHOP, SEO, LOYAL, WMS), 4 vlastní workflow, 53 tasků, wiki, time entries, approvals, dependencies, recurrence. Staging auto-seed při každém deployi.
-5. ~~**Design tokeny částečně**~~ — Vyřešeno: kompletní token set včetně form states, skeleton, transitions. `docs/design/design-tokens.md` v1.0.
-6. ~~**Produkce servíruje staré CSS/JS**~~ — Vyřešeno: sdílený named volume `app-public` mezi app a Caddy, entrypoint sync skript kopíruje public assets z image při každém startu kontejneru.
+_Všechny původní limitace (worker, Vite HMR, testy, seed data, design tokeny, public assets) byly vyřešeny._
+
+Aktuální stav:
+1. **Module READMEs neexistují** — `app/Modules/*/README.md` zatím nevytvořeny (CLAUDE.md je vyžaduje)
+2. **Events/Listeners prázdné** — adresáře existují, ale event-driven architektura zatím nevyužita (notifikace dispatchují přímo)
+3. **Filament nepoužíván** — admin sekce je custom React/Inertia, Filament nikdy nebyl integrován
 
 ---
 
@@ -307,3 +406,16 @@
 | 2026-04-01 | Workflow | Dynamický StatusBadge na všech stránkách (Dashboard, MyTasks, Board karty, GlobalSearch, Epic Show) s fallbackem na enum — PR #87 |
 | 2026-04-01 | Wiki | Wiki → Dokumentace přejmenování, wiki komentáře + přílohy fix (404), epic dokumentace (epic_id FK, CRUD, EpicIndex/EpicShow stránky, záložka na Epic Show), RichTextEditor fix selekce, globální ErrorModal (404/500) — PR #88 |
 | 2026-04-01 | Seed | E-commerce DemoSeeder: 4 projekty (ESHOP/SEO/LOYAL/WMS), 4 vlastní workflow (dev/marketing/simple/logistics), 53 tasků, 13 epiků, 11 uživatelů, wiki hierarchie, time entries, approvals, dependencies, recurrence. Production guard. Staging deploy změněn na migrate:fresh --seed — PR #97–#99 |
+| 2026-04-02 | UI Polish | 9 kol UI polishingu (PR #106–#117): reusable komponenty (MetadataGrid, FilterBar, TabBar, PersonChip, StatusBadge), editovatelný profil s avatarem, avatar v headeru, editace komentářů, sjednocení filtrů, tooltips, icon buttony, Shift+Enter komentáře, Cmd+Enter formuláře, kalendář fix, inline description, projektové typy, správa členů projektu, DateRangePicker, export času, organizace redesign, lucide ikony v notifikacích |
+| 2026-04-03 | Seed | Testerské účty s executive rolí v DemoSeederu — PR #118 |
+| 2026-04-04 | Previews | HTML previews přesunuty do docs/previews/, bugfix kanban nastavení — PR #119 |
+| 2026-04-04 | Workflow | Workflow editor sidebar vždy viditelný s placeholder stavem — PR #120 |
+| 2026-04-07 | Work | Story points a odhady hodin na úkolech — PR #121 |
+| 2026-04-07 | Estimation | Nový modul: Planning Poker — EstimationSession, EstimationRound, EstimationVote, multi-round hlasování (vote/reveal/confirm/revote), vazba na story points — PR #122 |
+| 2026-04-07 | Workflow | Globální workflow šablony nezávislé na projektu (WorkflowTemplate CRUD, aplikace na projekt) — PR #123 |
+| 2026-04-07 | Reports | Záložka Reporty s přehledem projektu (metriky, statistiky) — PR #124 |
+| 2026-04-07 | Fix | Oprava stale state a chybějícího error handlingu v time log, boardu a backlogu — PR #125 |
+| 2026-04-07 | Work | Editace worklogu, epic linking v úkolu, quick-add z projektu — PR #126 |
+| 2026-04-08 | Planning | Start date úkolů, drag&drop validace na kanbanu, přejmenování backlogu — PR #127 |
+| 2026-04-08 | Fix | Kanban drag reset, estimation 500 fix, quick-add proporce, backlog inline-add — PR #128 |
+| 2026-04-08 | Deploy | Staging deploy zachová existující data místo migrate:fresh |

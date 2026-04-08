@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace App\Http\Controllers;
 
+use App\Modules\Audit\Enums\PhiClassification;
 use App\Modules\Audit\PhiAccessGuard;
 use App\Modules\Organization\Enums\SystemRole;
 use App\Modules\Projects\Models\Project;
@@ -40,7 +41,7 @@ final class SearchController extends Controller
                         ->orWhereHas('members', fn ($m) => $m->where('user_id', $user->id));
                 });
             })
-            ->when(! $hasPhiClearance, fn ($q) => $q->nonPhi())
+            ->when(! $hasPhiClearance, fn ($q) => $q->where('data_classification', PhiClassification::NonPhi->value))
             ->limit(5)
             ->get(['id', 'name', 'key', 'status']);
 
@@ -52,7 +53,7 @@ final class SearchController extends Controller
                     $sub->where('owner_id', $user->id)
                         ->orWhereHas('members', fn ($m) => $m->where('user_id', $user->id));
                 });
-                $q->when(! $hasPhiClearance, fn ($sub) => $sub->nonPhi());
+                $q->when(! $hasPhiClearance, fn ($sub) => $sub->where('data_classification', PhiClassification::NonPhi->value));
             })
             ->limit(5)
             ->get(['id', 'title', 'project_id', 'workflow_status_id']);

@@ -7,8 +7,8 @@ use App\Modules\Auth\Controllers\InvitationController;
 use App\Modules\Auth\Controllers\LoginController;
 use Illuminate\Support\Facades\Route;
 
-// Guest routes
-Route::middleware('guest')->group(function () {
+// Guest routes — rate limited (6 attempts per minute)
+Route::middleware(['guest', 'throttle:6,1'])->group(function () {
     Route::get('/login', [LoginController::class, 'show'])->name('login');
     Route::get('/auth/google', [GoogleAuthController::class, 'redirect'])->name('auth.google');
     Route::get('/auth/google/callback', [GoogleAuthController::class, 'callback'])->name('auth.google.callback');
@@ -18,5 +18,5 @@ Route::middleware('guest')->group(function () {
 // Authenticated routes
 Route::middleware('auth')->group(function () {
     Route::post('/logout', [LoginController::class, 'logout'])->name('logout');
-    Route::post('/invitations', [InvitationController::class, 'store'])->name('invitations.store');
+    Route::post('/invitations', [InvitationController::class, 'store'])->middleware('throttle:10,1')->name('invitations.store');
 });

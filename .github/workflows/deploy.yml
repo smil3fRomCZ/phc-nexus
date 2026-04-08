@@ -1,5 +1,8 @@
 name: Deploy
 
+permissions:
+  contents: read
+
 on:
   # Automaticky po merge do master (po úspěšném CI)
   push:
@@ -45,7 +48,7 @@ jobs:
 
       - name: Build Docker image na VPS
         run: |
-          ssh -i ~/.ssh/deploy_key -o StrictHostKeyChecking=no ${{ secrets.VPS_USER }}@${{ secrets.VPS_HOST }} 'set -e
+          ssh -i ~/.ssh/deploy_key -o StrictHostKeyChecking=accept-new ${{ secrets.VPS_USER }}@${{ secrets.VPS_HOST }} 'set -e
             cd /opt/phc-nexus
 
             echo "=== Pulling latest code ==="
@@ -81,7 +84,7 @@ jobs:
 
       - name: Deploy staging
         run: |
-          ssh -i ~/.ssh/deploy_key -o StrictHostKeyChecking=no ${{ secrets.VPS_USER }}@${{ secrets.VPS_HOST }} 'set -e
+          ssh -i ~/.ssh/deploy_key -o StrictHostKeyChecking=accept-new ${{ secrets.VPS_USER }}@${{ secrets.VPS_HOST }} 'set -e
             cd /opt/phc-nexus-staging
 
             echo "=== Starting staging services ==="
@@ -131,7 +134,7 @@ jobs:
 
       - name: Deploy production
         run: |
-          ssh -i ~/.ssh/deploy_key -o StrictHostKeyChecking=no ${{ secrets.VPS_USER }}@${{ secrets.VPS_HOST }} 'set -e
+          ssh -i ~/.ssh/deploy_key -o StrictHostKeyChecking=accept-new ${{ secrets.VPS_USER }}@${{ secrets.VPS_HOST }} 'set -e
             cd /opt/phc-nexus
 
             echo "=== Starting production services ==="

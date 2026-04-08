@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace App\Http\Controllers;
 
 use App\Modules\Approvals\Models\ApprovalRequest;
+use App\Modules\Audit\PhiAccessGuard;
 use App\Modules\Projects\Models\Project;
 use App\Modules\Work\Models\Task;
 use Illuminate\Http\Request;
@@ -13,13 +14,15 @@ use Inertia\Response;
 
 final class DashboardController extends Controller
 {
-    public function __invoke(Request $request): Response
+    public function __invoke(Request $request, PhiAccessGuard $phiGuard): Response
     {
         $user = $request->user();
+        $hasPhiClearance = $phiGuard->userHasPhiClearance($user);
 
         $myTasks = Task::query()
             ->with(['project:id,name,key', 'workflowStatus:id,name,color'])
             ->where('assignee_id', $user->id)
+            ->when(! $hasPhiClearance, fn ($q) => $q->whereHas('project', fn ($p) => $p->nonPhi()))
             ->whereHas('workflowStatus', fn ($q) => $q->where('is_done', false)->where('is_cancelled', false))
             ->orderByRaw('CASE WHEN due_date IS NOT NULL AND due_date < ? THEN 0 ELSE 1 END', [now()])
             ->orderBy('due_date')
@@ -54,16 +57,20 @@ final class DashboardController extends Controller
 
         $stats = [
             'active_tasks' => Task::where('assignee_id', $user->id)
+                ->when(! $hasPhiClearance, fn ($q) => $q->whereHas('project', fn ($p) => $p->nonPhi()))
                 ->whereHas('workflowStatus', fn ($q) => $q->where('is_done', false)->where('is_cancelled', false)->where('is_initial', false))
                 ->count(),
             'pending_approvals' => $pendingApprovals->count(),
             'overdue' => Task::where('assignee_id', $user->id)
+                ->when(! $hasPhiClearance, fn ($q) => $q->whereHas('project', fn ($p) => $p->nonPhi()))
                 ->whereHas('workflowStatus', fn ($q) => $q->where('is_done', false)->where('is_cancelled', false))
                 ->whereNotNull('due_date')
                 ->where('due_date', '<', now())
                 ->count(),
-            'my_projects' => Project::where('owner_id', $user->id)
-                ->orWhereHas('members', fn ($q) => $q->where('user_id', $user->id))
+            'my_projects' => Project::query()
+                ->when(! $hasPhiClearance, fn ($q) => $q->nonPhi())
+                ->where(fn ($q) => $q->where('owner_id', $user->id)
+                    ->orWhereHas('members', fn ($m) => $m->where('user_id', $user->id)))
                 ->count(),
         ];
 

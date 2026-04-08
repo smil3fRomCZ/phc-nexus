@@ -22,7 +22,10 @@ export default function RichTextEditor({
             StarterKit.configure({
                 heading: { levels: [2, 3] },
             }),
-            Link.configure({ openOnClick: false }),
+            Link.configure({
+                openOnClick: false,
+                protocols: ['http', 'https', 'mailto'],
+            }),
             Placeholder.configure({ placeholder }),
         ],
         content,
@@ -34,6 +37,15 @@ export default function RichTextEditor({
 
     if (!editor) return null;
 
+    function isValidUrl(input: string): boolean {
+        try {
+            const parsed = new URL(input);
+            return ['http:', 'https:', 'mailto:'].includes(parsed.protocol);
+        } catch {
+            return false;
+        }
+    }
+
     function toggleLink() {
         if (!editor) return;
         if (editor.isActive('link')) {
@@ -41,7 +53,7 @@ export default function RichTextEditor({
             return;
         }
         const url = prompt('URL odkazu:');
-        if (url) {
+        if (url && isValidUrl(url)) {
             editor.chain().focus().extendMarkRange('link').setLink({ href: url }).run();
         }
     }

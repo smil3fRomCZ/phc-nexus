@@ -39,7 +39,7 @@ final class TaskController extends Controller
         // JSON response pro API volání (např. estimation session create, attach to epic)
         if ($request->input('format') === 'json') {
             if ($request->filled('search')) {
-                $query->where('title', 'ilike', '%' . $request->input('search') . '%');
+                $query->where('title', 'ilike', '%'.$request->input('search').'%');
             }
             if ($request->filled('status')) {
                 $query->where('workflow_status_id', $request->input('status'));

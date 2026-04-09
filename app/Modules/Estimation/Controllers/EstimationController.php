@@ -23,7 +23,7 @@ class EstimationController extends Controller
     {
         Gate::authorize('view', $project);
 
-        $sessions = $project->estimationSessions()
+        $sessions = $project->sessions()
             ->with('creator:id,name')
             ->withCount('rounds')
             ->orderByDesc('created_at')

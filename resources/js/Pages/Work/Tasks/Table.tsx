@@ -3,6 +3,7 @@ import type { Breadcrumb } from '@/Layouts/AppLayout';
 import Button from '@/Components/Button';
 import EmptyState from '@/Components/EmptyState';
 import FilterSelect from '@/Components/FilterSelect';
+import SearchableSelect from '@/Components/SearchableSelect';
 import FormSelect from '@/Components/FormSelect';
 import SortableHeader, { PlainHeader } from '@/Components/SortableHeader';
 import { useFilterRouter } from '@/hooks/useFilterRouter';
@@ -118,7 +119,7 @@ export default function TaskTable({ project, tasks, filters, statuses, prioritie
                     options={priorities}
                     placeholder="Všechny"
                 />
-                <FilterSelect
+                <SearchableSelect
                     label="Řešitel"
                     value={filters.assignee_id ?? ''}
                     onChange={(v) => applyFilter('assignee_id', v)}

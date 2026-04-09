@@ -3,7 +3,7 @@ import StatusBadge from '@/Components/StatusBadge';
 import { getPriority } from '@/constants/priority';
 import { displayKey } from '@/utils/displayKey';
 import { formatDate } from '@/utils/formatDate';
-import { Link } from '@inertiajs/react';
+import { router } from '@inertiajs/react';
 import { Layers, MessageSquare, ShieldAlert } from 'lucide-react';
 import type { DragEvent } from 'react';
 
@@ -50,25 +50,28 @@ export default function BoardCard({
         return cardFields.includes(field);
     }
 
+    function handleCardClick(e: React.MouseEvent) {
+        // Neklikej pokud bylo přetahování nebo kliknutí na interaktivní element
+        if (e.defaultPrevented) return;
+        router.visit(`/projects/${projectId}/tasks/${task.id}`);
+    }
+
     return (
         <div
             draggable
             onDragStart={(e) => onDragStart(e, task.id)}
             onDragEnd={onDragEnd}
-            className={`cursor-grab rounded-md border border-border-subtle bg-surface-primary p-2.5 shadow-sm transition-opacity hover:border-brand-muted hover:shadow-md active:cursor-grabbing ${
+            onClick={handleCardClick}
+            className={`cursor-pointer rounded-md border border-border-subtle bg-surface-primary p-2.5 shadow-sm transition-opacity hover:border-brand-muted hover:shadow-md active:cursor-grabbing ${
                 isDragging ? 'opacity-50' : ''
             } ${isDone ? 'opacity-65' : ''}`}
         >
-            <Link
-                href={`/projects/${projectId}/tasks/${task.id}`}
-                draggable={false}
-                className="line-clamp-2 text-sm font-medium leading-snug text-text-strong no-underline hover:text-brand-primary"
-            >
+            <div className="line-clamp-2 text-sm font-medium leading-snug text-text-strong">
                 <span className="mr-1 text-xs font-semibold text-text-muted">
                     {displayKey(projectKey, task.number)}
                 </span>
                 {task.title}
-            </Link>
+            </div>
 
             {shows('status') && task.workflow_status && (
                 <div className="mt-1">

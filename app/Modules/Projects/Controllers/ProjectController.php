@@ -177,10 +177,10 @@ final class ProjectController extends Controller
         Gate::authorize('view', $project);
 
         $tasks = $project->tasks()
-            ->with(['assignee:id,name', 'epic:id,title', 'workflowStatus:id,name,is_done'])
+            ->with(['assignee:id,name', 'epic:id,title', 'workflowStatus:id,name,is_done', 'blockers:id'])
             ->whereNotNull('due_date')
             ->orderBy('due_date')
-            ->get(['id', 'title', 'number', 'due_date', 'created_at', 'assignee_id', 'epic_id', 'workflow_status_id']);
+            ->get(['id', 'title', 'number', 'due_date', 'start_date', 'created_at', 'assignee_id', 'epic_id', 'workflow_status_id']);
 
         $epics = $project->epics()
             ->whereNotNull('target_date')
@@ -204,10 +204,16 @@ final class ProjectController extends Controller
             ->get();
         $totalHours = (float) $project->timeEntries()->sum('hours');
 
+        $availableTasks = $project->tasks()
+            ->select('id', 'title', 'number')
+            ->orderBy('number')
+            ->get();
+
         return Inertia::render('Projects/Time', [
             'project' => $project->only('id', 'name', 'key', 'status'),
             'timeEntries' => $timeEntries,
             'totalHours' => $totalHours,
+            'availableTasks' => $availableTasks,
         ]);
     }
 

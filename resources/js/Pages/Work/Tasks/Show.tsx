@@ -970,7 +970,7 @@ function DependenciesPanel({
     task: Task;
     projectTasks: ProjectTask[];
 }) {
-    const [adding, setAdding] = useState(false);
+    const [addingType, setAddingType] = useState<'blocker' | 'blocking' | null>(null);
     const [selectedId, setSelectedId] = useState('');
 
     const csrfToken = document.querySelector<HTMLMetaElement>('meta[name="csrf-token"]')?.content ?? '';
@@ -983,7 +983,22 @@ function DependenciesPanel({
             body: JSON.stringify({ blocker_id: selectedId }),
         }).then((res) => {
             if (res.ok) {
-                setAdding(false);
+                setAddingType(null);
+                setSelectedId('');
+                router.reload();
+            }
+        });
+    }
+
+    function addBlocking() {
+        if (!selectedId) return;
+        fetch(`/projects/${project.id}/tasks/${task.id}/blocking`, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json', 'X-CSRF-TOKEN': csrfToken, Accept: 'application/json' },
+            body: JSON.stringify({ blocked_id: selectedId }),
+        }).then((res) => {
+            if (res.ok) {
+                setAddingType(null);
                 setSelectedId('');
                 router.reload();
             }
@@ -992,6 +1007,15 @@ function DependenciesPanel({
 
     function removeBlocker(blockerId: string) {
         fetch(`/projects/${project.id}/tasks/${task.id}/dependencies/${blockerId}`, {
+            method: 'DELETE',
+            headers: { 'X-CSRF-TOKEN': csrfToken, Accept: 'application/json' },
+        }).then((res) => {
+            if (res.ok) router.reload();
+        });
+    }
+
+    function removeBlocking(blockedId: string) {
+        fetch(`/projects/${project.id}/tasks/${task.id}/blocking/${blockedId}`, {
             method: 'DELETE',
             headers: { 'X-CSRF-TOKEN': csrfToken, Accept: 'application/json' },
         }).then((res) => {
@@ -1039,19 +1063,28 @@ function DependenciesPanel({
                             >
                                 {b.title}
                             </Link>
+                            <button
+                                onClick={() => removeBlocking(b.id)}
+                                className="ml-auto rounded p-1.5 text-text-subtle hover:bg-status-danger-subtle hover:text-status-danger"
+                            >
+                                <X className="h-3 w-3" />
+                            </button>
                         </div>
                     ))}
                 </div>
             )}
 
-            {adding ? (
+            {addingType ? (
                 <div className="space-y-1">
+                    <div className="text-xs font-medium text-text-subtle">
+                        {addingType === 'blocker' ? 'Blokováno čím:' : 'Blokuje co:'}
+                    </div>
                     <select
                         value={selectedId}
                         onChange={(e) => setSelectedId(e.target.value)}
                         className="w-full rounded border border-border-default bg-surface-primary px-2 py-1 text-xs focus:border-border-focus focus:outline-none"
                     >
-                        <option value="">Vyberte blokaci...</option>
+                        <option value="">Vyberte úkol...</option>
                         {available.map((t) => (
                             <option key={t.id} value={t.id}>
                                 {t.title}
@@ -1060,14 +1093,17 @@ function DependenciesPanel({
                     </select>
                     <div className="flex gap-1">
                         <button
-                            onClick={addBlocker}
+                            onClick={addingType === 'blocker' ? addBlocker : addBlocking}
                             disabled={!selectedId}
                             className="rounded bg-brand-primary px-2 py-1 text-xs text-text-inverse disabled:opacity-50"
                         >
                             Přidat
                         </button>
                         <button
-                            onClick={() => setAdding(false)}
+                            onClick={() => {
+                                setAddingType(null);
+                                setSelectedId('');
+                            }}
                             className="rounded px-1 py-1 text-xs text-text-muted hover:bg-surface-hover"
                         >
                             <X className="h-3 w-3" />
@@ -1075,13 +1111,22 @@ function DependenciesPanel({
                     </div>
                 </div>
             ) : (
-                <button
-                    onClick={() => setAdding(true)}
-                    className="flex items-center gap-1 text-xs text-text-muted hover:text-brand-primary"
-                >
-                    <Plus className="h-3 w-3" />
-                    Přidat blokaci
-                </button>
+                <div className="flex gap-2">
+                    <button
+                        onClick={() => setAddingType('blocker')}
+                        className="flex items-center gap-1 text-xs text-text-muted hover:text-brand-primary"
+                    >
+                        <Plus className="h-3 w-3" />
+                        Je blokováno
+                    </button>
+                    <button
+                        onClick={() => setAddingType('blocking')}
+                        className="flex items-center gap-1 text-xs text-text-muted hover:text-brand-primary"
+                    >
+                        <Plus className="h-3 w-3" />
+                        Blokuje
+                    </button>
+                </div>
             )}
         </div>
     );

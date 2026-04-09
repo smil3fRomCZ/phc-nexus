@@ -36,4 +36,28 @@ final class TaskDependencyController extends Controller
 
         return response()->json(['success' => true]);
     }
+
+    public function storeBlocking(Request $request, Project $project, Task $task): JsonResponse
+    {
+        Gate::authorize('update', $task);
+
+        $validated = $request->validate([
+            'blocked_id' => ['required', 'uuid', 'exists:tasks,id'],
+        ]);
+
+        abort_if($validated['blocked_id'] === $task->id, 422, 'Úkol nemůže blokovat sám sebe.');
+
+        $task->blocking()->syncWithoutDetaching([$validated['blocked_id']]);
+
+        return response()->json(['success' => true]);
+    }
+
+    public function destroyBlocking(Request $request, Project $project, Task $task, Task $blocked): JsonResponse
+    {
+        Gate::authorize('update', $task);
+
+        $task->blocking()->detach($blocked->id);
+
+        return response()->json(['success' => true]);
+    }
 }

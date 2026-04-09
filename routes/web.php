@@ -7,6 +7,7 @@ use App\Http\Controllers\CalendarController;
 use App\Http\Controllers\DashboardController;
 use App\Http\Controllers\GlobalApprovalsController;
 use App\Http\Controllers\MyTasksController;
+use App\Http\Controllers\MyTimesheetController;
 use App\Http\Controllers\SearchController;
 use App\Models\User;
 use App\Modules\Organization\Controllers\ProfileController;
@@ -18,6 +19,7 @@ Route::middleware('auth')->group(function () {
     Route::get('/', DashboardController::class)->name('dashboard');
     Route::get('/search', SearchController::class)->name('search');
     Route::get('/my-tasks', MyTasksController::class)->name('my-tasks');
+    Route::get('/my-time', MyTimesheetController::class)->name('my-time');
     Route::get('/approvals', GlobalApprovalsController::class)->name('approvals.global');
     Route::get('/calendar', CalendarController::class)->name('calendar');
     Route::get('/admin/approval-analytics', ApprovalAnalyticsController::class)->name('admin.approval-analytics');

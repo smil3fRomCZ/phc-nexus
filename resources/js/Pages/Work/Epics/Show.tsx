@@ -242,7 +242,12 @@ export default function EpicShow({
                                     </div>
                                 )}
 
-                                <QuickAddTask projectId={project.id} epicId={epic.id} />
+                                <div className="flex flex-wrap items-center gap-2">
+                                    <div className="flex-1">
+                                        <QuickAddTask projectId={project.id} epicId={epic.id} />
+                                    </div>
+                                    <AttachExistingTask projectId={project.id} epicId={epic.id} />
+                                </div>
 
                                 {epic.tasks.length > 0 && (
                                     <div className="mt-2 overflow-x-auto">
@@ -521,6 +526,104 @@ function QuickAddTask({ projectId, epicId }: { projectId: string; epicId: string
                 Přidat
             </button>
         </form>
+    );
+}
+
+function AttachExistingTask({ projectId, epicId }: { projectId: string; epicId: string }) {
+    const [open, setOpen] = useState(false);
+    const [tasks, setTasks] = useState<{ id: string; number: number; title: string }[]>([]);
+    const [loading, setLoading] = useState(false);
+    const [search, setSearch] = useState('');
+
+    function loadTasks() {
+        setLoading(true);
+        const params = new URLSearchParams({ format: 'json', no_epic: '1' });
+        if (search) params.append('search', search);
+        fetch(`/projects/${projectId}/tasks?${params}`)
+            .then((res) => res.json())
+            .then((json) => {
+                setTasks(json.tasks ?? []);
+                setLoading(false);
+            })
+            .catch(() => setLoading(false));
+    }
+
+    function attachTask(taskId: string) {
+        router.put(
+            `/projects/${projectId}/tasks/${taskId}`,
+            { epic_id: epicId },
+            {
+                preserveScroll: true,
+                onSuccess: () => {
+                    setTasks((prev) => prev.filter((t) => t.id !== taskId));
+                    router.reload();
+                },
+            },
+        );
+    }
+
+    function handleOpen() {
+        setOpen(true);
+        setSearch('');
+        loadTasks();
+    }
+
+    return (
+        <>
+            <button
+                type="button"
+                onClick={handleOpen}
+                className="inline-flex items-center gap-1 rounded-md border border-border-default px-2.5 py-1.5 text-xs font-medium text-text-muted transition-colors hover:bg-surface-hover hover:text-text-default"
+            >
+                <Plus className="h-3 w-3" />
+                Připojit existující
+            </button>
+
+            <Modal open={open} onClose={() => setOpen(false)} size="max-w-md">
+                <h3 className="mb-3 text-base font-bold text-text-strong">Připojit úkol k epicu</h3>
+                <input
+                    type="text"
+                    value={search}
+                    onChange={(e) => {
+                        setSearch(e.target.value);
+                        setLoading(true);
+                        const params = new URLSearchParams({ format: 'json', no_epic: '1' });
+                        if (e.target.value) params.append('search', e.target.value);
+                        fetch(`/projects/${projectId}/tasks?${params}`)
+                            .then((res) => res.json())
+                            .then((json) => {
+                                setTasks(json.tasks ?? []);
+                                setLoading(false);
+                            })
+                            .catch(() => setLoading(false));
+                    }}
+                    placeholder="Hledat úkoly..."
+                    className="mb-3 w-full rounded border border-border-default bg-surface-primary px-2.5 py-1.5 text-xs focus:border-border-focus focus:outline-none"
+                    autoFocus
+                />
+                <div className="max-h-64 overflow-y-auto rounded-md border border-border-subtle">
+                    {loading && <p className="p-3 text-xs text-text-muted">Načítání...</p>}
+                    {!loading && tasks.length === 0 && <p className="p-3 text-xs text-text-muted">Žádné volné úkoly</p>}
+                    {tasks.map((task) => (
+                        <div
+                            key={task.id}
+                            className="flex items-center justify-between px-3 py-2 text-sm hover:bg-surface-hover"
+                        >
+                            <div>
+                                <span className="text-xs font-semibold text-text-muted">#{task.number}</span>{' '}
+                                <span className="text-text-default">{task.title}</span>
+                            </div>
+                            <button
+                                onClick={() => attachTask(task.id)}
+                                className="rounded bg-brand-primary px-2 py-1 text-xs font-medium text-text-inverse hover:bg-brand-hover"
+                            >
+                                Připojit
+                            </button>
+                        </div>
+                    ))}
+                </div>
+            </Modal>
+        </>
     );
 }
 

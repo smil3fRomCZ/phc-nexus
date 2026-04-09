@@ -97,6 +97,13 @@ export default function EstimationIndex({ project, sessions }: Props) {
     );
 }
 
+interface TaskOption {
+    id: string;
+    number: number;
+    title: string;
+    workflow_status?: { id: string; name: string } | null;
+}
+
 function CreateSessionDialog({ projectId, onClose }: { projectId: string; onClose: () => void }) {
     const { data, setData, post, processing, errors } = useForm({
         name: '',
@@ -104,13 +111,35 @@ function CreateSessionDialog({ projectId, onClose }: { projectId: string; onClos
         task_ids: [] as string[],
     });
 
-    const [tasks, setTasks] = useState<{ id: string; number: number; title: string }[]>([]);
+    const [tasks, setTasks] = useState<TaskOption[]>([]);
     const [loading, setLoading] = useState(false);
+    const [loaded, setLoaded] = useState(false);
+    const [search, setSearch] = useState('');
+    const [statusFilter, setStatusFilter] = useState('');
 
     function loadTasks() {
-        if (tasks.length > 0) return;
+        if (loaded && !search && !statusFilter) return;
         setLoading(true);
-        fetch(`/projects/${projectId}/tasks?format=json`)
+        const params = new URLSearchParams({ format: 'json' });
+        if (search) params.append('search', search);
+        if (statusFilter) params.append('status', statusFilter);
+        fetch(`/projects/${projectId}/tasks?${params}`)
+            .then((res) => res.json())
+            .then((json) => {
+                setTasks(json.tasks ?? []);
+                setLoaded(true);
+                setLoading(false);
+            })
+            .catch(() => setLoading(false));
+    }
+
+    function onSearchChange(value: string) {
+        setSearch(value);
+        setLoading(true);
+        const params = new URLSearchParams({ format: 'json' });
+        if (value) params.append('search', value);
+        if (statusFilter) params.append('status', statusFilter);
+        fetch(`/projects/${projectId}/tasks?${params}`)
             .then((res) => res.json())
             .then((json) => {
                 setTasks(json.tasks ?? []);
@@ -118,6 +147,26 @@ function CreateSessionDialog({ projectId, onClose }: { projectId: string; onClos
             })
             .catch(() => setLoading(false));
     }
+
+    function onStatusChange(value: string) {
+        setStatusFilter(value);
+        setLoading(true);
+        const params = new URLSearchParams({ format: 'json' });
+        if (search) params.append('search', search);
+        if (value) params.append('status', value);
+        fetch(`/projects/${projectId}/tasks?${params}`)
+            .then((res) => res.json())
+            .then((json) => {
+                setTasks(json.tasks ?? []);
+                setLoading(false);
+            })
+            .catch(() => setLoading(false));
+    }
+
+    const statuses = Array.from(
+        new Map(tasks.filter((t) => t.workflow_status).map((t) => [t.workflow_status!.id, t.workflow_status!.name])),
+        ([value, label]) => ({ value, label }),
+    );
 
     function toggleTask(id: string) {
         setData(
@@ -181,6 +230,30 @@ function CreateSessionDialog({ projectId, onClose }: { projectId: string; onClos
                     <label className="mb-1 block text-xs font-semibold uppercase tracking-wider text-text-subtle">
                         Úkoly k odhadu ({data.task_ids.length} vybráno)
                     </label>
+                    <div className="mb-2 flex gap-2">
+                        <input
+                            type="text"
+                            value={search}
+                            onChange={(e) => onSearchChange(e.target.value)}
+                            placeholder="Hledat úkoly..."
+                            className="flex-1 rounded border border-border-default bg-surface-primary px-2.5 py-1.5 text-xs focus:border-border-focus focus:outline-none"
+                            onFocus={loadTasks}
+                        />
+                        {statuses.length > 0 && (
+                            <select
+                                value={statusFilter}
+                                onChange={(e) => onStatusChange(e.target.value)}
+                                className="rounded border border-border-default bg-surface-primary px-2 py-1.5 text-xs focus:border-border-focus focus:outline-none"
+                            >
+                                <option value="">Všechny stavy</option>
+                                {statuses.map((s) => (
+                                    <option key={s.value} value={s.value}>
+                                        {s.label}
+                                    </option>
+                                ))}
+                            </select>
+                        )}
+                    </div>
                     <div
                         className="max-h-48 overflow-y-auto rounded-md border border-border-subtle"
                         onFocus={loadTasks}
@@ -188,7 +261,9 @@ function CreateSessionDialog({ projectId, onClose }: { projectId: string; onClos
                     >
                         {loading && <p className="p-3 text-xs text-text-muted">Načítání...</p>}
                         {!loading && tasks.length === 0 && (
-                            <p className="p-3 text-xs text-text-muted">Klikněte pro načtení úkolů</p>
+                            <p className="p-3 text-xs text-text-muted">
+                                {loaded ? 'Žádné úkoly neodpovídají filtru' : 'Klikněte pro načtení úkolů'}
+                            </p>
                         )}
                         {tasks.map((task) => (
                             <label
@@ -203,6 +278,11 @@ function CreateSessionDialog({ projectId, onClose }: { projectId: string; onClos
                                 />
                                 <span className="text-xs font-semibold text-text-muted">#{task.number}</span>
                                 <span className="truncate text-text-default">{task.title}</span>
+                                {task.workflow_status && (
+                                    <span className="ml-auto text-[10px] text-text-subtle">
+                                        {task.workflow_status.name}
+                                    </span>
+                                )}
                             </label>
                         ))}
                     </div>

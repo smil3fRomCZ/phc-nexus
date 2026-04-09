@@ -46,6 +46,8 @@ Route::middleware('auth')->scopeBindings()->group(function () {
     // Task dependencies
     Route::post('projects/{project}/tasks/{task}/dependencies', [TaskDependencyController::class, 'store'])->name('projects.tasks.dependencies.store');
     Route::delete('projects/{project}/tasks/{task}/dependencies/{blocker}', [TaskDependencyController::class, 'destroy'])->name('projects.tasks.dependencies.destroy');
+    Route::post('projects/{project}/tasks/{task}/blocking', [TaskDependencyController::class, 'storeBlocking'])->name('projects.tasks.blocking.store');
+    Route::delete('projects/{project}/tasks/{task}/blocking/{blocked}', [TaskDependencyController::class, 'destroyBlocking'])->name('projects.tasks.blocking.destroy');
 
     // Task comments
     Route::post('projects/{project}/tasks/{task}/comments', [TaskCommentController::class, 'store'])->name('projects.tasks.comments.store');

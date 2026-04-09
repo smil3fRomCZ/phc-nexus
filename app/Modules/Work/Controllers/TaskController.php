@@ -36,9 +36,20 @@ final class TaskController extends Controller
             ? $epic->tasks()
             : $project->tasks();
 
-        // JSON response pro API volání (např. estimation session create)
+        // JSON response pro API volání (např. estimation session create, attach to epic)
         if ($request->input('format') === 'json') {
-            $tasks = $query->select('id', 'number', 'title', 'story_points')
+            if ($request->filled('search')) {
+                $query->where('title', 'ilike', '%'.$request->input('search').'%');
+            }
+            if ($request->filled('status')) {
+                $query->where('workflow_status_id', $request->input('status'));
+            }
+            if ($request->boolean('no_epic')) {
+                $query->whereNull('epic_id');
+            }
+
+            $tasks = $query->select('id', 'number', 'title', 'story_points', 'workflow_status_id')
+                ->with('workflowStatus:id,name')
                 ->orderBy('number')
                 ->get();
 
@@ -99,9 +110,9 @@ final class TaskController extends Controller
         $fallbackStatus = $initialStatus ?? $project->workflowStatuses()->orderBy('position')->firstOrFail();
         $validated['workflow_status_id'] = $fallbackStatus->id;
 
-        Task::create($validated);
+        $task = Task::create($validated);
 
-        return back()->with('success', 'Úkol vytvořen.');
+        return back()->with('success', 'Úkol vytvořen.')->with('created_task_id', $task->id);
     }
 
     public function show(Project $project, Task $task): Response

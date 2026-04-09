@@ -73,6 +73,13 @@ Každý modul obsahuje: `Models/`, `Actions/` (use-cases), `Controllers/`, `Poli
 - **Povinné E2E:** login, projekt CRUD, úkol CRUD, stav změna, approval flow, komentář + příloha, notifikace, PHI access, export guard
 - Každý PR musí obsahovat testy úměrné riziku
 
+### Pravidla pro testy
+
+1. **Nová funkcionalita** — každá nová feature vyžaduje odpovídající unit/feature test
+2. **Skupina souvisejících funkcí** — pokud PR přidává ucelenou skupinu funkcionalit (např. celý modul, nový workflow), vyžaduje E2E test pokrývající hlavní scénář
+3. **Refaktoring** — při refaktoringu existující funkcionality musí být aktualizovány všechny dotčené testy; pokud refaktoring mění chování, testy musí reflektovat nové chování
+4. **Bug fix** — každý opravený bug vyžaduje regresní test, který reprodukuje původní chybu
+
 ## Documentation Rules
 
 Po dokončení každého tasku nebo milestone:
@@ -92,6 +99,7 @@ Než je task hotový, ověř:
 - [ ] MVP scope dodržen (žádný scope creep)
 - [ ] Code review proběhl
 - [ ] Testy napsány (auth, audit, export impact pokryty)
+- [ ] Při refaktoringu aktualizovány dotčené testy
 - [ ] Authorization na každém endpointu/page/download
 - [ ] Audit trail pro business akce
 - [ ] PHI/export/download impact vyřešen

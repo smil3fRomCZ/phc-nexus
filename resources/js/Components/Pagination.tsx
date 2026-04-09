@@ -24,11 +24,9 @@ export default function Pagination({ links }: Props) {
 
                 if (!link.url) {
                     return (
-                        <span
-                            key={i}
-                            className="rounded px-3 py-1.5 text-xs text-text-subtle"
-                            dangerouslySetInnerHTML={{ __html: label }}
-                        />
+                        <span key={i} className="rounded px-3 py-1.5 text-xs text-text-subtle">
+                            {label}
+                        </span>
                     );
                 }
 
@@ -41,8 +39,9 @@ export default function Pagination({ links }: Props) {
                                 ? 'bg-brand-primary text-text-inverse'
                                 : 'text-text-default hover:bg-surface-hover'
                         }`}
-                        dangerouslySetInnerHTML={{ __html: label }}
-                    />
+                    >
+                        {label}
+                    </Link>
                 );
             })}
         </nav>

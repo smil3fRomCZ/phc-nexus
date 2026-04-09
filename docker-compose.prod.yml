@@ -10,18 +10,30 @@ services:
       - app-storage:/var/www/html/storage
       - app-public:/var/www/html/public
     restart: unless-stopped
+    security_opt:
+      - no-new-privileges:true
+    cap_drop:
+      - ALL
 
   worker:
     volumes:
       - ./.env:/var/www/html/.env
       - app-storage:/var/www/html/storage
     restart: unless-stopped
+    security_opt:
+      - no-new-privileges:true
+    cap_drop:
+      - ALL
 
   scheduler:
     volumes:
       - ./.env:/var/www/html/.env
       - app-storage:/var/www/html/storage
     restart: unless-stopped
+    security_opt:
+      - no-new-privileges:true
+    cap_drop:
+      - ALL
 
   caddy:
     profiles:
@@ -29,14 +41,24 @@ services:
 
   postgres:
     restart: unless-stopped
+    security_opt:
+      - no-new-privileges:true
 
   redis-cache:
     command: redis-server --maxmemory 128mb --maxmemory-policy allkeys-lru --requirepass ${REDIS_CACHE_PASSWORD:-}
     restart: unless-stopped
+    security_opt:
+      - no-new-privileges:true
+    cap_drop:
+      - ALL
 
   redis-data:
     command: redis-server --maxmemory 128mb --maxmemory-policy noeviction --appendonly yes --requirepass ${REDIS_DATA_PASSWORD:-}
     restart: unless-stopped
+    security_opt:
+      - no-new-privileges:true
+    cap_drop:
+      - ALL
 
   mailpit:
     profiles:

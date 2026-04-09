@@ -9,12 +9,55 @@ use App\Models\User;
 use App\Modules\Projects\Models\Project;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Gate;
 use Illuminate\Validation\Rule;
+use Inertia\Inertia;
+use Inertia\Response;
 
 final class ProjectMemberController extends Controller
 {
     private const ALLOWED_ROLES = ['member', 'project_manager'];
+
+    public function index(Project $project): Response
+    {
+        Gate::authorize('view', $project);
+
+        $project->load([
+            'owner:id,name,email',
+            'members:id,name,email',
+        ]);
+
+        $canManage = Gate::allows('manageMembers', $project);
+
+        $availableUsers = $canManage
+            ? User::query()
+                ->where('status', 'active')
+                ->whereNotIn('id', $project->members->pluck('id'))
+                ->orderBy('name')
+                ->get(['id', 'name', 'email'])
+            : [];
+
+        $roleCounts = DB::table('project_members')
+            ->where('project_id', $project->id)
+            ->selectRaw('role, count(*) as count')
+            ->groupBy('role')
+            ->pluck('count', 'role');
+
+        return Inertia::render('Projects/Members', [
+            'project' => [
+                'id' => $project->id,
+                'name' => $project->name,
+                'key' => $project->key,
+                'status' => $project->status,
+                'members' => $project->members,
+                'members_count' => $project->members->count(),
+            ],
+            'availableUsers' => $availableUsers,
+            'roleCounts' => $roleCounts,
+            'can' => ['manageMembers' => $canManage],
+        ]);
+    }
 
     public function store(Request $request, Project $project): RedirectResponse
     {

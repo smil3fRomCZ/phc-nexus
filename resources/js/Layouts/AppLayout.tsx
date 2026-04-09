@@ -229,7 +229,7 @@ export default function AppLayout({ title, breadcrumbs, children }: AppLayoutPro
                     <div className="flex-1 overflow-y-auto">
                         {/* Breadcrumbs bar */}
                         {breadcrumbs && breadcrumbs.length > 0 && (
-                            <div className="border-b border-border-subtle bg-surface-secondary/50 px-4 md:px-12">
+                            <div className="sticky top-0 z-10 border-b border-border-subtle bg-surface-secondary/50 px-4 backdrop-blur-sm md:px-12">
                                 <div className="mx-auto max-w-screen-2xl">
                                     <nav className="flex items-center gap-1 py-2 text-xs text-text-subtle">
                                         {breadcrumbs.map((crumb, i) => (

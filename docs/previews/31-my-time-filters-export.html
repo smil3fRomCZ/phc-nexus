@@ -1,0 +1,192 @@
+<!DOCTYPE html>
+<html lang="cs">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Preview: Moje výkazy — konzistentní filtry + export</title>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --brand-primary: #f5a623;
+    --brand-hover: #e09000;
+    --brand-soft: #fff8eb;
+    --text-strong: #172b4d;
+    --text-default: #42526e;
+    --text-muted: #6b778c;
+    --text-subtle: #97a0af;
+    --text-inverse: #ffffff;
+    --surface-canvas: #f4f5f7;
+    --surface-primary: #ffffff;
+    --surface-secondary: #fafbfc;
+    --border-subtle: #ebecf0;
+    --border-default: #dfe1e6;
+    --status-info: #0747a6;
+    --status-info-subtle: #deebff;
+  }
+  * { margin:0; padding:0; box-sizing:border-box; }
+  body { font-family:'Inter',sans-serif; background: var(--surface-canvas); padding:40px; color: var(--text-default); }
+  h2 { font-size:18px; font-weight:700; color: var(--text-strong); margin-bottom:8px; }
+  p.desc { font-size:13px; color: var(--text-muted); margin-bottom:24px; }
+  .section { margin-bottom:48px; }
+  .compare { display:flex; gap:40px; flex-wrap:wrap; }
+  .compare > div { flex:1; min-width:300px; }
+  .label { font-size:11px; font-weight:700; text-transform:uppercase; letter-spacing:.05em; color:var(--text-subtle); margin-bottom:12px; }
+
+  /* ── FilterSelect style (existing) ── */
+  .filter-chip {
+    display:inline-flex; align-items:center; gap:4px;
+    border:1px solid var(--border-default); border-radius:6px;
+    background: var(--surface-primary); height:32px;
+    transition: border-color .15s;
+  }
+  .filter-chip:focus-within { border-color:var(--brand-primary); box-shadow:0 0 0 2px var(--brand-soft); }
+  .filter-chip .chip-label {
+    padding-left:10px; font-size:11px; font-weight:600; color:var(--text-subtle); white-space:nowrap;
+  }
+  .filter-chip select, .filter-chip input[type="date"] {
+    height:30px; border:none; background:transparent; padding:0 8px 0 0;
+    font-size:13px; color:var(--text-default); outline:none; cursor:pointer;
+  }
+  .filter-chip input[type="date"] { padding-right:6px; }
+
+  /* ── Before: label-above date inputs ── */
+  .filter-before { display:flex; gap:12px; align-items:flex-start; flex-wrap:wrap; }
+  .filter-before .field label {
+    display:block; margin-bottom:4px; font-size:11px; font-weight:600;
+    text-transform:uppercase; letter-spacing:.04em; color:var(--text-subtle);
+  }
+  .filter-before .field input {
+    height:32px; border:1px solid var(--border-default); border-radius:4px;
+    padding:0 10px; font-size:12px; background:var(--surface-primary); color:var(--text-default);
+  }
+
+  /* ── Stat card ── */
+  .stat-card {
+    display:flex; align-items:center; gap:12px;
+    padding:14px 18px; background:var(--surface-primary);
+    border:1px solid var(--border-subtle); border-radius:10px;
+  }
+  .stat-icon {
+    width:36px; height:36px; border-radius:8px;
+    background:var(--status-info-subtle); display:flex; align-items:center; justify-content:center;
+    font-size:16px; color:var(--status-info);
+  }
+  .stat-label { font-size:12px; color:var(--text-muted); }
+  .stat-value { font-size:20px; font-weight:700; color:var(--text-strong); }
+
+  /* ── Header with export ── */
+  .page-header {
+    display:flex; align-items:center; justify-content:space-between; margin-bottom:20px;
+  }
+  .page-header h1 { font-size:20px; font-weight:700; color:var(--text-strong); }
+  .btn-secondary {
+    display:inline-flex; align-items:center; gap:6px;
+    padding:6px 14px; border-radius:6px;
+    border:1px solid var(--border-default); background:var(--surface-primary);
+    font-size:13px; font-weight:600; color:var(--text-default); cursor:pointer;
+  }
+  .btn-secondary:hover { background:var(--surface-secondary); }
+
+  /* ── Table snippet ── */
+  .table-snippet {
+    width:100%; border-collapse:collapse; background:var(--surface-primary);
+    border:1px solid var(--border-subtle); border-radius:10px; overflow:hidden;
+  }
+  .table-snippet th {
+    text-align:left; padding:10px 16px; font-size:11px; font-weight:600;
+    text-transform:uppercase; letter-spacing:.04em; color:var(--text-subtle);
+    background:var(--surface-secondary); border-bottom:1px solid var(--border-subtle);
+  }
+  .table-snippet td { padding:10px 16px; border-bottom:1px solid var(--border-subtle); font-size:13px; }
+  .table-snippet tr:hover { background:var(--brand-soft); }
+</style>
+</head>
+<body>
+
+<h2>Moje výkazy — konzistentní filtry + export</h2>
+<p class="desc">Datumové filtry sjednoceny do inline chip stylu (stejný jako FilterSelect). Přidán export tlačítko.</p>
+
+<!-- BEFORE -->
+<div class="section">
+  <div class="label">Před — nekonzistentní date filtry (label nad inputem)</div>
+  <div class="filter-before">
+    <div class="filter-chip">
+      <span class="chip-label">Projekt:</span>
+      <select><option>Všechny projekty</option></select>
+    </div>
+    <div class="field">
+      <label>Od</label>
+      <input type="date" value="2026-03-01">
+    </div>
+    <div class="field">
+      <label>Do</label>
+      <input type="date" value="2026-03-31">
+    </div>
+  </div>
+</div>
+
+<!-- AFTER -->
+<div class="section">
+  <div class="label">Po — sjednocené inline filtry + export</div>
+
+  <div class="page-header">
+    <h1>Moje výkazy</h1>
+    <button class="btn-secondary">↓ Export</button>
+  </div>
+
+  <div style="display:flex; gap:12px; margin-bottom:16px;">
+    <div class="stat-card">
+      <div class="stat-icon">⏱</div>
+      <div>
+        <div class="stat-label">Celkem hodin</div>
+        <div class="stat-value">142</div>
+      </div>
+    </div>
+  </div>
+
+  <div style="display:flex; gap:8px; flex-wrap:wrap; margin-bottom:20px;">
+    <div class="filter-chip">
+      <span class="chip-label">Projekt:</span>
+      <select><option>Všechny projekty</option></select>
+    </div>
+    <div class="filter-chip">
+      <span class="chip-label">Od:</span>
+      <input type="date" value="2026-03-01">
+    </div>
+    <div class="filter-chip">
+      <span class="chip-label">Do:</span>
+      <input type="date" value="2026-03-31">
+    </div>
+  </div>
+
+  <table class="table-snippet">
+    <thead>
+      <tr>
+        <th>Datum</th>
+        <th>Projekt</th>
+        <th>Úkol / Epic</th>
+        <th style="text-align:right">Hodiny</th>
+        <th>Poznámka</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td>31. 3. 2026</td>
+        <td style="font-weight:500">PHC Nexus</td>
+        <td><span style="color:var(--text-muted); font-weight:600">#42</span> Implementace workflow</td>
+        <td style="text-align:right; font-weight:700; color:var(--text-strong)">4h</td>
+        <td style="color:var(--text-muted)">React Flow integrace</td>
+      </tr>
+      <tr>
+        <td>30. 3. 2026</td>
+        <td style="font-weight:500">PHC Nexus</td>
+        <td><span style="color:var(--text-muted); font-weight:600">#38</span> Time logging</td>
+        <td style="text-align:right; font-weight:700; color:var(--text-strong)">6h</td>
+        <td style="color:var(--text-muted)">Export CSV formát</td>
+      </tr>
+    </tbody>
+  </table>
+</div>
+
+</body>
+</html>

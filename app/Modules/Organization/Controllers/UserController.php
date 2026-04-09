@@ -59,6 +59,20 @@ final class UserController extends Controller
 
         $teams = Team::query()->orderBy('name')->get(['id', 'name']);
 
+        $allUsers = User::query();
+        $stats = [
+            'total' => (clone $allUsers)->count(),
+            'active' => (clone $allUsers)->where('status', UserStatus::Active)->count(),
+            'invited' => (clone $allUsers)->where('status', UserStatus::Invited)->count(),
+            'deactivated' => (clone $allUsers)->where('status', UserStatus::Deactivated)->count(),
+            'roles' => collect(SystemRole::cases())
+                ->map(fn (SystemRole $r) => [
+                    'role' => $r->value,
+                    'label' => $r->label(),
+                    'count' => User::where('system_role', $r->value)->count(),
+                ]),
+        ];
+
         return Inertia::render('Admin/Users/Index', [
             'users' => $users,
             'filters' => $request->only(['search', 'role', 'status', 'team_id', 'sort', 'dir']),
@@ -67,6 +81,7 @@ final class UserController extends Controller
             'statuses' => collect(UserStatus::cases())
                 ->map(fn (UserStatus $s) => ['value' => $s->value, 'label' => $s->label()]),
             'teams' => $teams,
+            'stats' => $stats,
         ]);
     }
 

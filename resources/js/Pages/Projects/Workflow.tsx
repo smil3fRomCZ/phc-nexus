@@ -3,15 +3,17 @@ import type { Breadcrumb } from '@/Layouts/AppLayout';
 import ConfirmModal from '@/Components/ConfirmModal';
 import DeleteButton from '@/Components/DeleteButton';
 import ProjectHeaderCompact from '@/Components/ProjectHeaderCompact';
+import ProjectTabs from '@/Components/ProjectTabs';
 import { router } from '@inertiajs/react';
 import { MousePointerClick, Plus, Trash2, X } from 'lucide-react';
-import { useState, useCallback, useMemo, useEffect } from 'react';
+import { useState, useCallback, useMemo, useEffect, type CSSProperties } from 'react';
 import {
     ReactFlow,
     Background,
     Controls,
     Handle,
     Position,
+    useViewport,
     type Node,
     type Edge,
     type Connection,
@@ -57,24 +59,42 @@ function csrfHeaders() {
     };
 }
 
+const handleStyle: CSSProperties = { boxShadow: '0 0 0 1px rgba(0,0,0,0.1)' };
+
 function StatusNode({ data }: { data: WorkflowStatus & { onEdit: (id: string) => void } }) {
     return (
         <div
-            className={`relative rounded-lg border-2 bg-surface-primary shadow-sm transition-shadow hover:shadow-md ${data.allow_transition_from_any ? 'border-dashed' : ''}`}
+            className={`relative rounded-md border bg-surface-primary shadow-sm transition-shadow hover:shadow-md ${data.allow_transition_from_any ? 'border-dashed' : ''}`}
             style={{ borderColor: data.color ?? '#dfe1e6', minWidth: 140 }}
             onClick={() => data.onEdit(data.id)}
         >
             <Handle
                 type="target"
                 position={Position.Left}
-                className="!h-3 !w-3 !border-2 !border-white !bg-brand-primary"
+                className="!h-2.5 !w-2.5 !border-2 !border-white !bg-brand-primary"
+                style={handleStyle}
             />
             <Handle
                 type="source"
                 position={Position.Right}
-                className="!h-3 !w-3 !border-2 !border-white !bg-brand-primary"
+                className="!h-2.5 !w-2.5 !border-2 !border-white !bg-brand-primary"
+                style={handleStyle}
             />
-            <div className="rounded-t-md px-3 py-1.5" style={{ backgroundColor: data.color ?? '#97a0af' }}>
+            <Handle
+                type="target"
+                position={Position.Top}
+                id="top"
+                className="!h-2.5 !w-2.5 !border-2 !border-white !bg-brand-primary"
+                style={handleStyle}
+            />
+            <Handle
+                type="source"
+                position={Position.Bottom}
+                id="bottom"
+                className="!h-2.5 !w-2.5 !border-2 !border-white !bg-brand-primary"
+                style={handleStyle}
+            />
+            <div className="rounded-t px-3 py-1.5" style={{ backgroundColor: data.color ?? '#97a0af' }}>
                 <span className="text-xs font-semibold text-white">{data.name}</span>
             </div>
             <div className="flex flex-wrap gap-1 px-3 py-1.5">
@@ -99,6 +119,22 @@ function StatusNode({ data }: { data: WorkflowStatus & { onEdit: (id: string) =>
                     </span>
                 )}
             </div>
+        </div>
+    );
+}
+
+function ZoomBadge() {
+    const { zoom } = useViewport();
+    const pct = Math.round(zoom * 100);
+    return (
+        <div className="absolute bottom-3 left-3 z-10 inline-flex items-center gap-2 rounded-md border border-border-subtle bg-surface-primary px-2.5 py-1 text-xs font-semibold text-text-muted shadow-sm">
+            <div className="relative h-1 w-14 overflow-hidden rounded-full bg-border-subtle">
+                <div
+                    className="absolute left-0 top-0 h-full rounded-full bg-brand-primary transition-all"
+                    style={{ width: `${Math.min(pct, 200) / 2}%` }}
+                />
+            </div>
+            {pct}%
         </div>
     );
 }
@@ -241,11 +277,12 @@ export default function Workflow({ project, statuses, transitions }: Props) {
 
     return (
         <AppLayout title={`${project.key} — Workflow`} breadcrumbs={breadcrumbs}>
-            <div className="max-w-screen-xl">
-                <div className="mb-6">
+            <div className="max-w-screen-xl space-y-5">
+                <div>
                     <ProjectHeaderCompact project={project} />
                 </div>
-                <div className="mb-4 flex items-center justify-between">
+                <ProjectTabs projectId={project.id} active="workflow" />
+                <div className="flex items-center justify-between">
                     <h1 className="text-xl md:text-2xl font-bold text-text-strong">Workflow Editor</h1>
                     <span className="text-sm text-text-muted">
                         {statuses.length} stavů · {transitions.length} přechodů
@@ -253,7 +290,7 @@ export default function Workflow({ project, statuses, transitions }: Props) {
                 </div>
 
                 {/* Toolbar */}
-                <div className="mb-4 flex flex-wrap items-center gap-3 rounded-lg border border-border-subtle bg-surface-secondary px-4 py-2">
+                <div className="flex flex-wrap items-center gap-3 rounded-lg border border-border-subtle bg-surface-secondary px-4 py-2">
                     <input
                         type="text"
                         value={newName}
@@ -279,7 +316,7 @@ export default function Workflow({ project, statuses, transitions }: Props) {
                 <div className="flex flex-col gap-4 md:flex-row">
                     {/* React Flow canvas */}
                     <div
-                        className="flex-1 overflow-hidden rounded-lg border border-border-subtle"
+                        className="relative flex-1 overflow-hidden rounded-lg border border-border-subtle"
                         style={{ height: 400, minHeight: 300 }}
                     >
                         <ReactFlow
@@ -294,6 +331,7 @@ export default function Workflow({ project, statuses, transitions }: Props) {
                         >
                             <Background gap={20} size={1} />
                             <Controls showInteractive={false} />
+                            <ZoomBadge />
                         </ReactFlow>
                     </div>
 

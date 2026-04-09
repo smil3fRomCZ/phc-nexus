@@ -1,0 +1,151 @@
+<!DOCTYPE html>
+<html lang="cs">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Preview: Záložky projektu — redesign</title>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --brand-primary: #f5a623;
+    --brand-hover: #e09000;
+    --brand-soft: #fff8eb;
+    --text-strong: #172b4d;
+    --text-default: #42526e;
+    --text-muted: #6b778c;
+    --text-subtle: #97a0af;
+    --surface-canvas: #f4f5f7;
+    --surface-primary: #ffffff;
+    --surface-secondary: #fafbfc;
+    --border-subtle: #ebecf0;
+    --border-default: #dfe1e6;
+  }
+  * { margin:0; padding:0; box-sizing:border-box; }
+  body { font-family:'Inter',sans-serif; background: var(--surface-canvas); padding:40px; color: var(--text-default); }
+  h2 { font-size:18px; font-weight:700; color: var(--text-strong); margin-bottom:8px; }
+  p.desc { font-size:13px; color: var(--text-muted); margin-bottom:24px; }
+  .section { margin-bottom:48px; }
+
+  /* ── BEFORE ── */
+  .tabs-before {
+    display:flex; border-bottom: 1px solid var(--border-subtle); gap:0; overflow-x:auto;
+  }
+  .tabs-before a {
+    display:flex; align-items:center; gap:6px;
+    padding:10px 16px; font-size:14px; font-weight:500;
+    text-decoration:none; white-space:nowrap;
+    border-bottom:2px solid transparent; color: var(--text-muted);
+    transition: color .15s, border-color .15s;
+  }
+  .tabs-before a:hover { color: var(--text-default); }
+  .tabs-before a.active { border-bottom-color: var(--brand-primary); color: var(--brand-primary); }
+
+  /* ── AFTER ── */
+  .tabs-after-wrapper {
+    background: var(--surface-primary);
+    border: 1px solid var(--border-subtle);
+    border-radius: 10px;
+    padding: 4px;
+    display: inline-flex;
+    gap: 2px;
+    overflow-x: auto;
+  }
+  .tabs-after-wrapper a {
+    display:flex; align-items:center; gap:6px;
+    padding: 7px 14px; font-size:13px; font-weight:500;
+    text-decoration:none; white-space:nowrap;
+    border-radius: 7px; color: var(--text-muted);
+    transition: all .15s;
+  }
+  .tabs-after-wrapper a:hover {
+    color: var(--text-default); background: var(--surface-secondary);
+  }
+  .tabs-after-wrapper a.active {
+    background: var(--brand-soft); color: var(--brand-hover);
+    font-weight:600; box-shadow: 0 1px 2px rgba(0,0,0,0.04);
+  }
+
+  /* icon placeholder */
+  .ico { display:inline-block; width:14px; height:14px; border-radius:3px; background: currentColor; opacity:.35; flex-shrink:0; }
+  .tabs-after-wrapper a.active .ico { opacity:.6; }
+
+  /* comparison layout */
+  .compare { display:flex; gap:40px; flex-wrap:wrap; }
+  .compare > div { flex:1; min-width:320px; }
+  .label { font-size:11px; font-weight:700; text-transform:uppercase; letter-spacing:.05em; color:var(--text-subtle); margin-bottom:12px; }
+
+  /* Content card connected to tabs */
+  .content-card {
+    background: var(--surface-primary);
+    border: 1px solid var(--border-subtle);
+    border-radius: 10px;
+    margin-top: 8px;
+    padding: 24px;
+    font-size: 13px;
+    color: var(--text-muted);
+    min-height: 80px;
+  }
+</style>
+</head>
+<body>
+
+<h2>Záložky projektu — redesign</h2>
+<p class="desc">Záložky jsou nyní vizuálně „pill/segment" styl s pozadím, místo tenkého border-bottom. Aktivní tab má brand-soft pozadí a výrazný text. Celek působí jako součást designu, ne jako oddělený prvek.</p>
+
+<div class="compare">
+  <div>
+    <div class="label">Před (aktuální stav)</div>
+    <nav class="tabs-before">
+      <a class="active"><span class="ico"></span> Přehled</a>
+      <a><span class="ico"></span> Kanban</a>
+      <a><span class="ico"></span> Backlog</a>
+      <a><span class="ico"></span> Epic</a>
+      <a><span class="ico"></span> Čas</a>
+      <a><span class="ico"></span> Gantt</a>
+      <a><span class="ico"></span> Estimation</a>
+      <a><span class="ico"></span> Reporty</a>
+      <a><span class="ico"></span> Schvalování</a>
+      <a><span class="ico"></span> Dokumentace</a>
+    </nav>
+  </div>
+
+  <div>
+    <div class="label">Po (návrh)</div>
+    <nav class="tabs-after-wrapper">
+      <a class="active"><span class="ico"></span> Přehled</a>
+      <a><span class="ico"></span> Kanban</a>
+      <a><span class="ico"></span> Backlog</a>
+      <a><span class="ico"></span> Epic</a>
+      <a><span class="ico"></span> Čas</a>
+      <a><span class="ico"></span> Gantt</a>
+      <a><span class="ico"></span> Estimation</a>
+      <a><span class="ico"></span> Reporty</a>
+      <a><span class="ico"></span> Schvalování</a>
+      <a><span class="ico"></span> Dokumentace</a>
+    </nav>
+    <div class="content-card">
+      Obsah záložky — metriky, tabulky, komentáře...
+    </div>
+  </div>
+</div>
+
+<div class="section" style="margin-top:48px">
+  <h2>Varianta s přidaným tabem „Členové"</h2>
+  <p class="desc">Nový tab „Členové" přidán mezi stávající záložky (před Čas).</p>
+  <nav class="tabs-after-wrapper">
+    <a class="active"><span class="ico"></span> Přehled</a>
+    <a><span class="ico"></span> Kanban</a>
+    <a><span class="ico"></span> Backlog</a>
+    <a><span class="ico"></span> Epic</a>
+    <a style="color:var(--brand-hover); font-weight:600;"><span class="ico"></span> Členové ✦</a>
+    <a><span class="ico"></span> Čas</a>
+    <a><span class="ico"></span> Gantt</a>
+    <a><span class="ico"></span> Estimation</a>
+    <a><span class="ico"></span> Reporty</a>
+    <a><span class="ico"></span> Schvalování</a>
+    <a><span class="ico"></span> Dokumentace</a>
+  </nav>
+</div>
+
+</body>
+</html>

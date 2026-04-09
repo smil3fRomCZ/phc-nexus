@@ -1,0 +1,255 @@
+<!DOCTYPE html>
+<html lang="cs">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Preview: Uživatelé — statistický přehled</title>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --brand-primary: #f5a623;
+    --brand-hover: #e09000;
+    --brand-soft: #fff8eb;
+    --text-strong: #172b4d;
+    --text-default: #42526e;
+    --text-muted: #6b778c;
+    --text-subtle: #97a0af;
+    --text-inverse: #ffffff;
+    --surface-canvas: #f4f5f7;
+    --surface-primary: #ffffff;
+    --surface-secondary: #fafbfc;
+    --border-subtle: #ebecf0;
+    --border-default: #dfe1e6;
+    --status-info: #0747a6;
+    --status-info-subtle: #deebff;
+    --status-success: #006644;
+    --status-success-subtle: #e3fcef;
+    --status-warning: #974f0c;
+    --status-warning-subtle: #fff0b3;
+    --status-danger: #bf2600;
+    --status-danger-subtle: #ffebe6;
+    --status-neutral: #6b778c;
+    --status-neutral-subtle: #f4f5f7;
+  }
+  * { margin:0; padding:0; box-sizing:border-box; }
+  body { font-family:'Inter',sans-serif; background: var(--surface-canvas); padding:40px; color: var(--text-default); }
+  h2 { font-size:18px; font-weight:700; color: var(--text-strong); margin-bottom:8px; }
+  p.desc { font-size:13px; color: var(--text-muted); margin-bottom:24px; }
+  .label { font-size:11px; font-weight:700; text-transform:uppercase; letter-spacing:.05em; color:var(--text-subtle); margin-bottom:12px; }
+  .section { margin-bottom:40px; }
+
+  /* ── Page header ── */
+  .page-header {
+    display:flex; align-items:center; justify-content:space-between; margin-bottom:24px;
+  }
+  .page-header h1 { font-size:22px; font-weight:700; color:var(--text-strong); }
+  .btn-primary {
+    display:inline-flex; align-items:center; gap:6px;
+    padding:8px 16px; border-radius:6px; border:none;
+    background:var(--brand-primary); color:var(--text-inverse);
+    font-size:13px; font-weight:600; cursor:pointer;
+  }
+
+  /* ── Stats grid ── */
+  .stats-grid {
+    display:grid; grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+    gap:12px; margin-bottom:24px;
+  }
+  .stat-card {
+    padding:16px; background:var(--surface-primary);
+    border:1px solid var(--border-subtle); border-radius:10px;
+    display:flex; flex-direction:column; gap:4px;
+  }
+  .stat-card .icon {
+    width:28px; height:28px; border-radius:6px;
+    display:flex; align-items:center; justify-content:center;
+    font-size:13px; margin-bottom:4px;
+  }
+  .stat-card .stat-label { font-size:12px; font-weight:500; color:var(--text-muted); }
+  .stat-card .stat-value { font-size:22px; font-weight:700; color:var(--text-strong); }
+  .stat-card .stat-sub { font-size:11px; color:var(--text-subtle); }
+
+  .icon-info { background:var(--status-info-subtle); color:var(--status-info); }
+  .icon-success { background:var(--status-success-subtle); color:var(--status-success); }
+  .icon-warning { background:var(--status-warning-subtle); color:var(--status-warning); }
+  .icon-danger { background:var(--status-danger-subtle); color:var(--status-danger); }
+  .icon-neutral { background:var(--status-neutral-subtle); color:var(--status-neutral); }
+
+  /* ── Roles breakdown ── */
+  .roles-bar {
+    padding:16px 20px; background:var(--surface-primary);
+    border:1px solid var(--border-subtle); border-radius:10px;
+    margin-bottom:24px;
+  }
+  .roles-bar h3 { font-size:11px; font-weight:700; text-transform:uppercase; letter-spacing:.04em; color:var(--text-subtle); margin-bottom:12px; }
+  .roles-list { display:flex; gap:20px; flex-wrap:wrap; }
+  .role-item { display:flex; align-items:center; gap:8px; }
+  .role-dot { width:8px; height:8px; border-radius:50%; }
+  .role-name { font-size:13px; color:var(--text-default); }
+  .role-count { font-size:13px; font-weight:700; color:var(--text-strong); }
+
+  /* Progress bar */
+  .progress-track { height:6px; background:var(--border-subtle); border-radius:3px; margin-top:12px; display:flex; overflow:hidden; }
+  .progress-seg { height:100%; }
+
+  /* ── Filter bar ── */
+  .filter-bar { display:flex; gap:8px; flex-wrap:wrap; margin-bottom:20px; }
+  .filter-chip {
+    display:inline-flex; align-items:center; gap:4px;
+    border:1px solid var(--border-default); border-radius:6px;
+    background: var(--surface-primary); height:32px;
+  }
+  .filter-chip .chip-label {
+    padding-left:10px; font-size:11px; font-weight:600; color:var(--text-subtle); white-space:nowrap;
+  }
+  .filter-chip select, .filter-chip input {
+    height:30px; border:none; background:transparent; padding:0 8px 0 0;
+    font-size:13px; color:var(--text-default); outline:none;
+  }
+
+  /* ── Table snippet ── */
+  .table-snippet { width:100%; border-collapse:collapse; background:var(--surface-primary); border:1px solid var(--border-subtle); border-radius:10px; overflow:hidden; }
+  .table-snippet th { text-align:left; padding:10px 16px; font-size:11px; font-weight:600; text-transform:uppercase; letter-spacing:.04em; color:var(--text-subtle); background:var(--surface-secondary); }
+  .table-snippet td { padding:10px 16px; border-top:1px solid var(--border-subtle); font-size:13px; }
+  .table-snippet tr:hover td { background:var(--brand-soft); }
+
+  .badge { display:inline-flex; padding:2px 8px; border-radius:10px; font-size:11px; font-weight:600; }
+  .badge-active { background:var(--status-success-subtle); color:var(--status-success); }
+  .badge-invited { background:var(--status-info-subtle); color:var(--status-info); }
+  .badge-deactivated { background:var(--status-neutral-subtle); color:var(--status-neutral); }
+</style>
+</head>
+<body>
+
+<h2>Uživatelé — statistický přehled</h2>
+<p class="desc">Nad tabulku uživatelů přidány stat karty s přehledem počtů a breakdown podle rolí.</p>
+
+<!-- Page header -->
+<div class="page-header">
+  <h1>Uživatelé</h1>
+  <button class="btn-primary">+ Pozvat uživatele</button>
+</div>
+
+<!-- Stats -->
+<div class="stats-grid">
+  <div class="stat-card">
+    <div class="icon icon-info">👥</div>
+    <div class="stat-label">Celkem</div>
+    <div class="stat-value">47</div>
+  </div>
+  <div class="stat-card">
+    <div class="icon icon-success">✓</div>
+    <div class="stat-label">Aktivní</div>
+    <div class="stat-value">42</div>
+    <div class="stat-sub">89 % z celku</div>
+  </div>
+  <div class="stat-card">
+    <div class="icon icon-warning">✉</div>
+    <div class="stat-label">Pozvaní</div>
+    <div class="stat-value">3</div>
+    <div class="stat-sub">čekají na přijetí</div>
+  </div>
+  <div class="stat-card">
+    <div class="icon icon-danger">⊘</div>
+    <div class="stat-label">Deaktivovaní</div>
+    <div class="stat-value">2</div>
+  </div>
+</div>
+
+<!-- Roles breakdown -->
+<div class="roles-bar">
+  <h3>Rozložení rolí</h3>
+  <div class="roles-list">
+    <div class="role-item">
+      <div class="role-dot" style="background:#bf2600"></div>
+      <span class="role-name">Executive</span>
+      <span class="role-count">3</span>
+    </div>
+    <div class="role-item">
+      <div class="role-dot" style="background:#0747a6"></div>
+      <span class="role-name">Project Manager</span>
+      <span class="role-count">8</span>
+    </div>
+    <div class="role-item">
+      <div class="role-dot" style="background:var(--brand-primary)"></div>
+      <span class="role-name">Team Member</span>
+      <span class="role-count">31</span>
+    </div>
+    <div class="role-item">
+      <div class="role-dot" style="background:#5243aa"></div>
+      <span class="role-name">Service Desk</span>
+      <span class="role-count">3</span>
+    </div>
+    <div class="role-item">
+      <div class="role-dot" style="background:#97a0af"></div>
+      <span class="role-name">Reader</span>
+      <span class="role-count">2</span>
+    </div>
+  </div>
+  <div class="progress-track">
+    <div class="progress-seg" style="width:6.4%; background:#bf2600"></div>
+    <div class="progress-seg" style="width:17%; background:#0747a6"></div>
+    <div class="progress-seg" style="width:66%; background:var(--brand-primary)"></div>
+    <div class="progress-seg" style="width:6.4%; background:#5243aa"></div>
+    <div class="progress-seg" style="width:4.2%; background:#97a0af"></div>
+  </div>
+</div>
+
+<!-- Filters (consistent) -->
+<div class="filter-bar">
+  <div class="filter-chip">
+    <span class="chip-label">Hledat:</span>
+    <input type="text" placeholder="Jméno nebo email..." style="width:180px">
+  </div>
+  <div class="filter-chip">
+    <span class="chip-label">Role:</span>
+    <select><option>Všechny</option></select>
+  </div>
+  <div class="filter-chip">
+    <span class="chip-label">Stav:</span>
+    <select><option>Všechny</option></select>
+  </div>
+  <div class="filter-chip">
+    <span class="chip-label">Tým:</span>
+    <select><option>Všechny</option></select>
+  </div>
+</div>
+
+<!-- Table -->
+<table class="table-snippet">
+  <thead>
+    <tr>
+      <th>Jméno</th>
+      <th>Email</th>
+      <th>Role</th>
+      <th>Tým</th>
+      <th>Stav</th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr>
+      <td style="font-weight:600; color:var(--text-strong)">Jan Melicherik</td>
+      <td style="color:var(--text-muted)">jan@pearshealthcare.com</td>
+      <td>Executive</td>
+      <td style="color:var(--text-muted)">Management</td>
+      <td><span class="badge badge-active">Aktivní</span></td>
+    </tr>
+    <tr>
+      <td style="font-weight:600; color:var(--text-strong)">Petra Kovářová</td>
+      <td style="color:var(--text-muted)">petra.k@pearshealthcare.com</td>
+      <td>Project Manager</td>
+      <td style="color:var(--text-muted)">Vývoj</td>
+      <td><span class="badge badge-active">Aktivní</span></td>
+    </tr>
+    <tr>
+      <td style="font-weight:600; color:var(--text-strong)">Nový Uživatel</td>
+      <td style="color:var(--text-muted)">novy@pearshealthcare.com</td>
+      <td>Team Member</td>
+      <td style="color:var(--text-muted)">—</td>
+      <td><span class="badge badge-invited">Pozvaný</span></td>
+    </tr>
+  </tbody>
+</table>
+
+</body>
+</html>

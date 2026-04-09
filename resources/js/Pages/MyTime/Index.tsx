@@ -1,13 +1,17 @@
 import AppLayout from '@/Layouts/AppLayout';
 import type { Breadcrumb } from '@/Layouts/AppLayout';
+import ActionIconButton from '@/Components/ActionIconButton';
 import EmptyState from '@/Components/EmptyState';
+import FilterDate from '@/Components/FilterDate';
 import FilterSelect from '@/Components/FilterSelect';
 import Pagination from '@/Components/Pagination';
 import type { PaginationLink } from '@/Components/Pagination';
+import Popover from '@/Components/Popover';
 import StatCard from '@/Components/StatCard';
 import { formatDate } from '@/utils/formatDate';
 import { Link, router } from '@inertiajs/react';
-import { Clock } from 'lucide-react';
+import { Clock, FileDown } from 'lucide-react';
+import { useState } from 'react';
 
 interface TimeEntry {
     id: string;
@@ -38,15 +42,52 @@ interface Props {
 
 const BREADCRUMBS: Breadcrumb[] = [{ label: 'Domů', href: '/' }, { label: 'Moje výkazy' }];
 
+const EXPORT_FORMATS = [
+    { value: 'csv', label: 'CSV' },
+    { value: 'excel', label: 'Excel' },
+    { value: 'html', label: 'HTML' },
+    { value: 'md', label: 'Markdown' },
+];
+
 export default function MyTime({ entries, totalHours, projects, filters }: Props) {
+    const [exportOpen, setExportOpen] = useState(false);
+
     function applyFilter(key: string, value: string) {
         router.get('/my-time', { ...filters, [key]: value || undefined }, { preserveState: true, replace: true });
+    }
+
+    function exportUrl(format: string) {
+        const params = new URLSearchParams();
+        params.set('format', format);
+        if (filters.project_id) params.set('project_id', filters.project_id);
+        if (filters.date_from) params.set('date_from', filters.date_from);
+        if (filters.date_to) params.set('date_to', filters.date_to);
+        return `/my-time/export?${params.toString()}`;
     }
 
     return (
         <AppLayout title="Moje výkazy" breadcrumbs={BREADCRUMBS}>
             <div className="max-w-screen-xl space-y-5">
-                <h1 className="text-xl font-bold text-text-strong md:text-2xl">Moje výkazy</h1>
+                <div className="flex items-center justify-between">
+                    <h1 className="text-xl font-bold text-text-strong md:text-2xl">Moje výkazy</h1>
+                    <div className="relative">
+                        <ActionIconButton onClick={() => setExportOpen(!exportOpen)} label="Export">
+                            <FileDown className="h-4 w-4" />
+                        </ActionIconButton>
+                        <Popover open={exportOpen} onClose={() => setExportOpen(false)} className="w-40 py-1">
+                            {EXPORT_FORMATS.map((f) => (
+                                <a
+                                    key={f.value}
+                                    href={exportUrl(f.value)}
+                                    onClick={() => setExportOpen(false)}
+                                    className="block px-3 py-1.5 text-sm text-text-default no-underline hover:bg-surface-hover"
+                                >
+                                    {f.label}
+                                </a>
+                            ))}
+                        </Popover>
+                    </div>
+                </div>
 
                 <div className="grid grid-cols-1 gap-3 sm:grid-cols-3">
                     <StatCard label="Celkem hodin" value={totalHours} icon={<Clock className="h-5 w-5" />} />
@@ -61,28 +102,12 @@ export default function MyTime({ entries, totalHours, projects, filters }: Props
                         options={projects}
                         placeholder="Všechny projekty"
                     />
-                    <div>
-                        <label className="mb-1 block text-xs font-semibold uppercase tracking-wider text-text-subtle">
-                            Od
-                        </label>
-                        <input
-                            type="date"
-                            value={filters.date_from ?? ''}
-                            onChange={(e) => applyFilter('date_from', e.target.value)}
-                            className="rounded border border-border-default bg-surface-primary px-2.5 py-1.5 text-xs focus:border-border-focus focus:outline-none"
-                        />
-                    </div>
-                    <div>
-                        <label className="mb-1 block text-xs font-semibold uppercase tracking-wider text-text-subtle">
-                            Do
-                        </label>
-                        <input
-                            type="date"
-                            value={filters.date_to ?? ''}
-                            onChange={(e) => applyFilter('date_to', e.target.value)}
-                            className="rounded border border-border-default bg-surface-primary px-2.5 py-1.5 text-xs focus:border-border-focus focus:outline-none"
-                        />
-                    </div>
+                    <FilterDate
+                        label="Od"
+                        value={filters.date_from ?? ''}
+                        onChange={(v) => applyFilter('date_from', v)}
+                    />
+                    <FilterDate label="Do" value={filters.date_to ?? ''} onChange={(v) => applyFilter('date_to', v)} />
                 </div>
 
                 {entries.data.length === 0 ? (

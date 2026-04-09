@@ -32,6 +32,7 @@ Route::middleware('auth')->group(function () {
     Route::get('projects/{project}/tasks/{task}/export/time', [TimeExportController::class, 'task'])->name('projects.tasks.export.time');
 
     // Project members
+    Route::get('projects/{project}/members', [ProjectMemberController::class, 'index'])->name('projects.members.index');
     Route::post('projects/{project}/members', [ProjectMemberController::class, 'store'])->name('projects.members.store');
     Route::patch('projects/{project}/members/{user}', [ProjectMemberController::class, 'updateRole'])->name('projects.members.updateRole');
     Route::delete('projects/{project}/members/{user}', [ProjectMemberController::class, 'destroy'])->name('projects.members.destroy');

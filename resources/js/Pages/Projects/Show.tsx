@@ -1,10 +1,7 @@
 import AppLayout from '@/Layouts/AppLayout';
 import type { Breadcrumb } from '@/Layouts/AppLayout';
-import Avatar from '@/Components/Avatar';
 import Button from '@/Components/Button';
 import ConfirmModal from '@/Components/ConfirmModal';
-import FilterSelect from '@/Components/FilterSelect';
-import FormSelect from '@/Components/FormSelect';
 import FormTextarea from '@/Components/FormTextarea';
 import Popover, { PopoverItem } from '@/Components/Popover';
 import StatusBadge from '@/Components/StatusBadge';
@@ -15,7 +12,7 @@ import AttachmentsSection from '@/Components/AttachmentsSection';
 import type { Attachment } from '@/Components/AttachmentsSection';
 import { PROJECT_STATUS } from '@/constants/status';
 import { formatDate } from '@/utils/formatDate';
-import { Link, router, useForm } from '@inertiajs/react';
+import { Link, router } from '@inertiajs/react';
 import {
     Trash2,
     Pencil,
@@ -28,9 +25,6 @@ import {
     AlertTriangle,
     X,
     MoreVertical,
-    UserPlus,
-    Plus,
-    Settings,
 } from 'lucide-react';
 import ActionIconButton from '@/Components/ActionIconButton';
 import Modal from '@/Components/Modal';
@@ -49,7 +43,6 @@ interface Project {
     benefit_note: string | null;
     owner: { id: string; name: string; email: string };
     team: { id: string; name: string } | null;
-    members: Array<{ id: string; name: string; email: string; pivot: { role: string } }>;
     root_comments: Comment[];
     attachments: Attachment[];
     attachments_count: number;
@@ -58,7 +51,6 @@ interface Project {
     tasks_completed_count: number;
     tasks_overdue_count: number;
     epics_count: number;
-    members_count: number;
     start_date: string | null;
     target_date: string | null;
     created_at: string;
@@ -102,24 +94,14 @@ const HEALTH_CONFIG: Record<
     },
 };
 
-interface AvailableUser {
-    id: string;
-    name: string;
-    email: string;
-}
-
 export default function ProjectShow({
     project,
     totalHours = 0,
     latestUpdate,
-    availableUsers = [],
-    can = { manageMembers: false },
 }: {
     project: Project;
     totalHours: number;
     latestUpdate?: StatusUpdate | null;
-    availableUsers?: AvailableUser[];
-    can?: { manageMembers: boolean };
 }) {
     const [showDeleteModal, setShowDeleteModal] = useState(false);
     const [deleteConfirmName, setDeleteConfirmName] = useState('');
@@ -246,12 +228,6 @@ export default function ProjectShow({
                 {/* Metrics */}
                 <ProjectMetrics project={project} totalHours={totalHours} />
 
-                {/* Quick add task */}
-                <QuickAddTask projectId={project.id} />
-
-                {/* Members */}
-                <ProjectMembers project={project} availableUsers={availableUsers} canManage={can.manageMembers} />
-
                 {/* Attachments */}
                 <div className="rounded-lg border border-border-subtle bg-surface-primary p-5">
                     <AttachmentsSection
@@ -292,88 +268,6 @@ export default function ProjectShow({
                 />
             </ConfirmModal>
         </AppLayout>
-    );
-}
-
-function QuickAddTask({ projectId }: { projectId: string }) {
-    const { data, setData, post, processing, reset, errors } = useForm({
-        title: '',
-        description: '',
-        priority: 'medium',
-    });
-    const [lastCreated, setLastCreated] = useState<{ id: string; title: string } | null>(null);
-    const [expanded, setExpanded] = useState(false);
-
-    function submit(e: React.FormEvent) {
-        e.preventDefault();
-        post(`/projects/${projectId}/tasks`, {
-            onSuccess: (page) => {
-                const flash = (page.props as Record<string, unknown>).flash as Record<string, unknown> | undefined;
-                const taskId = flash?.created_task_id as string | undefined;
-                if (taskId) {
-                    setLastCreated({ id: taskId, title: data.title });
-                }
-                reset();
-                setExpanded(false);
-            },
-            preserveScroll: true,
-        });
-    }
-
-    return (
-        <div className="rounded-lg border border-border-subtle bg-surface-primary p-4">
-            <div className="mb-2 flex items-center justify-between">
-                <div className="text-xs font-semibold uppercase tracking-wider text-text-subtle">Rychlý úkol</div>
-                {lastCreated && (
-                    <Link
-                        href={`/projects/${projectId}/tasks/${lastCreated.id}`}
-                        className="text-xs font-medium text-brand-primary no-underline hover:underline"
-                    >
-                        Otevřít „{lastCreated.title}"
-                    </Link>
-                )}
-            </div>
-            <form onSubmit={submit} className="space-y-2">
-                <div className="flex items-center gap-2">
-                    <input
-                        type="text"
-                        value={data.title}
-                        onChange={(e) => setData('title', e.target.value)}
-                        placeholder="Název nového úkolu..."
-                        className="flex-1 rounded-md border border-border-default bg-surface-primary px-3 py-1.5 text-sm focus:border-border-focus focus:outline-none focus:shadow-[0_0_0_2px_var(--color-brand-soft)]"
-                        onFocus={() => setExpanded(true)}
-                    />
-                    <select
-                        value={data.priority}
-                        onChange={(e) => setData('priority', e.target.value)}
-                        className="rounded-md border border-border-default bg-surface-primary px-2 py-1.5 text-sm focus:border-border-focus focus:outline-none"
-                    >
-                        <option value="low">Nízká</option>
-                        <option value="medium">Střední</option>
-                        <option value="high">Vysoká</option>
-                        <option value="urgent">Urgentní</option>
-                    </select>
-                    <button
-                        type="submit"
-                        disabled={processing || !data.title}
-                        className="flex items-center gap-1.5 rounded-md bg-brand-primary px-4 py-1.5 text-sm font-semibold text-text-inverse transition-colors hover:bg-brand-hover disabled:opacity-50"
-                    >
-                        <Plus className="h-4 w-4" strokeWidth={2.5} />
-                        Přidat
-                    </button>
-                </div>
-                {expanded && (
-                    <textarea
-                        value={data.description}
-                        onChange={(e) => setData('description', e.target.value)}
-                        placeholder="Krátký popis (volitelné)..."
-                        rows={2}
-                        className="w-full rounded-md border border-border-default bg-surface-primary px-3 py-1.5 text-sm focus:border-border-focus focus:outline-none focus:shadow-[0_0_0_2px_var(--color-brand-soft)]"
-                    />
-                )}
-            </form>
-            {errors.title && <p className="mt-1 text-xs text-status-danger">{errors.title}</p>}
-        </div>
     );
 }
 
@@ -695,235 +589,6 @@ function ProjectOptionsMenu({ projectId, onDelete }: { projectId: string; onDele
                     Smazat
                 </PopoverItem>
             </Popover>
-        </div>
-    );
-}
-
-const ROLE_LABELS: Record<string, string> = {
-    owner: 'Vlastník',
-    project_manager: 'Project Manager',
-    member: 'Člen',
-};
-
-const ROLE_BADGE: Record<string, string> = {
-    owner: 'bg-status-warning-subtle text-status-warning',
-    project_manager: 'bg-status-info-subtle text-status-info',
-    member: 'bg-surface-secondary text-text-muted',
-};
-
-const MAX_VISIBLE_MEMBERS = 5;
-
-function ProjectMembers({
-    project,
-    availableUsers,
-    canManage,
-}: {
-    project: Project;
-    availableUsers: AvailableUser[];
-    canManage: boolean;
-}) {
-    const [showModal, setShowModal] = useState(false);
-    const [addUserId, setAddUserId] = useState('');
-    const [addRole, setAddRole] = useState('member');
-    const [removeTarget, setRemoveTarget] = useState<{ id: string; name: string } | null>(null);
-
-    const visibleMembers = project.members.slice(0, MAX_VISIBLE_MEMBERS);
-    const overflowCount = project.members.length - MAX_VISIBLE_MEMBERS;
-
-    function handleAdd() {
-        if (!addUserId) return;
-        router.post(
-            `/projects/${project.id}/members`,
-            { user_id: addUserId, role: addRole },
-            {
-                preserveScroll: true,
-                onSuccess: () => {
-                    setAddUserId('');
-                    setAddRole('member');
-                },
-            },
-        );
-    }
-
-    function handleRoleChange(userId: string, role: string) {
-        router.patch(`/projects/${project.id}/members/${userId}`, { role }, { preserveScroll: true });
-    }
-
-    function handleRemove() {
-        if (!removeTarget) return;
-        router.delete(`/projects/${project.id}/members/${removeTarget.id}`, {
-            preserveScroll: true,
-            onSuccess: () => setRemoveTarget(null),
-        });
-    }
-
-    return (
-        <div className="rounded-lg border border-border-subtle bg-surface-primary p-5">
-            {/* Compact header */}
-            <div className="mb-3 flex items-center justify-between">
-                <h3 className="text-xs font-semibold uppercase tracking-wider text-text-subtle">
-                    Členové ({project.members.length})
-                </h3>
-                {canManage && (
-                    <button
-                        onClick={() => setShowModal(true)}
-                        className="inline-flex items-center gap-1.5 rounded-md border border-border-default px-2.5 py-1 text-xs font-semibold text-text-muted transition-colors hover:bg-surface-hover hover:text-text-default"
-                    >
-                        <Settings className="h-3 w-3" />
-                        Nastavit
-                    </button>
-                )}
-            </div>
-
-            {/* Compact chip list */}
-            <div className="flex flex-wrap gap-2">
-                {visibleMembers.map((member) => {
-                    const role = member.pivot.role;
-                    return (
-                        <div
-                            key={member.id}
-                            className="inline-flex items-center gap-1.5 rounded-full border border-border-subtle bg-surface-secondary py-1 pl-1 pr-2.5"
-                        >
-                            <Avatar name={member.name} size="sm" />
-                            <span className="text-xs font-medium text-text-default">{member.name}</span>
-                            <span
-                                className={`inline-flex items-center rounded-[10px] px-1.5 py-px text-[10px] font-semibold leading-relaxed ${ROLE_BADGE[role] ?? ROLE_BADGE.member}`}
-                            >
-                                {ROLE_LABELS[role] ?? role}
-                            </span>
-                        </div>
-                    );
-                })}
-                {overflowCount > 0 && (
-                    <button
-                        onClick={() => setShowModal(true)}
-                        className="inline-flex items-center rounded-full border border-border-subtle bg-surface-secondary px-3 py-1 text-xs font-semibold text-text-muted transition-colors hover:bg-surface-hover hover:text-text-default"
-                    >
-                        +{overflowCount} dalších
-                    </button>
-                )}
-            </div>
-
-            {/* Members management modal */}
-            <Modal open={showModal} onClose={() => setShowModal(false)} size="max-w-2xl">
-                <h3 className="mb-4 text-base font-bold text-text-strong">Správa členů — {project.name}</h3>
-
-                {/* Add member form */}
-                {canManage && availableUsers.length > 0 && (
-                    <div className="mb-4 flex flex-wrap items-end gap-2 border-b border-border-subtle pb-4">
-                        <FilterSelect
-                            label="Přidat člena"
-                            value={addUserId}
-                            onChange={setAddUserId}
-                            options={availableUsers.map((u) => ({ value: u.id, label: `${u.name} — ${u.email}` }))}
-                            placeholder="Vyberte uživatele..."
-                        />
-                        <FilterSelect
-                            label="Role"
-                            value={addRole}
-                            onChange={setAddRole}
-                            options={[
-                                { value: 'member', label: 'Člen' },
-                                { value: 'project_manager', label: 'Project Manager' },
-                            ]}
-                        />
-                        <Button
-                            size="sm"
-                            icon={<UserPlus className="h-3.5 w-3.5" />}
-                            disabled={!addUserId}
-                            onClick={handleAdd}
-                        >
-                            Přidat
-                        </Button>
-                    </div>
-                )}
-
-                {/* Members table */}
-                <div className="overflow-x-auto rounded-lg border border-border-subtle">
-                    <table className="w-full border-collapse">
-                        <thead>
-                            <tr>
-                                <th className="bg-surface-secondary px-4 py-2.5 text-left text-xs font-semibold uppercase tracking-wider text-text-subtle">
-                                    Jméno
-                                </th>
-                                <th className="bg-surface-secondary px-4 py-2.5 text-left text-xs font-semibold uppercase tracking-wider text-text-subtle">
-                                    Role
-                                </th>
-                                {canManage && (
-                                    <th className="w-12 bg-surface-secondary px-4 py-2.5 text-right text-xs font-semibold uppercase tracking-wider text-text-subtle">
-                                        Akce
-                                    </th>
-                                )}
-                            </tr>
-                        </thead>
-                        <tbody>
-                            {project.members.map((member) => {
-                                const role = member.pivot.role;
-                                const isOwner = role === 'owner';
-                                return (
-                                    <tr key={member.id} className="transition-colors hover:bg-brand-soft">
-                                        <td className="border-b border-border-subtle px-4 py-2.5">
-                                            <div className="flex items-center gap-2.5">
-                                                <Avatar name={member.name} size="md" />
-                                                <div>
-                                                    <div className="text-sm font-medium text-text-strong">
-                                                        {member.name}
-                                                    </div>
-                                                    <div className="text-xs text-text-muted">{member.email}</div>
-                                                </div>
-                                            </div>
-                                        </td>
-                                        <td className="border-b border-border-subtle px-4 py-2.5">
-                                            {isOwner || !canManage ? (
-                                                <span
-                                                    className={`inline-flex items-center rounded-[10px] px-2 py-px text-xs font-semibold leading-relaxed ${ROLE_BADGE[role] ?? ROLE_BADGE.member}`}
-                                                >
-                                                    {ROLE_LABELS[role] ?? role}
-                                                </span>
-                                            ) : (
-                                                <FormSelect
-                                                    value={role}
-                                                    onChange={(e) => handleRoleChange(member.id, e.target.value)}
-                                                    options={[
-                                                        { value: 'member', label: 'Člen' },
-                                                        { value: 'project_manager', label: 'Project Manager' },
-                                                    ]}
-                                                    wrapperClassName="w-44"
-                                                />
-                                            )}
-                                        </td>
-                                        {canManage && (
-                                            <td className="border-b border-border-subtle px-4 py-2.5 text-right">
-                                                {!isOwner && (
-                                                    <Button
-                                                        variant="ghost"
-                                                        size="sm"
-                                                        onClick={() =>
-                                                            setRemoveTarget({ id: member.id, name: member.name })
-                                                        }
-                                                    >
-                                                        <X className="h-3.5 w-3.5" />
-                                                    </Button>
-                                                )}
-                                            </td>
-                                        )}
-                                    </tr>
-                                );
-                            })}
-                        </tbody>
-                    </table>
-                </div>
-            </Modal>
-
-            <ConfirmModal
-                open={!!removeTarget}
-                variant="warning"
-                title="Odebrat člena"
-                message={`Opravdu chcete odebrat uživatele ${removeTarget?.name} z projektu?`}
-                confirmLabel="Odebrat"
-                onConfirm={handleRemove}
-                onCancel={() => setRemoveTarget(null)}
-            />
         </div>
     );
 }

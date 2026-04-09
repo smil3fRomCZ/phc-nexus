@@ -1,0 +1,213 @@
+<!DOCTYPE html>
+<html lang="cs">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Preview: Členové — vlastní záložka</title>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --brand-primary: #f5a623;
+    --brand-hover: #e09000;
+    --brand-soft: #fff8eb;
+    --text-strong: #172b4d;
+    --text-default: #42526e;
+    --text-muted: #6b778c;
+    --text-subtle: #97a0af;
+    --text-inverse: #ffffff;
+    --surface-canvas: #f4f5f7;
+    --surface-primary: #ffffff;
+    --surface-secondary: #fafbfc;
+    --surface-hover: #f4f5f7;
+    --border-subtle: #ebecf0;
+    --border-default: #dfe1e6;
+    --status-info: #0747a6;
+    --status-info-subtle: #deebff;
+    --status-success: #006644;
+    --status-success-subtle: #e3fcef;
+    --status-warning: #974f0c;
+    --status-warning-subtle: #fff0b3;
+  }
+  * { margin:0; padding:0; box-sizing:border-box; }
+  body { font-family:'Inter',sans-serif; background: var(--surface-canvas); padding:40px; color: var(--text-default); }
+  h2 { font-size:18px; font-weight:700; color: var(--text-strong); margin-bottom:8px; }
+  p.desc { font-size:13px; color: var(--text-muted); margin-bottom:24px; }
+
+  /* Tabs */
+  .tabs {
+    background: var(--surface-primary); border:1px solid var(--border-subtle);
+    border-radius:10px; padding:4px; display:inline-flex; gap:2px; margin-bottom:16px;
+  }
+  .tabs a {
+    display:flex; align-items:center; gap:6px; padding:7px 14px; font-size:13px;
+    font-weight:500; text-decoration:none; border-radius:7px; color:var(--text-muted);
+  }
+  .tabs a:hover { color:var(--text-default); background:var(--surface-secondary); }
+  .tabs a.active { background:var(--brand-soft); color:var(--brand-hover); font-weight:600; }
+
+  /* Stats row */
+  .stats { display:flex; gap:12px; margin-bottom:20px; }
+  .stat-chip {
+    display:inline-flex; align-items:center; gap:6px;
+    padding:6px 14px; border-radius:8px; font-size:13px; font-weight:600;
+    background:var(--surface-primary); border:1px solid var(--border-subtle);
+  }
+  .stat-chip .num { font-size:16px; font-weight:700; color:var(--text-strong); }
+
+  /* Add member bar */
+  .add-bar {
+    display:flex; gap:8px; align-items:flex-end; margin-bottom:20px;
+    padding:12px 16px; background:var(--surface-secondary); border-radius:10px;
+    border:1px solid var(--border-subtle);
+  }
+  .add-bar .field { display:flex; flex-direction:column; gap:4px; }
+  .add-bar label { font-size:11px; font-weight:600; text-transform:uppercase; letter-spacing:.04em; color:var(--text-subtle); }
+  .add-bar select, .add-bar input {
+    height:32px; border:1px solid var(--border-default); border-radius:6px;
+    padding:0 10px; font-size:13px; background:var(--surface-primary); color:var(--text-default);
+  }
+  .btn-primary {
+    display:inline-flex; align-items:center; gap:6px;
+    padding:6px 14px; border-radius:6px; border:none;
+    background:var(--brand-primary); color:var(--text-inverse);
+    font-size:13px; font-weight:600; cursor:pointer;
+  }
+  .btn-primary:hover { background:var(--brand-hover); }
+
+  /* Members table */
+  .members-table { width:100%; border-collapse:collapse; background:var(--surface-primary); border-radius:10px; overflow:hidden; border:1px solid var(--border-subtle); }
+  .members-table th {
+    text-align:left; padding:10px 16px; font-size:11px; font-weight:600;
+    text-transform:uppercase; letter-spacing:.04em; color:var(--text-subtle);
+    background:var(--surface-secondary); border-bottom:1px solid var(--border-subtle);
+  }
+  .members-table td { padding:12px 16px; border-bottom:1px solid var(--border-subtle); font-size:14px; }
+  .members-table tr:hover { background:var(--brand-soft); }
+  .members-table tr:last-child td { border-bottom:none; }
+
+  /* Avatar */
+  .avatar {
+    width:32px; height:32px; border-radius:50%; background:var(--brand-soft);
+    display:inline-flex; align-items:center; justify-content:center;
+    font-size:12px; font-weight:700; color:var(--brand-hover); flex-shrink:0;
+  }
+  .user-cell { display:flex; align-items:center; gap:10px; }
+  .user-name { font-weight:600; color:var(--text-strong); font-size:14px; }
+  .user-email { font-size:12px; color:var(--text-muted); }
+
+  /* Role badge */
+  .role-badge {
+    display:inline-flex; padding:2px 8px; border-radius:10px;
+    font-size:11px; font-weight:600; letter-spacing:.02em;
+  }
+  .role-owner { background:var(--status-warning-subtle); color:var(--status-warning); }
+  .role-pm { background:var(--status-info-subtle); color:var(--status-info); }
+  .role-member { background:var(--surface-secondary); color:var(--text-muted); }
+
+  .btn-ghost {
+    padding:4px 8px; border:none; background:none; cursor:pointer;
+    color:var(--text-subtle); border-radius:4px; font-size:12px;
+  }
+  .btn-ghost:hover { background:var(--surface-hover); color:var(--text-default); }
+</style>
+</head>
+<body>
+
+<h2>Záložka „Členové" — návrh</h2>
+<p class="desc">Sekce členů přesunuta z přehledu do vlastní záložky. Obsahuje přehled počtů, formulář pro přidání a plnou tabulku se správou rolí.</p>
+
+<!-- Tabs -->
+<nav class="tabs">
+  <a>Přehled</a>
+  <a>Kanban</a>
+  <a>Backlog</a>
+  <a>Epic</a>
+  <a class="active">Členové</a>
+  <a>Čas</a>
+  <a>Gantt</a>
+  <a>Reporty</a>
+  <a>Schvalování</a>
+  <a>Dokumentace</a>
+</nav>
+
+<!-- Stats -->
+<div class="stats">
+  <div class="stat-chip"><span class="num">8</span> členů celkem</div>
+  <div class="stat-chip"><span class="num">1</span> vlastník</div>
+  <div class="stat-chip"><span class="num">2</span> PM</div>
+  <div class="stat-chip"><span class="num">5</span> členů</div>
+</div>
+
+<!-- Add member -->
+<div class="add-bar">
+  <div class="field" style="flex:1">
+    <label>Přidat člena</label>
+    <select><option>Vyberte uživatele...</option></select>
+  </div>
+  <div class="field">
+    <label>Role</label>
+    <select><option>Člen</option><option>Project Manager</option></select>
+  </div>
+  <button class="btn-primary">+ Přidat</button>
+</div>
+
+<!-- Members table -->
+<table class="members-table">
+  <thead>
+    <tr>
+      <th>Jméno</th>
+      <th>Role</th>
+      <th>Email</th>
+      <th style="text-align:right">Akce</th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr>
+      <td>
+        <div class="user-cell">
+          <div class="avatar">JM</div>
+          <div><div class="user-name">Jan Melicherik</div></div>
+        </div>
+      </td>
+      <td><span class="role-badge role-owner">Vlastník</span></td>
+      <td style="color:var(--text-muted); font-size:13px">jan@pearshealthcare.com</td>
+      <td style="text-align:right"><span style="color:var(--text-subtle); font-size:12px">—</span></td>
+    </tr>
+    <tr>
+      <td>
+        <div class="user-cell">
+          <div class="avatar">PK</div>
+          <div><div class="user-name">Petra Kovářová</div></div>
+        </div>
+      </td>
+      <td><span class="role-badge role-pm">Project Manager</span></td>
+      <td style="color:var(--text-muted); font-size:13px">petra.k@pearshealthcare.com</td>
+      <td style="text-align:right"><button class="btn-ghost">✕</button></td>
+    </tr>
+    <tr>
+      <td>
+        <div class="user-cell">
+          <div class="avatar">MN</div>
+          <div><div class="user-name">Martin Novák</div></div>
+        </div>
+      </td>
+      <td><span class="role-badge role-member">Člen</span></td>
+      <td style="color:var(--text-muted); font-size:13px">martin.n@pearshealthcare.com</td>
+      <td style="text-align:right"><button class="btn-ghost">✕</button></td>
+    </tr>
+    <tr>
+      <td>
+        <div class="user-cell">
+          <div class="avatar">LS</div>
+          <div><div class="user-name">Lucie Svobodová</div></div>
+        </div>
+      </td>
+      <td><span class="role-badge role-member">Člen</span></td>
+      <td style="color:var(--text-muted); font-size:13px">lucie.s@pearshealthcare.com</td>
+      <td style="text-align:right"><button class="btn-ghost">✕</button></td>
+    </tr>
+  </tbody>
+</table>
+
+</body>
+</html>

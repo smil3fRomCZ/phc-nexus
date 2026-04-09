@@ -13,7 +13,7 @@ import StatusBadge from '@/Components/StatusBadge';
 import { USER_STATUS } from '@/constants/status';
 import { useFilterRouter } from '@/hooks/useFilterRouter';
 import { router, useForm } from '@inertiajs/react';
-import { UserPlus, X } from 'lucide-react';
+import { Users, UserCheck, Mail, UserX, UserPlus, X } from 'lucide-react';
 import { useState, type FormEvent } from 'react';
 
 interface User {
@@ -36,17 +36,40 @@ interface TeamOption {
     name: string;
 }
 
+interface RoleStat {
+    role: string;
+    label: string;
+    count: number;
+}
+
+interface Stats {
+    total: number;
+    active: number;
+    invited: number;
+    deactivated: number;
+    roles: RoleStat[];
+}
+
 interface Props {
     users: User[];
     filters: { search?: string; role?: string; status?: string; team_id?: string; sort?: string; dir?: string };
     roles: SelectOption[];
     statuses: SelectOption[];
     teams: TeamOption[];
+    stats: Stats;
 }
 
 const BREADCRUMBS: Breadcrumb[] = [{ label: 'Domů', href: '/' }, { label: 'Administrace' }, { label: 'Uživatelé' }];
 
-export default function UsersIndex({ users, filters, roles, statuses, teams }: Props) {
+const ROLE_COLORS: Record<string, string> = {
+    executive: 'bg-status-danger',
+    project_manager: 'bg-status-info',
+    team_member: 'bg-brand-primary',
+    service_desk_agent: 'bg-purple-600',
+    reader: 'bg-text-subtle',
+};
+
+export default function UsersIndex({ users, filters, roles, statuses, teams, stats }: Props) {
     const [search, setSearch] = useState(filters.search ?? '');
     const [inviting, setInviting] = useState(false);
 
@@ -77,15 +100,93 @@ export default function UsersIndex({ users, filters, roles, statuses, teams }: P
 
             {inviting && <InviteDialog roles={roles} onClose={() => setInviting(false)} />}
 
+            {/* Stats */}
+            <div className="mb-6 grid grid-cols-2 gap-3 lg:grid-cols-4">
+                {[
+                    {
+                        label: 'Celkem',
+                        value: stats.total,
+                        icon: Users,
+                        color: 'bg-status-info-subtle text-status-info',
+                    },
+                    {
+                        label: 'Aktivní',
+                        value: stats.active,
+                        icon: UserCheck,
+                        color: 'bg-status-success-subtle text-status-success',
+                        sub: stats.total > 0 ? `${Math.round((stats.active / stats.total) * 100)} %` : undefined,
+                    },
+                    {
+                        label: 'Pozvaní',
+                        value: stats.invited,
+                        icon: Mail,
+                        color: 'bg-status-warning-subtle text-status-warning',
+                    },
+                    {
+                        label: 'Deaktivovaní',
+                        value: stats.deactivated,
+                        icon: UserX,
+                        color: 'bg-status-danger-subtle text-status-danger',
+                    },
+                ].map((tile) => {
+                    const Icon = tile.icon;
+                    return (
+                        <div
+                            key={tile.label}
+                            className="flex flex-col gap-1 rounded-lg border border-border-subtle bg-surface-primary p-4"
+                        >
+                            <div className={`mb-1 flex h-7 w-7 items-center justify-center rounded-md ${tile.color}`}>
+                                <Icon className="h-3.5 w-3.5" strokeWidth={2} />
+                            </div>
+                            <span className="text-xs font-medium text-text-muted">{tile.label}</span>
+                            <span className="text-xl font-bold text-text-strong">{tile.value}</span>
+                            {tile.sub && <span className="text-xs text-text-subtle">{tile.sub}</span>}
+                        </div>
+                    );
+                })}
+            </div>
+
+            {/* Roles breakdown */}
+            <div className="mb-6 rounded-lg border border-border-subtle bg-surface-primary p-4">
+                <h3 className="mb-3 text-xs font-semibold uppercase tracking-wider text-text-subtle">Rozložení rolí</h3>
+                <div className="mb-3 flex flex-wrap gap-5">
+                    {stats.roles.map((r) => (
+                        <div key={r.role} className="flex items-center gap-2">
+                            <span
+                                className={`inline-block h-2 w-2 rounded-full ${ROLE_COLORS[r.role] ?? 'bg-text-subtle'}`}
+                            />
+                            <span className="text-sm text-text-default">{r.label}</span>
+                            <span className="text-sm font-bold text-text-strong">{r.count}</span>
+                        </div>
+                    ))}
+                </div>
+                {stats.total > 0 && (
+                    <div className="flex h-1.5 overflow-hidden rounded-full bg-border-subtle">
+                        {stats.roles
+                            .filter((r) => r.count > 0)
+                            .map((r) => (
+                                <div
+                                    key={r.role}
+                                    className={`h-full ${ROLE_COLORS[r.role] ?? 'bg-text-subtle'}`}
+                                    style={{ width: `${(r.count / stats.total) * 100}%` }}
+                                />
+                            ))}
+                    </div>
+                )}
+            </div>
+
             <FilterBar>
                 <form onSubmit={handleSearch} className="flex gap-2">
-                    <FormInput
-                        type="text"
-                        value={search}
-                        onChange={(e) => setSearch(e.target.value)}
-                        placeholder="Hledat jméno nebo email..."
-                        wrapperClassName="w-full sm:w-64"
-                    />
+                    <div className="inline-flex items-center gap-1.5 rounded-md border border-border-default bg-surface-primary transition-colors hover:border-text-subtle focus-within:border-border-focus focus-within:shadow-[0_0_0_2px_var(--color-brand-soft)]">
+                        <span className="pl-2.5 text-[0.6875rem] font-semibold text-text-subtle">Hledat:</span>
+                        <input
+                            type="text"
+                            value={search}
+                            onChange={(e) => setSearch(e.target.value)}
+                            placeholder="Jméno nebo email..."
+                            className="h-8 w-full border-none bg-transparent pr-2 pl-0 text-sm text-text-default outline-none placeholder:text-text-subtle sm:w-44"
+                        />
+                    </div>
                     <Button type="submit" size="md">
                         Hledat
                     </Button>

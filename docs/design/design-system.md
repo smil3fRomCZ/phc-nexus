@@ -230,6 +230,31 @@ Sidebar:
 
 ## Core Components
 
+### 0. Action Bar (Header Actions)
+
+Použití:
+
+- header entity stránek (detail projektu, epiku, úkolu)
+- page-level akce (edit, export, delete)
+
+Typy akcí:
+
+| Typ | Rozměr | Obsah | Příklad |
+|-----|--------|-------|---------|
+| `ActionIconButton` | 36×36px (`p-2`) | Pouze ikona 16×16, tooltip na hover | Upravit, Export, Smazat |
+| Textový action button | `h-9` (36px), auto-width | Ikona + text (max 2 slova) | Status update |
+
+Pravidla:
+
+- všechny akce v jednom baru musí mít shodnou výšku (36px / `h-9`)
+- `ActionIconButton`: `border border-border-default p-2 rounded-md`, hover = `surface-hover`
+- akce s popoverem/dropdown (Export): ikona = trigger, dropdown otevírá na klik
+- destruktivní akce: `variant="danger"` (červený border + barva)
+- pořadí v baru: primární akce vlevo → sekundární → destruktivní vpravo
+- na mobilu: akce sbaleny do overflow menu (`ProjectOptionsMenu`)
+
+Komponenta: `resources/js/Components/ActionIconButton.tsx`
+
 ### 1. Page Header
 
 Obsah:

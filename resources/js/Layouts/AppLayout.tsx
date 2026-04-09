@@ -48,7 +48,8 @@ const NAV_SECTIONS = [
         items: [
             { href: '/', label: 'Dashboard', icon: LayoutDashboard },
             { href: '/projects', label: 'Projekty', icon: FolderKanban },
-            { href: '/my-tasks', label: 'Moje úkoly', icon: Clock },
+            { href: '/my-tasks', label: 'Moje úkoly', icon: CheckSquare },
+            { href: '/my-time', label: 'Moje výkazy', icon: Clock },
             { href: '/calendar', label: 'Kalendář', icon: CalendarDays },
         ],
     },

@@ -4,6 +4,7 @@ import BoardCard from '@/Components/BoardCard';
 import type { BoardTask } from '@/Components/BoardCard';
 import Button from '@/Components/Button';
 import FilterSelect from '@/Components/FilterSelect';
+import SearchableSelect from '@/Components/SearchableSelect';
 import FormInput from '@/Components/FormInput';
 import FormSelect from '@/Components/FormSelect';
 import FormTextarea from '@/Components/FormTextarea';
@@ -208,7 +209,7 @@ export default function TaskBoard({
 
             {/* Filter + controls bar */}
             <div className="mb-4 flex flex-wrap items-center gap-2">
-                <FilterSelect
+                <SearchableSelect
                     label="Řešitel"
                     value={filters.assignee_id ?? ''}
                     onChange={(v) => applyFilter('assignee_id', v)}

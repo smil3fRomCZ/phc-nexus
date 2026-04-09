@@ -19,6 +19,12 @@ interface SummaryItem {
     variant?: 'info' | 'success';
 }
 
+interface TaskOption {
+    id: string;
+    title: string;
+    number: number;
+}
+
 interface Props {
     timeEntries: TimeEntryData[];
     totalHours: number;
@@ -27,6 +33,7 @@ interface Props {
     currentUserId?: string;
     summaryItems?: SummaryItem[];
     showTaskColumn?: boolean;
+    availableTasks?: TaskOption[];
 }
 
 const EXPORT_FORMATS = [
@@ -43,10 +50,12 @@ export default function TimeLogSection({
     currentUserId,
     summaryItems,
     showTaskColumn = false,
+    availableTasks,
 }: Props) {
     const [date, setDate] = useState(new Date().toISOString().slice(0, 10));
     const [hours, setHours] = useState('');
     const [note, setNote] = useState('');
+    const [taskId, setTaskId] = useState('');
     const [submitting, setSubmitting] = useState(false);
     const [error, setError] = useState<string | null>(null);
     const [deleteTarget, setDeleteTarget] = useState<string | null>(null);
@@ -68,12 +77,13 @@ export default function TimeLogSection({
         setError(null);
         router.post(
             postUrl,
-            { date, hours: parseFloat(hours), note: note || null },
+            { date, hours: parseFloat(hours), note: note || null, task_id: taskId || null },
             {
                 onFinish: () => setSubmitting(false),
                 onSuccess: () => {
                     setHours('');
                     setNote('');
+                    setTaskId('');
                 },
                 onError: () => {
                     setError('Nepodařilo se zalogovat čas. Zkontrolujte zadané hodnoty.');
@@ -183,6 +193,23 @@ export default function TimeLogSection({
                         className="w-20 rounded-md border border-border-default bg-surface-primary px-2 py-1.5 text-sm focus:border-border-focus focus:outline-none focus:shadow-[0_0_0_2px_var(--color-brand-soft)]"
                     />
                 </div>
+                {availableTasks && availableTasks.length > 0 && (
+                    <div className="flex flex-col gap-1">
+                        <label className="text-xs font-semibold uppercase tracking-wider text-text-subtle">Úkol</label>
+                        <select
+                            value={taskId}
+                            onChange={(e) => setTaskId(e.target.value)}
+                            className="w-48 rounded-md border border-border-default bg-surface-primary px-2 py-1.5 text-sm focus:border-border-focus focus:outline-none focus:shadow-[0_0_0_2px_var(--color-brand-soft)]"
+                        >
+                            <option value="">Bez úkolu</option>
+                            {availableTasks.map((t) => (
+                                <option key={t.id} value={t.id}>
+                                    #{t.number} {t.title}
+                                </option>
+                            ))}
+                        </select>
+                    </div>
+                )}
                 <div className="flex flex-1 flex-col gap-1">
                     <label className="text-xs font-semibold uppercase tracking-wider text-text-subtle">Poznámka</label>
                     <input

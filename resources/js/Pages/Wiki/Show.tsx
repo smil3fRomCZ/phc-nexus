@@ -335,6 +335,7 @@ function WikiEditForm({
                         content={data.content}
                         onChange={(html) => setData('content', html)}
                         placeholder="Obsah stránky..."
+                        imageUploadUrl={`/projects/${projectId}/wiki/${page.id}/images`}
                     />
                 </div>
             </div>

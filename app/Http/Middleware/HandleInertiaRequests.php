@@ -29,6 +29,7 @@ final class HandleInertiaRequests extends Middleware
             'flash' => [
                 'success' => $request->session()->get('success'),
                 'error' => $request->session()->get('error'),
+                'created_task_id' => $request->session()->get('created_task_id'),
             ],
             'notificationCount' => fn () => $request->user()?->unreadNotifications()->count() ?? 0,
         ];

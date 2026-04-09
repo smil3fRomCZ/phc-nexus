@@ -12,10 +12,12 @@ interface GanttTask {
     title: string;
     number: number;
     due_date: string;
+    start_date: string | null;
     created_at: string;
     assignee: { id: string; name: string } | null;
     epic: { id: string; title: string } | null;
     workflow_status: { id: string; name: string; is_done: boolean } | null;
+    blockers?: { id: string }[];
 }
 
 interface GanttEpic {
@@ -54,8 +56,9 @@ export default function ProjectGantt({ project, tasks, epics }: Props) {
             custom_class: 'gantt-epic',
         })),
         ...tasks.map((t) => {
-            const start = t.created_at.split('T')[0];
+            const start = t.start_date ?? t.created_at.split('T')[0];
             const end = t.due_date;
+            const dependencies = (t.blockers ?? []).map((b) => `task-${b.id}`).join(',');
             return {
                 id: `task-${t.id}`,
                 name: `${project.key}-${t.number} ${t.title}`,
@@ -63,6 +66,7 @@ export default function ProjectGantt({ project, tasks, epics }: Props) {
                 end,
                 progress: t.workflow_status?.is_done ? 100 : 0,
                 custom_class: t.workflow_status?.is_done ? 'gantt-done' : 'gantt-task',
+                dependencies,
             };
         }),
     ];
@@ -120,7 +124,7 @@ export default function ProjectGantt({ project, tasks, epics }: Props) {
                         </div>
 
                         <div className="overflow-x-auto rounded-lg border border-border-subtle bg-surface-primary">
-                            <div ref={containerRef} className="min-h-[200px] sm:min-h-[300px]" />
+                            <div ref={containerRef} className="min-h-[400px] sm:min-h-[500px]" />
                         </div>
                     </>
                 ) : (

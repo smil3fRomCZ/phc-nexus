@@ -23,13 +23,19 @@ final class TimeEntryController extends Controller
             'date' => ['required', 'date'],
             'hours' => ['required', 'numeric', 'min:0.25', 'max:24'],
             'note' => ['nullable', 'string', 'max:500'],
+            'task_id' => ['nullable', 'uuid', 'exists:tasks,id'],
         ]);
 
+        $resolvedTaskId = $task?->id ?? ($validated['task_id'] ?? null);
+        $resolvedTask = $resolvedTaskId ? Task::find($resolvedTaskId) : null;
+
         TimeEntry::create([
-            ...$validated,
+            'date' => $validated['date'],
+            'hours' => $validated['hours'],
+            'note' => $validated['note'] ?? null,
             'project_id' => $project->id,
-            'task_id' => $task?->id,
-            'epic_id' => $task?->epic_id,
+            'task_id' => $resolvedTaskId,
+            'epic_id' => $resolvedTask?->epic_id,
             'user_id' => $request->user()->id,
         ]);
 

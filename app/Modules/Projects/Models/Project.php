@@ -98,7 +98,7 @@ class Project extends Model
         return $this->hasMany(WikiPage::class);
     }
 
-    public function estimationSessions(): HasMany
+    public function sessions(): HasMany
     {
         return $this->hasMany(EstimationSession::class);
     }

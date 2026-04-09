@@ -19,9 +19,8 @@ final class GlobalApprovalsController extends Controller
 
         $approvals = ApprovalRequest::query()
             ->with(['requester:id,name', 'votes.voter:id,name', 'approvable'])
-            ->where('status', 'pending')
             ->whereHas('votes', function ($q) use ($user) {
-                $q->where('voter_id', $user->id)->whereNull('decision');
+                $q->where('voter_id', $user->id);
             })
             ->latest()
             ->get()

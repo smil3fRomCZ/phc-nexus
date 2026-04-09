@@ -34,10 +34,20 @@ button {
     fill: #94a3b8;
     opacity: 0.6;
 }
+.gantt-container .popup-wrapper {
+    z-index: 1050 !important;
+}
 
 /* ==========================================================================
    ProseMirror (Tiptap) — list & heading styling
    ========================================================================== */
+
+.ProseMirror img {
+    max-width: 100%;
+    height: auto;
+    border-radius: 0.5rem;
+    margin: 0.5rem 0;
+}
 
 .ProseMirror ul {
     list-style-type: disc;

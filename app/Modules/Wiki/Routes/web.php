@@ -19,6 +19,7 @@ Route::middleware('auth')->scopeBindings()->group(function () {
     // Wiki comments & attachments (shared for project + epic pages)
     Route::post('projects/{project}/wiki/{wikiPage}/comments', [WikiCommentController::class, 'store'])->name('projects.wiki.comments.store');
     Route::post('projects/{project}/wiki/{wikiPage}/attachments', [WikiAttachmentController::class, 'store'])->name('projects.wiki.attachments.store');
+    Route::post('projects/{project}/wiki/{wikiPage}/images', [WikiAttachmentController::class, 'storeImage'])->name('projects.wiki.images.store');
 
     // Epic wiki
     Route::get('projects/{project}/epics/{epic}/wiki', [EpicWikiPageController::class, 'index'])->name('projects.epics.wiki.index');

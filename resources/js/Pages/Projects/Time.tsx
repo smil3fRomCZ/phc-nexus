@@ -7,13 +7,20 @@ import type { TimeEntryData } from '@/Components/TimeLogSection';
 import { usePage } from '@inertiajs/react';
 import type { PageProps } from '@/types';
 
+interface TaskOption {
+    id: string;
+    title: string;
+    number: number;
+}
+
 interface Props {
     project: { id: string; name: string; key: string; status: string };
     timeEntries: TimeEntryData[];
     totalHours: number;
+    availableTasks?: TaskOption[];
 }
 
-export default function ProjectTime({ project, timeEntries = [], totalHours = 0 }: Props) {
+export default function ProjectTime({ project, timeEntries = [], totalHours = 0, availableTasks = [] }: Props) {
     const { auth } = usePage<PageProps>().props;
 
     const breadcrumbs: Breadcrumb[] = [
@@ -41,6 +48,7 @@ export default function ProjectTime({ project, timeEntries = [], totalHours = 0 
                         exportUrl={`/projects/${project.id}/export/time`}
                         currentUserId={auth.user?.id}
                         showTaskColumn
+                        availableTasks={availableTasks}
                     />
                 </div>
             </div>

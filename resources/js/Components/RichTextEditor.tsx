@@ -1,14 +1,16 @@
 import { useEditor, EditorContent } from '@tiptap/react';
 import StarterKit from '@tiptap/starter-kit';
 import Link from '@tiptap/extension-link';
+import Image from '@tiptap/extension-image';
 import Placeholder from '@tiptap/extension-placeholder';
-import { Bold, Italic, Code, Heading2, Heading3, List, ListOrdered, Link2 } from 'lucide-react';
+import { Bold, Italic, Code, Heading2, Heading3, List, ListOrdered, Link2, ImageIcon } from 'lucide-react';
 
 interface Props {
     content: string;
     onChange: (html: string) => void;
     placeholder?: string;
     autoFocus?: boolean;
+    imageUploadUrl?: string;
 }
 
 export default function RichTextEditor({
@@ -16,6 +18,7 @@ export default function RichTextEditor({
     onChange,
     placeholder = 'Začněte psát...',
     autoFocus = false,
+    imageUploadUrl,
 }: Props) {
     const editor = useEditor({
         extensions: [
@@ -25,6 +28,9 @@ export default function RichTextEditor({
             Link.configure({
                 openOnClick: false,
                 protocols: ['http', 'https', 'mailto'],
+            }),
+            Image.configure({
+                HTMLAttributes: { class: 'max-w-full rounded-md' },
             }),
             Placeholder.configure({ placeholder }),
         ],
@@ -44,6 +50,36 @@ export default function RichTextEditor({
         } catch {
             return false;
         }
+    }
+
+    function insertImage() {
+        if (!editor || !imageUploadUrl) return;
+        const input = document.createElement('input');
+        input.type = 'file';
+        input.accept = 'image/*';
+        input.onchange = async () => {
+            const file = input.files?.[0];
+            if (!file) return;
+            const csrfToken = document.querySelector<HTMLMetaElement>('meta[name="csrf-token"]')?.content ?? '';
+            const formData = new FormData();
+            formData.append('file', file);
+            try {
+                const res = await fetch(imageUploadUrl, {
+                    method: 'POST',
+                    headers: { 'X-CSRF-TOKEN': csrfToken, Accept: 'application/json' },
+                    body: formData,
+                });
+                if (res.ok) {
+                    const data = await res.json();
+                    if (data.url) {
+                        editor.chain().focus().setImage({ src: data.url, alt: file.name }).run();
+                    }
+                }
+            } catch {
+                // Upload failed silently
+            }
+        };
+        input.click();
     }
 
     function toggleLink() {
@@ -146,6 +182,17 @@ export default function RichTextEditor({
                 >
                     <Link2 className="h-3.5 w-3.5" />
                 </button>
+                {imageUploadUrl && (
+                    <button
+                        type="button"
+                        onMouseDown={preventFocusLoss}
+                        onClick={insertImage}
+                        className={btnClass(false)}
+                        title="Vložit obrázek"
+                    >
+                        <ImageIcon className="h-3.5 w-3.5" />
+                    </button>
+                )}
             </div>
             <EditorContent
                 editor={editor}

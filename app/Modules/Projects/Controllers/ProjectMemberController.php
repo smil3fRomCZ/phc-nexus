@@ -9,6 +9,7 @@ use App\Models\User;
 use App\Modules\Projects\Models\Project;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Gate;
 use Illuminate\Validation\Rule;
 use Inertia\Inertia;
@@ -37,7 +38,11 @@ final class ProjectMemberController extends Controller
                 ->get(['id', 'name', 'email'])
             : [];
 
-        $roleCounts = $project->members->groupBy(fn ($m) => $m->pivot->getAttribute('role'))->map->count();
+        $roleCounts = DB::table('project_members')
+            ->where('project_id', $project->id)
+            ->selectRaw('role, count(*) as count')
+            ->groupBy('role')
+            ->pluck('count', 'role');
 
         return Inertia::render('Projects/Members', [
             'project' => [

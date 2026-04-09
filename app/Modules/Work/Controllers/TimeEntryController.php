@@ -26,7 +26,7 @@ final class TimeEntryController extends Controller
             'task_id' => ['nullable', 'uuid', 'exists:tasks,id'],
         ]);
 
-        $resolvedTaskId = $task?->id ?? ($validated['task_id'] ?? null);
+        $resolvedTaskId = $task !== null ? $task->id : ($validated['task_id'] ?? null);
         $resolvedTask = $resolvedTaskId ? Task::find($resolvedTaskId) : null;
 
         TimeEntry::create([

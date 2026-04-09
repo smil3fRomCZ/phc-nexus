@@ -806,9 +806,7 @@ function ProjectMembers({
 
             {/* Members management modal */}
             <Modal open={showModal} onClose={() => setShowModal(false)} size="max-w-2xl">
-                <h3 className="mb-4 text-base font-bold text-text-strong">
-                    Správa členů — {project.name}
-                </h3>
+                <h3 className="mb-4 text-base font-bold text-text-strong">Správa členů — {project.name}</h3>
 
                 {/* Add member form */}
                 {canManage && availableUsers.length > 0 && (

@@ -141,7 +141,10 @@ function CreateSessionDialog({ projectId, onClose }: { projectId: string; onClos
         if (statusFilter) params.append('status', statusFilter);
         fetch(`/projects/${projectId}/tasks?${params}`)
             .then((res) => res.json())
-            .then((json) => { setTasks(json.tasks ?? []); setLoading(false); })
+            .then((json) => {
+                setTasks(json.tasks ?? []);
+                setLoading(false);
+            })
             .catch(() => setLoading(false));
     }
 
@@ -153,7 +156,10 @@ function CreateSessionDialog({ projectId, onClose }: { projectId: string; onClos
         if (value) params.append('status', value);
         fetch(`/projects/${projectId}/tasks?${params}`)
             .then((res) => res.json())
-            .then((json) => { setTasks(json.tasks ?? []); setLoading(false); })
+            .then((json) => {
+                setTasks(json.tasks ?? []);
+                setLoading(false);
+            })
             .catch(() => setLoading(false));
     }
 
@@ -241,7 +247,9 @@ function CreateSessionDialog({ projectId, onClose }: { projectId: string; onClos
                             >
                                 <option value="">Všechny stavy</option>
                                 {statuses.map((s) => (
-                                    <option key={s.value} value={s.value}>{s.label}</option>
+                                    <option key={s.value} value={s.value}>
+                                        {s.label}
+                                    </option>
                                 ))}
                             </select>
                         )}
@@ -271,7 +279,9 @@ function CreateSessionDialog({ projectId, onClose }: { projectId: string; onClos
                                 <span className="text-xs font-semibold text-text-muted">#{task.number}</span>
                                 <span className="truncate text-text-default">{task.title}</span>
                                 {task.workflow_status && (
-                                    <span className="ml-auto text-[10px] text-text-subtle">{task.workflow_status.name}</span>
+                                    <span className="ml-auto text-[10px] text-text-subtle">
+                                        {task.workflow_status.name}
+                                    </span>
                                 )}
                             </label>
                         ))}

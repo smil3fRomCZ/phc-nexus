@@ -591,7 +591,10 @@ function AttachExistingTask({ projectId, epicId }: { projectId: string; epicId: 
                         if (e.target.value) params.append('search', e.target.value);
                         fetch(`/projects/${projectId}/tasks?${params}`)
                             .then((res) => res.json())
-                            .then((json) => { setTasks(json.tasks ?? []); setLoading(false); })
+                            .then((json) => {
+                                setTasks(json.tasks ?? []);
+                                setLoading(false);
+                            })
                             .catch(() => setLoading(false));
                     }}
                     placeholder="Hledat úkoly..."
@@ -600,9 +603,7 @@ function AttachExistingTask({ projectId, epicId }: { projectId: string; epicId: 
                 />
                 <div className="max-h-64 overflow-y-auto rounded-md border border-border-subtle">
                     {loading && <p className="p-3 text-xs text-text-muted">Načítání...</p>}
-                    {!loading && tasks.length === 0 && (
-                        <p className="p-3 text-xs text-text-muted">Žádné volné úkoly</p>
-                    )}
+                    {!loading && tasks.length === 0 && <p className="p-3 text-xs text-text-muted">Žádné volné úkoly</p>}
                     {tasks.map((task) => (
                         <div
                             key={task.id}

@@ -21,9 +21,7 @@ export default function SearchableSelect({ label, value, onChange, options, plac
 
     const selectedLabel = options.find((o) => o.value === value)?.label;
 
-    const filtered = search
-        ? options.filter((o) => o.label.toLowerCase().includes(search.toLowerCase()))
-        : options;
+    const filtered = search ? options.filter((o) => o.label.toLowerCase().includes(search.toLowerCase())) : options;
 
     useEffect(() => {
         function handleClickOutside(e: MouseEvent) {
@@ -68,8 +66,16 @@ export default function SearchableSelect({ label, value, onChange, options, plac
                         onClick={handleClear}
                         className="absolute right-1 top-1/2 -translate-y-1/2 rounded p-0.5 text-text-subtle hover:text-text-default"
                     >
-                        <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-                            <line x1="18" y1="6" x2="6" y2="18" /><line x1="6" y1="6" x2="18" y2="18" />
+                        <svg
+                            width="12"
+                            height="12"
+                            viewBox="0 0 24 24"
+                            fill="none"
+                            stroke="currentColor"
+                            strokeWidth="2"
+                        >
+                            <line x1="18" y1="6" x2="6" y2="18" />
+                            <line x1="6" y1="6" x2="18" y2="18" />
                         </svg>
                     </button>
                 )}
@@ -101,7 +107,9 @@ export default function SearchableSelect({ label, value, onChange, options, plac
                                 type="button"
                                 onClick={() => handleSelect(o.value)}
                                 className={`w-full px-3 py-1.5 text-left text-xs hover:bg-surface-hover ${
-                                    o.value === value ? 'bg-brand-soft font-semibold text-brand-primary' : 'text-text-default'
+                                    o.value === value
+                                        ? 'bg-brand-soft font-semibold text-brand-primary'
+                                        : 'text-text-default'
                                 }`}
                             >
                                 {o.label}

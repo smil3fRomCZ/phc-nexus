@@ -1100,7 +1100,10 @@ function DependenciesPanel({
                             Přidat
                         </button>
                         <button
-                            onClick={() => { setAddingType(null); setSelectedId(''); }}
+                            onClick={() => {
+                                setAddingType(null);
+                                setSelectedId('');
+                            }}
                             className="rounded px-1 py-1 text-xs text-text-muted hover:bg-surface-hover"
                         >
                             <X className="h-3 w-3" />

@@ -5,8 +5,8 @@ import DeleteButton from '@/Components/DeleteButton';
 import ProjectHeaderCompact from '@/Components/ProjectHeaderCompact';
 import ProjectTabs from '@/Components/ProjectTabs';
 import { router } from '@inertiajs/react';
-import { MousePointerClick, Plus, Trash2, X } from 'lucide-react';
-import { useState, useCallback, useMemo, useEffect, type CSSProperties } from 'react';
+import { ArrowRight, MousePointerClick, Plus, Trash2, X } from 'lucide-react';
+import { useState, useCallback, useMemo, useEffect, type CSSProperties, type MouseEvent } from 'react';
 import {
     ReactFlow,
     Background,
@@ -68,29 +68,63 @@ function StatusNode({ data }: { data: WorkflowStatus & { onEdit: (id: string) =>
             style={{ borderColor: data.color ?? '#dfe1e6', minWidth: 140 }}
             onClick={() => data.onEdit(data.id)}
         >
+            {/* Každá pozice má overlapping source+target handle, aby šel táhnout přechod
+                z libovolné strany do libovolné strany (včetně Top→Top, Left→Left, atd.).
+                Source handle leží nad target handle — React Flow při drag-startu vybere source,
+                při drag-endu vybere kompatibilní target na cílovém nodu. */}
             <Handle
                 type="target"
                 position={Position.Left}
+                id="left-target"
+                className="!h-2.5 !w-2.5 !border-2 !border-white !bg-brand-primary"
+                style={handleStyle}
+            />
+            <Handle
+                type="source"
+                position={Position.Left}
+                id="left-source"
+                className="!h-2.5 !w-2.5 !border-2 !border-white !bg-brand-primary"
+                style={handleStyle}
+            />
+            <Handle
+                type="target"
+                position={Position.Right}
+                id="right-target"
                 className="!h-2.5 !w-2.5 !border-2 !border-white !bg-brand-primary"
                 style={handleStyle}
             />
             <Handle
                 type="source"
                 position={Position.Right}
+                id="right-source"
                 className="!h-2.5 !w-2.5 !border-2 !border-white !bg-brand-primary"
                 style={handleStyle}
             />
             <Handle
                 type="target"
                 position={Position.Top}
-                id="top"
+                id="top-target"
+                className="!h-2.5 !w-2.5 !border-2 !border-white !bg-brand-primary"
+                style={handleStyle}
+            />
+            <Handle
+                type="source"
+                position={Position.Top}
+                id="top-source"
+                className="!h-2.5 !w-2.5 !border-2 !border-white !bg-brand-primary"
+                style={handleStyle}
+            />
+            <Handle
+                type="target"
+                position={Position.Bottom}
+                id="bottom-target"
                 className="!h-2.5 !w-2.5 !border-2 !border-white !bg-brand-primary"
                 style={handleStyle}
             />
             <Handle
                 type="source"
                 position={Position.Bottom}
-                id="bottom"
+                id="bottom-source"
                 className="!h-2.5 !w-2.5 !border-2 !border-white !bg-brand-primary"
                 style={handleStyle}
             />
@@ -143,6 +177,7 @@ const nodeTypes = { status: StatusNode };
 
 export default function Workflow({ project, statuses, transitions }: Props) {
     const [editingId, setEditingId] = useState<string | null>(null);
+    const [selectedEdgeId, setSelectedEdgeId] = useState<string | null>(null);
     const [newName, setNewName] = useState('');
     const [deleteTarget, setDeleteTarget] = useState<{ id: string; name: string } | null>(null);
 
@@ -154,6 +189,12 @@ export default function Workflow({ project, statuses, transitions }: Props) {
     ];
 
     const editingStatus = statuses.find((s) => s.id === editingId) ?? null;
+    const selectedEdge = transitions.find((t) => t.id === selectedEdgeId) ?? null;
+
+    const selectStatus = useCallback((id: string) => {
+        setEditingId(id);
+        setSelectedEdgeId(null);
+    }, []);
 
     // Build React Flow nodes from statuses
     const buildNodes = useCallback(
@@ -165,9 +206,9 @@ export default function Workflow({ project, statuses, transitions }: Props) {
                     x: s.pos_x != null && s.pos_x !== 0 ? s.pos_x : (i % 3) * 250 + 50,
                     y: s.pos_y != null && s.pos_y !== 0 ? s.pos_y : Math.floor(i / 3) * 150 + 50,
                 },
-                data: { ...s, onEdit: setEditingId },
+                data: { ...s, onEdit: selectStatus },
             })),
-        [statuses],
+        [statuses, selectStatus],
     );
 
     const [nodes, setNodes] = useState<Node[]>(buildNodes);
@@ -194,18 +235,33 @@ export default function Workflow({ project, statuses, transitions }: Props) {
 
     const edges: Edge[] = useMemo(
         () =>
-            transitions.map((t) => ({
-                id: t.id,
-                source: t.from_status_id,
-                target: t.to_status_id,
-                markerEnd: { type: MarkerType.ArrowClosed, color: '#97a0af' },
-                style: { stroke: '#97a0af', strokeWidth: 2 },
-                animated: false,
-            })),
-        [transitions],
+            transitions.map((t) => {
+                const isSelected = t.id === selectedEdgeId;
+                const color = isSelected ? '#0052cc' : '#97a0af';
+                return {
+                    id: t.id,
+                    source: t.from_status_id,
+                    target: t.to_status_id,
+                    markerEnd: { type: MarkerType.ArrowClosed, color },
+                    style: { stroke: color, strokeWidth: isSelected ? 3 : 2 },
+                    animated: false,
+                    selected: isSelected,
+                };
+            }),
+        [transitions, selectedEdgeId],
     );
 
     const onNodesChange = useCallback((changes: NodeChange[]) => setNodes((nds) => applyNodeChanges(changes, nds)), []);
+
+    const onEdgeClick = useCallback((_event: MouseEvent, edge: Edge) => {
+        setSelectedEdgeId(edge.id);
+        setEditingId(null);
+    }, []);
+
+    const onPaneClick = useCallback(() => {
+        setSelectedEdgeId(null);
+        setEditingId(null);
+    }, []);
 
     const onConnect = useCallback(
         (connection: Connection) => {
@@ -325,6 +381,8 @@ export default function Workflow({ project, statuses, transitions }: Props) {
                             onNodesChange={onNodesChange}
                             onNodeDragStop={onNodeDragStop}
                             onConnect={onConnect}
+                            onEdgeClick={onEdgeClick}
+                            onPaneClick={onPaneClick}
                             nodeTypes={nodeTypes}
                             fitView
                             proOptions={{ hideAttribution: true }}
@@ -337,7 +395,63 @@ export default function Workflow({ project, statuses, transitions }: Props) {
 
                     {/* Detail panel — always visible */}
                     <div className="w-full flex-shrink-0 rounded-lg border border-border-subtle bg-surface-primary p-4 md:w-64">
-                        {editingStatus ? (
+                        {selectedEdge ? (
+                            <>
+                                <div className="mb-3 flex items-center justify-between">
+                                    <span className="text-sm font-semibold text-text-strong">Editace přechodu</span>
+                                    <button
+                                        onClick={() => setSelectedEdgeId(null)}
+                                        className="rounded p-2 text-text-muted hover:bg-surface-hover"
+                                        aria-label="Zavřít"
+                                    >
+                                        <X className="h-3.5 w-3.5" />
+                                    </button>
+                                </div>
+
+                                <div className="space-y-3">
+                                    <div>
+                                        <label className="block text-xs font-semibold uppercase tracking-wider text-text-subtle">
+                                            Směr
+                                        </label>
+                                        <div className="mt-1 flex items-center gap-2 rounded-md border border-border-subtle bg-surface-secondary px-2 py-1.5 text-xs">
+                                            <span className="font-semibold text-text-strong">
+                                                {selectedEdge.from_status.name}
+                                            </span>
+                                            <ArrowRight className="h-3 w-3 text-text-subtle" />
+                                            <span className="font-semibold text-text-strong">
+                                                {selectedEdge.to_status.name}
+                                            </span>
+                                        </div>
+                                    </div>
+
+                                    <div className="flex gap-2">
+                                        <button
+                                            onClick={() => selectStatus(selectedEdge.from_status_id)}
+                                            className="flex-1 rounded-md border border-border-default px-2 py-1.5 text-xs font-medium text-text-default transition-colors hover:bg-surface-secondary"
+                                        >
+                                            Výchozí stav
+                                        </button>
+                                        <button
+                                            onClick={() => selectStatus(selectedEdge.to_status_id)}
+                                            className="flex-1 rounded-md border border-border-default px-2 py-1.5 text-xs font-medium text-text-default transition-colors hover:bg-surface-secondary"
+                                        >
+                                            Cílový stav
+                                        </button>
+                                    </div>
+
+                                    <DeleteButton
+                                        onClick={() => {
+                                            deleteTransition(selectedEdge.id);
+                                            setSelectedEdgeId(null);
+                                        }}
+                                        className="flex w-full items-center justify-center gap-1.5 rounded-md border border-status-danger/30 px-3 py-1.5 text-xs font-medium text-status-danger transition-colors hover:bg-status-danger-subtle"
+                                    >
+                                        <Trash2 className="h-3 w-3" />
+                                        Smazat přechod
+                                    </DeleteButton>
+                                </div>
+                            </>
+                        ) : editingStatus ? (
                             <>
                                 <div className="mb-3 flex items-center justify-between">
                                     <span className="text-sm font-semibold text-text-strong">Editace stavu</span>

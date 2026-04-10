@@ -17,8 +17,8 @@ import {
     useViewport,
     type Node,
     type Edge,
-    type Connection,
     type NodeChange,
+    type FinalConnectionState,
     applyNodeChanges,
     MarkerType,
 } from '@xyflow/react';
@@ -235,15 +235,36 @@ export default function Workflow({ project, statuses, transitions }: Props) {
         setEditingId(null);
     }, []);
 
-    const onConnect = useCallback(
-        (connection: Connection) => {
-            if (!connection.source || !connection.target || connection.source === connection.target) return;
+    // Místo onConnect (které závisí na přesném handle-to-handle matching a selhává
+    // při drag na stejný typ handle) používáme onConnectEnd. Ten dostane fromNode
+    // přímo v connectionState, cílový node zjistíme přes connectionState.toNode
+    // nebo fallback na elementFromPoint — takže stačí pustit drag kdekoliv nad
+    // cílovým nodem, nemusí to být přesně na handle.
+    const onConnectEnd = useCallback(
+        (event: globalThis.MouseEvent | globalThis.TouchEvent, connectionState: FinalConnectionState) => {
+            if (!connectionState.fromNode) return;
+
+            let targetNodeId: string | null = connectionState.toNode?.id ?? null;
+
+            // Fallback: pokud React Flow nezdetekoval toNode, zkusíme najít element pod kurzorem
+            if (!targetNodeId) {
+                const clientX = 'clientX' in event ? event.clientX : event.changedTouches[0]?.clientX;
+                const clientY = 'clientY' in event ? event.clientY : event.changedTouches[0]?.clientY;
+                if (clientX != null && clientY != null) {
+                    const el = document.elementFromPoint(clientX, clientY);
+                    const nodeEl = el?.closest('.react-flow__node');
+                    targetNodeId = nodeEl?.getAttribute('data-id') ?? null;
+                }
+            }
+
+            if (!targetNodeId || targetNodeId === connectionState.fromNode.id) return;
+
             fetch(`/projects/${project.id}/workflow/transitions`, {
                 method: 'POST',
                 headers: csrfHeaders(),
                 body: JSON.stringify({
-                    from_status_id: connection.source,
-                    to_status_id: connection.target,
+                    from_status_id: connectionState.fromNode.id,
+                    to_status_id: targetNodeId,
                 }),
             }).then((res) => {
                 if (res.ok) router.reload();
@@ -352,7 +373,7 @@ export default function Workflow({ project, statuses, transitions }: Props) {
                             edges={edges}
                             onNodesChange={onNodesChange}
                             onNodeDragStop={onNodeDragStop}
-                            onConnect={onConnect}
+                            onConnectEnd={onConnectEnd}
                             onEdgeClick={onEdgeClick}
                             onPaneClick={onPaneClick}
                             connectionMode={ConnectionMode.Loose}

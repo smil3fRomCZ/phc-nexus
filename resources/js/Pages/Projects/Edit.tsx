@@ -5,7 +5,7 @@ import FormInput from '@/Components/FormInput';
 import FormSelect from '@/Components/FormSelect';
 import FormTextarea from '@/Components/FormTextarea';
 import { toDateInputValue } from '@/utils/formatDate';
-import { useForm } from '@inertiajs/react';
+import { router, useForm } from '@inertiajs/react';
 import type { FormEvent } from 'react';
 
 interface Project {
@@ -173,9 +173,16 @@ export default function ProjectEdit({ project, statuses, classifications, teams 
                         />
                     </div>
 
-                    <div className="pt-4">
+                    <div className="flex items-center gap-3 pt-4">
                         <Button type="submit" loading={processing}>
                             Uložit změny
+                        </Button>
+                        <Button
+                            type="button"
+                            variant="secondary"
+                            onClick={() => router.visit(`/projects/${project.id}`)}
+                        >
+                            Zrušit
                         </Button>
                     </div>
                 </form>

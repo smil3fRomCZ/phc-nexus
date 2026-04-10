@@ -1,0 +1,568 @@
+<!DOCTYPE html>
+<html lang="cs">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Preview: Bulk reassignment úkolů při odebrání člena</title>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --brand-primary: #f5a623;
+    --brand-hover: #e09000;
+    --brand-soft: #fff8eb;
+    --text-strong: #172b4d;
+    --text-default: #42526e;
+    --text-muted: #6b778c;
+    --text-subtle: #97a0af;
+    --text-inverse: #ffffff;
+    --surface-canvas: #f4f5f7;
+    --surface-primary: #ffffff;
+    --surface-secondary: #fafbfc;
+    --surface-hover: #f4f5f7;
+    --border-subtle: #ebecf0;
+    --border-default: #dfe1e6;
+    --border-focus: #f5a623;
+    --status-info: #0747a6;
+    --status-info-subtle: #deebff;
+    --status-success: #006644;
+    --status-success-subtle: #e3fcef;
+    --status-warning: #974f0c;
+    --status-warning-subtle: #fff0b3;
+    --status-danger: #bf2600;
+    --status-danger-subtle: #ffebe6;
+  }
+  * { margin:0; padding:0; box-sizing:border-box; }
+  body { font-family:'Inter',sans-serif; background: var(--surface-canvas); padding:40px; color: var(--text-default); }
+  h2 { font-size:18px; font-weight:700; color: var(--text-strong); margin-bottom:8px; }
+  p.desc { font-size:13px; color: var(--text-muted); margin-bottom:24px; }
+  .section { margin-bottom:48px; }
+  .label { font-size:11px; font-weight:700; text-transform:uppercase; letter-spacing:.05em; color:var(--text-subtle); margin-bottom:12px; }
+
+  /* ── Modal overlay ── */
+  .modal-overlay {
+    background: rgba(0,0,0,.4);
+    padding: 30px;
+    border-radius: 12px;
+    margin-bottom: 24px;
+  }
+  .modal {
+    background: var(--surface-primary);
+    border-radius: 12px;
+    max-width: 720px;
+    margin: 0 auto;
+    box-shadow: 0 20px 50px rgba(0,0,0,.2);
+  }
+  .modal-header {
+    padding: 20px 24px;
+    border-bottom: 1px solid var(--border-subtle);
+  }
+  .modal-header h3 { font-size: 16px; font-weight: 700; color: var(--text-strong); margin-bottom: 4px; }
+  .modal-header .sub { font-size: 12px; color: var(--text-muted); }
+
+  .avatar {
+    width:28px; height:28px; border-radius:50%; background:var(--brand-soft);
+    display:inline-flex; align-items:center; justify-content:center;
+    font-size:11px; font-weight:700; color:var(--brand-hover); flex-shrink:0;
+  }
+  .avatar.sm { width:22px; height:22px; font-size:9px; }
+
+  .modal-body { padding: 16px 24px; max-height: 60vh; overflow-y: auto; }
+
+  /* ── Bulk action bar ── */
+  .bulk-bar {
+    display: flex; align-items: center; gap: 12px;
+    padding: 10px 14px;
+    background: var(--brand-soft);
+    border: 1px solid rgba(245,166,35,.3);
+    border-radius: 8px;
+    margin-bottom: 16px;
+  }
+  .bulk-bar-text {
+    font-size: 13px; color: var(--text-default); flex: 1;
+  }
+  .bulk-bar-text strong { color: var(--text-strong); font-weight: 700; }
+  .bulk-select {
+    height: 32px; padding: 0 10px;
+    border: 1px solid var(--border-default); border-radius: 6px;
+    background: var(--surface-primary); font-size: 13px; color: var(--text-default);
+    min-width: 200px;
+  }
+  .btn-apply {
+    height: 32px; padding: 0 14px;
+    background: var(--brand-primary); color: var(--text-inverse);
+    border: none; border-radius: 6px;
+    font-size: 12px; font-weight: 600; cursor: pointer;
+  }
+  .btn-apply:hover { background: var(--brand-hover); }
+  .btn-apply:disabled { opacity: .5; cursor: not-allowed; }
+
+  /* ── Task list ── */
+  .task-list {
+    border: 1px solid var(--border-subtle);
+    border-radius: 8px;
+    overflow: hidden;
+  }
+  .task-row {
+    display: grid;
+    grid-template-columns: 32px auto 1fr 240px;
+    gap: 12px;
+    align-items: center;
+    padding: 12px 14px;
+    border-bottom: 1px solid var(--border-subtle);
+    transition: background .15s;
+  }
+  .task-row:hover { background: var(--surface-secondary); }
+  .task-row:last-child { border-bottom: none; }
+  .task-row.changed { background: var(--status-success-subtle); }
+  .task-row.changed:hover { background: #d4f5e3; }
+
+  .task-row input[type="checkbox"] {
+    width: 16px; height: 16px;
+    accent-color: var(--brand-primary);
+    cursor: pointer;
+  }
+
+  .task-meta { display: flex; flex-direction: column; gap: 2px; min-width: 0; }
+  .task-meta .top { display: flex; align-items: center; gap: 6px; }
+  .task-num {
+    font-family: 'Inter', monospace;
+    font-size: 11px; font-weight: 700; color: var(--text-muted);
+  }
+  .task-status {
+    display: inline-flex; padding: 1px 6px; border-radius: 4px;
+    font-size: 10px; font-weight: 700;
+  }
+  .task-status.in-progress { background: var(--status-info-subtle); color: var(--status-info); }
+  .task-status.todo { background: var(--surface-secondary); color: var(--text-muted); border: 1px solid var(--border-subtle); }
+  .task-status.review { background: #eae6ff; color: #5243aa; }
+  .task-title {
+    font-size: 13px; color: var(--text-strong); font-weight: 500;
+    overflow: hidden; text-overflow: ellipsis; white-space: nowrap;
+  }
+  .task-due { font-size: 11px; color: var(--text-subtle); }
+  .task-due.overdue { color: var(--status-danger); font-weight: 600; }
+
+  .reassign-cell {
+    display: flex; align-items: center; gap: 8px;
+  }
+  .from-to {
+    display: flex; align-items: center; gap: 6px;
+    font-size: 12px;
+  }
+  .from-to .from {
+    color: var(--text-subtle);
+    text-decoration: line-through;
+  }
+  .from-to .arrow { color: var(--text-subtle); font-size: 10px; }
+  .reassign-select {
+    flex: 1; min-width: 0;
+    height: 28px; padding: 0 8px;
+    border: 1px solid var(--border-default); border-radius: 5px;
+    background: var(--surface-primary); font-size: 12px; color: var(--text-default);
+  }
+  .reassign-select:focus { outline: none; border-color: var(--border-focus); box-shadow: 0 0 0 2px var(--brand-soft); }
+  .reassign-select.assigned { border-color: var(--status-success); background: var(--status-success-subtle); }
+
+  .check-mark {
+    color: var(--status-success); font-weight: 700;
+    display: inline-flex; align-items: center; gap: 4px;
+    font-size: 12px;
+  }
+
+  /* Modal footer */
+  .modal-footer {
+    padding: 16px 24px;
+    border-top: 1px solid var(--border-subtle);
+    display: flex; align-items: center; justify-content: space-between; gap: 8px;
+  }
+  .footer-summary {
+    font-size: 12px; color: var(--text-muted);
+  }
+  .footer-summary strong { color: var(--text-strong); font-weight: 700; }
+  .footer-buttons { display: flex; gap: 8px; }
+  .btn {
+    padding: 8px 16px; border-radius: 6px; font-size: 13px; font-weight: 600;
+    cursor: pointer; border: none;
+  }
+  .btn-secondary { background: var(--surface-secondary); border: 1px solid var(--border-default); color: var(--text-default); }
+  .btn-secondary:hover { background: var(--surface-hover); }
+  .btn-primary { background: var(--brand-primary); color: var(--text-inverse); }
+  .btn-primary:hover { background: var(--brand-hover); }
+  .btn-primary:disabled { opacity: .5; cursor: not-allowed; }
+  .btn-link {
+    background: none; border: none; color: var(--brand-hover);
+    font-size: 12px; cursor: pointer; padding: 0;
+    text-decoration: underline;
+  }
+</style>
+</head>
+<body>
+
+<h2>Bulk reassignment dialog — přeřazení úkolů při odebrání člena</h2>
+<p class="desc">
+  Otevírá se z modal „Member usage" → kliknutí na „Přeřadit úkoly".
+  Zobrazí všechny otevřené úkoly přiřazené k tomuto členovi v projektu.
+  Uživatel může přeřadit hromadně (bulk action) nebo per úkol. Po přeřazení všech se uvolní tlačítko „Potvrdit a odebrat".
+</p>
+
+<!-- ── 1. Initial state — nothing reassigned yet ── -->
+<div class="section">
+  <div class="label">1. Otevřený dialog — nic ještě nepřeřazeno</div>
+
+  <div class="modal-overlay">
+    <div class="modal">
+      <div class="modal-header">
+        <h3>Přeřadit úkoly před odebráním</h3>
+        <div class="sub">
+          Petra Kovářová má v projektu <strong>3 otevřené úkoly</strong>.
+          Před odebráním je nutné každý přeřadit jinému členovi projektu.
+        </div>
+      </div>
+
+      <div class="modal-body">
+
+        <!-- Bulk action -->
+        <div class="bulk-bar">
+          <span class="bulk-bar-text">
+            Přeřadit <strong>všechny</strong> najednou na:
+          </span>
+          <select class="bulk-select">
+            <option>Vyberte člena projektu...</option>
+            <option>Jan Melicherik (Vlastník)</option>
+            <option>Martin Novák (Člen)</option>
+            <option>Lucie Svobodová (Project Manager)</option>
+          </select>
+          <button class="btn-apply" disabled>Použít na vše</button>
+        </div>
+
+        <!-- Task list -->
+        <div class="task-list">
+          <div class="task-row">
+            <input type="checkbox">
+            <div class="task-meta">
+              <div class="top">
+                <span class="task-num">#42</span>
+                <span class="task-status in-progress">IN PROGRESS</span>
+              </div>
+              <div class="task-title">Workflow editor — implementace nodes</div>
+              <div class="task-due">Termín: 15. 4. 2026</div>
+            </div>
+            <div></div>
+            <div class="reassign-cell">
+              <span class="from-to">
+                <span class="avatar sm">PK</span>
+                <span class="from">Petra K.</span>
+                <span class="arrow">→</span>
+              </span>
+              <select class="reassign-select">
+                <option>Vyberte...</option>
+                <option>Jan Melicherik</option>
+                <option>Martin Novák</option>
+                <option>Lucie Svobodová</option>
+              </select>
+            </div>
+          </div>
+
+          <div class="task-row">
+            <input type="checkbox">
+            <div class="task-meta">
+              <div class="top">
+                <span class="task-num">#48</span>
+                <span class="task-status todo">TO DO</span>
+              </div>
+              <div class="task-title">PHPStan oprava ProjectMemberController</div>
+              <div class="task-due overdue">Po termínu: 8. 4. 2026</div>
+            </div>
+            <div></div>
+            <div class="reassign-cell">
+              <span class="from-to">
+                <span class="avatar sm">PK</span>
+                <span class="from">Petra K.</span>
+                <span class="arrow">→</span>
+              </span>
+              <select class="reassign-select">
+                <option>Vyberte...</option>
+                <option>Jan Melicherik</option>
+                <option>Martin Novák</option>
+                <option>Lucie Svobodová</option>
+              </select>
+            </div>
+          </div>
+
+          <div class="task-row">
+            <input type="checkbox">
+            <div class="task-meta">
+              <div class="top">
+                <span class="task-num">#51</span>
+                <span class="task-status in-progress">IN PROGRESS</span>
+              </div>
+              <div class="task-title">Members tab — usage validation</div>
+              <div class="task-due">Termín: 20. 4. 2026</div>
+            </div>
+            <div></div>
+            <div class="reassign-cell">
+              <span class="from-to">
+                <span class="avatar sm">PK</span>
+                <span class="from">Petra K.</span>
+                <span class="arrow">→</span>
+              </span>
+              <select class="reassign-select">
+                <option>Vyberte...</option>
+                <option>Jan Melicherik</option>
+                <option>Martin Novák</option>
+                <option>Lucie Svobodová</option>
+              </select>
+            </div>
+          </div>
+        </div>
+
+      </div>
+
+      <div class="modal-footer">
+        <div class="footer-summary">
+          <strong>0 / 3</strong> úkolů přeřazeno
+        </div>
+        <div class="footer-buttons">
+          <button class="btn btn-secondary">Zrušit</button>
+          <button class="btn btn-primary" disabled>Potvrdit a odebrat člena</button>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ── 2. Bulk action used — all assigned to Martin ── -->
+<div class="section">
+  <div class="label">2. Bulk action použit — vše přeřazeno na Martina (lze ještě upravit per task)</div>
+
+  <div class="modal-overlay">
+    <div class="modal">
+      <div class="modal-header">
+        <h3>Přeřadit úkoly před odebráním</h3>
+        <div class="sub">
+          Petra Kovářová má v projektu <strong>3 otevřené úkoly</strong>.
+          Před odebráním je nutné každý přeřadit jinému členovi projektu.
+        </div>
+      </div>
+
+      <div class="modal-body">
+
+        <div class="bulk-bar">
+          <span class="bulk-bar-text">
+            Přeřadit <strong>všechny</strong> najednou na:
+          </span>
+          <select class="bulk-select">
+            <option>Martin Novák (Člen)</option>
+          </select>
+          <button class="btn-apply">Použít na vše</button>
+        </div>
+
+        <div class="task-list">
+          <div class="task-row changed">
+            <input type="checkbox" checked>
+            <div class="task-meta">
+              <div class="top">
+                <span class="task-num">#42</span>
+                <span class="task-status in-progress">IN PROGRESS</span>
+              </div>
+              <div class="task-title">Workflow editor — implementace nodes</div>
+              <div class="task-due">Termín: 15. 4. 2026</div>
+            </div>
+            <div></div>
+            <div class="reassign-cell">
+              <span class="from-to">
+                <span class="avatar sm">PK</span>
+                <span class="from">Petra K.</span>
+                <span class="arrow">→</span>
+              </span>
+              <select class="reassign-select assigned">
+                <option>Martin Novák</option>
+              </select>
+            </div>
+          </div>
+
+          <div class="task-row changed">
+            <input type="checkbox" checked>
+            <div class="task-meta">
+              <div class="top">
+                <span class="task-num">#48</span>
+                <span class="task-status todo">TO DO</span>
+              </div>
+              <div class="task-title">PHPStan oprava ProjectMemberController</div>
+              <div class="task-due overdue">Po termínu: 8. 4. 2026</div>
+            </div>
+            <div></div>
+            <div class="reassign-cell">
+              <span class="from-to">
+                <span class="avatar sm">PK</span>
+                <span class="from">Petra K.</span>
+                <span class="arrow">→</span>
+              </span>
+              <select class="reassign-select assigned">
+                <option>Martin Novák</option>
+              </select>
+            </div>
+          </div>
+
+          <div class="task-row changed">
+            <input type="checkbox" checked>
+            <div class="task-meta">
+              <div class="top">
+                <span class="task-num">#51</span>
+                <span class="task-status in-progress">IN PROGRESS</span>
+              </div>
+              <div class="task-title">Members tab — usage validation</div>
+              <div class="task-due">Termín: 20. 4. 2026</div>
+            </div>
+            <div></div>
+            <div class="reassign-cell">
+              <span class="from-to">
+                <span class="avatar sm">PK</span>
+                <span class="from">Petra K.</span>
+                <span class="arrow">→</span>
+              </span>
+              <select class="reassign-select assigned">
+                <option>Martin Novák</option>
+              </select>
+            </div>
+          </div>
+        </div>
+
+      </div>
+
+      <div class="modal-footer">
+        <div class="footer-summary">
+          <span class="check-mark">✓ <strong>3 / 3</strong> úkolů přeřazeno</span>
+        </div>
+        <div class="footer-buttons">
+          <button class="btn btn-secondary">Zrušit</button>
+          <button class="btn btn-primary">Potvrdit a odebrat člena</button>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ── 3. Mixed state — some assigned, some not ── -->
+<div class="section">
+  <div class="label">3. Per-task přeřazení — různé osoby pro různé úkoly</div>
+
+  <div class="modal-overlay">
+    <div class="modal">
+      <div class="modal-header">
+        <h3>Přeřadit úkoly před odebráním</h3>
+        <div class="sub">
+          Petra Kovářová má v projektu <strong>3 otevřené úkoly</strong>.
+          Před odebráním je nutné každý přeřadit jinému členovi projektu.
+        </div>
+      </div>
+
+      <div class="modal-body">
+
+        <div class="bulk-bar">
+          <span class="bulk-bar-text">
+            Přeřadit <strong>všechny</strong> najednou na:
+          </span>
+          <select class="bulk-select">
+            <option>Vyberte člena projektu...</option>
+          </select>
+          <button class="btn-apply" disabled>Použít na vše</button>
+        </div>
+
+        <div class="task-list">
+          <div class="task-row changed">
+            <input type="checkbox" checked>
+            <div class="task-meta">
+              <div class="top">
+                <span class="task-num">#42</span>
+                <span class="task-status in-progress">IN PROGRESS</span>
+              </div>
+              <div class="task-title">Workflow editor — implementace nodes</div>
+              <div class="task-due">Termín: 15. 4. 2026</div>
+            </div>
+            <div></div>
+            <div class="reassign-cell">
+              <span class="from-to">
+                <span class="avatar sm">PK</span>
+                <span class="from">Petra K.</span>
+                <span class="arrow">→</span>
+              </span>
+              <select class="reassign-select assigned">
+                <option>Jan Melicherik</option>
+              </select>
+            </div>
+          </div>
+
+          <div class="task-row">
+            <input type="checkbox">
+            <div class="task-meta">
+              <div class="top">
+                <span class="task-num">#48</span>
+                <span class="task-status todo">TO DO</span>
+              </div>
+              <div class="task-title">PHPStan oprava ProjectMemberController</div>
+              <div class="task-due overdue">Po termínu: 8. 4. 2026</div>
+            </div>
+            <div></div>
+            <div class="reassign-cell">
+              <span class="from-to">
+                <span class="avatar sm">PK</span>
+                <span class="from">Petra K.</span>
+                <span class="arrow">→</span>
+              </span>
+              <select class="reassign-select">
+                <option>Vyberte...</option>
+              </select>
+            </div>
+          </div>
+
+          <div class="task-row changed">
+            <input type="checkbox" checked>
+            <div class="task-meta">
+              <div class="top">
+                <span class="task-num">#51</span>
+                <span class="task-status in-progress">IN PROGRESS</span>
+              </div>
+              <div class="task-title">Members tab — usage validation</div>
+              <div class="task-due">Termín: 20. 4. 2026</div>
+            </div>
+            <div></div>
+            <div class="reassign-cell">
+              <span class="from-to">
+                <span class="avatar sm">PK</span>
+                <span class="from">Petra K.</span>
+                <span class="arrow">→</span>
+              </span>
+              <select class="reassign-select assigned">
+                <option>Lucie Svobodová</option>
+              </select>
+            </div>
+          </div>
+        </div>
+
+      </div>
+
+      <div class="modal-footer">
+        <div class="footer-summary">
+          <strong>2 / 3</strong> úkolů přeřazeno — chybí #48
+        </div>
+        <div class="footer-buttons">
+          <button class="btn btn-secondary">Zrušit</button>
+          <button class="btn btn-primary" disabled>Potvrdit a odebrat člena</button>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<p style="font-size:12px; color:var(--text-subtle); margin-top:8px;">
+  💡 <strong>UX poznámky:</strong>
+  <br>• Bulk select hromadně nastaví všechny dropdowny — uživatel může pak per úkol upravit
+  <br>• Checkbox vlevo = označeno k přeřazení (default zapnuto když má vybraného assignee)
+  <br>• Tlačítko „Potvrdit a odebrat" se uvolní jen když všechny úkoly mají nového assignee
+  <br>• Po potvrzení: backend provede atomickou transakci — přiřadí všechny úkoly + odebere člena
+  <br>• Vlastník projektu i odebíraný člen jsou automaticky vyloučeni z dropdownu reassignee
+</p>
+
+</body>
+</html>

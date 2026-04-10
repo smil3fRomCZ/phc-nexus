@@ -1,0 +1,388 @@
+<!DOCTYPE html>
+<html lang="cs">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Preview: Project tabs full-width + History tab</title>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --brand-primary: #f5a623;
+    --brand-hover: #e09000;
+    --brand-soft: #fff8eb;
+    --text-strong: #172b4d;
+    --text-default: #42526e;
+    --text-muted: #6b778c;
+    --text-subtle: #97a0af;
+    --text-inverse: #ffffff;
+    --surface-canvas: #f4f5f7;
+    --surface-primary: #ffffff;
+    --surface-secondary: #fafbfc;
+    --surface-hover: #f4f5f7;
+    --border-subtle: #ebecf0;
+    --border-default: #dfe1e6;
+    --status-info: #0747a6;
+    --status-info-subtle: #deebff;
+    --status-success: #006644;
+    --status-success-subtle: #e3fcef;
+    --status-warning: #974f0c;
+    --status-warning-subtle: #fff0b3;
+    --status-danger: #bf2600;
+    --status-danger-subtle: #ffebe6;
+  }
+  * { margin:0; padding:0; box-sizing:border-box; }
+  body { font-family:'Inter',sans-serif; background: var(--surface-canvas); padding:40px; color: var(--text-default); }
+  h2 { font-size:18px; font-weight:700; color: var(--text-strong); margin-bottom:8px; }
+  p.desc { font-size:13px; color: var(--text-muted); margin-bottom:24px; }
+  .section { margin-bottom:48px; }
+  .label { font-size:11px; font-weight:700; text-transform:uppercase; letter-spacing:.05em; color:var(--text-subtle); margin-bottom:12px; }
+
+  /* Card mock */
+  .card {
+    background: var(--surface-primary);
+    border: 1px solid var(--border-subtle);
+    border-radius: 10px;
+    padding: 20px;
+    margin-bottom: 16px;
+  }
+
+  /* ── BEFORE: inline-flex, narrow ── */
+  .tabs-before {
+    display: inline-flex; gap: 2px;
+    background: var(--surface-primary);
+    border: 1px solid var(--border-subtle);
+    border-radius: 10px; padding: 4px;
+  }
+  .tabs-before a {
+    display:flex; align-items:center; gap:6px;
+    padding:7px 14px; font-size:13px; font-weight:500;
+    text-decoration:none; border-radius:7px; color:var(--text-muted);
+  }
+  .tabs-before a.active { background: var(--brand-soft); color: var(--brand-hover); font-weight:600; }
+
+  /* ── AFTER: full width + chip on right ── */
+  .tabs-after {
+    display: flex; gap: 2px;
+    background: var(--surface-primary);
+    border: 1px solid var(--border-subtle);
+    border-radius: 10px; padding: 4px;
+    width: 100%;
+    align-items: center;
+  }
+  .tabs-after a {
+    display:flex; align-items:center; gap:6px; flex-shrink: 0;
+    padding:7px 14px; font-size:13px; font-weight:500;
+    text-decoration:none; border-radius:7px; color:var(--text-muted);
+  }
+  .tabs-after a:hover { background: var(--surface-secondary); color: var(--text-default); }
+  .tabs-after a.active { background: var(--brand-soft); color: var(--brand-hover); font-weight:600; }
+
+  .tabs-after .spacer { flex: 1 1 auto; }
+
+  .update-chip {
+    display: inline-flex; align-items: center; gap: 6px;
+    margin-right: 6px;
+    padding: 5px 12px;
+    border-radius: 6px;
+    background: var(--surface-secondary);
+    border: 1px solid var(--border-subtle);
+    font-size: 12px; color: var(--text-muted);
+    flex-shrink: 0;
+  }
+  .update-chip .dot {
+    width: 6px; height: 6px; border-radius: 50%;
+    background: var(--status-success);
+  }
+  .update-chip .dot.warn { background: var(--status-warning); }
+  .update-chip strong { color: var(--text-default); font-weight: 600; }
+
+  .ico { display:inline-block; width:14px; height:14px; border-radius:3px; background: currentColor; opacity:.4; flex-shrink:0; }
+
+  /* ── History timeline (new tab) ── */
+  .timeline {
+    position: relative;
+    padding-left: 24px;
+  }
+  .timeline::before {
+    content: '';
+    position: absolute;
+    left: 7px; top: 6px; bottom: 6px;
+    width: 2px;
+    background: var(--border-subtle);
+  }
+  .timeline-item {
+    position: relative;
+    padding-bottom: 18px;
+  }
+  .timeline-item:last-child { padding-bottom: 0; }
+  .timeline-dot {
+    position: absolute;
+    left: -22px; top: 4px;
+    width: 16px; height: 16px;
+    border-radius: 50%;
+    background: var(--surface-primary);
+    border: 2px solid var(--border-default);
+    display: flex; align-items: center; justify-content: center;
+    font-size: 9px;
+  }
+  .timeline-dot.update { border-color: var(--status-success); background: var(--status-success-subtle); }
+  .timeline-dot.comment { border-color: var(--status-info); background: var(--status-info-subtle); }
+  .timeline-dot.audit { border-color: var(--brand-primary); background: var(--brand-soft); }
+  .timeline-dot.time { border-color: var(--text-subtle); background: var(--surface-secondary); }
+  .timeline-dot.member { border-color: var(--status-warning); background: var(--status-warning-subtle); }
+
+  .timeline-meta {
+    display: flex; align-items: baseline; gap: 8px;
+    font-size: 12px; color: var(--text-muted);
+    margin-bottom: 4px;
+  }
+  .timeline-meta strong { color: var(--text-strong); font-weight: 600; font-size: 13px; }
+  .timeline-meta .time { color: var(--text-subtle); }
+
+  .timeline-body {
+    font-size: 13px; color: var(--text-default);
+    background: var(--surface-secondary);
+    border: 1px solid var(--border-subtle);
+    border-radius: 6px;
+    padding: 8px 12px;
+  }
+  .timeline-body.update-on-track {
+    background: var(--status-success-subtle); border-color: rgba(0,102,68,.2);
+  }
+  .timeline-body.update-at-risk {
+    background: var(--status-warning-subtle); border-color: rgba(151,79,12,.2);
+  }
+  .field-change {
+    font-family: 'Inter', monospace;
+    font-size: 12px;
+  }
+  .field-change .key { color: var(--text-muted); }
+  .field-change .old { color: var(--status-danger); text-decoration: line-through; }
+  .field-change .arrow { color: var(--text-subtle); margin: 0 6px; }
+  .field-change .new { color: var(--status-success); font-weight: 600; }
+
+  /* Filters bar for history */
+  .history-filters {
+    display: flex; gap: 8px; flex-wrap: wrap;
+    margin-bottom: 16px;
+  }
+  .filter-chip-mini {
+    display: inline-flex; align-items: center; gap: 4px;
+    padding: 5px 12px; border-radius: 6px;
+    border: 1px solid var(--border-default); background: var(--surface-primary);
+    font-size: 12px; color: var(--text-muted); cursor: pointer;
+  }
+  .filter-chip-mini.active {
+    background: var(--brand-soft); border-color: var(--brand-primary); color: var(--brand-hover); font-weight: 600;
+  }
+  .filter-chip-mini .count {
+    display: inline-flex; align-items: center; justify-content: center;
+    min-width: 18px; height: 16px; padding: 0 4px;
+    border-radius: 8px; background: var(--surface-secondary);
+    font-size: 10px; font-weight: 700; color: var(--text-muted);
+  }
+  .filter-chip-mini.active .count { background: white; color: var(--brand-hover); }
+</style>
+</head>
+<body>
+
+<h2>Bod 1 — Project tabs full-width + last update chip + History tab</h2>
+<p class="desc">Tabs natažené na celou šířku, zarovnané zleva. Vpravo chip s datem posledního updatu (klikací → otevře záložku History). Nový tab „Historie".</p>
+
+<div class="section">
+  <div class="label">Před — inline-flex (úzké, nepůsobí jako součást ostatních karet)</div>
+  <nav class="tabs-before">
+    <a class="active"><span class="ico"></span> Přehled</a>
+    <a><span class="ico"></span> Kanban</a>
+    <a><span class="ico"></span> Backlog</a>
+    <a><span class="ico"></span> Epic</a>
+    <a><span class="ico"></span> Členové</a>
+    <a><span class="ico"></span> Čas</a>
+    <a><span class="ico"></span> Reporty</a>
+  </nav>
+  <div class="card" style="margin-top:10px;">
+    <div style="font-size:13px; color:var(--text-muted)">Karta s metrikami / obsahem (full width)</div>
+  </div>
+</div>
+
+<div class="section">
+  <div class="label">Po — full width, taby zleva, chip „poslední update" vpravo</div>
+  <nav class="tabs-after">
+    <a class="active"><span class="ico"></span> Přehled</a>
+    <a><span class="ico"></span> Kanban</a>
+    <a><span class="ico"></span> Backlog</a>
+    <a><span class="ico"></span> Epic</a>
+    <a><span class="ico"></span> Členové</a>
+    <a><span class="ico"></span> Čas</a>
+    <a><span class="ico"></span> Workflow</a>
+    <a><span class="ico"></span> Reporty</a>
+    <a><span class="ico"></span> Historie</a>
+    <a><span class="ico"></span> Schvalování</a>
+    <a><span class="ico"></span> Dokumentace</a>
+    <div class="spacer"></div>
+    <div class="update-chip" title="Poslední status update — kliknutím přejít na Historie">
+      <span class="dot"></span>
+      Poslední update: <strong>10. 4. 2026</strong>
+    </div>
+  </nav>
+  <div class="card" style="margin-top:10px;">
+    <div style="font-size:13px; color:var(--text-muted)">Karta s metrikami — nyní v jedné šířce s tabs nad ní</div>
+  </div>
+</div>
+
+<!-- Varianta s at_risk health -->
+<div class="section">
+  <div class="label">Varianta s health = at_risk</div>
+  <nav class="tabs-after">
+    <a class="active"><span class="ico"></span> Přehled</a>
+    <a><span class="ico"></span> Kanban</a>
+    <a><span class="ico"></span> Backlog</a>
+    <a><span class="ico"></span> Epic</a>
+    <a><span class="ico"></span> Členové</a>
+    <a><span class="ico"></span> Čas</a>
+    <a><span class="ico"></span> Workflow</a>
+    <a><span class="ico"></span> Reporty</a>
+    <a><span class="ico"></span> Historie</a>
+    <div class="spacer"></div>
+    <div class="update-chip">
+      <span class="dot warn"></span>
+      Poslední update: <strong>před 3 dny</strong>
+    </div>
+  </nav>
+</div>
+
+<!-- ── HISTORY TAB ── -->
+<h2 style="margin-top:60px">Bod 1b — Záložka „Historie" (nový tab)</h2>
+<p class="desc">Sjednocený chronologický feed: status updates, comments, audit changes (workflow, status, members, settings), time entries (agregované per den/user), member events. Filtry nahoře.</p>
+
+<div class="card">
+  <!-- Filters -->
+  <div class="history-filters">
+    <button class="filter-chip-mini active">Vše <span class="count">42</span></button>
+    <button class="filter-chip-mini">Updates <span class="count">5</span></button>
+    <button class="filter-chip-mini">Komentáře <span class="count">12</span></button>
+    <button class="filter-chip-mini">Změny <span class="count">18</span></button>
+    <button class="filter-chip-mini">Čas <span class="count">6</span></button>
+    <button class="filter-chip-mini">Členové <span class="count">1</span></button>
+  </div>
+
+  <!-- Timeline -->
+  <div class="timeline">
+
+    <div class="timeline-item">
+      <div class="timeline-dot update">✓</div>
+      <div class="timeline-meta">
+        <strong>Petra Kovářová</strong> přidala status update
+        <span class="time">— 10. 4. 2026, 14:32</span>
+      </div>
+      <div class="timeline-body update-on-track">
+        <strong style="color:var(--status-success); font-size:11px;">● ON TRACK</strong>
+        <p style="margin-top:4px;">Sprint 12 dokončen v termínu, všechny epiky uzavřené. Pokračujeme dle plánu.</p>
+      </div>
+    </div>
+
+    <div class="timeline-item">
+      <div class="timeline-dot audit">⚙</div>
+      <div class="timeline-meta">
+        <strong>Jan Melicherik</strong> upravil projekt
+        <span class="time">— 10. 4. 2026, 11:15</span>
+      </div>
+      <div class="timeline-body">
+        <div class="field-change">
+          <span class="key">target_date:</span>
+          <span class="old">30. 4. 2026</span>
+          <span class="arrow">→</span>
+          <span class="new">15. 5. 2026</span>
+        </div>
+        <div class="field-change" style="margin-top:4px;">
+          <span class="key">benefit_amount:</span>
+          <span class="old">500 000 Kč</span>
+          <span class="arrow">→</span>
+          <span class="new">650 000 Kč</span>
+        </div>
+      </div>
+    </div>
+
+    <div class="timeline-item">
+      <div class="timeline-dot comment">💬</div>
+      <div class="timeline-meta">
+        <strong>Martin Novák</strong> přidal komentář
+        <span class="time">— 9. 4. 2026, 16:45</span>
+      </div>
+      <div class="timeline-body">
+        Workflow editor jsem dokončil, můžete review. Přidal jsem 4 nové stavy podle požadavků z meetingu.
+      </div>
+    </div>
+
+    <div class="timeline-item">
+      <div class="timeline-dot member">👤</div>
+      <div class="timeline-meta">
+        <strong>Jan Melicherik</strong> přidal člena <strong style="margin-left:0; color:var(--brand-hover)">Lucie Svobodová</strong>
+        <span class="time">— 9. 4. 2026, 10:00</span>
+      </div>
+      <div class="timeline-body">
+        Role: <strong style="color:var(--text-strong)">Project Manager</strong>
+      </div>
+    </div>
+
+    <div class="timeline-item">
+      <div class="timeline-dot time">⏱</div>
+      <div class="timeline-meta">
+        <strong>Petra Kovářová</strong> zalogovala čas
+        <span class="time">— 9. 4. 2026</span>
+      </div>
+      <div class="timeline-body">
+        <strong style="color:var(--text-strong)">8 h</strong> · Workflow editor implementace · úkol #42
+      </div>
+    </div>
+
+    <div class="timeline-item">
+      <div class="timeline-dot audit">⚙</div>
+      <div class="timeline-meta">
+        <strong>Jan Melicherik</strong> změnil stav projektu
+        <span class="time">— 8. 4. 2026, 9:00</span>
+      </div>
+      <div class="timeline-body">
+        <div class="field-change">
+          <span class="key">status:</span>
+          <span class="old">draft</span>
+          <span class="arrow">→</span>
+          <span class="new">active</span>
+        </div>
+      </div>
+    </div>
+
+    <div class="timeline-item">
+      <div class="timeline-dot update">⚠</div>
+      <div class="timeline-meta">
+        <strong>Petra Kovářová</strong> přidala status update
+        <span class="time">— 7. 4. 2026, 17:00</span>
+      </div>
+      <div class="timeline-body update-at-risk">
+        <strong style="color:var(--status-warning); font-size:11px;">⚠ AT RISK</strong>
+        <p style="margin-top:4px;">Hrozí zpoždění v dodávce API integrace, čekáme na rozhodnutí managementu.</p>
+      </div>
+    </div>
+
+    <div class="timeline-item">
+      <div class="timeline-dot audit">⚙</div>
+      <div class="timeline-meta">
+        <strong>Jan Melicherik</strong> vytvořil projekt
+        <span class="time">— 1. 4. 2026, 8:30</span>
+      </div>
+      <div class="timeline-body">
+        <span style="color:var(--text-muted)">Projekt PHC Nexus byl založen.</span>
+      </div>
+    </div>
+
+  </div>
+</div>
+
+<p style="font-size:12px; color:var(--text-subtle); margin-top:8px;">
+  💡 Datový základ: AuditEntry (existuje, modul Audit), ProjectUpdate (existuje), Comment (polymorfní, existuje),
+  TimeEntry (existuje, agregováno per den+user). Nový backend endpoint <code>/projects/{id}/history</code>
+  spojí všechny zdroje, řadí descending podle <code>created_at</code>, paginováno.
+</p>
+
+</body>
+</html>

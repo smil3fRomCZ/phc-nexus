@@ -235,29 +235,59 @@ export default function Workflow({ project, statuses, transitions }: Props) {
         setEditingId(null);
     }, []);
 
-    // Místo onConnect (které závisí na přesném handle-to-handle matching a selhává
-    // při drag na stejný typ handle) používáme onConnectEnd. Ten dostane fromNode
-    // přímo v connectionState, cílový node zjistíme přes connectionState.toNode
-    // nebo fallback na elementFromPoint — takže stačí pustit drag kdekoliv nad
-    // cílovým nodem, nemusí to být přesně na handle.
+    const onConnectStart = useCallback(
+        (_event: unknown, params: { nodeId: string | null; handleId: string | null; handleType: string | null }) => {
+            console.log('[Workflow DEBUG] onConnectStart', params);
+        },
+        [],
+    );
+
     const onConnectEnd = useCallback(
         (event: globalThis.MouseEvent | globalThis.TouchEvent, connectionState: FinalConnectionState) => {
-            if (!connectionState.fromNode) return;
+            console.log('[Workflow DEBUG] onConnectEnd fired', {
+                isValid: connectionState.isValid,
+                fromNodeId: connectionState.fromNode?.id,
+                fromHandleId: connectionState.fromHandle?.id,
+                toNodeId: connectionState.toNode?.id,
+                toHandleId: connectionState.toHandle?.id,
+            });
+
+            if (!connectionState.fromNode) {
+                console.warn('[Workflow DEBUG] fromNode is null — aborting');
+                return;
+            }
 
             let targetNodeId: string | null = connectionState.toNode?.id ?? null;
 
-            // Fallback: pokud React Flow nezdetekoval toNode, zkusíme najít element pod kurzorem
             if (!targetNodeId) {
                 const clientX = 'clientX' in event ? event.clientX : event.changedTouches[0]?.clientX;
                 const clientY = 'clientY' in event ? event.clientY : event.changedTouches[0]?.clientY;
+
+                console.log('[Workflow DEBUG] no toNode, using elementFromPoint fallback', { clientX, clientY });
                 if (clientX != null && clientY != null) {
                     const el = document.elementFromPoint(clientX, clientY);
+
+                    console.log('[Workflow DEBUG] element at point', el);
                     const nodeEl = el?.closest('.react-flow__node');
                     targetNodeId = nodeEl?.getAttribute('data-id') ?? null;
+
+                    console.log('[Workflow DEBUG] fallback targetNodeId', targetNodeId);
                 }
             }
 
-            if (!targetNodeId || targetNodeId === connectionState.fromNode.id) return;
+            if (!targetNodeId) {
+                console.warn('[Workflow DEBUG] no targetNodeId resolved — aborting');
+                return;
+            }
+            if (targetNodeId === connectionState.fromNode.id) {
+                console.warn('[Workflow DEBUG] self-loop — aborting');
+                return;
+            }
+
+            console.log('[Workflow DEBUG] POSTing transition', {
+                from: connectionState.fromNode.id,
+                to: targetNodeId,
+            });
 
             fetch(`/projects/${project.id}/workflow/transitions`, {
                 method: 'POST',
@@ -266,9 +296,20 @@ export default function Workflow({ project, statuses, transitions }: Props) {
                     from_status_id: connectionState.fromNode.id,
                     to_status_id: targetNodeId,
                 }),
-            }).then((res) => {
-                if (res.ok) router.reload();
-            });
+            })
+                .then(async (res) => {
+                    console.log('[Workflow DEBUG] fetch response', res.status, res.statusText);
+                    if (!res.ok) {
+                        const body = await res.text();
+
+                        console.error('[Workflow DEBUG] fetch body on error', body);
+                        return;
+                    }
+                    router.reload();
+                })
+                .catch((err) => {
+                    console.error('[Workflow DEBUG] fetch threw', err);
+                });
         },
         [project.id],
     );
@@ -373,6 +414,7 @@ export default function Workflow({ project, statuses, transitions }: Props) {
                             edges={edges}
                             onNodesChange={onNodesChange}
                             onNodeDragStop={onNodeDragStop}
+                            onConnectStart={onConnectStart}
                             onConnectEnd={onConnectEnd}
                             onEdgeClick={onEdgeClick}
                             onPaneClick={onPaneClick}

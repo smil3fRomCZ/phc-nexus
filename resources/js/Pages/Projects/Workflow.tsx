@@ -10,6 +10,7 @@ import { useState, useCallback, useMemo, useEffect, type CSSProperties, type Mou
 import {
     ReactFlow,
     Background,
+    ConnectionMode,
     Controls,
     Handle,
     Position,
@@ -68,63 +69,34 @@ function StatusNode({ data }: { data: WorkflowStatus & { onEdit: (id: string) =>
             style={{ borderColor: data.color ?? '#dfe1e6', minWidth: 140 }}
             onClick={() => data.onEdit(data.id)}
         >
-            {/* Každá pozice má overlapping source+target handle, aby šel táhnout přechod
-                z libovolné strany do libovolné strany (včetně Top→Top, Left→Left, atd.).
-                Source handle leží nad target handle — React Flow při drag-startu vybere source,
-                při drag-endu vybere kompatibilní target na cílovém nodu. */}
-            <Handle
-                type="target"
-                position={Position.Left}
-                id="left-target"
-                className="!h-2.5 !w-2.5 !border-2 !border-white !bg-brand-primary"
-                style={handleStyle}
-            />
+            {/* Jeden source handle na každé pozici. V kombinaci s ConnectionMode.Loose
+                na ReactFlow může uživatel táhnout z libovolné strany na libovolnou stranu
+                (source→source povoleno), takže Top→Top, Left→Left atd. fungují. */}
             <Handle
                 type="source"
                 position={Position.Left}
-                id="left-source"
-                className="!h-2.5 !w-2.5 !border-2 !border-white !bg-brand-primary"
-                style={handleStyle}
-            />
-            <Handle
-                type="target"
-                position={Position.Right}
-                id="right-target"
+                id="left"
                 className="!h-2.5 !w-2.5 !border-2 !border-white !bg-brand-primary"
                 style={handleStyle}
             />
             <Handle
                 type="source"
                 position={Position.Right}
-                id="right-source"
-                className="!h-2.5 !w-2.5 !border-2 !border-white !bg-brand-primary"
-                style={handleStyle}
-            />
-            <Handle
-                type="target"
-                position={Position.Top}
-                id="top-target"
+                id="right"
                 className="!h-2.5 !w-2.5 !border-2 !border-white !bg-brand-primary"
                 style={handleStyle}
             />
             <Handle
                 type="source"
                 position={Position.Top}
-                id="top-source"
-                className="!h-2.5 !w-2.5 !border-2 !border-white !bg-brand-primary"
-                style={handleStyle}
-            />
-            <Handle
-                type="target"
-                position={Position.Bottom}
-                id="bottom-target"
+                id="top"
                 className="!h-2.5 !w-2.5 !border-2 !border-white !bg-brand-primary"
                 style={handleStyle}
             />
             <Handle
                 type="source"
                 position={Position.Bottom}
-                id="bottom-source"
+                id="bottom"
                 className="!h-2.5 !w-2.5 !border-2 !border-white !bg-brand-primary"
                 style={handleStyle}
             />
@@ -383,6 +355,7 @@ export default function Workflow({ project, statuses, transitions }: Props) {
                             onConnect={onConnect}
                             onEdgeClick={onEdgeClick}
                             onPaneClick={onPaneClick}
+                            connectionMode={ConnectionMode.Loose}
                             nodeTypes={nodeTypes}
                             fitView
                             proOptions={{ hideAttribution: true }}

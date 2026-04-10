@@ -129,6 +129,8 @@ final class WorkflowController extends Controller
             'to_status_id' => $validated['to_status_id'],
         ]);
 
+        $transition->load(['fromStatus:id,name', 'toStatus:id,name']);
+
         return response()->json($transition, 201);
     }
 

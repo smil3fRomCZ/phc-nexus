@@ -1,4 +1,5 @@
-import { Link } from '@inertiajs/react';
+import ProjectTabsCustomizeModal from '@/Components/Projects/ProjectTabsCustomizeModal';
+import { Link, usePage } from '@inertiajs/react';
 import {
     BarChart3,
     BookOpen,
@@ -11,6 +12,7 @@ import {
     Info,
     Layers,
     LayoutGrid,
+    Settings2,
     Table2,
     Timer,
     Users,
@@ -18,7 +20,7 @@ import {
 } from 'lucide-react';
 import { useEffect, useLayoutEffect, useMemo, useRef, useState } from 'react';
 
-type TabKey =
+export type TabKey =
     | 'overview'
     | 'board'
     | 'table'
@@ -38,9 +40,9 @@ interface ProjectTabsProps {
     active: TabKey;
 }
 
-type Tab = { key: TabKey; path: string; label: string; icon: LucideIcon };
+export type Tab = { key: TabKey; path: string; label: string; icon: LucideIcon };
 
-const TABS: readonly Tab[] = [
+export const ALL_TABS: readonly Tab[] = [
     { key: 'overview', path: '', label: 'Přehled', icon: Info },
     { key: 'board', path: '/board', label: 'Kanban', icon: LayoutGrid },
     { key: 'table', path: '/table', label: 'Backlog', icon: Table2 },
@@ -56,11 +58,58 @@ const TABS: readonly Tab[] = [
     { key: 'wiki', path: '/wiki', label: 'Dokumentace', icon: BookOpen },
 ];
 
+type TabConfig = { order: string[]; hidden: string[] };
+
+type SharedProps = {
+    projectTabConfig?: TabConfig | null;
+    projectCanUpdate?: boolean;
+};
+
+function applyTabConfig(allTabs: readonly Tab[], config: TabConfig | null | undefined): Tab[] {
+    if (!config) return [...allTabs];
+    const byKey = new Map(allTabs.map((t) => [t.key, t]));
+    const hidden = new Set(config.hidden.filter((k) => k !== 'overview'));
+    const ordered: Tab[] = [];
+    const seen = new Set<string>();
+
+    // 1) overview vždy první
+    const overview = byKey.get('overview');
+    if (overview) {
+        ordered.push(overview);
+        seen.add('overview');
+    }
+
+    // 2) pak config.order (kromě overview a hidden)
+    for (const key of config.order) {
+        if (seen.has(key) || hidden.has(key)) continue;
+        const tab = byKey.get(key as TabKey);
+        if (tab) {
+            ordered.push(tab);
+            seen.add(key);
+        }
+    }
+
+    // 3) pak všechny neznámé taby (nové, které nejsou v configu) na konec
+    for (const tab of allTabs) {
+        if (seen.has(tab.key) || hidden.has(tab.key)) continue;
+        ordered.push(tab);
+        seen.add(tab.key);
+    }
+
+    return ordered;
+}
+
 const MORE_BUTTON_WIDTH = 96;
 const GAP = 2;
 const HORIZONTAL_PADDING = 8;
 
 export default function ProjectTabs({ projectId, active }: ProjectTabsProps) {
+    const page = usePage<SharedProps>();
+    const tabConfig = page.props.projectTabConfig ?? null;
+    const canUpdate = page.props.projectCanUpdate ?? false;
+
+    const orderedTabs = useMemo(() => applyTabConfig(ALL_TABS, tabConfig), [tabConfig]);
+
     const containerRef = useRef<HTMLElement>(null);
     const measureRef = useRef<HTMLDivElement>(null);
     const dropdownRef = useRef<HTMLDivElement>(null);
@@ -68,14 +117,15 @@ export default function ProjectTabs({ projectId, active }: ProjectTabsProps) {
     const [tabWidths, setTabWidths] = useState<number[]>([]);
     const [containerWidth, setContainerWidth] = useState(0);
     const [dropdownOpen, setDropdownOpen] = useState(false);
+    const [customizeOpen, setCustomizeOpen] = useState(false);
 
-    // Measure tab widths (once after mount and when active changes, as active affects label weight)
+    // Measure tab widths whenever order/active changes (active affects font weight → width)
     useLayoutEffect(() => {
         const measure = measureRef.current;
         if (!measure) return;
         const widths = Array.from(measure.children).map((el) => (el as HTMLElement).offsetWidth);
         setTabWidths(widths);
-    }, [active]);
+    }, [active, orderedTabs]);
 
     // Measure container width + observe resize
     useLayoutEffect(() => {
@@ -106,19 +156,19 @@ export default function ProjectTabs({ projectId, active }: ProjectTabsProps) {
     }, [dropdownOpen]);
 
     const { visible, overflow } = useMemo(
-        () => computeLayout(TABS, tabWidths, containerWidth, active),
-        [tabWidths, containerWidth, active],
+        () => computeLayout(orderedTabs, tabWidths, containerWidth, active, canUpdate),
+        [orderedTabs, tabWidths, containerWidth, active, canUpdate],
     );
 
     return (
         <>
-            {/* Hidden measurement row — renders all tabs off-screen to cache widths */}
+            {/* Hidden measurement row — renders all ordered tabs off-screen to cache widths */}
             <div
                 ref={measureRef}
                 aria-hidden
                 className="pointer-events-none invisible absolute left-[-9999px] top-0 flex gap-0.5"
             >
-                {TABS.map((tab) => (
+                {orderedTabs.map((tab) => (
                     <TabButton key={tab.key} tab={tab} isActive={tab.key === active} measuring />
                 ))}
             </div>
@@ -131,8 +181,8 @@ export default function ProjectTabs({ projectId, active }: ProjectTabsProps) {
                     <TabLink key={tab.key} tab={tab} projectId={projectId} isActive={tab.key === active} />
                 ))}
 
-                {overflow.length > 0 && (
-                    <div ref={dropdownRef} className="relative ml-auto">
+                <div ref={dropdownRef} className="relative ml-auto flex items-center">
+                    {overflow.length > 0 && (
                         <button
                             type="button"
                             onClick={() => setDropdownOpen((v) => !v)}
@@ -148,27 +198,64 @@ export default function ProjectTabs({ projectId, active }: ProjectTabsProps) {
                                 {overflow.length}
                             </span>
                         </button>
+                    )}
 
-                        {dropdownOpen && (
-                            <div
-                                role="menu"
-                                className="absolute right-0 top-[calc(100%+6px)] z-20 min-w-[220px] rounded-lg border border-border-default bg-surface-primary p-1 shadow-lg"
-                            >
-                                {overflow.map((tab) => (
-                                    <TabLink
-                                        key={tab.key}
-                                        tab={tab}
-                                        projectId={projectId}
-                                        isActive={tab.key === active}
-                                        variant="dropdown"
-                                        onClick={() => setDropdownOpen(false)}
-                                    />
-                                ))}
-                            </div>
-                        )}
-                    </div>
-                )}
+                    {canUpdate && (
+                        <button
+                            type="button"
+                            onClick={() => setCustomizeOpen(true)}
+                            title="Přizpůsobit pořadí tabů"
+                            aria-label="Přizpůsobit pořadí tabů"
+                            className="flex shrink-0 items-center justify-center rounded-md border-l border-border-subtle px-2 py-1.5 text-text-subtle transition-colors hover:bg-surface-secondary hover:text-text-default"
+                        >
+                            <Settings2 className="h-3.5 w-3.5" />
+                        </button>
+                    )}
+
+                    {dropdownOpen && overflow.length > 0 && (
+                        <div
+                            role="menu"
+                            className="absolute right-0 top-[calc(100%+6px)] z-20 min-w-[220px] rounded-lg border border-border-default bg-surface-primary p-1 shadow-lg"
+                        >
+                            {overflow.map((tab) => (
+                                <TabLink
+                                    key={tab.key}
+                                    tab={tab}
+                                    projectId={projectId}
+                                    isActive={tab.key === active}
+                                    variant="dropdown"
+                                    onClick={() => setDropdownOpen(false)}
+                                />
+                            ))}
+                            {canUpdate && (
+                                <>
+                                    <div className="my-1 h-px bg-border-subtle" />
+                                    <button
+                                        type="button"
+                                        onClick={() => {
+                                            setDropdownOpen(false);
+                                            setCustomizeOpen(true);
+                                        }}
+                                        className="flex w-full items-center gap-2 rounded-md px-3 py-2 text-left text-[13px] font-semibold text-brand-hover transition-colors hover:bg-brand-soft"
+                                    >
+                                        <Settings2 className="h-3.5 w-3.5" />
+                                        Přizpůsobit pořadí…
+                                    </button>
+                                </>
+                            )}
+                        </div>
+                    )}
+                </div>
             </nav>
+
+            {customizeOpen && (
+                <ProjectTabsCustomizeModal
+                    projectId={projectId}
+                    allTabs={ALL_TABS}
+                    config={tabConfig}
+                    onClose={() => setCustomizeOpen(false)}
+                />
+            )}
         </>
     );
 }
@@ -233,18 +320,23 @@ function TabButton({ tab, isActive, measuring }: { tab: Tab; isActive: boolean; 
     );
 }
 
+const CUSTOMIZE_BUTTON_WIDTH = 40;
+
 function computeLayout(
     tabs: readonly Tab[],
     widths: number[],
     containerWidth: number,
     active: TabKey,
+    canUpdate: boolean,
 ): { visible: Tab[]; overflow: Tab[] } {
     if (widths.length === 0 || containerWidth === 0) {
         return { visible: [...tabs], overflow: [] };
     }
 
+    const customizeReserve = canUpdate ? CUSTOMIZE_BUTTON_WIDTH : 0;
+
     const fits = (count: number, reserveForMore: boolean): boolean => {
-        let used = HORIZONTAL_PADDING;
+        let used = HORIZONTAL_PADDING + customizeReserve;
         for (let i = 0; i < count; i++) {
             used += (widths[i] ?? 0) + GAP;
         }

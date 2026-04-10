@@ -44,8 +44,10 @@ test.describe('Kanban a tabulka', () => {
         const projectId = href?.split('/projects/')[1]?.split('/')[0] ?? '';
 
         await page.goto(`/projects/${projectId}/board`);
-        await expect(page.getByText('Backlog').first()).toBeVisible();
-        await expect(page.getByText('Hotovo').first()).toBeVisible();
+        // Column headers mají .uppercase (Board.tsx:343) — rozlišuje je od tab labelů v ProjectTabs,
+        // které existují jako off-screen measurement row pro overflow menu (visible: hidden).
+        await expect(page.locator('.uppercase').filter({ hasText: 'Backlog' }).first()).toBeVisible();
+        await expect(page.locator('.uppercase').filter({ hasText: 'Hotovo' }).first()).toBeVisible();
     });
 
     test('PM vidí tabulkový view', async ({ page }) => {

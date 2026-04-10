@@ -182,7 +182,7 @@ export default function ProjectTabs({ projectId, active }: ProjectTabsProps) {
                 ))}
 
                 <div ref={dropdownRef} className="relative ml-auto flex items-center">
-                    {overflow.length > 0 && (
+                    {(overflow.length > 0 || canUpdate) && (
                         <button
                             type="button"
                             onClick={() => setDropdownOpen((v) => !v)}
@@ -194,25 +194,15 @@ export default function ProjectTabs({ projectId, active }: ProjectTabsProps) {
                             <ChevronDown
                                 className={`h-3.5 w-3.5 transition-transform ${dropdownOpen ? 'rotate-180' : ''}`}
                             />
-                            <span className="inline-flex h-4 min-w-[18px] items-center justify-center rounded-full bg-brand-soft px-1 text-[10px] font-bold text-brand-hover">
-                                {overflow.length}
-                            </span>
+                            {overflow.length > 0 && (
+                                <span className="inline-flex h-4 min-w-[18px] items-center justify-center rounded-full bg-brand-soft px-1 text-[10px] font-bold text-brand-hover">
+                                    {overflow.length}
+                                </span>
+                            )}
                         </button>
                     )}
 
-                    {canUpdate && (
-                        <button
-                            type="button"
-                            onClick={() => setCustomizeOpen(true)}
-                            title="Přizpůsobit pořadí tabů"
-                            aria-label="Přizpůsobit pořadí tabů"
-                            className="flex shrink-0 items-center justify-center rounded-md border-l border-border-subtle px-2 py-1.5 text-text-subtle transition-colors hover:bg-surface-secondary hover:text-text-default"
-                        >
-                            <Settings2 className="h-3.5 w-3.5" />
-                        </button>
-                    )}
-
-                    {dropdownOpen && overflow.length > 0 && (
+                    {dropdownOpen && (overflow.length > 0 || canUpdate) && (
                         <div
                             role="menu"
                             className="absolute right-0 top-[calc(100%+6px)] z-20 min-w-[220px] rounded-lg border border-border-default bg-surface-primary p-1 shadow-lg"
@@ -229,7 +219,7 @@ export default function ProjectTabs({ projectId, active }: ProjectTabsProps) {
                             ))}
                             {canUpdate && (
                                 <>
-                                    <div className="my-1 h-px bg-border-subtle" />
+                                    {overflow.length > 0 && <div className="my-1 h-px bg-border-subtle" />}
                                     <button
                                         type="button"
                                         onClick={() => {
@@ -320,8 +310,6 @@ function TabButton({ tab, isActive, measuring }: { tab: Tab; isActive: boolean; 
     );
 }
 
-const CUSTOMIZE_BUTTON_WIDTH = 40;
-
 function computeLayout(
     tabs: readonly Tab[],
     widths: number[],
@@ -333,10 +321,8 @@ function computeLayout(
         return { visible: [...tabs], overflow: [] };
     }
 
-    const customizeReserve = canUpdate ? CUSTOMIZE_BUTTON_WIDTH : 0;
-
     const fits = (count: number, reserveForMore: boolean): boolean => {
-        let used = HORIZONTAL_PADDING + customizeReserve;
+        let used = HORIZONTAL_PADDING;
         for (let i = 0; i < count; i++) {
             used += (widths[i] ?? 0) + GAP;
         }
@@ -344,8 +330,9 @@ function computeLayout(
         return used <= containerWidth;
     };
 
-    // First check if all tabs fit without the more button
-    if (fits(tabs.length, false)) {
+    // If user can customize, the "Další" button is always shown (it hosts the customize menu),
+    // so we must always reserve space for it — even when all tabs would otherwise fit.
+    if (fits(tabs.length, canUpdate)) {
         return { visible: [...tabs], overflow: [] };
     }
 

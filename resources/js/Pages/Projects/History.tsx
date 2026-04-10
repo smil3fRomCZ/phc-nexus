@@ -48,7 +48,6 @@ type HistoryEvent = UpdateEvent | AuditEvent | CommentEvent | TimeEvent;
 interface Props {
     project: { id: string; name: string; key: string; status: string };
     events: HistoryEvent[];
-    lastUpdate: { health: Health; created_at: string | null } | null;
 }
 
 type FilterKey = 'all' | 'update' | 'comment' | 'audit' | 'time';
@@ -89,7 +88,7 @@ const AUDIT_ACTION_LABELS: Record<string, string> = {
     restored: 'obnovil projekt',
 };
 
-export default function ProjectHistory({ project, events, lastUpdate }: Props) {
+export default function ProjectHistory({ project, events }: Props) {
     const [filter, setFilter] = useState<FilterKey>('all');
 
     const counts = useMemo(() => {
@@ -118,7 +117,7 @@ export default function ProjectHistory({ project, events, lastUpdate }: Props) {
                 <ProjectHeaderCompact project={project} />
             </div>
             <div className="mb-6">
-                <ProjectTabs projectId={project.id} active="history" lastUpdate={lastUpdate} />
+                <ProjectTabs projectId={project.id} active="history" />
             </div>
 
             <div className="rounded-lg border border-border-subtle bg-surface-primary p-5">

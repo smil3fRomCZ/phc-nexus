@@ -143,28 +143,7 @@ final class ProjectHistoryController extends Controller
                 'status' => $project->status,
             ],
             'events' => $events,
-            'lastUpdate' => $this->latestUpdate($project),
         ]);
-    }
-
-    /**
-     * @return array{health: string, created_at: string|null}|null
-     */
-    private function latestUpdate(Project $project): ?array
-    {
-        $row = DB::table('project_updates')
-            ->where('project_id', $project->id)
-            ->orderByDesc('created_at')
-            ->first(['health', 'created_at']);
-
-        if ($row === null) {
-            return null;
-        }
-
-        return [
-            'health' => (string) $row->health,
-            'created_at' => $this->iso($row->created_at),
-        ];
     }
 
     private function iso(mixed $value): ?string

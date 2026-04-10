@@ -27,6 +27,9 @@ use Illuminate\Database\Eloquent\Relations\BelongsToMany;
 use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Database\Eloquent\SoftDeletes;
 
+/**
+ * @property array{order: list<string>, hidden: list<string>}|null $tab_config
+ */
 class Project extends Model
 {
     /** @use HasFactory<ProjectFactory> */
@@ -47,6 +50,7 @@ class Project extends Model
         'benefit_type',
         'benefit_amount',
         'benefit_note',
+        'tab_config',
     ];
 
     protected function casts(): array
@@ -58,6 +62,7 @@ class Project extends Model
             'target_date' => 'date',
             'benefit_type' => BenefitType::class,
             'benefit_amount' => 'decimal:2',
+            'tab_config' => 'array',
         ];
     }
 

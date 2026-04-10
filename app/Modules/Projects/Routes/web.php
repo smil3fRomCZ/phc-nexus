@@ -6,6 +6,7 @@ use App\Modules\Projects\Controllers\ProjectAttachmentController;
 use App\Modules\Projects\Controllers\ProjectCommentController;
 use App\Modules\Projects\Controllers\ProjectController;
 use App\Modules\Projects\Controllers\ProjectExportController;
+use App\Modules\Projects\Controllers\ProjectHistoryController;
 use App\Modules\Projects\Controllers\ProjectMemberController;
 use App\Modules\Projects\Controllers\ReportController;
 use App\Modules\Projects\Controllers\TimeExportController;
@@ -20,6 +21,7 @@ Route::middleware('auth')->group(function () {
     Route::get('projects/{project}/time', [ProjectController::class, 'time'])->name('projects.time');
     Route::get('projects/{project}/gantt', [ProjectController::class, 'gantt'])->name('projects.gantt');
     Route::get('projects/{project}/reports', [ReportController::class, 'index'])->name('projects.reports');
+    Route::get('projects/{project}/history', [ProjectHistoryController::class, 'index'])->name('projects.history');
 
     // Project updates
     Route::post('projects/{project}/updates', [ProjectController::class, 'storeUpdate'])->name('projects.updates.store');
@@ -34,6 +36,7 @@ Route::middleware('auth')->group(function () {
     // Project members
     Route::get('projects/{project}/members', [ProjectMemberController::class, 'index'])->name('projects.members.index');
     Route::post('projects/{project}/members', [ProjectMemberController::class, 'store'])->name('projects.members.store');
+    Route::get('projects/{project}/members/{user}/usage', [ProjectMemberController::class, 'usage'])->name('projects.members.usage');
     Route::patch('projects/{project}/members/{user}', [ProjectMemberController::class, 'updateRole'])->name('projects.members.updateRole');
     Route::delete('projects/{project}/members/{user}', [ProjectMemberController::class, 'destroy'])->name('projects.members.destroy');
 

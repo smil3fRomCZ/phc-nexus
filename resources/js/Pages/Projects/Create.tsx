@@ -2,7 +2,7 @@ import AppLayout from '@/Layouts/AppLayout';
 import type { Breadcrumb } from '@/Layouts/AppLayout';
 import Spinner from '@/Components/Spinner';
 import { validate, required, maxLength, pattern } from '@/utils/validate';
-import { useForm } from '@inertiajs/react';
+import { router, useForm } from '@inertiajs/react';
 import { ArrowLeft, Code, CheckSquare, ShieldCheck, Settings, type LucideIcon } from 'lucide-react';
 import { useState, type FormEvent } from 'react';
 
@@ -332,7 +332,7 @@ export default function ProjectCreate({
                         </Field>
                     </div>
 
-                    <div className="pt-4">
+                    <div className="flex items-center gap-3 pt-4">
                         <button
                             type="submit"
                             disabled={processing}
@@ -340,6 +340,13 @@ export default function ProjectCreate({
                         >
                             {processing && <Spinner size="sm" />}
                             Vytvořit projekt
+                        </button>
+                        <button
+                            type="button"
+                            onClick={() => router.visit('/projects')}
+                            className="inline-flex items-center gap-2 rounded-md border border-border-default px-6 py-2 text-sm font-medium text-text-muted transition-colors hover:bg-surface-hover"
+                        >
+                            Zrušit
                         </button>
                     </div>
                 </form>

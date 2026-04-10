@@ -1,4 +1,4 @@
-import { Link } from '@inertiajs/react';
+import { Link, usePage } from '@inertiajs/react';
 import {
     Info,
     LayoutGrid,
@@ -12,7 +12,9 @@ import {
     Dices,
     BarChart3,
     GitBranch,
+    History,
 } from 'lucide-react';
+import { formatDate } from '@/utils/formatDate';
 
 interface ProjectTabsProps {
     projectId: string;
@@ -28,8 +30,14 @@ interface ProjectTabsProps {
         | 'estimation'
         | 'reports'
         | 'approvals'
-        | 'wiki';
+        | 'wiki'
+        | 'history';
+    lastUpdate?: { health: 'on_track' | 'at_risk' | 'blocked'; created_at: string | null } | null;
 }
+
+type SharedProps = {
+    projectLastUpdate?: { health: 'on_track' | 'at_risk' | 'blocked'; created_at: string | null } | null;
+};
 
 const TABS = [
     { key: 'overview', path: '', label: 'Přehled', icon: Info },
@@ -42,13 +50,22 @@ const TABS = [
     { key: 'workflow', path: '/workflow', label: 'Workflow', icon: GitBranch },
     { key: 'estimation', path: '/estimation', label: 'Estimation', icon: Dices },
     { key: 'reports', path: '/reports', label: 'Reporty', icon: BarChart3 },
+    { key: 'history', path: '/history', label: 'Historie', icon: History },
     { key: 'approvals', path: '/approvals', label: 'Schvalování', icon: CheckSquare },
     { key: 'wiki', path: '/wiki', label: 'Dokumentace', icon: BookOpen },
 ] as const;
 
-export default function ProjectTabs({ projectId, active }: ProjectTabsProps) {
+const HEALTH_DOT: Record<string, string> = {
+    on_track: 'bg-status-success',
+    at_risk: 'bg-status-warning',
+    blocked: 'bg-status-danger',
+};
+
+export default function ProjectTabs({ projectId, active, lastUpdate }: ProjectTabsProps) {
+    const page = usePage<SharedProps>();
+    const update = lastUpdate ?? page.props.projectLastUpdate ?? null;
     return (
-        <nav className="inline-flex gap-0.5 overflow-x-auto rounded-lg border border-border-subtle bg-surface-primary p-1 scrollbar-hide">
+        <nav className="flex w-full items-center gap-0.5 overflow-x-auto rounded-lg border border-border-subtle bg-surface-primary p-1 scrollbar-hide">
             {TABS.map((tab) => {
                 const Icon = tab.icon;
                 const isActive = tab.key === active;
@@ -67,6 +84,22 @@ export default function ProjectTabs({ projectId, active }: ProjectTabsProps) {
                     </Link>
                 );
             })}
+            <div className="flex-1" />
+            {update && (
+                <Link
+                    href={`/projects/${projectId}/history`}
+                    title="Poslední status update — kliknutím zobrazit historii"
+                    className="mr-1 hidden shrink-0 items-center gap-2 rounded-md border border-border-subtle bg-surface-secondary px-3 py-1.5 text-xs text-text-muted no-underline transition-colors hover:bg-surface-hover hover:text-text-default md:flex"
+                >
+                    <span
+                        className={`inline-block h-1.5 w-1.5 rounded-full ${HEALTH_DOT[update.health] ?? 'bg-text-subtle'}`}
+                    />
+                    Poslední update:{' '}
+                    <strong className="font-semibold text-text-default">
+                        {update.created_at ? formatDate(update.created_at) : '—'}
+                    </strong>
+                </Link>
+            )}
         </nav>
     );
 }

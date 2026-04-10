@@ -8,6 +8,7 @@ use App\Modules\Projects\Controllers\ProjectController;
 use App\Modules\Projects\Controllers\ProjectExportController;
 use App\Modules\Projects\Controllers\ProjectHistoryController;
 use App\Modules\Projects\Controllers\ProjectMemberController;
+use App\Modules\Projects\Controllers\ProjectTabConfigController;
 use App\Modules\Projects\Controllers\ReportController;
 use App\Modules\Projects\Controllers\TimeExportController;
 use App\Modules\Projects\Controllers\WorkflowController;
@@ -22,6 +23,10 @@ Route::middleware('auth')->group(function () {
     Route::get('projects/{project}/gantt', [ProjectController::class, 'gantt'])->name('projects.gantt');
     Route::get('projects/{project}/reports', [ReportController::class, 'index'])->name('projects.reports');
     Route::get('projects/{project}/history', [ProjectHistoryController::class, 'index'])->name('projects.history');
+
+    // Tab configuration (custom order per project)
+    Route::put('projects/{project}/tab-config', [ProjectTabConfigController::class, 'update'])->name('projects.tab-config.update');
+    Route::delete('projects/{project}/tab-config', [ProjectTabConfigController::class, 'destroy'])->name('projects.tab-config.destroy');
 
     // Project updates
     Route::post('projects/{project}/updates', [ProjectController::class, 'storeUpdate'])->name('projects.updates.store');

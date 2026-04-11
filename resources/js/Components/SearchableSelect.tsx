@@ -78,9 +78,7 @@ export default function SearchableSelect({
                         }}
                         className="flex h-9 w-full items-center justify-between rounded-md border border-border-default bg-surface-primary px-3 text-left text-sm text-text-default transition-colors hover:border-text-subtle focus:border-border-focus focus:outline-none focus:shadow-[0_0_0_2px_var(--color-brand-soft)]"
                     >
-                        <span className={selectedLabel ? '' : 'text-text-subtle'}>
-                            {selectedLabel || placeholder}
-                        </span>
+                        <span className={selectedLabel ? '' : 'text-text-subtle'}>{selectedLabel || placeholder}</span>
                         {value && (
                             <span
                                 role="button"
@@ -97,7 +95,14 @@ export default function SearchableSelect({
                                 }}
                                 className="ml-2 rounded p-0.5 text-text-subtle hover:text-text-default"
                             >
-                                <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                                <svg
+                                    width="12"
+                                    height="12"
+                                    viewBox="0 0 24 24"
+                                    fill="none"
+                                    stroke="currentColor"
+                                    strokeWidth="2"
+                                >
                                     <line x1="18" y1="6" x2="6" y2="18" />
                                     <line x1="6" y1="6" x2="18" y2="18" />
                                 </svg>

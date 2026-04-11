@@ -613,9 +613,7 @@ function AttachExistingTask({ projectId, epicId }: { projectId: string; epicId: 
                 />
                 <div className="max-h-64 overflow-y-auto rounded-md border border-border-subtle">
                     {loading && <p className="p-3 text-xs text-text-muted">Načítání...</p>}
-                    {!loading && tasks.length === 0 && (
-                        <p className="p-3 text-xs text-text-muted">Žádné volné úkoly</p>
-                    )}
+                    {!loading && tasks.length === 0 && <p className="p-3 text-xs text-text-muted">Žádné volné úkoly</p>}
                     {!loading &&
                         tasks.map((task) => {
                             const isChecked = selected.has(task.id);

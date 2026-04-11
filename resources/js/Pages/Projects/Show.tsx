@@ -23,7 +23,6 @@ import {
     Timer,
     Info,
     AlertTriangle,
-    X,
     MoreVertical,
 } from 'lucide-react';
 import ActionIconButton from '@/Components/ActionIconButton';
@@ -488,29 +487,14 @@ function StatusUpdateForm({ projectId }: { projectId: string }) {
 
             <Modal
                 open={open}
-                onClose={() => {
-                    if (body.trim()) {
-                        if (!confirm('Máte rozpracovaný update. Opravdu chcete zavřít?')) return;
-                    }
-                    setOpen(false);
-                }}
+                onClose={() => setOpen(false)}
+                isDirty={body.trim().length > 0}
+                closeConfirmMessage="Máte rozpracovaný update. Opravdu chcete zavřít?"
                 size="max-w-lg"
-                showClose={false}
+                showClose
             >
                 <div className="mb-4 flex items-center justify-between">
                     <h2 className="text-lg font-semibold text-text-strong">Status update</h2>
-                    <Button
-                        variant="ghost"
-                        size="sm"
-                        onClick={() => {
-                            if (body.trim()) {
-                                if (!confirm('Máte rozpracovaný update. Opravdu chcete zavřít?')) return;
-                            }
-                            setOpen(false);
-                        }}
-                    >
-                        <X className="h-4 w-4" />
-                    </Button>
                 </div>
                 <div className="space-y-4">
                     <div>

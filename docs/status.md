@@ -2,7 +2,7 @@
 
 Živý dokument mapující co je **reálně implementováno** vs. plánováno. Aktualizuje se po každém milestone a významné změně.
 
-> Poslední aktualizace: 2026-04-08
+> Poslední aktualizace: 2026-04-11
 
 ---
 
@@ -419,3 +419,4 @@ Aktuální stav:
 | 2026-04-08 | Planning | Start date úkolů, drag&drop validace na kanbanu, přejmenování backlogu — PR #127 |
 | 2026-04-08 | Fix | Kanban drag reset, estimation 500 fix, quick-add proporce, backlog inline-add — PR #128 |
 | 2026-04-08 | Deploy | Staging deploy zachová existující data místo migrate:fresh |
+| 2026-04-11 | UI | IPA-4 round 2: Modal komponenta centralizuje dirty guard (`isDirty` + `closeConfirmMessage` props) — backdrop i X i Escape se ptají před zavřením, pokud je formulář rozpracovaný. Aplikováno na Status update, TaskEditDialog, EpicEditDialog, CreateTaskModal, RequestApprovalDialog. Inertia `useForm().isDirty` určuje stav. |

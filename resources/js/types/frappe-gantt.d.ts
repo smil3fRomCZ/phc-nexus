@@ -16,14 +16,27 @@ declare module 'frappe-gantt' {
         date_format?: string;
         language?: string;
         readonly?: boolean;
+        popup_on?: 'click' | 'hover';
+        bar_height?: number;
+        padding?: number;
+        container_height?: number | 'auto';
         on_click?: (task: GanttTask) => void;
         on_date_change?: (task: GanttTask, start: Date, end: Date) => void;
+    }
+
+    interface ShowPopupArgs {
+        x: number;
+        y: number;
+        task: GanttTask;
+        target: SVGGraphicsElement;
     }
 
     class Gantt {
         constructor(wrapper: string | HTMLElement, tasks: GanttTask[], options?: GanttOptions);
         change_view_mode(mode: string): void;
         refresh(tasks: GanttTask[]): void;
+        show_popup(args: ShowPopupArgs): void;
+        $container: HTMLElement;
     }
 
     export default Gantt;

@@ -112,8 +112,7 @@ export default function ProjectGantt({ project, tasks, epics }: Props) {
                 if (target && container && typeof target.getBoundingClientRect === 'function') {
                     const targetRect = target.getBoundingClientRect();
                     const containerRect = container.getBoundingClientRect();
-                    args.x =
-                        targetRect.left - containerRect.left + container.scrollLeft + targetRect.width / 2;
+                    args.x = targetRect.left - containerRect.left + container.scrollLeft + targetRect.width / 2;
                     args.y = targetRect.top - containerRect.top + container.scrollTop + targetRect.height;
                 }
                 originalShowPopup(args);
@@ -121,11 +120,9 @@ export default function ProjectGantt({ project, tasks, epics }: Props) {
 
             // SVG bary nemají kurzor pointer ve frappe-gantt — přidáme ho ručně,
             // aby uživatel věděl, že jsou klikatelné.
-            instance.$container
-                .querySelectorAll<SVGGElement>('.bar-wrapper')
-                .forEach((el) => {
-                    el.style.cursor = 'pointer';
-                });
+            instance.$container.querySelectorAll<SVGGElement>('.bar-wrapper').forEach((el) => {
+                el.style.cursor = 'pointer';
+            });
         });
 
         return () => {

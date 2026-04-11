@@ -53,10 +53,7 @@ export default function Modal({
     if (!open) return null;
 
     return (
-        <div
-            className={`fixed inset-0 ${zIndex} flex items-center justify-center bg-black/50`}
-            onClick={requestClose}
-        >
+        <div className={`fixed inset-0 ${zIndex} flex items-center justify-center bg-black/50`} onClick={requestClose}>
             <div
                 className={`mx-4 w-full ${size} max-h-[85vh] overflow-y-auto rounded-lg border border-border-subtle bg-surface-primary p-4 shadow-xl sm:mx-auto sm:p-6`}
                 onClick={(e) => e.stopPropagation()}

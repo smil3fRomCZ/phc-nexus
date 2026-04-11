@@ -153,6 +153,13 @@ export default function Workflow({ project, statuses, transitions }: Props) {
     const [newName, setNewName] = useState('');
     const [deleteTarget, setDeleteTarget] = useState<{ id: string; name: string } | null>(null);
 
+    // Lokální kopie transitions — optimistic update při drag & drop a delete bez full router.reload().
+    // Sync z prop po Inertia navigaci / reload statusů (kaskádní delete změní transitions).
+    const [localTransitions, setLocalTransitions] = useState<WorkflowTransition[]>(transitions);
+    useEffect(() => {
+        setLocalTransitions(transitions);
+    }, [transitions]);
+
     const breadcrumbs: Breadcrumb[] = [
         { label: 'Domů', href: '/' },
         { label: 'Projekty', href: '/projects' },
@@ -161,7 +168,7 @@ export default function Workflow({ project, statuses, transitions }: Props) {
     ];
 
     const editingStatus = statuses.find((s) => s.id === editingId) ?? null;
-    const selectedEdge = transitions.find((t) => t.id === selectedEdgeId) ?? null;
+    const selectedEdge = localTransitions.find((t) => t.id === selectedEdgeId) ?? null;
 
     const selectStatus = useCallback((id: string) => {
         setEditingId(id);
@@ -207,7 +214,7 @@ export default function Workflow({ project, statuses, transitions }: Props) {
 
     const edges: Edge[] = useMemo(
         () =>
-            transitions.map((t) => {
+            localTransitions.map((t) => {
                 const isSelected = t.id === selectedEdgeId;
                 const color = isSelected ? '#0052cc' : '#97a0af';
                 return {
@@ -220,7 +227,7 @@ export default function Workflow({ project, statuses, transitions }: Props) {
                     selected: isSelected,
                 };
             }),
-        [transitions, selectedEdgeId],
+        [localTransitions, selectedEdgeId],
     );
 
     const onNodesChange = useCallback((changes: NodeChange[]) => setNodes((nds) => applyNodeChanges(changes, nds)), []);
@@ -235,81 +242,43 @@ export default function Workflow({ project, statuses, transitions }: Props) {
         setEditingId(null);
     }, []);
 
-    const onConnectStart = useCallback(
-        (_event: unknown, params: { nodeId: string | null; handleId: string | null; handleType: string | null }) => {
-            console.log('[Workflow DEBUG] onConnectStart', params);
-        },
-        [],
-    );
-
     const onConnectEnd = useCallback(
         (event: globalThis.MouseEvent | globalThis.TouchEvent, connectionState: FinalConnectionState) => {
-            console.log('[Workflow DEBUG] onConnectEnd fired', {
-                isValid: connectionState.isValid,
-                fromNodeId: connectionState.fromNode?.id,
-                fromHandleId: connectionState.fromHandle?.id,
-                toNodeId: connectionState.toNode?.id,
-                toHandleId: connectionState.toHandle?.id,
-            });
-
-            if (!connectionState.fromNode) {
-                console.warn('[Workflow DEBUG] fromNode is null — aborting');
-                return;
-            }
+            if (!connectionState.fromNode) return;
 
             let targetNodeId: string | null = connectionState.toNode?.id ?? null;
 
+            // Fallback: pokud React Flow nedetekoval toNode, zkusíme najít element pod kurzorem
             if (!targetNodeId) {
                 const clientX = 'clientX' in event ? event.clientX : event.changedTouches[0]?.clientX;
                 const clientY = 'clientY' in event ? event.clientY : event.changedTouches[0]?.clientY;
-
-                console.log('[Workflow DEBUG] no toNode, using elementFromPoint fallback', { clientX, clientY });
                 if (clientX != null && clientY != null) {
                     const el = document.elementFromPoint(clientX, clientY);
-
-                    console.log('[Workflow DEBUG] element at point', el);
                     const nodeEl = el?.closest('.react-flow__node');
                     targetNodeId = nodeEl?.getAttribute('data-id') ?? null;
-
-                    console.log('[Workflow DEBUG] fallback targetNodeId', targetNodeId);
                 }
             }
 
-            if (!targetNodeId) {
-                console.warn('[Workflow DEBUG] no targetNodeId resolved — aborting');
-                return;
-            }
-            if (targetNodeId === connectionState.fromNode.id) {
-                console.warn('[Workflow DEBUG] self-loop — aborting');
-                return;
-            }
+            if (!targetNodeId || targetNodeId === connectionState.fromNode.id) return;
 
-            console.log('[Workflow DEBUG] POSTing transition', {
-                from: connectionState.fromNode.id,
-                to: targetNodeId,
-            });
+            const fromId = connectionState.fromNode.id;
 
             fetch(`/projects/${project.id}/workflow/transitions`, {
                 method: 'POST',
                 headers: csrfHeaders(),
                 body: JSON.stringify({
-                    from_status_id: connectionState.fromNode.id,
+                    from_status_id: fromId,
                     to_status_id: targetNodeId,
                 }),
-            })
-                .then(async (res) => {
-                    console.log('[Workflow DEBUG] fetch response', res.status, res.statusText);
-                    if (!res.ok) {
-                        const body = await res.text();
-
-                        console.error('[Workflow DEBUG] fetch body on error', body);
-                        return;
-                    }
-                    router.reload();
-                })
-                .catch((err) => {
-                    console.error('[Workflow DEBUG] fetch threw', err);
-                });
+            }).then(async (res) => {
+                if (!res.ok) return;
+                const newTransition = (await res.json()) as WorkflowTransition;
+                // Optimistic update — místo router.reload() přidáme přechod přímo do lokálního state.
+                // firstOrCreate může vrátit existující přechod, proto deduplikace podle id.
+                setLocalTransitions((prev) =>
+                    prev.some((t) => t.id === newTransition.id) ? prev : [...prev, newTransition],
+                );
+            });
         },
         [project.id],
     );
@@ -361,7 +330,9 @@ export default function Workflow({ project, statuses, transitions }: Props) {
             method: 'DELETE',
             headers: csrfHeaders(),
         }).then((res) => {
-            if (res.ok) router.reload();
+            if (res.ok) {
+                setLocalTransitions((prev) => prev.filter((t) => t.id !== id));
+            }
         });
     }
 
@@ -375,7 +346,7 @@ export default function Workflow({ project, statuses, transitions }: Props) {
                 <div className="flex items-center justify-between">
                     <h1 className="text-xl md:text-2xl font-bold text-text-strong">Workflow Editor</h1>
                     <span className="text-sm text-text-muted">
-                        {statuses.length} stavů · {transitions.length} přechodů
+                        {statuses.length} stavů · {localTransitions.length} přechodů
                     </span>
                 </div>
 
@@ -414,7 +385,6 @@ export default function Workflow({ project, statuses, transitions }: Props) {
                             edges={edges}
                             onNodesChange={onNodesChange}
                             onNodeDragStop={onNodeDragStop}
-                            onConnectStart={onConnectStart}
                             onConnectEnd={onConnectEnd}
                             onEdgeClick={onEdgeClick}
                             onPaneClick={onPaneClick}
@@ -566,7 +536,7 @@ export default function Workflow({ project, statuses, transitions }: Props) {
                                             Přechody z tohoto stavu
                                         </label>
                                         <div className="mt-1 space-y-0.5">
-                                            {transitions
+                                            {localTransitions
                                                 .filter((t) => t.from_status_id === editingStatus.id)
                                                 .map((t) => (
                                                     <div
@@ -590,7 +560,7 @@ export default function Workflow({ project, statuses, transitions }: Props) {
                                             Přechody do tohoto stavu
                                         </label>
                                         <div className="mt-1 space-y-0.5">
-                                            {transitions
+                                            {localTransitions
                                                 .filter((t) => t.to_status_id === editingStatus.id)
                                                 .map((t) => (
                                                     <div
@@ -625,7 +595,9 @@ export default function Workflow({ project, statuses, transitions }: Props) {
                                     </div>
                                     <div className="flex items-center justify-between text-xs">
                                         <span className="text-text-muted">Přechodů</span>
-                                        <span className="font-semibold text-text-strong">{transitions.length}</span>
+                                        <span className="font-semibold text-text-strong">
+                                            {localTransitions.length}
+                                        </span>
                                     </div>
                                     <div className="flex items-center justify-between text-xs">
                                         <span className="text-text-muted">Výchozí stav</span>

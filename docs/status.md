@@ -2,7 +2,7 @@
 
 Živý dokument mapující co je **reálně implementováno** vs. plánováno. Aktualizuje se po každém milestone a významné změně.
 
-> Poslední aktualizace: 2026-04-08
+> Poslední aktualizace: 2026-04-11
 
 ---
 
@@ -419,3 +419,4 @@ Aktuální stav:
 | 2026-04-08 | Planning | Start date úkolů, drag&drop validace na kanbanu, přejmenování backlogu — PR #127 |
 | 2026-04-08 | Fix | Kanban drag reset, estimation 500 fix, quick-add proporce, backlog inline-add — PR #128 |
 | 2026-04-08 | Deploy | Staging deploy zachová existující data místo migrate:fresh |
+| 2026-04-11 | Gantt | IPA-16 click na úkol/epic v Ganttu (router.visit) + tooltip pozice (přepočet z bounding rectu místo offsetX/Y), IPA-11 odstraněna umělá min-height vnitřního containeru, IPA-12 default start_date/due_date = today při vytvoření úkolu bez termínu (úkol ihned viditelný v Ganttu i v listovém výpisu) |

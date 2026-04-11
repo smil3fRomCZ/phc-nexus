@@ -197,4 +197,41 @@ class TaskCrudTest extends TestCase
         $this->assertNull($task->epic);
         $this->assertCount(1, $project->tasks);
     }
+
+    public function test_task_created_without_dates_defaults_to_today(): void
+    {
+        // IPA-12: nový úkol bez explicitních datumů musí mít start_date i due_date
+        // nastaveny na dnešek, aby byl ihned viditelný v Ganttu i v listovém výpisu.
+        $user = User::factory()->create();
+        $project = Project::factory()->create(['owner_id' => $user->id]);
+
+        $this->actingAs($user)->post("/projects/{$project->id}/tasks", [
+            'title' => 'Úkol bez termínu',
+            'priority' => 'medium',
+        ]);
+
+        $task = Task::where('title', 'Úkol bez termínu')->firstOrFail();
+        $today = now()->toDateString();
+
+        $this->assertSame($today, $task->start_date?->toDateString());
+        $this->assertSame($today, $task->due_date?->toDateString());
+    }
+
+    public function test_task_created_with_explicit_dates_keeps_them(): void
+    {
+        $user = User::factory()->create();
+        $project = Project::factory()->create(['owner_id' => $user->id]);
+
+        $this->actingAs($user)->post("/projects/{$project->id}/tasks", [
+            'title' => 'Úkol s termínem',
+            'priority' => 'medium',
+            'start_date' => '2026-05-01',
+            'due_date' => '2026-05-15',
+        ]);
+
+        $task = Task::where('title', 'Úkol s termínem')->firstOrFail();
+
+        $this->assertSame('2026-05-01', $task->start_date?->toDateString());
+        $this->assertSame('2026-05-15', $task->due_date?->toDateString());
+    }
 }

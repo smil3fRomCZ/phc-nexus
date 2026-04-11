@@ -5,6 +5,7 @@ import Button from '@/Components/Button';
 import ProjectHeaderCompact from '@/Components/ProjectHeaderCompact';
 import ProjectTabs from '@/Components/ProjectTabs';
 import EmptyState from '@/Components/EmptyState';
+import { router } from '@inertiajs/react';
 import { useEffect, useRef, useState } from 'react';
 
 interface GanttTask {
@@ -82,11 +83,45 @@ export default function ProjectGantt({ project, tasks, epics }: Props) {
             const Gantt = module.default;
             containerRef.current.innerHTML = '';
 
-            new Gantt(containerRef.current, ganttItems, {
+            const handleClick = (item: { id: string }) => {
+                if (item.id.startsWith('task-')) {
+                    const taskId = item.id.slice('task-'.length);
+                    router.visit(`/projects/${project.id}/tasks/${taskId}`);
+                } else if (item.id.startsWith('epic-')) {
+                    const epicId = item.id.slice('epic-'.length);
+                    router.visit(`/projects/${project.id}/epics/${epicId}`);
+                }
+            };
+
+            const instance = new Gantt(containerRef.current, ganttItems, {
                 view_mode: viewMode,
                 date_format: 'YYYY-MM-DD',
                 language: 'cs',
                 readonly: true,
+                popup_on: 'hover',
+                on_click: handleClick,
+            });
+
+            // Frappe-gantt umisťuje tooltip podle event.offsetX/Y, což u SVG bar elementů
+            // selhává a popup končí v levém horním rohu. Přepočítáme pozici z bounding rectu
+            // skutečného bar elementu vůči gantt-containeru.
+            const originalShowPopup = instance.show_popup.bind(instance);
+            instance.show_popup = (args) => {
+                const target = args.target;
+                const container = instance.$container;
+                if (target && container && typeof target.getBoundingClientRect === 'function') {
+                    const targetRect = target.getBoundingClientRect();
+                    const containerRect = container.getBoundingClientRect();
+                    args.x = targetRect.left - containerRect.left + container.scrollLeft + targetRect.width / 2;
+                    args.y = targetRect.top - containerRect.top + container.scrollTop + targetRect.height;
+                }
+                originalShowPopup(args);
+            };
+
+            // SVG bary nemají kurzor pointer ve frappe-gantt — přidáme ho ručně,
+            // aby uživatel věděl, že jsou klikatelné.
+            instance.$container.querySelectorAll<SVGGElement>('.bar-wrapper').forEach((el) => {
+                el.style.cursor = 'pointer';
             });
         });
 
@@ -94,7 +129,7 @@ export default function ProjectGantt({ project, tasks, epics }: Props) {
             mounted = false;
         };
         // eslint-disable-next-line react-hooks/exhaustive-deps
-    }, [viewMode, ganttItems.length]);
+    }, [viewMode, ganttItems.length, project.id]);
 
     const hasData = ganttItems.length > 0;
 
@@ -124,7 +159,7 @@ export default function ProjectGantt({ project, tasks, epics }: Props) {
                         </div>
 
                         <div className="overflow-x-auto rounded-lg border border-border-subtle bg-surface-primary">
-                            <div ref={containerRef} className="min-h-[400px] sm:min-h-[500px]" />
+                            <div ref={containerRef} />
                         </div>
                     </>
                 ) : (

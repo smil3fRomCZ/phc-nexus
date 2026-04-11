@@ -100,6 +100,12 @@ final class TaskController extends Controller
             $validated['epic_id'] = $epic->id;
         }
 
+        // IPA-12: pokud uživatel nezadá termíny, default na dnešní datum,
+        // aby byl úkol ihned viditelný v Ganttu (jednodenní bar) i v tabulkovém výpisu.
+        $today = now()->toDateString();
+        $validated['start_date'] ??= $today;
+        $validated['due_date'] ??= $today;
+
         // Automaticky přiřadit initial workflow status (seed default pokud chybí)
         if ($project->workflowStatuses()->count() === 0) {
             WorkflowController::seedDefaultWorkflow($project);

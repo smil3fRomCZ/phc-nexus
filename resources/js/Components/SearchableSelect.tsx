@@ -11,9 +11,25 @@ interface Props {
     onChange: (value: string) => void;
     options: Option[];
     placeholder?: string;
+    /**
+     * Layout mode:
+     * - `filter` (default): kompaktní inline trigger s labelem uvnitř — vhodné pro filter bary
+     * - `form`: label nad inputem, plná šířka — vhodné pro editační formuláře
+     */
+    variant?: 'filter' | 'form';
+    /** Volitelné ID pro spojení s formulářovým labelem (form variant). */
+    id?: string;
 }
 
-export default function SearchableSelect({ label, value, onChange, options, placeholder = 'Vyberte...' }: Props) {
+export default function SearchableSelect({
+    label,
+    value,
+    onChange,
+    options,
+    placeholder = 'Vyberte...',
+    variant = 'filter',
+    id,
+}: Props) {
     const [open, setOpen] = useState(false);
     const [search, setSearch] = useState('');
     const containerRef = useRef<HTMLDivElement>(null);
@@ -44,6 +60,94 @@ export default function SearchableSelect({ label, value, onChange, options, plac
         onChange('');
         setOpen(false);
         setSearch('');
+    }
+
+    if (variant === 'form') {
+        return (
+            <div ref={containerRef} className="relative w-full">
+                <label htmlFor={id} className="block text-xs font-medium text-text-default">
+                    {label}
+                </label>
+                <div className="relative mt-1">
+                    <button
+                        id={id}
+                        type="button"
+                        onClick={() => {
+                            setOpen(!open);
+                            setTimeout(() => inputRef.current?.focus(), 0);
+                        }}
+                        className="flex h-9 w-full items-center justify-between rounded-md border border-border-default bg-surface-primary px-3 text-left text-sm text-text-default transition-colors hover:border-text-subtle focus:border-border-focus focus:outline-none focus:shadow-[0_0_0_2px_var(--color-brand-soft)]"
+                    >
+                        <span className={selectedLabel ? '' : 'text-text-subtle'}>
+                            {selectedLabel || placeholder}
+                        </span>
+                        {value && (
+                            <span
+                                role="button"
+                                tabIndex={0}
+                                onClick={(e) => {
+                                    e.stopPropagation();
+                                    handleClear();
+                                }}
+                                onKeyDown={(e) => {
+                                    if (e.key === 'Enter' || e.key === ' ') {
+                                        e.stopPropagation();
+                                        handleClear();
+                                    }
+                                }}
+                                className="ml-2 rounded p-0.5 text-text-subtle hover:text-text-default"
+                            >
+                                <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                                    <line x1="18" y1="6" x2="6" y2="18" />
+                                    <line x1="6" y1="6" x2="18" y2="18" />
+                                </svg>
+                            </span>
+                        )}
+                    </button>
+
+                    {open && (
+                        <div className="absolute left-0 z-50 mt-1 w-full rounded-md border border-border-default bg-surface-primary shadow-md">
+                            <div className="p-1.5">
+                                <input
+                                    ref={inputRef}
+                                    type="text"
+                                    value={search}
+                                    onChange={(e) => setSearch(e.target.value)}
+                                    placeholder="Hledat..."
+                                    className="w-full rounded border border-border-subtle bg-surface-primary px-2 py-1 text-xs focus:border-border-focus focus:outline-none"
+                                />
+                            </div>
+                            <div className="max-h-48 overflow-y-auto">
+                                <button
+                                    type="button"
+                                    onClick={handleClear}
+                                    className="w-full px-3 py-1.5 text-left text-xs text-text-muted hover:bg-surface-hover"
+                                >
+                                    {placeholder}
+                                </button>
+                                {filtered.map((o) => (
+                                    <button
+                                        key={o.value}
+                                        type="button"
+                                        onClick={() => handleSelect(o.value)}
+                                        className={`w-full px-3 py-1.5 text-left text-xs hover:bg-surface-hover ${
+                                            o.value === value
+                                                ? 'bg-brand-soft font-semibold text-brand-primary'
+                                                : 'text-text-default'
+                                        }`}
+                                    >
+                                        {o.label}
+                                    </button>
+                                ))}
+                                {filtered.length === 0 && (
+                                    <div className="px-3 py-2 text-xs text-text-muted">Žádné výsledky</div>
+                                )}
+                            </div>
+                        </div>
+                    )}
+                </div>
+            </div>
+        );
     }
 
     return (

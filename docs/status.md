@@ -2,7 +2,7 @@
 
 Živý dokument mapující co je **reálně implementováno** vs. plánováno. Aktualizuje se po každém milestone a významné změně.
 
-> Poslední aktualizace: 2026-04-08
+> Poslední aktualizace: 2026-04-11
 
 ---
 
@@ -419,3 +419,4 @@ Aktuální stav:
 | 2026-04-08 | Planning | Start date úkolů, drag&drop validace na kanbanu, přejmenování backlogu — PR #127 |
 | 2026-04-08 | Fix | Kanban drag reset, estimation 500 fix, quick-add proporce, backlog inline-add — PR #128 |
 | 2026-04-08 | Deploy | Staging deploy zachová existující data místo migrate:fresh |
+| 2026-04-11 | Work/UX | IPA-8 epic attach picker přepsán na checkbox + bulk endpoint `POST /projects/{p}/epics/{e}/attach-tasks` (per-row tlačítko nereagovalo, protože volal task UPDATE bez povinných polí). IPA-9 task picker v TimeLogSection je nyní `SearchableSelect` (autocomplete) místo prostého `<select>`. IPA-7 SearchableSelect rozšířen o `variant: form` a aplikován na assignee/reporter/epic v TaskEditDialog a owner/PM/lead developer v EpicEditDialog. |

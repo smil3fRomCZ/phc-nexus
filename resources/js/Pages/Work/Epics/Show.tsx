@@ -16,6 +16,7 @@ import InlineDescription from '@/Components/InlineDescription';
 import TabBar from '@/Components/TabBar';
 import { Pencil, X, Plus, FileText, Timer, BookOpen, Trash2 } from 'lucide-react';
 import Modal from '@/Components/Modal';
+import SearchableSelect from '@/Components/SearchableSelect';
 import RichTextEditor from '@/Components/RichTextEditor';
 import TimeLogSection from '@/Components/TimeLogSection';
 import type { TimeEntryData } from '@/Components/TimeLogSection';
@@ -532,13 +533,15 @@ function QuickAddTask({ projectId, epicId }: { projectId: string; epicId: string
 function AttachExistingTask({ projectId, epicId }: { projectId: string; epicId: string }) {
     const [open, setOpen] = useState(false);
     const [tasks, setTasks] = useState<{ id: string; number: number; title: string }[]>([]);
+    const [selected, setSelected] = useState<Set<string>>(new Set());
     const [loading, setLoading] = useState(false);
+    const [submitting, setSubmitting] = useState(false);
     const [search, setSearch] = useState('');
 
-    function loadTasks() {
+    function fetchTasks(query: string) {
         setLoading(true);
         const params = new URLSearchParams({ format: 'json', no_epic: '1' });
-        if (search) params.append('search', search);
+        if (query) params.append('search', query);
         fetch(`/projects/${projectId}/tasks?${params}`)
             .then((res) => res.json())
             .then((json) => {
@@ -548,24 +551,40 @@ function AttachExistingTask({ projectId, epicId }: { projectId: string; epicId: 
             .catch(() => setLoading(false));
     }
 
-    function attachTask(taskId: string) {
-        router.put(
-            `/projects/${projectId}/tasks/${taskId}`,
-            { epic_id: epicId },
-            {
-                preserveScroll: true,
-                onSuccess: () => {
-                    setTasks((prev) => prev.filter((t) => t.id !== taskId));
-                    router.reload();
-                },
-            },
-        );
+    function toggle(taskId: string) {
+        setSelected((prev) => {
+            const next = new Set(prev);
+            if (next.has(taskId)) {
+                next.delete(taskId);
+            } else {
+                next.add(taskId);
+            }
+            return next;
+        });
     }
 
     function handleOpen() {
         setOpen(true);
         setSearch('');
-        loadTasks();
+        setSelected(new Set());
+        fetchTasks('');
+    }
+
+    function submit() {
+        if (selected.size === 0 || submitting) return;
+        setSubmitting(true);
+        router.post(
+            `/projects/${projectId}/epics/${epicId}/attach-tasks`,
+            { task_ids: Array.from(selected) },
+            {
+                preserveScroll: true,
+                onFinish: () => setSubmitting(false),
+                onSuccess: () => {
+                    setOpen(false);
+                    setSelected(new Set());
+                },
+            },
+        );
     }
 
     return (
@@ -580,22 +599,13 @@ function AttachExistingTask({ projectId, epicId }: { projectId: string; epicId: 
             </button>
 
             <Modal open={open} onClose={() => setOpen(false)} size="max-w-md">
-                <h3 className="mb-3 text-base font-bold text-text-strong">Připojit úkol k epicu</h3>
+                <h3 className="mb-3 text-base font-bold text-text-strong">Připojit úkoly k epicu</h3>
                 <input
                     type="text"
                     value={search}
                     onChange={(e) => {
                         setSearch(e.target.value);
-                        setLoading(true);
-                        const params = new URLSearchParams({ format: 'json', no_epic: '1' });
-                        if (e.target.value) params.append('search', e.target.value);
-                        fetch(`/projects/${projectId}/tasks?${params}`)
-                            .then((res) => res.json())
-                            .then((json) => {
-                                setTasks(json.tasks ?? []);
-                                setLoading(false);
-                            })
-                            .catch(() => setLoading(false));
+                        fetchTasks(e.target.value);
                     }}
                     placeholder="Hledat úkoly..."
                     className="mb-3 w-full rounded border border-border-default bg-surface-primary px-2.5 py-1.5 text-xs focus:border-border-focus focus:outline-none"
@@ -603,24 +613,50 @@ function AttachExistingTask({ projectId, epicId }: { projectId: string; epicId: 
                 />
                 <div className="max-h-64 overflow-y-auto rounded-md border border-border-subtle">
                     {loading && <p className="p-3 text-xs text-text-muted">Načítání...</p>}
-                    {!loading && tasks.length === 0 && <p className="p-3 text-xs text-text-muted">Žádné volné úkoly</p>}
-                    {tasks.map((task) => (
-                        <div
-                            key={task.id}
-                            className="flex items-center justify-between px-3 py-2 text-sm hover:bg-surface-hover"
+                    {!loading && tasks.length === 0 && (
+                        <p className="p-3 text-xs text-text-muted">Žádné volné úkoly</p>
+                    )}
+                    {!loading &&
+                        tasks.map((task) => {
+                            const isChecked = selected.has(task.id);
+                            return (
+                                <label
+                                    key={task.id}
+                                    className="flex cursor-pointer items-center gap-3 border-b border-border-subtle px-3 py-2 text-sm last:border-b-0 hover:bg-surface-hover"
+                                >
+                                    <input
+                                        type="checkbox"
+                                        checked={isChecked}
+                                        onChange={() => toggle(task.id)}
+                                        className="h-4 w-4 rounded border-border-default"
+                                    />
+                                    <div className="min-w-0 flex-1">
+                                        <span className="text-xs font-semibold text-text-muted">#{task.number}</span>{' '}
+                                        <span className="text-text-default">{task.title}</span>
+                                    </div>
+                                </label>
+                            );
+                        })}
+                </div>
+                <div className="mt-4 flex items-center justify-between gap-3">
+                    <span className="text-xs text-text-muted">Vybráno: {selected.size}</span>
+                    <div className="flex gap-2">
+                        <button
+                            type="button"
+                            onClick={() => setOpen(false)}
+                            className="rounded-md border border-border-default px-3 py-1.5 text-xs font-medium text-text-muted hover:bg-surface-hover"
                         >
-                            <div>
-                                <span className="text-xs font-semibold text-text-muted">#{task.number}</span>{' '}
-                                <span className="text-text-default">{task.title}</span>
-                            </div>
-                            <button
-                                onClick={() => attachTask(task.id)}
-                                className="rounded bg-brand-primary px-2 py-1 text-xs font-medium text-text-inverse hover:bg-brand-hover"
-                            >
-                                Připojit
-                            </button>
-                        </div>
-                    ))}
+                            Zrušit
+                        </button>
+                        <button
+                            type="button"
+                            onClick={submit}
+                            disabled={selected.size === 0 || submitting}
+                            className="rounded-md bg-brand-primary px-3 py-1.5 text-xs font-semibold text-text-inverse hover:bg-brand-hover disabled:opacity-50"
+                        >
+                            Připojit vybrané
+                        </button>
+                    </div>
                 </div>
             </Modal>
         </>
@@ -726,53 +762,32 @@ function EpicEditDialog({
                 </div>
 
                 <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
-                    <div>
-                        <label className="block text-xs font-medium text-text-default">Vlastník</label>
-                        <select
-                            value={data.owner_id}
-                            onChange={(e) => setData('owner_id', e.target.value)}
-                            className="mt-1 w-full rounded-md border border-border-default bg-surface-primary px-3 py-2 text-sm focus:border-border-focus focus:outline-none focus:shadow-[0_0_0_2px_var(--color-brand-soft)]"
-                        >
-                            <option value="">—</option>
-                            {members.map((m) => (
-                                <option key={m.id} value={m.id}>
-                                    {m.name}
-                                </option>
-                            ))}
-                        </select>
-                    </div>
+                    <SearchableSelect
+                        variant="form"
+                        label="Vlastník"
+                        value={data.owner_id}
+                        onChange={(v) => setData('owner_id', v)}
+                        placeholder="—"
+                        options={members.map((m) => ({ value: m.id, label: m.name }))}
+                    />
 
-                    <div>
-                        <label className="block text-xs font-medium text-text-default">PM</label>
-                        <select
-                            value={data.pm_id}
-                            onChange={(e) => setData('pm_id', e.target.value)}
-                            className="mt-1 w-full rounded-md border border-border-default bg-surface-primary px-3 py-2 text-sm focus:border-border-focus focus:outline-none focus:shadow-[0_0_0_2px_var(--color-brand-soft)]"
-                        >
-                            <option value="">—</option>
-                            {members.map((m) => (
-                                <option key={m.id} value={m.id}>
-                                    {m.name}
-                                </option>
-                            ))}
-                        </select>
-                    </div>
+                    <SearchableSelect
+                        variant="form"
+                        label="PM"
+                        value={data.pm_id}
+                        onChange={(v) => setData('pm_id', v)}
+                        placeholder="—"
+                        options={members.map((m) => ({ value: m.id, label: m.name }))}
+                    />
 
-                    <div>
-                        <label className="block text-xs font-medium text-text-default">Lead Developer</label>
-                        <select
-                            value={data.lead_developer_id}
-                            onChange={(e) => setData('lead_developer_id', e.target.value)}
-                            className="mt-1 w-full rounded-md border border-border-default bg-surface-primary px-3 py-2 text-sm focus:border-border-focus focus:outline-none focus:shadow-[0_0_0_2px_var(--color-brand-soft)]"
-                        >
-                            <option value="">—</option>
-                            {members.map((m) => (
-                                <option key={m.id} value={m.id}>
-                                    {m.name}
-                                </option>
-                            ))}
-                        </select>
-                    </div>
+                    <SearchableSelect
+                        variant="form"
+                        label="Lead Developer"
+                        value={data.lead_developer_id}
+                        onChange={(v) => setData('lead_developer_id', v)}
+                        placeholder="—"
+                        options={members.map((m) => ({ value: m.id, label: m.name }))}
+                    />
                 </div>
 
                 <div className="flex justify-end gap-3 pt-2">

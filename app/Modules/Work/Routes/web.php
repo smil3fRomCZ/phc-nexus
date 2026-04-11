@@ -16,6 +16,7 @@ Route::middleware('auth')->scopeBindings()->group(function () {
     Route::resource('projects.epics', EpicController::class)->except(['create', 'edit']);
 
     Route::patch('projects/{project}/epics/{epic}/description', [EpicController::class, 'updatePartial'])->name('projects.epics.updatePartial');
+    Route::post('projects/{project}/epics/{epic}/attach-tasks', [EpicController::class, 'attachTasks'])->name('projects.epics.attachTasks');
 
     // Epic comments & attachments
     Route::post('projects/{project}/epics/{epic}/comments', [EpicCommentController::class, 'store'])->name('projects.epics.comments.store');

@@ -133,12 +133,7 @@ export default function ProjectMembers({ project, availableUsers, roleCounts, us
                             options={availableUsers.map((u) => ({ value: u.id, label: `${u.name} — ${u.email}` }))}
                             placeholder="Vyberte uživatele..."
                         />
-                        <FilterSelect
-                            label="Role"
-                            value={addRole}
-                            onChange={setAddRole}
-                            options={ROLE_OPTIONS}
-                        />
+                        <FilterSelect label="Role" value={addRole} onChange={setAddRole} options={ROLE_OPTIONS} />
                         <Button
                             size="sm"
                             icon={<UserPlus className="h-3.5 w-3.5" />}

@@ -676,7 +676,7 @@ function TaskEditDialog({
     epics: EpicOption[];
     onClose: () => void;
 }) {
-    const { data, setData, put, processing, errors } = useForm({
+    const { data, setData, put, processing, errors, isDirty } = useForm({
         title: task.title,
         description: task.description ?? '',
         workflow_status_id: task.workflow_status?.id ?? '',
@@ -696,12 +696,15 @@ function TaskEditDialog({
     }
 
     return (
-        <Modal open onClose={onClose} size="max-w-lg" showClose={false}>
+        <Modal
+            open
+            onClose={onClose}
+            size="max-w-lg"
+            isDirty={isDirty}
+            closeConfirmMessage="Máte rozpracované změny v úkolu. Opravdu chcete zavřít?"
+        >
             <div className="mb-4 flex items-center justify-between">
                 <h2 className="text-lg font-semibold text-text-strong">Upravit úkol</h2>
-                <button onClick={onClose} className="rounded p-2 text-text-muted hover:bg-surface-hover">
-                    <X className="h-4 w-4" />
-                </button>
             </div>
 
             <form onSubmit={submit} className="space-y-4">
@@ -855,7 +858,7 @@ function RequestApprovalDialog({
     members: Member[];
     onClose: () => void;
 }) {
-    const { data, setData, post, processing, errors } = useForm<{
+    const { data, setData, post, processing, errors, isDirty } = useForm<{
         task_id: string;
         approver_ids: string[];
         description: string;
@@ -882,12 +885,15 @@ function RequestApprovalDialog({
     }
 
     return (
-        <Modal open onClose={onClose} size="max-w-lg" showClose={false}>
+        <Modal
+            open
+            onClose={onClose}
+            size="max-w-lg"
+            isDirty={isDirty}
+            closeConfirmMessage="Máte rozpracovanou žádost o schválení. Opravdu chcete zavřít?"
+        >
             <div className="mb-4 flex items-center justify-between">
                 <h2 className="text-lg font-semibold text-text-strong">Žádost o schválení</h2>
-                <button onClick={onClose} className="rounded p-2 text-text-muted hover:bg-surface-hover">
-                    <X className="h-4 w-4" />
-                </button>
             </div>
 
             <form onSubmit={submit} className="space-y-4">

@@ -14,7 +14,7 @@ import { Link, router, useForm } from '@inertiajs/react';
 import ActionIconButton from '@/Components/ActionIconButton';
 import InlineDescription from '@/Components/InlineDescription';
 import TabBar from '@/Components/TabBar';
-import { Pencil, X, Plus, FileText, Timer, BookOpen, Trash2 } from 'lucide-react';
+import { Pencil, Plus, FileText, Timer, BookOpen, Trash2 } from 'lucide-react';
 import Modal from '@/Components/Modal';
 import SearchableSelect from '@/Components/SearchableSelect';
 import RichTextEditor from '@/Components/RichTextEditor';
@@ -676,7 +676,7 @@ function EpicEditDialog({
     priorities: SelectOption[];
     onClose: () => void;
 }) {
-    const { data, setData, put, processing, errors } = useForm({
+    const { data, setData, put, processing, errors, isDirty } = useForm({
         title: epic.title,
         description: epic.description ?? '',
         status: epic.status,
@@ -694,12 +694,15 @@ function EpicEditDialog({
     }
 
     return (
-        <Modal open onClose={onClose} size="max-w-lg" showClose={false}>
+        <Modal
+            open
+            onClose={onClose}
+            size="max-w-lg"
+            isDirty={isDirty}
+            closeConfirmMessage="Máte rozpracované změny v epicu. Opravdu chcete zavřít?"
+        >
             <div className="mb-4 flex items-center justify-between">
                 <h2 className="text-lg font-semibold text-text-strong">Upravit Epic</h2>
-                <button onClick={onClose} className="rounded p-2 text-text-muted hover:bg-surface-hover">
-                    <X className="h-4 w-4" />
-                </button>
             </div>
 
             <form onSubmit={submit} className="space-y-4">

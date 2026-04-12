@@ -9,6 +9,7 @@ use App\Modules\Audit\Enums\AuditAction;
 use App\Modules\Audit\Models\AuditEntry;
 use App\Modules\Projects\Models\Project;
 use App\Modules\Work\Models\Epic;
+use App\Modules\Work\Models\Task;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Tests\TestCase;
 
@@ -136,7 +137,74 @@ class EpicCrudTest extends TestCase
         $project = Project::factory()->create();
         $epic = Epic::factory()->create(['project_id' => $project->id]);
 
-        $this->assertEquals($project->id, $epic->project->id);
+        $this->assertEquals($project->id, $epic->project?->getAttribute('id'));
         $this->assertCount(1, $project->epics);
+    }
+
+    public function test_member_can_attach_existing_tasks_to_epic(): void
+    {
+        // IPA-8: hromadný attach úkolů k epicu jedním requestem.
+        $user = User::factory()->create();
+        $project = Project::factory()->create(['owner_id' => $user->id]);
+        $epic = Epic::factory()->create(['project_id' => $project->id]);
+        $taskA = Task::factory()->create(['project_id' => $project->id, 'epic_id' => null]);
+        $taskB = Task::factory()->create(['project_id' => $project->id, 'epic_id' => null]);
+
+        $response = $this->actingAs($user)->post(
+            "/projects/{$project->id}/epics/{$epic->id}/attach-tasks",
+            ['task_ids' => [$taskA->id, $taskB->id]],
+        );
+
+        $response->assertRedirect();
+        $this->assertEquals($epic->id, $taskA->fresh()->epic_id);
+        $this->assertEquals($epic->id, $taskB->fresh()->epic_id);
+    }
+
+    public function test_attach_tasks_requires_at_least_one_task(): void
+    {
+        $user = User::factory()->create();
+        $project = Project::factory()->create(['owner_id' => $user->id]);
+        $epic = Epic::factory()->create(['project_id' => $project->id]);
+
+        $response = $this->actingAs($user)->post(
+            "/projects/{$project->id}/epics/{$epic->id}/attach-tasks",
+            ['task_ids' => []],
+        );
+
+        $response->assertSessionHasErrors(['task_ids']);
+    }
+
+    public function test_attach_tasks_only_affects_tasks_from_same_project(): void
+    {
+        $user = User::factory()->create();
+        $project = Project::factory()->create(['owner_id' => $user->id]);
+        $otherProject = Project::factory()->create(['owner_id' => $user->id]);
+        $epic = Epic::factory()->create(['project_id' => $project->id]);
+        $foreignTask = Task::factory()->create(['project_id' => $otherProject->id, 'epic_id' => null]);
+
+        $this->actingAs($user)->post(
+            "/projects/{$project->id}/epics/{$epic->id}/attach-tasks",
+            ['task_ids' => [$foreignTask->id]],
+        );
+
+        // Cizí úkol nesmí být přiřazen — bulk update je scoped na project_id v query.
+        $this->assertNull($foreignTask->fresh()->epic_id);
+    }
+
+    public function test_non_member_cannot_attach_tasks_to_epic(): void
+    {
+        // Uživatel není členem projektu — nesmí přiřazovat úkoly v cizím epicu.
+        $outsider = User::factory()->create();
+        $project = Project::factory()->create();
+        $epic = Epic::factory()->create(['project_id' => $project->id]);
+        $task = Task::factory()->create(['project_id' => $project->id, 'epic_id' => null]);
+
+        $response = $this->actingAs($outsider)->post(
+            "/projects/{$project->id}/epics/{$epic->id}/attach-tasks",
+            ['task_ids' => [$task->id]],
+        );
+
+        $response->assertForbidden();
+        $this->assertNull($task->fresh()->epic_id);
     }
 }

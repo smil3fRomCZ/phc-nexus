@@ -11,6 +11,7 @@ import InlineDescription from '@/Components/InlineDescription';
 import RichTextEditor from '@/Components/RichTextEditor';
 import ActionIconButton from '@/Components/ActionIconButton';
 import Modal from '@/Components/Modal';
+import SearchableSelect from '@/Components/SearchableSelect';
 import TabBar from '@/Components/TabBar';
 import TimeLogSection from '@/Components/TimeLogSection';
 import type { TimeEntryData } from '@/Components/TimeLogSection';
@@ -757,52 +758,42 @@ function TaskEditDialog({
                 </div>
 
                 <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                    <EditField label="Řešitel" error={errors.assignee_id}>
-                        <select
+                    <div>
+                        <SearchableSelect
+                            variant="form"
+                            label="Řešitel"
                             value={data.assignee_id}
-                            onChange={(e) => setData('assignee_id', e.target.value)}
-                            className="mt-1 w-full rounded-md border border-border-default bg-surface-primary px-3 py-2 text-sm focus:border-border-focus focus:outline-none focus:shadow-[0_0_0_2px_var(--color-brand-soft)]"
-                        >
-                            <option value="">Nepřiřazeno</option>
-                            {members.map((m) => (
-                                <option key={m.id} value={m.id}>
-                                    {m.name}
-                                </option>
-                            ))}
-                        </select>
-                    </EditField>
-
-                    <EditField label="Zadavatel" error={errors.reporter_id}>
-                        <select
+                            onChange={(v) => setData('assignee_id', v)}
+                            placeholder="Nepřiřazeno"
+                            options={members.map((m) => ({ value: m.id, label: m.name }))}
+                        />
+                        {errors.assignee_id && <p className="mt-1 text-xs text-status-danger">{errors.assignee_id}</p>}
+                    </div>
+                    <div>
+                        <SearchableSelect
+                            variant="form"
+                            label="Zadavatel"
                             value={data.reporter_id}
-                            onChange={(e) => setData('reporter_id', e.target.value)}
-                            className="mt-1 w-full rounded-md border border-border-default bg-surface-primary px-3 py-2 text-sm focus:border-border-focus focus:outline-none focus:shadow-[0_0_0_2px_var(--color-brand-soft)]"
-                        >
-                            <option value="">—</option>
-                            {members.map((m) => (
-                                <option key={m.id} value={m.id}>
-                                    {m.name}
-                                </option>
-                            ))}
-                        </select>
-                    </EditField>
+                            onChange={(v) => setData('reporter_id', v)}
+                            placeholder="—"
+                            options={members.map((m) => ({ value: m.id, label: m.name }))}
+                        />
+                        {errors.reporter_id && <p className="mt-1 text-xs text-status-danger">{errors.reporter_id}</p>}
+                    </div>
                 </div>
 
                 <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                    <EditField label="Epic" error={errors.epic_id}>
-                        <select
+                    <div>
+                        <SearchableSelect
+                            variant="form"
+                            label="Epic"
                             value={data.epic_id}
-                            onChange={(e) => setData('epic_id', e.target.value)}
-                            className="mt-1 w-full rounded-md border border-border-default bg-surface-primary px-3 py-2 text-sm focus:border-border-focus focus:outline-none focus:shadow-[0_0_0_2px_var(--color-brand-soft)]"
-                        >
-                            <option value="">Bez epicu</option>
-                            {epics.map((ep) => (
-                                <option key={ep.id} value={ep.id}>
-                                    {ep.title}
-                                </option>
-                            ))}
-                        </select>
-                    </EditField>
+                            onChange={(v) => setData('epic_id', v)}
+                            placeholder="Bez epicu"
+                            options={epics.map((ep) => ({ value: ep.id, label: ep.title }))}
+                        />
+                        {errors.epic_id && <p className="mt-1 text-xs text-status-danger">{errors.epic_id}</p>}
+                    </div>
 
                     <EditField label="Termín" error={errors.due_date}>
                         <input

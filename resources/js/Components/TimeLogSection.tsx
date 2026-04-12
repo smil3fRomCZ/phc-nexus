@@ -1,4 +1,5 @@
 import ConfirmModal from '@/Components/ConfirmModal';
+import SearchableSelect from '@/Components/SearchableSelect';
 import { Download, Pencil, Trash2, X, Check } from 'lucide-react';
 import { formatDate } from '@/utils/formatDate';
 import { router } from '@inertiajs/react';
@@ -194,20 +195,19 @@ export default function TimeLogSection({
                     />
                 </div>
                 {availableTasks && availableTasks.length > 0 && (
-                    <div className="flex flex-col gap-1">
-                        <label className="text-xs font-semibold uppercase tracking-wider text-text-subtle">Úkol</label>
-                        <select
+                    <div className="flex w-56 flex-col gap-1">
+                        <SearchableSelect
+                            id="time-task"
+                            variant="form"
+                            label="Úkol"
                             value={taskId}
-                            onChange={(e) => setTaskId(e.target.value)}
-                            className="w-48 rounded-md border border-border-default bg-surface-primary px-2 py-1.5 text-sm focus:border-border-focus focus:outline-none focus:shadow-[0_0_0_2px_var(--color-brand-soft)]"
-                        >
-                            <option value="">Bez úkolu</option>
-                            {availableTasks.map((t) => (
-                                <option key={t.id} value={t.id}>
-                                    #{t.number} {t.title}
-                                </option>
-                            ))}
-                        </select>
+                            onChange={setTaskId}
+                            placeholder="Bez úkolu"
+                            options={availableTasks.map((t) => ({
+                                value: t.id,
+                                label: `#${t.number} ${t.title}`,
+                            }))}
+                        />
                     </div>
                 )}
                 <div className="flex flex-1 flex-col gap-1">

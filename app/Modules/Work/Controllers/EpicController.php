@@ -9,6 +9,7 @@ use App\Modules\Projects\Models\Project;
 use App\Modules\Work\Enums\EpicStatus;
 use App\Modules\Work\Enums\TaskPriority;
 use App\Modules\Work\Models\Epic;
+use App\Modules\Work\Models\Task;
 use App\Modules\Work\Models\TimeEntry;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
@@ -159,5 +160,25 @@ final class EpicController extends Controller
 
         return redirect()->route('projects.epics.index', $project)
             ->with('success', 'Epic smazán.');
+    }
+
+    /**
+     * IPA-8: Bulk attach existujících úkolů k epicu. Přijímá pole task_ids,
+     * ověří že úkoly patří do stejného projektu, a hromadně nastaví epic_id.
+     */
+    public function attachTasks(Request $request, Project $project, Epic $epic): RedirectResponse
+    {
+        Gate::authorize('update', $epic);
+
+        $validated = $request->validate([
+            'task_ids' => ['required', 'array', 'min:1'],
+            'task_ids.*' => ['uuid', 'exists:tasks,id'],
+        ]);
+
+        $count = Task::where('project_id', $project->id)
+            ->whereIn('id', $validated['task_ids'])
+            ->update(['epic_id' => $epic->id]);
+
+        return back()->with('success', "Připojeno {$count} úkolů k epicu.");
     }
 }

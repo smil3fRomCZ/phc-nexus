@@ -420,3 +420,4 @@ Aktuální stav:
 | 2026-04-08 | Fix | Kanban drag reset, estimation 500 fix, quick-add proporce, backlog inline-add — PR #128 |
 | 2026-04-08 | Deploy | Staging deploy zachová existující data místo migrate:fresh |
 | 2026-04-11 | Gantt | IPA-16 click na úkol/epic v Ganttu (router.visit) + tooltip pozice (přepočet z bounding rectu místo offsetX/Y), IPA-11 odstraněna umělá min-height vnitřního containeru, IPA-12 default start_date/due_date = today při vytvoření úkolu bez termínu (úkol ihned viditelný v Ganttu i v listovém výpisu) |
+| 2026-04-11 | UI | IPA-4 round 2: Modal komponenta centralizuje dirty guard (`isDirty` + `closeConfirmMessage` props) — backdrop i X i Escape se ptají před zavřením, pokud je formulář rozpracovaný. Aplikováno na Status update, TaskEditDialog, EpicEditDialog, CreateTaskModal, RequestApprovalDialog. Inertia `useForm().isDirty` určuje stav. |

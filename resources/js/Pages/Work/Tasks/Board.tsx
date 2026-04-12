@@ -401,7 +401,7 @@ function TaskCreateDialog({
     epics: EpicOption[];
     onClose: () => void;
 }) {
-    const { data, setData, post, processing, errors } = useForm({
+    const { data, setData, post, processing, errors, isDirty } = useForm({
         title: '',
         description: '',
         priority: 'medium',
@@ -423,12 +423,15 @@ function TaskCreateDialog({
     }
 
     return (
-        <Modal open onClose={onClose} size="max-w-md" showClose={false}>
+        <Modal
+            open
+            onClose={onClose}
+            size="max-w-md"
+            isDirty={isDirty}
+            closeConfirmMessage="Máte rozpracovaný nový úkol. Opravdu chcete zavřít?"
+        >
             <div className="mb-4 flex items-center justify-between">
                 <h2 className="text-lg font-semibold text-text-strong">Nový úkol</h2>
-                <Button variant="ghost" size="sm" onClick={onClose}>
-                    <X className="h-4 w-4" />
-                </Button>
             </div>
 
             <form onSubmit={submit} className="space-y-3">

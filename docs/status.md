@@ -2,7 +2,7 @@
 
 Živý dokument mapující co je **reálně implementováno** vs. plánováno. Aktualizuje se po každém milestone a významné změně.
 
-> Poslední aktualizace: 2026-04-11
+> Poslední aktualizace: 2026-04-12
 
 ---
 
@@ -422,3 +422,6 @@ Aktuální stav:
 | 2026-04-11 | Gantt | IPA-16 click na úkol/epic v Ganttu (router.visit) + tooltip pozice (přepočet z bounding rectu místo offsetX/Y), IPA-11 odstraněna umělá min-height vnitřního containeru, IPA-12 default start_date/due_date = today při vytvoření úkolu bez termínu (úkol ihned viditelný v Ganttu i v listovém výpisu) |
 | 2026-04-11 | UI | IPA-4 round 2: Modal komponenta centralizuje dirty guard (`isDirty` + `closeConfirmMessage` props) — backdrop i X i Escape se ptají před zavřením, pokud je formulář rozpracovaný. Aplikováno na Status update, TaskEditDialog, EpicEditDialog, CreateTaskModal, RequestApprovalDialog. Inertia `useForm().isDirty` určuje stav. |
 | 2026-04-11 | Work/UX | IPA-8 epic attach picker přepsán na checkbox + bulk endpoint `POST /projects/{p}/epics/{e}/attach-tasks` (per-row tlačítko nereagovalo, protože volal task UPDATE bez povinných polí). IPA-9 task picker v TimeLogSection je nyní `SearchableSelect` (autocomplete) místo prostého `<select>`. IPA-7 SearchableSelect rozšířen o `variant: form` a aplikován na assignee/reporter/epic v TaskEditDialog a owner/PM/lead developer v EpicEditDialog. |
+| 2026-04-11 | Fix | SQLite kompatibilita: dropIndex před dropColumn v migraci, ilike → LOWER()+LIKE ve 3 controllerech — PR #148, #149 |
+| 2026-04-12 | Fix | Default data_classification změněn z `unknown` na `non_phi` (migrace + backfill). Benefit sidebar: odstraněn inline editovatelný benefit_note (jen read-only zobrazení). Gantt: CSS override `overflow-y: hidden` na `.gantt-container` odstraní vertikální scrollbar. |
+| 2026-04-12 | Editor | Rich text indent — custom TipTap Indent extension: Tab/Shift+Tab pro zvýšení/snížení odsazení paragrafů a headingů (max 5 úrovní, 24px per level). Toolbar buttony indent/outdent. CSS pro rendering data-indent atributu. |

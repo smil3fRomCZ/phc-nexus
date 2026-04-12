@@ -1,0 +1,250 @@
+<!DOCTYPE html>
+<html lang="cs">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>PHC Nexus — Custom Fields</title>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --brand: #f5a623; --brand-hover: #e6951a; --brand-soft: #fff8eb;
+            --text-strong: #172b4d; --text-default: #42526e; --text-muted: #6b778c; --text-subtle: #97a0af; --text-inverse: #fff;
+            --surface-primary: #fff; --surface-secondary: #fafbfc; --surface-hover: #f7f8fa; --surface-canvas: #f4f5f7;
+            --border-subtle: #ebecf0; --border-default: #dfe1e6;
+            --success: #006644; --success-subtle: #e3fcef;
+            --danger: #bf2600; --danger-subtle: #ffebe6;
+            --info: #0747a6; --info-subtle: #deebff;
+        }
+        * { margin:0; padding:0; box-sizing:border-box; }
+        body { font-family:'Inter',sans-serif; background:var(--surface-canvas); color:var(--text-default); font-size:14px; padding:40px; }
+
+        .page { max-width:1100px; margin:0 auto; }
+        h1 { font-size:20px; font-weight:700; color:var(--text-strong); margin-bottom:8px; }
+        .subtitle { font-size:13px; color:var(--text-muted); margin-bottom:32px; }
+
+        .two-col { display:grid; grid-template-columns:1fr 300px; gap:32px; align-items:start; }
+
+        /* Admin panel */
+        .card { background:var(--surface-primary); border:1px solid var(--border-subtle); border-radius:8px; padding:24px; }
+        .card h2 { font-size:16px; font-weight:600; color:var(--text-strong); margin-bottom:16px; }
+
+        table { width:100%; border-collapse:collapse; }
+        th { text-align:left; font-size:11px; font-weight:600; text-transform:uppercase; letter-spacing:0.05em; color:var(--text-subtle); padding:8px 12px; border-bottom:2px solid var(--border-subtle); }
+        td { padding:10px 12px; border-bottom:1px solid var(--border-subtle); vertical-align:middle; font-size:13px; }
+        tr:hover td { background:var(--brand-soft); }
+
+        .type-badge { display:inline-block; padding:2px 8px; border-radius:10px; font-size:11px; font-weight:600; }
+        .type-text { background:var(--info-subtle); color:var(--info); }
+        .type-number { background:var(--success-subtle); color:var(--success); }
+        .type-date { background:#eae6ff; color:#5243aa; }
+        .type-select { background:var(--brand-soft); color:var(--brand-hover); }
+        .type-checkbox { background:var(--surface-secondary); color:var(--text-muted); }
+
+        .required-dot { width:8px; height:8px; border-radius:50%; background:var(--danger); display:inline-block; }
+        .optional-dot { width:8px; height:8px; border-radius:50%; background:var(--border-default); display:inline-block; }
+
+        .btn-sm { height:28px; padding:0 10px; border:1px solid var(--border-default); background:var(--surface-primary); border-radius:5px; font-size:12px; cursor:pointer; color:var(--text-muted); }
+        .btn-sm:hover { background:var(--surface-hover); }
+        .btn-primary { height:36px; padding:0 16px; background:var(--brand); color:var(--text-inverse); border:none; border-radius:6px; font-size:13px; font-weight:600; cursor:pointer; }
+        .btn-danger-ghost { background:none; border:none; color:var(--text-subtle); cursor:pointer; padding:4px; border-radius:4px; }
+        .btn-danger-ghost:hover { color:var(--danger); background:var(--danger-subtle); }
+        .grip { color:var(--text-subtle); cursor:grab; }
+
+        /* Add field form */
+        .add-form { margin-top:20px; padding:16px; background:var(--surface-secondary); border-radius:8px; }
+        .add-form h3 { font-size:13px; font-weight:600; color:var(--text-strong); margin-bottom:12px; }
+        .form-row { display:flex; gap:8px; align-items:end; flex-wrap:wrap; }
+        .form-group { display:flex; flex-direction:column; gap:4px; }
+        .form-group label { font-size:11px; font-weight:600; text-transform:uppercase; letter-spacing:0.05em; color:var(--text-subtle); }
+        .form-group input, .form-group select { height:32px; border:1px solid var(--border-default); border-radius:6px; padding:0 10px; font-size:13px; background:var(--surface-primary); }
+        .form-group input[type="checkbox"] { height:auto; width:auto; }
+        .checkbox-label { display:flex; align-items:center; gap:6px; font-size:12px; color:var(--text-muted); margin-top:8px; }
+
+        /* Sidebar preview */
+        .sidebar { background:var(--surface-primary); border:1px solid var(--border-subtle); border-radius:8px; padding:16px; }
+        .sidebar h2 { font-size:14px; font-weight:600; color:var(--text-strong); margin-bottom:16px; }
+        .sidebar-label { font-size:11px; font-weight:600; text-transform:uppercase; letter-spacing:0.05em; color:var(--text-subtle); margin-bottom:4px; margin-top:12px; }
+        .sidebar-label:first-of-type { margin-top:0; }
+        .sidebar-value { font-size:13px; color:var(--text-default); }
+        .sidebar-input { width:100%; height:32px; border:1px solid transparent; border-radius:6px; padding:0 8px; font-size:13px; background:transparent; }
+        .sidebar-input:hover { border-color:var(--border-default); }
+        .sidebar-input:focus { border-color:var(--brand); outline:none; box-shadow:0 0 0 2px var(--brand-soft); }
+        .sidebar-select { width:100%; height:32px; border:1px solid transparent; border-radius:6px; padding:0 8px; font-size:13px; background:transparent; cursor:pointer; }
+        .sidebar-select:hover { border-color:var(--border-default); }
+        .sidebar-checkbox { display:flex; align-items:center; gap:8px; }
+        .sidebar-checkbox input { width:16px; height:16px; }
+        .sidebar-divider { border-top:1px solid var(--border-subtle); margin:16px 0; }
+        .section-header { font-size:12px; font-weight:600; color:var(--brand-hover); margin-bottom:8px; display:flex; align-items:center; gap:6px; }
+        .section-icon { width:14px; height:14px; }
+
+        .note { margin-top:16px; font-size:12px; color:var(--text-muted); padding:12px; background:var(--info-subtle); border-radius:6px; }
+    </style>
+</head>
+<body>
+<div class="page">
+    <h1>Vlastní pole</h1>
+    <p class="subtitle">Projekt: ESHOP — E-shop Redesign &middot; Nastavení → Vlastní pole</p>
+
+    <div class="two-col">
+        <!-- LEFT: Admin panel -->
+        <div>
+            <div class="card">
+                <h2>Definice polí (5)</h2>
+
+                <table>
+                    <thead>
+                        <tr>
+                            <th style="width:24px"></th>
+                            <th>Název</th>
+                            <th>Typ</th>
+                            <th>Povinné</th>
+                            <th>Možnosti</th>
+                            <th style="width:72px"></th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr>
+                            <td><span class="grip">⠿</span></td>
+                            <td style="font-weight:500">Prostředí</td>
+                            <td><span class="type-badge type-select">Select</span></td>
+                            <td><span class="required-dot" title="Povinné"></span></td>
+                            <td style="font-size:12px;color:var(--text-muted)">Dev, Staging, Production</td>
+                            <td>
+                                <button class="btn-sm">Upravit</button>
+                                <button class="btn-danger-ghost">
+                                    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="3 6 5 6 21 6"/><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"/></svg>
+                                </button>
+                            </td>
+                        </tr>
+                        <tr>
+                            <td><span class="grip">⠿</span></td>
+                            <td style="font-weight:500">Verze</td>
+                            <td><span class="type-badge type-text">Text</span></td>
+                            <td><span class="optional-dot" title="Nepovinné"></span></td>
+                            <td></td>
+                            <td>
+                                <button class="btn-sm">Upravit</button>
+                                <button class="btn-danger-ghost">
+                                    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="3 6 5 6 21 6"/><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"/></svg>
+                                </button>
+                            </td>
+                        </tr>
+                        <tr>
+                            <td><span class="grip">⠿</span></td>
+                            <td style="font-weight:500">Odhadovaný dopad</td>
+                            <td><span class="type-badge type-number">Číslo</span></td>
+                            <td><span class="optional-dot" title="Nepovinné"></span></td>
+                            <td></td>
+                            <td>
+                                <button class="btn-sm">Upravit</button>
+                                <button class="btn-danger-ghost">
+                                    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="3 6 5 6 21 6"/><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"/></svg>
+                                </button>
+                            </td>
+                        </tr>
+                        <tr>
+                            <td><span class="grip">⠿</span></td>
+                            <td style="font-weight:500">Deadline interní</td>
+                            <td><span class="type-badge type-date">Datum</span></td>
+                            <td><span class="required-dot" title="Povinné"></span></td>
+                            <td></td>
+                            <td>
+                                <button class="btn-sm">Upravit</button>
+                                <button class="btn-danger-ghost">
+                                    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="3 6 5 6 21 6"/><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"/></svg>
+                                </button>
+                            </td>
+                        </tr>
+                        <tr>
+                            <td><span class="grip">⠿</span></td>
+                            <td style="font-weight:500">Schváleno PM</td>
+                            <td><span class="type-badge type-checkbox">Checkbox</span></td>
+                            <td><span class="optional-dot" title="Nepovinné"></span></td>
+                            <td></td>
+                            <td>
+                                <button class="btn-sm">Upravit</button>
+                                <button class="btn-danger-ghost">
+                                    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="3 6 5 6 21 6"/><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"/></svg>
+                                </button>
+                            </td>
+                        </tr>
+                    </tbody>
+                </table>
+
+                <!-- Add field form -->
+                <div class="add-form">
+                    <h3>Přidat nové pole</h3>
+                    <div class="form-row">
+                        <div class="form-group" style="flex:1">
+                            <label>Název pole</label>
+                            <input type="text" placeholder="např. Prostředí, Verze...">
+                        </div>
+                        <div class="form-group">
+                            <label>Typ</label>
+                            <select>
+                                <option>Text</option>
+                                <option>Číslo</option>
+                                <option>Datum</option>
+                                <option selected>Select</option>
+                                <option>Checkbox</option>
+                            </select>
+                        </div>
+                        <button class="btn-primary">Přidat</button>
+                    </div>
+                    <label class="checkbox-label">
+                        <input type="checkbox"> Povinné pole
+                    </label>
+                </div>
+
+                <div class="note">
+                    <strong>Tip:</strong> Vlastní pole se zobrazí v sidebaru detailu úkolu pod systémovými poli. Drag handle (⠿) umožňuje měnit pořadí. Pro typ "Select" definujte možnosti po vytvoření pole tlačítkem "Upravit".
+                </div>
+            </div>
+        </div>
+
+        <!-- RIGHT: Sidebar preview -->
+        <div>
+            <div class="sidebar">
+                <h2>Preview: Sidebar úkolu</h2>
+
+                <!-- System fields (collapsed) -->
+                <div style="font-size:11px;color:var(--text-subtle);margin-bottom:12px">
+                    ▸ Systémová pole (stav, priorita, řešitel...)
+                </div>
+
+                <div class="sidebar-divider"></div>
+
+                <!-- Custom fields section -->
+                <div class="section-header">
+                    <svg class="section-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="18" height="18" rx="2"/><line x1="9" y1="3" x2="9" y2="21"/></svg>
+                    Vlastní pole
+                </div>
+
+                <div class="sidebar-label">Prostředí *</div>
+                <select class="sidebar-select">
+                    <option>—</option>
+                    <option>Dev</option>
+                    <option selected>Staging</option>
+                    <option>Production</option>
+                </select>
+
+                <div class="sidebar-label">Verze</div>
+                <input type="text" class="sidebar-input" value="2.4.1" placeholder="Nevyplněno">
+
+                <div class="sidebar-label">Odhadovaný dopad</div>
+                <input type="number" class="sidebar-input" value="15000" placeholder="0">
+
+                <div class="sidebar-label">Deadline interní *</div>
+                <input type="date" class="sidebar-input" value="2026-04-30">
+
+                <div class="sidebar-label">Schváleno PM</div>
+                <div class="sidebar-checkbox">
+                    <input type="checkbox" checked>
+                    <span style="font-size:13px">Ano</span>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+</body>
+</html>

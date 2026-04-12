@@ -234,4 +234,19 @@ class TaskCrudTest extends TestCase
         $this->assertSame('2026-05-01', $task->start_date?->toDateString());
         $this->assertSame('2026-05-15', $task->due_date?->toDateString());
     }
+
+    public function test_new_task_has_non_phi_classification_by_default(): void
+    {
+        $user = User::factory()->create();
+        $project = Project::factory()->create(['owner_id' => $user->id]);
+
+        $this->actingAs($user)->post("/projects/{$project->id}/tasks", [
+            'title' => 'Klasifikace test',
+            'priority' => 'medium',
+        ]);
+
+        $task = Task::where('title', 'Klasifikace test')->firstOrFail();
+
+        $this->assertSame('non_phi', $task->data_classification->value);
+    }
 }

@@ -23,7 +23,7 @@ final class SearchController extends Controller
         }
 
         $user = $request->user();
-        $like = '%'.$query.'%';
+        $like = '%'.mb_strtolower($query).'%';
         $hasPhiClearance = $phiGuard->userHasPhiClearance($user);
 
         /** @var SystemRole $role */
@@ -32,8 +32,8 @@ final class SearchController extends Controller
 
         $projects = Project::query()
             ->where(function ($q) use ($like) {
-                $q->where('name', 'ilike', $like)
-                    ->orWhere('key', 'ilike', $like);
+                $q->whereRaw('LOWER(name) LIKE ?', [$like])
+                    ->orWhereRaw('LOWER(key) LIKE ?', [$like]);
             })
             ->when($isTeamMember, function ($q) use ($user) {
                 $q->where(function ($sub) use ($user) {
@@ -47,7 +47,7 @@ final class SearchController extends Controller
 
         $tasks = Task::query()
             ->with(['project:id,name,key', 'workflowStatus:id,name,color'])
-            ->where('title', 'ilike', $like)
+            ->whereRaw('LOWER(title) LIKE ?', [$like])
             ->whereHas('project', function ($q) use ($user, $isTeamMember, $hasPhiClearance) {
                 $q->when($isTeamMember, function ($sub) use ($user) {
                     $sub->where('owner_id', $user->id)

@@ -3,7 +3,20 @@ import StarterKit from '@tiptap/starter-kit';
 import Link from '@tiptap/extension-link';
 import Image from '@tiptap/extension-image';
 import Placeholder from '@tiptap/extension-placeholder';
-import { Bold, Italic, Code, Heading2, Heading3, List, ListOrdered, Link2, ImageIcon } from 'lucide-react';
+import { Indent } from '@/Components/extensions/Indent';
+import {
+    Bold,
+    Italic,
+    Code,
+    Heading2,
+    Heading3,
+    List,
+    ListOrdered,
+    Link2,
+    ImageIcon,
+    IndentIncrease,
+    IndentDecrease,
+} from 'lucide-react';
 
 interface Props {
     content: string;
@@ -33,6 +46,7 @@ export default function RichTextEditor({
                 HTMLAttributes: { class: 'max-w-full rounded-md' },
             }),
             Placeholder.configure({ placeholder }),
+            Indent,
         ],
         content,
         autofocus: autoFocus ? 'end' : false,
@@ -171,6 +185,24 @@ export default function RichTextEditor({
                     title="Číslovaný seznam"
                 >
                     <ListOrdered className="h-3.5 w-3.5" />
+                </button>
+                <button
+                    type="button"
+                    onMouseDown={preventFocusLoss}
+                    onClick={() => editor.chain().focus().decreaseIndent().run()}
+                    className={btnClass(false)}
+                    title="Zmenšit odsazení (Shift+Tab)"
+                >
+                    <IndentDecrease className="h-3.5 w-3.5" />
+                </button>
+                <button
+                    type="button"
+                    onMouseDown={preventFocusLoss}
+                    onClick={() => editor.chain().focus().increaseIndent().run()}
+                    className={btnClass(false)}
+                    title="Zvětšit odsazení (Tab)"
+                >
+                    <IndentIncrease className="h-3.5 w-3.5" />
                 </button>
                 <div className="mx-1 h-5 w-px self-center bg-border-subtle" />
                 <button

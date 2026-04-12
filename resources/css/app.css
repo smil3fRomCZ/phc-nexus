@@ -80,6 +80,13 @@ button {
     margin: 0.5rem 0 0.25rem;
 }
 
+/* Indent support — renderuje data-indent atribut z Indent extension */
+[data-indent="1"] { margin-left: 24px; }
+[data-indent="2"] { margin-left: 48px; }
+[data-indent="3"] { margin-left: 72px; }
+[data-indent="4"] { margin-left: 96px; }
+[data-indent="5"] { margin-left: 120px; }
+
 .ProseMirror a {
     color: var(--color-brand-primary);
     text-decoration: underline;

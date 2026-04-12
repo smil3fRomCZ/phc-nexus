@@ -11,6 +11,10 @@ return new class extends Migration
     public function up(): void
     {
         Schema::table('tasks', function (Blueprint $table) {
+            $table->dropIndex(['project_id', 'status']);
+        });
+
+        Schema::table('tasks', function (Blueprint $table) {
             $table->dropColumn('status');
         });
     }
@@ -19,6 +23,7 @@ return new class extends Migration
     {
         Schema::table('tasks', function (Blueprint $table) {
             $table->string('status')->default('backlog')->after('description');
+            $table->index(['project_id', 'status']);
         });
     }
 };

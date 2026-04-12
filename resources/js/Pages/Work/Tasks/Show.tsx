@@ -615,19 +615,10 @@ export default function TaskShow({
                                 </SidebarSection>
                             )}
                             {task.benefit_type &&
-                                !benefitTypes.find((b) => b.value === task.benefit_type)?.hasMoney && (
-                                    <SidebarSection label="Odůvodnění">
-                                        <textarea
-                                            value={task.benefit_note ?? ''}
-                                            onChange={(e) =>
-                                                inlineUpdate({
-                                                    benefit_note: e.target.value || null,
-                                                })
-                                            }
-                                            rows={2}
-                                            placeholder="Textové odůvodnění..."
-                                            className="w-full rounded border border-transparent bg-transparent px-0 py-0.5 text-sm transition-colors hover:border-border-default focus:border-border-focus focus:outline-none"
-                                        />
+                                !benefitTypes.find((b) => b.value === task.benefit_type)?.hasMoney &&
+                                task.benefit_note && (
+                                    <SidebarSection label="Poznámka">
+                                        <span className="text-sm text-text-muted">{task.benefit_note}</span>
                                     </SidebarSection>
                                 )}
                         </div>

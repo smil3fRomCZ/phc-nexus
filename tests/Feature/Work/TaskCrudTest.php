@@ -81,7 +81,7 @@ class TaskCrudTest extends TestCase
     {
         $reader = User::factory()->reader()->create();
         $project = Project::factory()->create();
-        $project->members()->attach($reader->id, ['role' => 'member']);
+        $project->members()->attach($reader->id, ['role' => 'contributor']);
 
         $response = $this->actingAs($reader)->post("/projects/{$project->id}/tasks", [
             'title' => 'Nemá projít',
@@ -128,7 +128,7 @@ class TaskCrudTest extends TestCase
         $member = User::factory()->create();
         $pm = User::factory()->projectManager()->create();
         $project = Project::factory()->create(['owner_id' => $owner->id]);
-        $project->members()->attach($member->id, ['role' => 'member']);
+        $project->members()->attach($member->id, ['role' => 'contributor']);
         $task = Task::factory()->create(['project_id' => $project->id]);
 
         // Regular member cannot delete

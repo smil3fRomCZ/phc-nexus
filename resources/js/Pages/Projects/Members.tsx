@@ -48,19 +48,27 @@ interface Props {
 
 const ROLE_LABELS: Record<string, string> = {
     owner: 'Vlastník',
-    project_manager: 'Project Manager',
-    member: 'Člen',
+    admin: 'Admin',
+    contributor: 'Contributor',
+    viewer: 'Viewer',
 };
 
 const ROLE_BADGE: Record<string, string> = {
-    owner: 'bg-status-warning-subtle text-status-warning',
-    project_manager: 'bg-status-info-subtle text-status-info',
-    member: 'bg-surface-secondary text-text-muted',
+    owner: 'bg-brand-soft text-brand-primary',
+    admin: 'bg-status-info-subtle text-status-info',
+    contributor: 'bg-status-success-subtle text-status-success',
+    viewer: 'bg-status-warning-subtle text-status-warning',
 };
+
+const ROLE_OPTIONS = [
+    { value: 'admin', label: 'Admin' },
+    { value: 'contributor', label: 'Contributor' },
+    { value: 'viewer', label: 'Viewer' },
+];
 
 export default function ProjectMembers({ project, availableUsers, roleCounts, usage, can }: Props) {
     const [addUserId, setAddUserId] = useState('');
-    const [addRole, setAddRole] = useState('member');
+    const [addRole, setAddRole] = useState('contributor');
     const [usageTarget, setUsageTarget] = useState<Member | null>(null);
 
     const breadcrumbs: Breadcrumb[] = [
@@ -79,7 +87,7 @@ export default function ProjectMembers({ project, availableUsers, roleCounts, us
                 preserveScroll: true,
                 onSuccess: () => {
                     setAddUserId('');
-                    setAddRole('member');
+                    setAddRole('contributor');
                 },
             },
         );
@@ -91,9 +99,9 @@ export default function ProjectMembers({ project, availableUsers, roleCounts, us
 
     const statChips = [
         { label: 'členů celkem', value: project.members_count },
-        { label: 'vlastník', value: roleCounts.owner ?? 0 },
-        { label: 'PM', value: roleCounts.project_manager ?? 0 },
-        { label: 'členů', value: roleCounts.member ?? 0 },
+        { label: 'admin', value: roleCounts.admin ?? 0 },
+        { label: 'contributor', value: roleCounts.contributor ?? 0 },
+        { label: 'viewer', value: roleCounts.viewer ?? 0 },
     ];
 
     return (
@@ -129,10 +137,7 @@ export default function ProjectMembers({ project, availableUsers, roleCounts, us
                             label="Role"
                             value={addRole}
                             onChange={setAddRole}
-                            options={[
-                                { value: 'member', label: 'Člen' },
-                                { value: 'project_manager', label: 'Project Manager' },
-                            ]}
+                            options={ROLE_OPTIONS}
                         />
                         <Button
                             size="sm"
@@ -198,10 +203,7 @@ export default function ProjectMembers({ project, availableUsers, roleCounts, us
                                                 <FormSelect
                                                     value={role}
                                                     onChange={(e) => handleRoleChange(member.id, e.target.value)}
-                                                    options={[
-                                                        { value: 'member', label: 'Člen' },
-                                                        { value: 'project_manager', label: 'Project Manager' },
-                                                    ]}
+                                                    options={ROLE_OPTIONS}
                                                     wrapperClassName="w-44"
                                                 />
                                             )}

@@ -39,7 +39,7 @@ class ProjectCrudTest extends TestCase
 
         $ownProject = Project::factory()->create(['owner_id' => $member->id]);
         $memberProject = Project::factory()->create();
-        $memberProject->members()->attach($member->id, ['role' => 'member']);
+        $memberProject->members()->attach($member->id, ['role' => 'contributor']);
         Project::factory()->create(['owner_id' => $other->id]);
 
         $response = $this->actingAs($member)->get('/projects');
@@ -133,7 +133,7 @@ class ProjectCrudTest extends TestCase
     {
         $reader = User::factory()->reader()->create();
         $project = Project::factory()->create(['data_classification' => PhiClassification::Phi->value]);
-        $project->members()->attach($reader->id, ['role' => 'member']);
+        $project->members()->attach($reader->id, ['role' => 'contributor']);
 
         $response = $this->actingAs($reader)->get("/projects/{$project->id}");
 
@@ -146,7 +146,7 @@ class ProjectCrudTest extends TestCase
     {
         $pm = User::factory()->projectManager()->create();
         $project = Project::factory()->create();
-        $project->members()->attach($pm->id, ['role' => 'member']);
+        $project->members()->attach($pm->id, ['role' => 'contributor']);
 
         $response = $this->actingAs($pm)->put("/projects/{$project->id}", [
             'name' => 'Updated Name',
@@ -161,7 +161,7 @@ class ProjectCrudTest extends TestCase
     {
         $member = User::factory()->create();
         $project = Project::factory()->create();
-        $project->members()->attach($member->id, ['role' => 'member']);
+        $project->members()->attach($member->id, ['role' => 'contributor']);
 
         $response = $this->actingAs($member)->put("/projects/{$project->id}", [
             'name' => 'Hacked',

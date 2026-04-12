@@ -55,7 +55,7 @@ class ApprovalFlowTest extends TestCase
     {
         $reader = User::factory()->reader()->create();
         $project = Project::factory()->create();
-        $project->members()->attach($reader->id, ['role' => 'member']);
+        $project->members()->attach($reader->id, ['role' => 'contributor']);
         $task = Task::factory()->create(['project_id' => $project->id]);
 
         $response = $this->actingAs($reader)->post("/projects/{$project->id}/approvals", [

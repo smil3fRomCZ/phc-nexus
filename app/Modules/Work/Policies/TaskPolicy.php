@@ -48,7 +48,8 @@ final class TaskPolicy
             return true;
         }
 
-        return $task->project->hasMember($user);
+        // Viewer nesmí editovat, pouze Admin/Contributor projektu.
+        return $task->project->isProjectContributor($user);
     }
 
     public function delete(User $user, Task $task): bool

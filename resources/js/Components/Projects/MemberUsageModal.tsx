@@ -46,8 +46,9 @@ type View = 'summary' | 'reassign';
 
 const ROLE_LABELS: Record<string, string> = {
     owner: 'Vlastník',
-    project_manager: 'Project Manager',
-    member: 'Člen',
+    admin: 'Admin',
+    contributor: 'Contributor',
+    viewer: 'Viewer',
 };
 
 export default function MemberUsageModal({ projectId, member, onClose }: Props) {

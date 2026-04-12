@@ -89,7 +89,7 @@ class ProjectTabConfigTest extends TestCase
         $member = User::factory()->create();
         $project = Project::factory()->create(['owner_id' => $owner->id]);
         $project->members()->attach($owner->id, ['role' => 'owner']);
-        $project->members()->attach($member->id, ['role' => 'member']);
+        $project->members()->attach($member->id, ['role' => 'contributor']);
 
         $response = $this->actingAs($member)->put("/projects/{$project->id}/tab-config", [
             'order' => ['overview', 'board'],
@@ -207,7 +207,7 @@ class ProjectTabConfigTest extends TestCase
             'tab_config' => ['order' => ['overview', 'board'], 'hidden' => []],
         ]);
         $project->members()->attach($owner->id, ['role' => 'owner']);
-        $project->members()->attach($member->id, ['role' => 'member']);
+        $project->members()->attach($member->id, ['role' => 'contributor']);
 
         $response = $this->actingAs($member)->delete("/projects/{$project->id}/tab-config");
 

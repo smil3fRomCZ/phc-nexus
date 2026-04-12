@@ -13,6 +13,7 @@ use App\Models\User;
 use App\Modules\Estimation\Models\EstimationSession;
 use App\Modules\Organization\Models\Team;
 use App\Modules\Projects\Enums\BenefitType;
+use App\Modules\Projects\Enums\ProjectRole;
 use App\Modules\Projects\Enums\ProjectStatus;
 use App\Modules\Projects\Enums\ProjectType;
 use App\Modules\Wiki\Models\WikiPage;
@@ -132,5 +133,40 @@ class Project extends Model
     {
         return $this->owner_id === $user->id
             || $this->members()->where('user_id', $user->id)->exists();
+    }
+
+    /**
+     * Vrátí roli uživatele v projektu (z pivot tabulky).
+     * Vlastník projektu vrací vždy Admin.
+     * Nečlen vrací null.
+     */
+    public function roleFor(User $user): ?ProjectRole
+    {
+        if ($this->owner_id === $user->id) {
+            return ProjectRole::Admin;
+        }
+
+        /** @var Model|null $pivot */
+        $pivot = $this->members()->where('user_id', $user->id)->first();
+
+        if ($pivot === null) {
+            return null;
+        }
+
+        $role = $pivot->getAttribute('pivot')->role ?? null;
+
+        return $role ? ProjectRole::tryFrom((string) $role) : null;
+    }
+
+    public function isProjectAdmin(User $user): bool
+    {
+        return $this->roleFor($user) === ProjectRole::Admin;
+    }
+
+    public function isProjectContributor(User $user): bool
+    {
+        $role = $this->roleFor($user);
+
+        return $role === ProjectRole::Admin || $role === ProjectRole::Contributor;
     }
 }

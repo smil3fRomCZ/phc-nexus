@@ -196,11 +196,11 @@ class DemoSeeder extends Seeder
             'benefit_note' => 'Očekávaný nárůst konverzního poměru o 25 % po přechodu na novou platformu.',
         ]);
         $project->members()->attach([
-            $u['admin']->id => ['role' => 'member'],
-            $u['devBack1']->id => ['role' => 'member'],
-            $u['devBack2']->id => ['role' => 'member'],
-            $u['devFront']->id => ['role' => 'member'],
-            $u['marketer']->id => ['role' => 'member'],
+            $u['admin']->id => ['role' => 'contributor'],
+            $u['devBack1']->id => ['role' => 'contributor'],
+            $u['devBack2']->id => ['role' => 'contributor'],
+            $u['devFront']->id => ['role' => 'contributor'],
+            $u['marketer']->id => ['role' => 'contributor'],
         ]);
 
         $ws = $this->seedWorkflow($project, 'dev');
@@ -709,10 +709,10 @@ class DemoSeeder extends Seeder
             'benefit_note' => 'Nárůst organického trafficu → vyšší tržby bez navýšení PPC rozpočtu.',
         ]);
         $project->members()->attach([
-            $u['admin']->id => ['role' => 'member'],
-            $u['devBack1']->id => ['role' => 'member'],
-            $u['devFront']->id => ['role' => 'member'],
-            $u['marketer']->id => ['role' => 'member'],
+            $u['admin']->id => ['role' => 'contributor'],
+            $u['devBack1']->id => ['role' => 'contributor'],
+            $u['devFront']->id => ['role' => 'contributor'],
+            $u['marketer']->id => ['role' => 'contributor'],
         ]);
 
         $ws = $this->seedWorkflow($project, 'marketing');
@@ -886,10 +886,10 @@ class DemoSeeder extends Seeder
             'benefit_note' => 'Zvýšení retence zákazníků a průměrné hodnoty objednávky.',
         ]);
         $project->members()->attach([
-            $u['admin']->id => ['role' => 'member'],
-            $u['marketer']->id => ['role' => 'member'],
-            $u['devBack2']->id => ['role' => 'member'],
-            $u['supportLead']->id => ['role' => 'member'],
+            $u['admin']->id => ['role' => 'contributor'],
+            $u['marketer']->id => ['role' => 'contributor'],
+            $u['devBack2']->id => ['role' => 'contributor'],
+            $u['supportLead']->id => ['role' => 'contributor'],
         ]);
 
         $ws = $this->seedWorkflow($project, 'simple');
@@ -1026,10 +1026,10 @@ class DemoSeeder extends Seeder
             'benefit_note' => 'Automatizace skladových procesů — úspora 2 FTE na manuální práci.',
         ]);
         $project->members()->attach([
-            $u['admin']->id => ['role' => 'member'],
-            $u['logistik']->id => ['role' => 'member'],
-            $u['devBack1']->id => ['role' => 'member'],
-            $u['devBack2']->id => ['role' => 'member'],
+            $u['admin']->id => ['role' => 'contributor'],
+            $u['logistik']->id => ['role' => 'contributor'],
+            $u['devBack1']->id => ['role' => 'contributor'],
+            $u['devBack2']->id => ['role' => 'contributor'],
         ]);
 
         $ws = $this->seedWorkflow($project, 'logistics');

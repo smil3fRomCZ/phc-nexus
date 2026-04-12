@@ -20,7 +20,7 @@ use Inertia\Response;
 
 final class ProjectMemberController extends Controller
 {
-    private const ALLOWED_ROLES = ['member', 'project_manager'];
+    private const ALLOWED_ROLES = ['admin', 'contributor', 'viewer'];
 
     public function index(Project $project): Response
     {
@@ -85,7 +85,7 @@ final class ProjectMemberController extends Controller
         ]);
 
         $userId = $validated['user_id'];
-        $role = $validated['role'] ?? 'member';
+        $role = $validated['role'] ?? 'contributor';
 
         if ($project->members()->where('user_id', $userId)->exists()) {
             return redirect()->back()->with('error', 'Uživatel je již členem projektu.');

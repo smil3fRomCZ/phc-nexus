@@ -59,7 +59,7 @@ class EpicCrudTest extends TestCase
     {
         $reader = User::factory()->reader()->create();
         $project = Project::factory()->create();
-        $project->members()->attach($reader->id, ['role' => 'member']);
+        $project->members()->attach($reader->id, ['role' => 'contributor']);
 
         $response = $this->actingAs($reader)->post("/projects/{$project->id}/epics", [
             'title' => 'Should fail',

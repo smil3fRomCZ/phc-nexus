@@ -51,7 +51,8 @@ final class ProjectPolicy
             return $project->hasMember($user);
         }
 
-        return false;
+        // Projektová role Admin → smí upravit projekt (nastavení, vlastní pole).
+        return $project->isProjectAdmin($user);
     }
 
     public function delete(User $user, Project $project): bool
@@ -62,5 +63,18 @@ final class ProjectPolicy
     public function manageMembers(User $user, Project $project): bool
     {
         return $this->update($user, $project);
+    }
+
+    /**
+     * Přispívat (vytvářet/upravovat úkoly, epiky, time entries, komentáře).
+     * Viewer tuto akci nesmí.
+     */
+    public function contribute(User $user, Project $project): bool
+    {
+        if (in_array($user->system_role, [SystemRole::Executive, SystemRole::ProjectManager])) {
+            return $project->hasMember($user) || $user->system_role === SystemRole::Executive;
+        }
+
+        return $project->isProjectContributor($user);
     }
 }

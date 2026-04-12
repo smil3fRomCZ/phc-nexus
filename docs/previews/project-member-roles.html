@@ -1,0 +1,237 @@
+<!DOCTYPE html>
+<html lang="cs">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>PHC Nexus — Správa členů projektu (role)</title>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --brand: #f5a623; --brand-hover: #e6951a; --brand-soft: #fff8eb;
+            --text-strong: #172b4d; --text-default: #42526e; --text-muted: #6b778c; --text-subtle: #97a0af; --text-inverse: #fff;
+            --surface-primary: #fff; --surface-secondary: #fafbfc; --surface-hover: #f7f8fa; --surface-canvas: #f4f5f7;
+            --border-subtle: #ebecf0; --border-default: #dfe1e6;
+            --success: #006644; --success-subtle: #e3fcef; --warning: #974f0c; --warning-subtle: #fff0b3;
+            --danger: #bf2600; --danger-subtle: #ffebe6; --info: #0747a6; --info-subtle: #deebff;
+        }
+        * { margin:0; padding:0; box-sizing:border-box; }
+        body { font-family:'Inter',sans-serif; background:var(--surface-canvas); color:var(--text-default); font-size:14px; padding:40px; }
+        .page { max-width:900px; margin:0 auto; }
+        h1 { font-size:20px; font-weight:700; color:var(--text-strong); margin-bottom:8px; }
+        .subtitle { font-size:13px; color:var(--text-muted); margin-bottom:24px; }
+        .card { background:var(--surface-primary); border:1px solid var(--border-subtle); border-radius:8px; padding:24px; }
+
+        /* Header row */
+        .header-row { display:flex; align-items:center; justify-content:space-between; margin-bottom:20px; }
+        .header-row h2 { font-size:16px; font-weight:600; color:var(--text-strong); }
+
+        /* Add member form */
+        .add-form { display:flex; gap:8px; align-items:end; padding:16px; background:var(--surface-secondary); border-radius:8px; margin-bottom:20px; }
+        .form-group { display:flex; flex-direction:column; gap:4px; }
+        .form-group label { font-size:11px; font-weight:600; text-transform:uppercase; letter-spacing:0.05em; color:var(--text-subtle); }
+        .form-group input, .form-group select { height:36px; border:1px solid var(--border-default); border-radius:6px; padding:0 12px; font-size:13px; background:var(--surface-primary); }
+        .form-group input { width:280px; }
+        .form-group select { width:140px; }
+
+        /* Buttons */
+        .btn-primary { height:36px; padding:0 16px; background:var(--brand); color:var(--text-inverse); border:none; border-radius:6px; font-size:13px; font-weight:600; cursor:pointer; }
+        .btn-primary:hover { background:var(--brand-hover); }
+        .btn-danger-ghost { background:none; border:none; color:var(--text-subtle); cursor:pointer; padding:4px; border-radius:4px; }
+        .btn-danger-ghost:hover { color:var(--danger); background:var(--danger-subtle); }
+
+        /* Members table */
+        table { width:100%; border-collapse:collapse; }
+        th { text-align:left; font-size:11px; font-weight:600; text-transform:uppercase; letter-spacing:0.05em; color:var(--text-subtle); padding:8px 12px; border-bottom:2px solid var(--border-subtle); }
+        td { padding:12px; border-bottom:1px solid var(--border-subtle); vertical-align:middle; }
+        tr:hover { background:var(--brand-soft); }
+
+        /* Avatar */
+        .avatar { width:32px; height:32px; border-radius:50%; background:var(--brand); color:var(--text-inverse); display:flex; align-items:center; justify-content:center; font-size:12px; font-weight:600; flex-shrink:0; }
+        .member-info { display:flex; align-items:center; gap:12px; }
+        .member-name { font-weight:500; color:var(--text-strong); }
+        .member-email { font-size:12px; color:var(--text-muted); }
+
+        /* Role badge / select */
+        .role-select { height:32px; border:1px solid transparent; border-radius:6px; padding:0 8px; font-size:13px; background:transparent; cursor:pointer; font-weight:500; }
+        .role-select:hover { border-color:var(--border-default); }
+        .role-select:focus { border-color:var(--brand); outline:none; box-shadow:0 0 0 2px var(--brand-soft); }
+        .role-badge { display:inline-block; padding:2px 10px; border-radius:12px; font-size:12px; font-weight:600; }
+        .role-admin { background:var(--info-subtle); color:var(--info); }
+        .role-contributor { background:var(--success-subtle); color:var(--success); }
+        .role-viewer { background:var(--warning-subtle); color:var(--warning); }
+        .role-owner { background:var(--brand-soft); color:var(--brand-hover); }
+
+        /* System role tag */
+        .system-role { font-size:11px; color:var(--text-subtle); background:var(--surface-secondary); padding:2px 6px; border-radius:4px; margin-left:8px; }
+
+        /* Permission matrix */
+        .matrix { margin-top:32px; }
+        .matrix h3 { font-size:14px; font-weight:600; color:var(--text-strong); margin-bottom:12px; }
+        .matrix table th { font-size:12px; }
+        .matrix td { text-align:center; font-size:13px; }
+        .check { color:var(--success); font-weight:700; }
+        .cross { color:var(--text-subtle); }
+
+        .note { margin-top:16px; font-size:12px; color:var(--text-muted); padding:12px; background:var(--info-subtle); border-radius:6px; }
+    </style>
+</head>
+<body>
+<div class="page">
+    <h1>Správa členů projektu</h1>
+    <p class="subtitle">Projekt: ESHOP — E-shop Redesign &middot; Vlastník: Jan Melicherík</p>
+
+    <div class="card">
+        <div class="header-row">
+            <h2>Členové (6)</h2>
+        </div>
+
+        <!-- Add member form -->
+        <div class="add-form">
+            <div class="form-group" style="flex:1">
+                <label>Přidat člena</label>
+                <input type="text" placeholder="Hledat uživatele..." value="Mar">
+            </div>
+            <div class="form-group">
+                <label>Role</label>
+                <select>
+                    <option>Contributor</option>
+                    <option>Admin</option>
+                    <option>Viewer</option>
+                </select>
+            </div>
+            <button class="btn-primary">Přidat</button>
+        </div>
+
+        <!-- Members table -->
+        <table>
+            <thead>
+                <tr>
+                    <th>Člen</th>
+                    <th>Systémová role</th>
+                    <th>Projektová role</th>
+                    <th style="width:48px"></th>
+                </tr>
+            </thead>
+            <tbody>
+                <tr>
+                    <td>
+                        <div class="member-info">
+                            <div class="avatar">JM</div>
+                            <div>
+                                <div class="member-name">Jan Melicherík</div>
+                                <div class="member-email">jan@example.com</div>
+                            </div>
+                        </div>
+                    </td>
+                    <td><span class="system-role">Executive</span></td>
+                    <td><span class="role-badge role-owner">Vlastník</span></td>
+                    <td></td>
+                </tr>
+                <tr>
+                    <td>
+                        <div class="member-info">
+                            <div class="avatar" style="background:#5243aa">PK</div>
+                            <div>
+                                <div class="member-name">Petra Kovářová</div>
+                                <div class="member-email">petra@example.com</div>
+                            </div>
+                        </div>
+                    </td>
+                    <td><span class="system-role">Project Manager</span></td>
+                    <td>
+                        <select class="role-select">
+                            <option selected>Admin</option>
+                            <option>Contributor</option>
+                            <option>Viewer</option>
+                        </select>
+                    </td>
+                    <td>
+                        <button class="btn-danger-ghost" title="Odebrat">
+                            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
+                        </button>
+                    </td>
+                </tr>
+                <tr>
+                    <td>
+                        <div class="member-info">
+                            <div class="avatar" style="background:#006644">TN</div>
+                            <div>
+                                <div class="member-name">Tomáš Novák</div>
+                                <div class="member-email">tomas@example.com</div>
+                            </div>
+                        </div>
+                    </td>
+                    <td><span class="system-role">Team Member</span></td>
+                    <td>
+                        <select class="role-select">
+                            <option>Admin</option>
+                            <option selected>Contributor</option>
+                            <option>Viewer</option>
+                        </select>
+                    </td>
+                    <td>
+                        <button class="btn-danger-ghost" title="Odebrat">
+                            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
+                        </button>
+                    </td>
+                </tr>
+                <tr>
+                    <td>
+                        <div class="member-info">
+                            <div class="avatar" style="background:#974f0c">LS</div>
+                            <div>
+                                <div class="member-name">Lucie Svobodová</div>
+                                <div class="member-email">lucie@example.com</div>
+                            </div>
+                        </div>
+                    </td>
+                    <td><span class="system-role">Team Member</span></td>
+                    <td>
+                        <select class="role-select">
+                            <option>Admin</option>
+                            <option>Contributor</option>
+                            <option selected>Viewer</option>
+                        </select>
+                    </td>
+                    <td>
+                        <button class="btn-danger-ghost" title="Odebrat">
+                            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
+                        </button>
+                    </td>
+                </tr>
+            </tbody>
+        </table>
+
+        <!-- Permission matrix -->
+        <div class="matrix">
+            <h3>Matice oprávnění</h3>
+            <table>
+                <thead>
+                    <tr>
+                        <th>Akce</th>
+                        <th>Viewer</th>
+                        <th>Contributor</th>
+                        <th>Admin</th>
+                        <th>Vlastník</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr><td>Zobrazit projekt</td><td class="check">&#10003;</td><td class="check">&#10003;</td><td class="check">&#10003;</td><td class="check">&#10003;</td></tr>
+                    <tr><td>Zobrazit úkoly/epiky</td><td class="check">&#10003;</td><td class="check">&#10003;</td><td class="check">&#10003;</td><td class="check">&#10003;</td></tr>
+                    <tr><td>Vytvořit/editovat úkol</td><td class="cross">&mdash;</td><td class="check">&#10003;</td><td class="check">&#10003;</td><td class="check">&#10003;</td></tr>
+                    <tr><td>Logovat čas</td><td class="cross">&mdash;</td><td class="check">&#10003;</td><td class="check">&#10003;</td><td class="check">&#10003;</td></tr>
+                    <tr><td>Komentáře a přílohy</td><td class="cross">&mdash;</td><td class="check">&#10003;</td><td class="check">&#10003;</td><td class="check">&#10003;</td></tr>
+                    <tr><td>Spravovat členy</td><td class="cross">&mdash;</td><td class="cross">&mdash;</td><td class="check">&#10003;</td><td class="check">&#10003;</td></tr>
+                    <tr><td>Upravit nastavení projektu</td><td class="cross">&mdash;</td><td class="cross">&mdash;</td><td class="check">&#10003;</td><td class="check">&#10003;</td></tr>
+                    <tr><td>Smazat projekt</td><td class="cross">&mdash;</td><td class="cross">&mdash;</td><td class="cross">&mdash;</td><td class="check">&#10003;</td></tr>
+                </tbody>
+            </table>
+        </div>
+
+        <div class="note">
+            <strong>Poznámka:</strong> Executive a Project Manager (systémové role) mají vždy plný přístup ke všem projektům bez ohledu na projektovou roli. Nečlenové projektu nevidí projekt v seznamu ani v detailu.
+        </div>
+    </div>
+</div>
+</body>
+</html>

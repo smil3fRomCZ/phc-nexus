@@ -51,7 +51,7 @@ class ProjectShowMetricsTest extends TestCase
         $member = User::factory()->create();
         $project = Project::factory()->create(['owner_id' => $user->id]);
         $project->members()->attach($user->id, ['role' => 'owner']);
-        $project->members()->attach($member->id, ['role' => 'member']);
+        $project->members()->attach($member->id, ['role' => 'contributor']);
 
         Epic::factory()->for($project)->count(2)->create();
 

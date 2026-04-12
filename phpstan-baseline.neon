@@ -111,11 +111,23 @@ parameters:
 		-
 			message: '#^Call to an undefined method Illuminate\\Database\\Eloquent\\Model\:\:hasMember\(\)\.$#'
 			identifier: method.notFound
-			count: 2
+			count: 1
+			path: app/Modules/Work/Policies/EpicPolicy.php
+
+		-
+			message: '#^Call to an undefined method Illuminate\\Database\\Eloquent\\Model\:\:isProjectContributor\(\)\.$#'
+			identifier: method.notFound
+			count: 1
 			path: app/Modules/Work/Policies/EpicPolicy.php
 
 		-
 			message: '#^Call to an undefined method Illuminate\\Database\\Eloquent\\Model\:\:hasMember\(\)\.$#'
 			identifier: method.notFound
-			count: 2
+			count: 1
+			path: app/Modules/Work/Policies/TaskPolicy.php
+
+		-
+			message: '#^Call to an undefined method Illuminate\\Database\\Eloquent\\Model\:\:isProjectContributor\(\)\.$#'
+			identifier: method.notFound
+			count: 1
 			path: app/Modules/Work/Policies/TaskPolicy.php

@@ -48,7 +48,8 @@ final class EpicPolicy
             return true;
         }
 
-        return $epic->project->hasMember($user);
+        // Viewer nesmí editovat, pouze Admin/Contributor projektu.
+        return $epic->project->isProjectContributor($user);
     }
 
     public function delete(User $user, Epic $epic): bool

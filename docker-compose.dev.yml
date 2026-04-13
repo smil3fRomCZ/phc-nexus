@@ -17,3 +17,25 @@ services:
     volumes:
       - .:/var/www/html
       - ./docker/php/php.dev.ini:/usr/local/etc/php/conf.d/app.ini:ro
+
+  # Lokální dev — porty bindujeme jen na loopback (nikdy na 0.0.0.0)
+  postgres:
+    ports:
+      - "127.0.0.1:5432:5432"
+
+  redis-cache:
+    ports:
+      - "127.0.0.1:6379:6379"
+
+  redis-data:
+    ports:
+      - "127.0.0.1:6380:6379"
+
+  vite:
+    ports:
+      - "127.0.0.1:5173:5173"
+
+  mailpit:
+    ports:
+      - "127.0.0.1:8025:8025"
+      - "127.0.0.1:1025:1025"

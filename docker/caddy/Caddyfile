@@ -1,6 +1,7 @@
 {
 	# Local dev — self-signed TLS
 	local_certs
+	admin off
 }
 
 localhost {

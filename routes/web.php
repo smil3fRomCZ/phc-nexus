@@ -40,9 +40,15 @@ Route::middleware('auth')->group(function () {
     })->name('user.board-settings');
 });
 
-// E2E test login bypass — pouze v testing/local prostředí
-if (app()->environment('local', 'testing')) {
+// E2E test login bypass — POUZE local/testing + APP_DEBUG=true
+// Hard guard navíc i uvnitř route, aby nešlo aktivovat omylem v produkci.
+if (app()->environment('local', 'testing') && config('app.debug') === true) {
     Route::get('/_e2e/login/{email}', function (string $email) {
+        abort_unless(
+            app()->environment('local', 'testing') && config('app.debug') === true,
+            404
+        );
+
         $user = User::where('email', $email)->firstOrFail();
         Auth::login($user);
 

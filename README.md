@@ -93,6 +93,8 @@ Google SSO (invite-only). Nové uživatele zvou Executive nebo Project Manager z
 
 **5 systémových rolí:** Executive · Project Manager · Team Member · Service Desk Agent · Reader
 
+**3 projektové role členů:** Admin (správa projektu a členů) · Contributor (CRUD úkolů/epiků/času) · Viewer (read-only). Vlastník je implicitně Admin.
+
 ---
 
 ## Technický popis

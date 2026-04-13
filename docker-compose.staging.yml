@@ -65,7 +65,7 @@ services:
     environment:
       POSTGRES_DB: phc_nexus_staging
       POSTGRES_USER: phc_nexus_staging
-      POSTGRES_PASSWORD: ${DB_PASSWORD:-staging_secret}
+      POSTGRES_PASSWORD: ${DB_PASSWORD:?DB_PASSWORD must be set in .env.staging}
     volumes:
       - postgres-data:/var/lib/postgresql/data
     healthcheck:
@@ -82,9 +82,9 @@ services:
   # ==========================================================================
   redis:
     image: redis:7-alpine
-    command: redis-server --maxmemory 64mb --maxmemory-policy allkeys-lru --requirepass ${REDIS_PASSWORD:-staging_redis}
+    command: redis-server --maxmemory 64mb --maxmemory-policy allkeys-lru --requirepass ${REDIS_PASSWORD:?REDIS_PASSWORD must be set in .env.staging}
     healthcheck:
-      test: ["CMD", "redis-cli", "-a", "${REDIS_PASSWORD:-staging_redis}", "ping"]
+      test: ["CMD", "redis-cli", "-a", "${REDIS_PASSWORD:?REDIS_PASSWORD must be set in .env.staging}", "ping"]
       interval: 5s
       timeout: 5s
       retries: 5
@@ -98,7 +98,7 @@ services:
   mailpit:
     image: axllent/mailpit:latest
     ports:
-      - "8026:8025"
+      - "127.0.0.1:8026:8025"
     restart: unless-stopped
     networks:
       - app-network

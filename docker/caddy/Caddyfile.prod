@@ -1,6 +1,7 @@
 {
 	# Auto-TLS via Let's Encrypt
 	# Caddy automaticky získá a obnoví certifikáty
+	admin off
 }
 
 {$DOMAIN:phc-nexus.eu} {
@@ -23,7 +24,7 @@
 		X-Content-Type-Options nosniff
 		X-Frame-Options DENY
 		Referrer-Policy strict-origin-when-cross-origin
-		Permissions-Policy "camera=(), microphone=(), geolocation=()"
+		Permissions-Policy "camera=(), microphone=(), geolocation=(), interest-cohort=()"
 		X-Permitted-Cross-Domain-Policies none
 		Cross-Origin-Opener-Policy same-origin
 		Cross-Origin-Resource-Policy same-origin

@@ -15,11 +15,12 @@ Homestead.yaml
 _ide_helper*.php
 .phpstorm.meta.php
 
-# Environment
+# Environment — všechny .env varianty pryč, jen *.example commitujeme
 .env
-.env.backup
-.env.production
+.env.*
 !.env.example
+!.env.production.example
+!.env.staging.example
 
 # Logs
 *.log

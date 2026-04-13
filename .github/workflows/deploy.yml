@@ -89,19 +89,19 @@ jobs:
 
             echo "=== Starting staging services ==="
             COMPOSE_PROJECT_NAME=phc-nexus-staging \
-              docker compose -f docker-compose.staging.yml up -d
+              docker compose --env-file .env.staging -f docker-compose.staging.yml up -d
 
             echo "=== Migrace + systémový seed (zachová existující data) ==="
             COMPOSE_PROJECT_NAME=phc-nexus-staging \
-              docker compose -f docker-compose.staging.yml exec -T app \
+              docker compose --env-file .env.staging -f docker-compose.staging.yml exec -T app \
               php artisan migrate --force
             COMPOSE_PROJECT_NAME=phc-nexus-staging \
-              docker compose -f docker-compose.staging.yml exec -T app \
+              docker compose --env-file .env.staging -f docker-compose.staging.yml exec -T app \
               php artisan db:seed --class=SystemSeeder --force
 
             echo "=== Caching config ==="
             COMPOSE_PROJECT_NAME=phc-nexus-staging \
-              docker compose -f docker-compose.staging.yml exec -T app \
+              docker compose --env-file .env.staging -f docker-compose.staging.yml exec -T app \
               php artisan config:cache
 
             echo "=== Reloading shared Caddy ==="

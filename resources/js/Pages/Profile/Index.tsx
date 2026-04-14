@@ -70,6 +70,7 @@ export default function ProfileIndex({ user, directReports }: Props) {
     const [saving, setSaving] = useState(false);
     const [avatarModal, setAvatarModal] = useState(false);
     const [showRemoveConfirm, setShowRemoveConfirm] = useState(false);
+    const [showLogoutEverywhereConfirm, setShowLogoutEverywhereConfirm] = useState(false);
     const fileInputRef = useRef<HTMLInputElement>(null);
     const [uploading, setUploading] = useState(false);
 
@@ -212,6 +213,17 @@ export default function ProfileIndex({ user, directReports }: Props) {
                 )}
             </div>
 
+            {/* Bezpečnost — odhlásit ostatní zařízení */}
+            <div className="mt-6 rounded-lg border border-border-subtle bg-surface-primary p-6">
+                <h2 className="mb-2 text-sm font-semibold uppercase tracking-wider text-text-subtle">Bezpečnost</h2>
+                <p className="mb-4 text-sm text-text-muted">
+                    Pokud jste se zapomněli odhlásit na jiném zařízení, můžete všechny ostatní relace okamžitě ukončit.
+                </p>
+                <Button variant="danger" size="sm" onClick={() => setShowLogoutEverywhereConfirm(true)}>
+                    Odhlásit ostatní zařízení
+                </Button>
+            </div>
+
             {/* Avatar edit modal */}
             <Modal open={avatarModal} onClose={() => setAvatarModal(false)} showClose={false}>
                 <div className="mb-4 flex items-center justify-between">
@@ -279,6 +291,25 @@ export default function ProfileIndex({ user, directReports }: Props) {
                 confirmLabel="Odstranit"
                 onConfirm={handleAvatarRemove}
                 onCancel={() => setShowRemoveConfirm(false)}
+            />
+
+            <ConfirmModal
+                open={showLogoutEverywhereConfirm}
+                variant="danger"
+                title="Odhlásit ostatní zařízení"
+                message="Všechna ostatní přihlášená zařízení budou odhlášena. Tato relace zůstane aktivní."
+                confirmLabel="Odhlásit ostatní"
+                onConfirm={() => {
+                    router.post(
+                        '/profile/logout-everywhere',
+                        {},
+                        {
+                            preserveScroll: true,
+                            onFinish: () => setShowLogoutEverywhereConfirm(false),
+                        },
+                    );
+                }}
+                onCancel={() => setShowLogoutEverywhereConfirm(false)}
             />
         </AppLayout>
     );

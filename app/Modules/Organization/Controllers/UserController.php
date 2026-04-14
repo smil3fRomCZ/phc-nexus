@@ -11,6 +11,7 @@ use App\Modules\Audit\Enums\AuditAction;
 use App\Modules\Organization\Enums\SystemRole;
 use App\Modules\Organization\Enums\UserStatus;
 use App\Modules\Organization\Models\Team;
+use App\Support\CaseInsensitiveLike;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Gate;
@@ -27,10 +28,10 @@ final class UserController extends Controller
             ->with(['team:id,name']);
 
         if ($request->filled('search')) {
-            $search = $request->input('search');
+            $search = '%'.$request->input('search').'%';
             $query->where(function ($q) use ($search) {
-                $q->whereRaw('LOWER(name) LIKE ?', ['%'.mb_strtolower($search).'%'])
-                    ->orWhereRaw('LOWER(email) LIKE ?', ['%'.mb_strtolower($search).'%']);
+                CaseInsensitiveLike::apply($q, 'name', $search);
+                CaseInsensitiveLike::applyOr($q, 'email', $search);
             });
         }
 

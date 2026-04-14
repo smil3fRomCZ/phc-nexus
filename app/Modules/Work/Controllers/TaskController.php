@@ -17,6 +17,7 @@ use App\Modules\Work\Enums\RecurrenceRule;
 use App\Modules\Work\Enums\TaskPriority;
 use App\Modules\Work\Models\Epic;
 use App\Modules\Work\Models\Task;
+use App\Support\CaseInsensitiveLike;
 use Carbon\Carbon;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Http\JsonResponse;
@@ -39,7 +40,7 @@ final class TaskController extends Controller
         // JSON response pro API volání (např. estimation session create, attach to epic)
         if ($request->input('format') === 'json') {
             if ($request->filled('search')) {
-                $query->whereRaw('LOWER(title) LIKE ?', ['%'.mb_strtolower($request->input('search')).'%']);
+                CaseInsensitiveLike::apply($query, 'title', '%'.$request->input('search').'%');
             }
             if ($request->filled('status')) {
                 $query->where('workflow_status_id', $request->input('status'));

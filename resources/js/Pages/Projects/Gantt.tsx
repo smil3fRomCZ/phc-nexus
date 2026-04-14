@@ -81,7 +81,10 @@ export default function ProjectGantt({ project, tasks, epics }: Props) {
             if (!mounted || !containerRef.current) return;
 
             const Gantt = module.default;
-            containerRef.current.innerHTML = '';
+            // Clear container bez innerHTML — bezpečnější (žádný HTML parsing)
+            while (containerRef.current.firstChild) {
+                containerRef.current.removeChild(containerRef.current.firstChild);
+            }
 
             const handleClick = (item: { id: string }) => {
                 if (item.id.startsWith('task-')) {

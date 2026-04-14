@@ -7,6 +7,7 @@ import { APPROVAL_STATUS } from '@/constants/status';
 import { useClientSort } from '@/hooks/useSortable';
 import { formatDate } from '@/utils/formatDate';
 import { BarChart3, Clock, CheckCircle, XCircle, Ban } from 'lucide-react';
+import { router } from '@inertiajs/react';
 
 interface Stats {
     total: number;
@@ -155,9 +156,7 @@ export default function ApprovalAnalyticsIndex({ stats, history }: Props) {
                                 className={`transition-colors hover:bg-brand-soft ${item.project_id ? 'cursor-pointer' : ''}`}
                                 onClick={
                                     item.project_id
-                                        ? () => {
-                                              window.location.href = `/projects/${item.project_id}/approvals/${item.id}`;
-                                          }
+                                        ? () => router.visit(`/projects/${item.project_id}/approvals/${item.id}`)
                                         : undefined
                                 }
                             >

@@ -117,7 +117,7 @@ export default function ApprovalsIndex({ project, approvalRequests, filters = {}
                             <tr
                                 key={req.id}
                                 className="cursor-pointer transition-colors hover:bg-brand-soft"
-                                onClick={() => (window.location.href = `/projects/${project.id}/approvals/${req.id}`)}
+                                onClick={() => router.visit(`/projects/${project.id}/approvals/${req.id}`)}
                             >
                                 <td className="border-b border-border-subtle px-4 py-2.5">
                                     <StatusBadge statusMap={APPROVAL_STATUS} value={req.status} />

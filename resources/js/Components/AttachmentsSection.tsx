@@ -29,6 +29,14 @@ export default function AttachmentsSection({
         const file = e.target.files?.[0];
         if (!file) return;
 
+        // Klientská validace — server je autoritativní, tohle je jen UX.
+        const MAX_BYTES = 20 * 1024 * 1024; // 20 MB, sjednoceno s config/attachments.php
+        if (file.size > MAX_BYTES) {
+            alert(`Soubor je příliš velký (max 20 MB). Velikost: ${formatFileSize(file.size)}`);
+            e.target.value = '';
+            return;
+        }
+
         setUploading(true);
         router.post(
             uploadUrl,
@@ -81,7 +89,13 @@ export default function AttachmentsSection({
                 <label className="flex cursor-pointer items-center gap-2 rounded border border-dashed border-border-default px-3 py-2 text-xs text-text-muted transition-colors hover:border-brand-primary hover:text-brand-primary">
                     <Upload className="h-3 w-3" />
                     {uploading ? 'Nahrávání...' : 'Nahrát soubor'}
-                    <input type="file" className="hidden" onChange={handleUpload} disabled={uploading} />
+                    <input
+                        type="file"
+                        className="hidden"
+                        accept=".pdf,.doc,.docx,.xls,.xlsx,.ppt,.pptx,.txt,.csv,.md,.jpg,.jpeg,.png,.gif,.webp,.zip,.7z"
+                        onChange={handleUpload}
+                        disabled={uploading}
+                    />
                 </label>
             </div>
             <ConfirmModal

@@ -40,21 +40,18 @@ Route::middleware('auth')->group(function () {
     })->name('user.board-settings');
 });
 
-// E2E test login bypass — POUZE local/testing + APP_DEBUG=true + explicit APP_E2E_ENABLED=true.
-// Trojitý guard: registrace route, runtime check i explicitní opt-in env flag.
-// APP_ENV=production je HARD odmítnuto i kdyby zbylé guardy selhaly.
+// E2E test login bypass — POUZE local/testing + APP_DEBUG=true.
+// Defense-in-depth: registrace route je gated, runtime ji znovu ověřuje,
+// a APP_ENV=production je HARD odmítnuto i kdyby zbylé guardy selhaly.
 if (
     ! app()->environment('production')
     && app()->environment('local', 'testing')
     && config('app.debug') === true
-    && env('APP_E2E_ENABLED') === 'true'
 ) {
     Route::get('/_e2e/login/{email}', function (string $email) {
         abort_if(app()->environment('production'), 404);
         abort_unless(
-            app()->environment('local', 'testing')
-            && config('app.debug') === true
-            && env('APP_E2E_ENABLED') === 'true',
+            app()->environment('local', 'testing') && config('app.debug') === true,
             404
         );
 

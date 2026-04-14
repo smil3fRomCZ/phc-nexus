@@ -49,8 +49,11 @@ class AuditTrailTest extends TestCase
         $item = AuditableItem::create(['title' => 'Test']);
 
         $service = new AuditService;
-        $entry = $service->log(AuditAction::Viewed, $item);
+        $service->log(AuditAction::Viewed, $item);
 
+        $entry = AuditEntry::where('entity_id', $item->id)
+            ->where('action', AuditAction::Viewed->value)
+            ->firstOrFail();
         $this->assertEquals(AuditAction::Viewed, $entry->action);
         $this->assertEquals($item->getMorphClass(), $entry->entity_type);
         $this->assertEquals($item->id, $entry->entity_id);
@@ -62,12 +65,15 @@ class AuditTrailTest extends TestCase
         $item = AuditableItem::create(['title' => 'Test']);
 
         $service = new AuditService;
-        $entry = $service->log(
+        $service->log(
             AuditAction::StatusChanged,
             $item,
             payload: ['from' => 'draft', 'to' => 'active'],
         );
 
+        $entry = AuditEntry::where('entity_id', $item->id)
+            ->where('action', AuditAction::StatusChanged->value)
+            ->firstOrFail();
         $this->assertEquals(['from' => 'draft', 'to' => 'active'], $entry->payload);
     }
 

@@ -6,18 +6,21 @@ namespace App\Modules\Auth\Mail;
 
 use App\Modules\Auth\Models\Invitation;
 use Illuminate\Bus\Queueable;
+use Illuminate\Contracts\Queue\ShouldQueue;
 use Illuminate\Mail\Mailable;
 use Illuminate\Mail\Mailables\Content;
 use Illuminate\Mail\Mailables\Envelope;
 use Illuminate\Queue\SerializesModels;
 
-final class InvitationMail extends Mailable
+final class InvitationMail extends Mailable implements ShouldQueue
 {
     use Queueable, SerializesModels;
 
     public function __construct(
         public readonly Invitation $invitation,
-    ) {}
+    ) {
+        $this->onQueue('mail');
+    }
 
     public function envelope(): Envelope
     {

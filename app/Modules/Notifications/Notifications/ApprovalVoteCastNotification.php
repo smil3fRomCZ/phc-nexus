@@ -20,7 +20,9 @@ class ApprovalVoteCastNotification extends Notification implements ShouldQueue
         public readonly ApprovalRequest $approvalRequest,
         public readonly User $voter,
         public readonly ApprovalDecision $decision,
-    ) {}
+    ) {
+        $this->onQueue('notifications');
+    }
 
     /** @return list<string> */
     public function via(object $notifiable): array

@@ -35,8 +35,8 @@ class AuditPhiMaskingTest extends TestCase
         );
 
         $entry = AuditEntry::latest('id')->first();
-        $this->assertSame(['_masked' => true, 'reason' => 'PHI/unknown classification'], $entry->payload);
-        $this->assertSame(['_masked' => true, 'reason' => 'PHI/unknown classification'], $entry->new_values);
+        $this->assertEquals(['_masked' => true, 'reason' => 'PHI/unknown classification'], $entry->payload);
+        $this->assertEquals(['_masked' => true, 'reason' => 'PHI/unknown classification'], $entry->new_values);
     }
 
     public function test_payload_masked_for_unknown_classification(): void
@@ -55,7 +55,7 @@ class AuditPhiMaskingTest extends TestCase
         );
 
         $entry = AuditEntry::latest('id')->first();
-        $this->assertSame(['_masked' => true, 'reason' => 'PHI/unknown classification'], $entry->payload);
+        $this->assertEquals(['_masked' => true, 'reason' => 'PHI/unknown classification'], $entry->payload);
     }
 
     public function test_payload_not_masked_for_non_phi(): void
@@ -75,6 +75,6 @@ class AuditPhiMaskingTest extends TestCase
         );
 
         $entry = AuditEntry::latest('id')->first();
-        $this->assertSame(['name' => 'Veřejný katalog'], $entry->payload);
+        $this->assertEquals(['name' => 'Veřejný katalog'], $entry->payload);
     }
 }

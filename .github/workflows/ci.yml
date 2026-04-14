@@ -144,6 +144,8 @@ jobs:
       - name: Start Laravel server
         env:
           APP_ENV: testing
+          APP_DEBUG: 'true'
+          APP_E2E_ENABLED: 'true'
           APP_URL: http://127.0.0.1:8000
           DB_CONNECTION: pgsql
           DB_HOST: 127.0.0.1

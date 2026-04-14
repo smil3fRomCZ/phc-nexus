@@ -8,6 +8,7 @@ use App\Http\Controllers\Controller;
 use App\Models\User;
 use App\Modules\Audit\Enums\AuditAction;
 use App\Modules\Audit\Models\AuditEntry;
+use App\Modules\Projects\Models\Project;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Gate;
 use Inertia\Inertia;
@@ -29,8 +30,34 @@ final class AuditLogController extends Controller
             'dir' => ['nullable', 'in:asc,desc'],
         ]);
 
+        $viewer = $request->user();
+        $hasGlobalAccess = Gate::allows('viewAll', AuditEntry::class);
+
         $query = AuditEntry::query()
             ->with(['actor:id,name']);
+
+        // Non-Executive scope: jen entries kde je viewer actorem, nebo entries
+        // k projektům/subentitám, kterých je viewer member/owner.
+        if (! $hasGlobalAccess && $viewer) {
+            $projectIds = Project::query()
+                ->where(fn ($q) => $q
+                    ->where('owner_id', $viewer->id)
+                    ->orWhereHas('members', fn ($m) => $m->where('users.id', $viewer->id))
+                )
+                ->pluck('id');
+
+            $query->where(function ($q) use ($viewer, $projectIds): void {
+                $q->where('actor_id', $viewer->id)
+                    ->orWhere(function ($sub) use ($viewer): void {
+                        $sub->where('entity_type', User::class)
+                            ->where('entity_id', $viewer->id);
+                    })
+                    ->orWhere(function ($sub) use ($projectIds): void {
+                        $sub->where('entity_type', Project::class)
+                            ->whereIn('entity_id', $projectIds);
+                    });
+            });
+        }
 
         if (! empty($filters['action'])) {
             $query->where('action', $filters['action']);
@@ -41,6 +68,11 @@ final class AuditLogController extends Controller
         }
 
         if (! empty($filters['actor_id'])) {
+            // Ne-Executive uživatel může filtrovat actor_id jen na sebe — bez
+            // globálního přístupu by jinak šlo šťourat v cizích aktivitách.
+            if (! $hasGlobalAccess && $viewer && $filters['actor_id'] !== $viewer->id) {
+                abort(403, 'Nemáte oprávnění filtrovat podle jiného uživatele.');
+            }
             $query->where('actor_id', $filters['actor_id']);
         }
 

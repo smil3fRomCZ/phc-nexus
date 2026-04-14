@@ -6,6 +6,8 @@ namespace App\Modules\Organization\Controllers;
 
 use App\Http\Controllers\Controller;
 use App\Models\User;
+use App\Modules\Audit\AuditService;
+use App\Modules\Audit\Enums\AuditAction;
 use App\Modules\Organization\Enums\SystemRole;
 use App\Modules\Organization\Enums\UserStatus;
 use App\Modules\Organization\Models\Team;
@@ -116,7 +118,7 @@ final class UserController extends Controller
         ]);
     }
 
-    public function update(Request $request, User $user): RedirectResponse
+    public function update(Request $request, User $user, AuditService $audit): RedirectResponse
     {
         Gate::authorize('updateUser', $user);
 
@@ -129,13 +131,22 @@ final class UserController extends Controller
             'bio' => ['sometimes', 'nullable', 'string', 'max:2000'],
         ]);
 
+        $oldValues = $user->only(array_keys($validated));
         $user->update($validated);
+
+        $audit->log(
+            AuditAction::Updated,
+            $user,
+            payload: ['operation' => 'admin_user_update'],
+            oldValues: $oldValues,
+            newValues: $validated,
+        );
 
         return redirect()->back()
             ->with('success', "Uživatel {$user->name} aktualizován.");
     }
 
-    public function updateRole(Request $request, User $user): RedirectResponse
+    public function updateRole(Request $request, User $user, AuditService $audit): RedirectResponse
     {
         Gate::authorize('updateRole', $user);
 
@@ -143,27 +154,54 @@ final class UserController extends Controller
             'system_role' => ['required', 'string', 'in:'.implode(',', array_column(SystemRole::cases(), 'value'))],
         ]);
 
+        $oldRole = $user->system_role;
         $user->update(['system_role' => $validated['system_role']]);
+
+        $audit->log(
+            AuditAction::Updated,
+            $user,
+            payload: ['operation' => 'admin_role_change'],
+            oldValues: ['system_role' => $oldRole instanceof SystemRole ? $oldRole->value : (string) $oldRole],
+            newValues: ['system_role' => $validated['system_role']],
+        );
 
         return redirect()->route('admin.users.index')
             ->with('success', "Role uživatele {$user->name} aktualizována.");
     }
 
-    public function deactivate(User $user): RedirectResponse
+    public function deactivate(User $user, AuditService $audit): RedirectResponse
     {
         Gate::authorize('deactivate', $user);
 
+        $oldStatus = $user->status;
         $user->update(['status' => UserStatus::Deactivated]);
+
+        $audit->log(
+            AuditAction::Updated,
+            $user,
+            payload: ['operation' => 'admin_deactivate'],
+            oldValues: ['status' => $oldStatus instanceof UserStatus ? $oldStatus->value : (string) $oldStatus],
+            newValues: ['status' => UserStatus::Deactivated->value],
+        );
 
         return redirect()->back()
             ->with('success', "Uživatel {$user->name} deaktivován.");
     }
 
-    public function activate(User $user): RedirectResponse
+    public function activate(User $user, AuditService $audit): RedirectResponse
     {
         Gate::authorize('deactivate', $user);
 
+        $oldStatus = $user->status;
         $user->update(['status' => UserStatus::Active]);
+
+        $audit->log(
+            AuditAction::Updated,
+            $user,
+            payload: ['operation' => 'admin_activate'],
+            oldValues: ['status' => $oldStatus instanceof UserStatus ? $oldStatus->value : (string) $oldStatus],
+            newValues: ['status' => UserStatus::Active->value],
+        );
 
         return redirect()->back()
             ->with('success', "Uživatel {$user->name} aktivován.");

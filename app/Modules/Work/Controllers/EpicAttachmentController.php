@@ -6,6 +6,7 @@ namespace App\Modules\Work\Controllers;
 
 use App\Http\Controllers\Controller;
 use App\Modules\Files\Actions\UploadAttachment;
+use App\Modules\Files\Support\AttachmentValidation;
 use App\Modules\Projects\Models\Project;
 use App\Modules\Work\Models\Epic;
 use Illuminate\Http\RedirectResponse;
@@ -19,7 +20,7 @@ final class EpicAttachmentController extends Controller
         Gate::authorize('update', $epic);
 
         $request->validate([
-            'file' => ['required', 'file', 'max:20480'],
+            'file' => AttachmentValidation::fileRules(),
         ]);
 
         $action->execute(

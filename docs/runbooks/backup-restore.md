@@ -51,6 +51,48 @@ Přidat do crontab na serveru (`crontab -e`):
 0 2 * * * cd /opt/phc-nexus && docker compose exec -T postgres pg_dump -U phc_nexus -d phc_nexus -Fc > /opt/backups/phc_nexus_$(date +\%Y\%m\%d).dump && find /opt/backups -name "phc_nexus_*.dump" -mtime +30 -delete
 ```
 
+### Šifrovaná záloha (GPG) — doporučené pro off-site
+
+Zálohy obsahují business data (potenciálně PHI). Před přesunem off-site (S3, NAS) je **povinné** je šifrovat.
+
+**Setup jednou** (na bezpečném stroji, NE na VPS):
+
+```bash
+gpg --batch --gen-key <<EOF
+%no-protection
+Key-Type: RSA
+Key-Length: 4096
+Name-Real: PHC Nexus Backup
+Name-Email: backup@phc-nexus.eu
+Expire-Date: 0
+EOF
+
+gpg --export --armor backup@phc-nexus.eu > backup-pub.asc
+scp backup-pub.asc root@vps:/opt/phc-nexus/
+```
+
+Na VPS importovat **jen public**:
+
+```bash
+gpg --import /opt/phc-nexus/backup-pub.asc
+gpg --edit-key backup@phc-nexus.eu trust quit   # vybrat 5 (ultimate)
+```
+
+> **Privátní klíč NIKDY na VPS** — držet v password manažeru / offline.
+
+**Šifrovaný cron:**
+
+```cron
+0 2 * * * cd /opt/phc-nexus && docker compose exec -T postgres pg_dump -U phc_nexus -d phc_nexus -Fc | gpg --encrypt --recipient backup@phc-nexus.eu --trust-model always > /opt/backups/phc_nexus_$(date +\%Y\%m\%d).dump.gpg && find /opt/backups -name "phc_nexus_*.dump.gpg" -mtime +30 -delete
+```
+
+**Restore** (na stroji s privátním klíčem):
+
+```bash
+gpg --decrypt phc_nexus_20260601.dump.gpg > phc_nexus_20260601.dump
+# pak standardní pg_restore
+```
+
 ---
 
 ## 2. File Storage Backup

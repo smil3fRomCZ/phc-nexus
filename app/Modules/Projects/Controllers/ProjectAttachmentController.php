@@ -6,6 +6,7 @@ namespace App\Modules\Projects\Controllers;
 
 use App\Http\Controllers\Controller;
 use App\Modules\Files\Actions\UploadAttachment;
+use App\Modules\Files\Support\AttachmentValidation;
 use App\Modules\Projects\Models\Project;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
@@ -18,7 +19,7 @@ final class ProjectAttachmentController extends Controller
         Gate::authorize('update', $project);
 
         $request->validate([
-            'file' => ['required', 'file', 'max:20480'],
+            'file' => AttachmentValidation::fileRules(),
         ]);
 
         $action->execute(

@@ -19,16 +19,32 @@ final class AuditService
         ?array $oldValues = null,
         ?array $newValues = null,
     ): AuditEntry {
+        $masked = $this->isPhiRestricted($entity);
+
         return AuditEntry::create([
             'action' => $action,
             'entity_type' => $entity->getMorphClass(),
             'entity_id' => $entity->getKey(),
             'actor_id' => Auth::id(),
-            'payload' => $payload,
-            'old_values' => $oldValues,
-            'new_values' => $newValues,
+            'payload' => $masked ? self::maskedPlaceholder() : $payload,
+            'old_values' => $masked ? self::maskedPlaceholder() : $oldValues,
+            'new_values' => $masked ? self::maskedPlaceholder() : $newValues,
             'ip_address' => Request::ip(),
             'user_agent' => Request::userAgent(),
         ]);
+    }
+
+    /**
+     * @return array{_masked: true, reason: string}
+     */
+    private static function maskedPlaceholder(): array
+    {
+        return ['_masked' => true, 'reason' => 'PHI/unknown classification'];
+    }
+
+    private function isPhiRestricted(Model $entity): bool
+    {
+        // Bez volání reflection na každý log — stačí detekovat metodu traitu.
+        return method_exists($entity, 'isPhiRestricted') && $entity->isPhiRestricted();
     }
 }

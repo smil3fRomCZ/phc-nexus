@@ -6,6 +6,7 @@ namespace App\Modules\Wiki\Controllers;
 
 use App\Http\Controllers\Controller;
 use App\Modules\Files\Actions\UploadAttachment;
+use App\Modules\Files\Support\AttachmentValidation;
 use App\Modules\Projects\Models\Project;
 use App\Modules\Wiki\Models\WikiPage;
 use Illuminate\Http\JsonResponse;
@@ -20,7 +21,7 @@ final class WikiAttachmentController extends Controller
         Gate::authorize('view', $project);
 
         $request->validate([
-            'file' => ['required', 'file', 'max:20480'],
+            'file' => AttachmentValidation::fileRules(),
         ]);
 
         $action->execute(
@@ -36,8 +37,12 @@ final class WikiAttachmentController extends Controller
     {
         Gate::authorize('view', $project);
 
+        // Jen obrázky pro wiki inline embed; menší limit než full attachments.
         $request->validate([
-            'file' => ['required', 'file', 'mimes:jpg,jpeg,png,gif,webp,svg', 'max:10240'],
+            'file' => [
+                'required', 'file', 'max:10240',
+                'mimetypes:image/jpeg,image/png,image/gif,image/webp,image/svg+xml',
+            ],
         ]);
 
         $attachment = $action->execute(

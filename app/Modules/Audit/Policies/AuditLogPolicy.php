@@ -11,6 +11,9 @@ final class AuditLogPolicy
 {
     public function viewAny(User $user): bool
     {
-        return $user->system_role === SystemRole::Executive;
+        return in_array($user->system_role, [
+            SystemRole::Executive,
+            SystemRole::ProjectManager,
+        ], true);
     }
 }

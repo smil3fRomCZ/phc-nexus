@@ -21,13 +21,13 @@ class AuditLogPolicyTest extends TestCase
         $response->assertStatus(200);
     }
 
-    public function test_project_manager_cannot_view_audit_log(): void
+    public function test_project_manager_can_view_audit_log(): void
     {
         $pm = User::factory()->projectManager()->create();
 
         $response = $this->actingAs($pm)->get('/admin/audit-log');
 
-        $response->assertForbidden();
+        $response->assertStatus(200);
     }
 
     public function test_team_member_cannot_view_audit_log(): void

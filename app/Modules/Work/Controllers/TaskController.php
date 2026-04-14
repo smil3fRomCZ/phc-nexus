@@ -7,12 +7,13 @@ namespace App\Modules\Work\Controllers;
 use App\Http\Controllers\Controller;
 use App\Models\User;
 use App\Modules\Audit\Models\AuditEntry;
-use App\Modules\Notifications\Notifications\TaskAssignedNotification;
-use App\Modules\Notifications\Notifications\TaskStatusChangedNotification;
-use App\Modules\Projects\Controllers\WorkflowController;
 use App\Modules\Projects\Enums\BenefitType;
 use App\Modules\Projects\Models\Project;
 use App\Modules\Projects\Models\WorkflowStatus;
+use App\Modules\Work\Actions\ChangeTaskStatus;
+use App\Modules\Work\Actions\CreateTask;
+use App\Modules\Work\Actions\DuplicateTask;
+use App\Modules\Work\Actions\UpdateTask;
 use App\Modules\Work\Enums\RecurrenceRule;
 use App\Modules\Work\Enums\TaskPriority;
 use App\Modules\Work\Models\Epic;
@@ -75,7 +76,7 @@ final class TaskController extends Controller
         return Inertia::render('Work/Tasks/Index', $props);
     }
 
-    public function store(Request $request, Project $project, ?Epic $epic = null): RedirectResponse
+    public function store(Request $request, CreateTask $createTask, Project $project, ?Epic $epic = null): RedirectResponse
     {
         Gate::authorize('view', $project);
         Gate::authorize('create', Task::class);
@@ -95,29 +96,7 @@ final class TaskController extends Controller
             'benefit_note' => ['nullable', 'string'],
         ]);
 
-        $validated['project_id'] = $project->id;
-        $validated['reporter_id'] ??= $request->user()->id;
-        if ($epic) {
-            $validated['epic_id'] = $epic->id;
-        }
-
-        // IPA-12: pokud uživatel nezadá termíny, default na dnešní datum,
-        // aby byl úkol ihned viditelný v Ganttu (jednodenní bar) i v tabulkovém výpisu.
-        $today = now()->toDateString();
-        $validated['start_date'] ??= $today;
-        $validated['due_date'] ??= $today;
-
-        // Automaticky přiřadit initial workflow status (seed default pokud chybí)
-        if ($project->workflowStatuses()->count() === 0) {
-            WorkflowController::seedDefaultWorkflow($project);
-        }
-        /** @var WorkflowStatus|null $initialStatus */
-        $initialStatus = $project->workflowStatuses()->where('is_initial', true)->first();
-        /** @var WorkflowStatus $fallbackStatus */
-        $fallbackStatus = $initialStatus ?? $project->workflowStatuses()->orderBy('position')->firstOrFail();
-        $validated['workflow_status_id'] = $fallbackStatus->id;
-
-        $task = Task::create($validated);
+        $task = $createTask->execute($project, $epic, $request->user(), $validated);
 
         return back()->with('success', 'Úkol vytvořen.')->with('created_task_id', $task->id);
     }
@@ -285,7 +264,7 @@ final class TaskController extends Controller
         return response()->json(['success' => true]);
     }
 
-    public function update(Request $request, Project $project, Task $task): RedirectResponse
+    public function update(Request $request, UpdateTask $updateTask, Project $project, Task $task): RedirectResponse
     {
         Gate::authorize('update', $task);
 
@@ -306,27 +285,7 @@ final class TaskController extends Controller
             'benefit_note' => ['nullable', 'string'],
         ]);
 
-        $oldAssigneeId = $task->assignee_id;
-        $oldWorkflowStatusId = $task->workflow_status_id;
-
-        $task->update($validated);
-
-        if (($validated['assignee_id'] ?? null) !== null
-            && $validated['assignee_id'] !== $oldAssigneeId
-            && $task->assignee !== null
-        ) {
-            $task->assignee->notify(new TaskAssignedNotification($task, $request->user()));
-        }
-
-        if ($oldWorkflowStatusId !== $task->workflow_status_id && $task->assignee !== null) {
-            /** @var WorkflowStatus|null $oldWs */
-            $oldWs = WorkflowStatus::find($oldWorkflowStatusId);
-            /** @var WorkflowStatus|null $newWs */
-            $newWs = $task->workflowStatus;
-            if ($oldWs && $newWs) {
-                $task->assignee->notify(new TaskStatusChangedNotification($task, $oldWs, $newWs));
-            }
-        }
+        $updateTask->execute($task, $request->user(), $validated);
 
         return back()->with('success', 'Úkol aktualizován.');
     }
@@ -479,39 +438,18 @@ final class TaskController extends Controller
     /**
      * PATCH — rychlá změna statusu (drag&drop na kanban boardu).
      */
-    public function updateStatus(Request $request, Project $project, Task $task): JsonResponse
+    public function updateStatus(Request $request, ChangeTaskStatus $changeStatus, Project $project, Task $task): JsonResponse
     {
         Gate::authorize('update', $task);
-
-        if ($task->hasPendingApproval()) {
-            return response()->json([
-                'error' => 'Tento úkol má nevyřízenou žádost o schválení. Před změnou stavu je nutné žádost schválit nebo zamítnout.',
-            ], 422);
-        }
 
         $validated = $request->validate([
             'status' => ['required', 'uuid', 'exists:workflow_statuses,id'],
         ]);
 
-        /** @var WorkflowStatus|null $currentWs */
-        $currentWs = $task->workflowStatus;
-        /** @var WorkflowStatus|null $targetWs */
-        $targetWs = WorkflowStatus::find($validated['status']);
+        $result = $changeStatus->execute($task, $validated['status']);
 
-        if ($currentWs instanceof WorkflowStatus && $targetWs instanceof WorkflowStatus) {
-            if (! $currentWs->canTransitionTo($targetWs)) {
-                return response()->json([
-                    'error' => "Přechod z '{$currentWs->name}' na '{$targetWs->name}' není povolený.",
-                ], 422);
-            }
-        }
-
-        $oldWs = $currentWs;
-        $task->update(['workflow_status_id' => $validated['status']]);
-
-        $task->load('assignee');
-        if ($oldWs && $targetWs && $task->assignee !== null) {
-            $task->assignee->notify(new TaskStatusChangedNotification($task, $oldWs, $targetWs));
+        if ($result['status'] !== ChangeTaskStatus::RESULT_OK) {
+            return response()->json(['error' => $result['message']], 422);
         }
 
         return response()->json(['success' => true]);
@@ -544,18 +482,11 @@ final class TaskController extends Controller
             ->with('success', 'Úkol smazán.');
     }
 
-    public function duplicate(Project $project, Task $task): RedirectResponse
+    public function duplicate(DuplicateTask $duplicateTask, Project $project, Task $task): RedirectResponse
     {
         Gate::authorize('create', Task::class);
 
-        $clone = $task->replicate(['id', 'number', 'created_at', 'updated_at']);
-        $clone->title = $task->title.' (kopie)';
-        /** @var WorkflowStatus|null $initialStatus */
-        $initialStatus = $project->workflowStatuses()->where('is_initial', true)->first();
-        if ($initialStatus) {
-            $clone->workflow_status_id = $initialStatus->id;
-        }
-        $clone->save();
+        $clone = $duplicateTask->execute($project, $task);
 
         return redirect()->route('projects.tasks.show', [$project, $clone])
             ->with('success', 'Úkol duplikován.');

@@ -121,16 +121,46 @@ class GoogleSsoTest extends TestCase
         $response->assertRedirect('/login');
     }
 
-    private function mockSocialiteUser(string $email, string $name): void
+    private function mockSocialiteUser(string $email, string $name, ?string $hd = null): void
     {
+        // Default hd = doména z e-mailu (odpovídá běžnému Workspace tokenu).
+        $hostedDomain = $hd ?? substr(strrchr($email, '@') ?: '@', 1);
+
         $socialiteUser = Mockery::mock(SocialiteUser::class);
         $socialiteUser->shouldReceive('getEmail')->andReturn($email);
         $socialiteUser->shouldReceive('getName')->andReturn($name);
         $socialiteUser->shouldReceive('getId')->andReturn('google-123');
         $socialiteUser->shouldReceive('getAvatar')->andReturn(null);
+        $socialiteUser->shouldReceive('getRaw')->andReturn(['hd' => $hostedDomain]);
 
         Socialite::shouldReceive('driver')
             ->with('google')
             ->andReturn(Mockery::mock()->shouldReceive('user')->andReturn($socialiteUser)->getMock());
+    }
+
+    public function test_google_callback_rejects_account_without_hd_claim(): void
+    {
+        config()->set('auth.google_allowed_domains', ['pearseurope.com']);
+
+        // Útočník: má e-mail z firemní domény, ale účet je osobní gmail (žádný hd claim).
+        $this->mockSocialiteUser('attacker@pearseurope.com', 'Attacker', hd: '');
+
+        $response = $this->get('/auth/google/callback?code=mock-code');
+
+        $response->assertRedirect(route('login'));
+        $this->assertGuest();
+    }
+
+    public function test_google_callback_rejects_mismatched_hd_claim(): void
+    {
+        config()->set('auth.google_allowed_domains', ['pearseurope.com']);
+
+        // hd z jiné Workspace tenanty než e-mail (možný spoofing scénář).
+        $this->mockSocialiteUser('user@pearseurope.com', 'User', hd: 'evil.com');
+
+        $response = $this->get('/auth/google/callback?code=mock-code');
+
+        $response->assertRedirect(route('login'));
+        $this->assertGuest();
     }
 }

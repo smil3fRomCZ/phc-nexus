@@ -17,6 +17,7 @@ final class AuthenticateGoogleUser
     {
         $email = (string) $socialiteUser->getEmail();
         $this->assertDomainAllowed($email);
+        $this->assertHostedDomainMatches($socialiteUser, $email);
 
         $invitation = $invitationToken
             ? Invitation::where('token', $invitationToken)->whereNull('accepted_at')->first()
@@ -59,6 +60,35 @@ final class AuthenticateGoogleUser
         $domain = strtolower(Str::after($email, '@'));
 
         if ($domain === '' || ! in_array($domain, $allowed, true)) {
+            throw new DomainNotAllowedException($email);
+        }
+    }
+
+    /**
+     * Defense vs. email reuse / spoofing: Google `hd` claim potvrzuje, že účet
+     * patří do daného Workspace tenantu. Bez tohoto checku by stačilo, aby měl
+     * útočník osobní Google účet s firemní adresou, nebo aby Workspace admin
+     * recykloval starý e-mail novému uživateli.
+     */
+    private function assertHostedDomainMatches(SocialiteUser $socialiteUser, string $email): void
+    {
+        /** @var array<int, string> $allowed */
+        $allowed = config('auth.google_allowed_domains', []);
+
+        if ($allowed === []) {
+            return;
+        }
+
+        // Mockery proxy ne-implementující metodu vrátí na method_exists false;
+        // is_callable spolehlivě funguje pro mock i pro Socialite\Two\User.
+        /** @var array<string, mixed> $raw */
+        $raw = is_callable([$socialiteUser, 'getRaw']) ? (array) $socialiteUser->getRaw() : [];
+        $hd = isset($raw['hd']) ? strtolower((string) $raw['hd']) : null;
+        $emailDomain = strtolower(Str::after($email, '@'));
+
+        // hd musí existovat (Workspace účet, ne osobní gmail) a musí odpovídat
+        // jak allowlistu, tak doméně z e-mailu.
+        if ($hd === null || ! in_array($hd, $allowed, true) || $hd !== $emailDomain) {
             throw new DomainNotAllowedException($email);
         }
     }

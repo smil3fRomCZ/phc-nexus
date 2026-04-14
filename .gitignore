@@ -38,8 +38,9 @@ Thumbs.db
 *.swp
 *.swo
 
-# Claude Code local settings
+# Claude Code local settings & runtime
 .claude/settings.local.json
+.claude/scheduled_tasks.lock
 
 # Node / Frontend
 *.tsbuildinfo

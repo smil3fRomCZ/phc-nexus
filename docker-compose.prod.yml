@@ -6,7 +6,7 @@ services:
   app:
     container_name: prod-app
     volumes:
-      - ./.env:/var/www/html/.env
+      - ./.env:/var/www/html/.env:ro
       - app-storage:/var/www/html/storage
       - app-public:/var/www/html/public
     restart: unless-stopped
@@ -17,7 +17,7 @@ services:
 
   worker:
     volumes:
-      - ./.env:/var/www/html/.env
+      - ./.env:/var/www/html/.env:ro
       - app-storage:/var/www/html/storage
     restart: unless-stopped
     security_opt:
@@ -27,7 +27,7 @@ services:
 
   scheduler:
     volumes:
-      - ./.env:/var/www/html/.env
+      - ./.env:/var/www/html/.env:ro
       - app-storage:/var/www/html/storage
     restart: unless-stopped
     security_opt:

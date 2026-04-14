@@ -27,13 +27,13 @@ final class TimeExportController extends Controller
 
         $format = $this->validFormat($request);
 
-        /** @var EloquentCollection<int, TimeEntry> $entries */
-        $entries = $this->filterNonPhiEntries(
-            $project->timeEntries()
-                ->with(['user:id,name', 'task:id,title,data_classification', 'epic:id,title,data_classification'])
-                ->latest('date')
-                ->get()
-        );
+        /** @var EloquentCollection<int, TimeEntry> $raw */
+        $raw = $project->timeEntries()
+            ->with(['user:id,name', 'task:id,title,data_classification', 'epic:id,title,data_classification'])
+            ->latest('date')
+            ->get();
+
+        $entries = $this->filterNonPhiEntries($raw);
 
         $audit->log(AuditAction::Exported, $project, [
             'type' => "time_{$format}",

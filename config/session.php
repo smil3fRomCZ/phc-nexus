@@ -34,6 +34,10 @@ return [
 
     'lifetime' => (int) env('SESSION_LIFETIME', 120),
 
+    // Idle timeout v minutách — nezávisle na absolutní `lifetime`.
+    // 0 = vypnuto. 30 min je běžný baseline pro PHI-capable prostředí.
+    'idle_timeout' => (int) env('SESSION_IDLE_TIMEOUT', 30),
+
     'expire_on_close' => env('SESSION_EXPIRE_ON_CLOSE', false),
 
     /*

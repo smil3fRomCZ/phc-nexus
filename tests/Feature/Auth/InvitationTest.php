@@ -202,11 +202,14 @@ class InvitationTest extends TestCase
 
     private function mockSocialiteUser(string $email, string $name): void
     {
+        $hostedDomain = substr(strrchr($email, '@') ?: '@', 1);
+
         $socialiteUser = Mockery::mock(SocialiteUser::class);
         $socialiteUser->shouldReceive('getEmail')->andReturn($email);
         $socialiteUser->shouldReceive('getName')->andReturn($name);
         $socialiteUser->shouldReceive('getId')->andReturn('google-456');
         $socialiteUser->shouldReceive('getAvatar')->andReturn(null);
+        $socialiteUser->shouldReceive('getRaw')->andReturn(['hd' => $hostedDomain]);
 
         Socialite::shouldReceive('driver')
             ->with('google')

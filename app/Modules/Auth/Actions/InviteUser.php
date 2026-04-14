@@ -9,7 +9,6 @@ use App\Modules\Auth\Mail\InvitationMail;
 use App\Modules\Auth\Models\Invitation;
 use App\Modules\Organization\Enums\SystemRole;
 use Illuminate\Support\Facades\Mail;
-use Illuminate\Support\Str;
 
 final class InviteUser
 {
@@ -21,7 +20,10 @@ final class InviteUser
     ): Invitation {
         $invitation = Invitation::create([
             'email' => $email,
-            'token' => Str::random(64),
+            // 256-bit entropy (32 bytes → 64 hex znaků). Str::random používá bezpečný
+            // generátor, ale s menší abecedou; explicit hex je odolnější vůči
+            // enumeraci a snadno dohledatelný v logách jako náhodný řetězec.
+            'token' => bin2hex(random_bytes(32)),
             'system_role' => $role,
             'team_id' => $teamId,
             'invited_by' => $invitedBy->id,

@@ -38,14 +38,14 @@ final class InvitationController extends Controller
 
     public function accept(string $token): RedirectResponse
     {
-        $invitation = Invitation::where('token', $token)->firstOrFail();
+        // Uniformní chyba pro neexistující / expirovanou / použitou pozvánku
+        // — zabraňuje enumeraci tokenů a timing-attack rozlišení stavů.
+        $genericError = 'Pozvánka je neplatná nebo její platnost vypršela.';
 
-        if ($invitation->isAccepted()) {
-            return redirect()->route('login')->with('error', 'Tato pozvánka již byla použita.');
-        }
+        $invitation = Invitation::where('token', $token)->first();
 
-        if ($invitation->isExpired()) {
-            return redirect()->route('login')->with('error', 'Platnost pozvánky vypršela.');
+        if ($invitation === null || $invitation->isAccepted() || $invitation->isExpired()) {
+            return redirect()->route('login')->with('error', $genericError);
         }
 
         session(['pending_invitation' => $invitation->token]);

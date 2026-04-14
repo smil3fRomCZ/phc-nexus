@@ -37,7 +37,9 @@ return [
         'image/png',
         'image/gif',
         'image/webp',
-        'image/svg+xml',
+        // SVG záměrně vynecháno — může obsahovat inline <script> / XSS payload.
+        // Pokud v budoucnu potřeba, použít SVG sanitizér (např. enshrined/svg-sanitize)
+        // a samostatný upload endpoint s post-processingem.
 
         // Archivy
         'application/zip',

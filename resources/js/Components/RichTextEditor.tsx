@@ -70,10 +70,16 @@ export default function RichTextEditor({
         if (!editor || !imageUploadUrl) return;
         const input = document.createElement('input');
         input.type = 'file';
-        input.accept = 'image/*';
+        // Konkrétní raster formáty — SVG záměrně vyloučeno (XSS risk).
+        input.accept = 'image/jpeg,image/png,image/gif,image/webp';
         input.onchange = async () => {
             const file = input.files?.[0];
             if (!file) return;
+            const MAX_BYTES = 20 * 1024 * 1024;
+            if (file.size > MAX_BYTES) {
+                alert('Obrázek je příliš velký (max 20 MB).');
+                return;
+            }
             const csrfToken = document.querySelector<HTMLMetaElement>('meta[name="csrf-token"]')?.content ?? '';
             const formData = new FormData();
             formData.append('file', file);

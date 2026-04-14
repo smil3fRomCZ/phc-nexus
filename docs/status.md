@@ -375,6 +375,8 @@ Aktuální stav:
 
 | Datum | Milestone | Co se stalo |
 |-------|-----------|-------------|
+| 2026-04-14 | Arch-PR3 | Policies konsolidace: CommentPolicy, TimeEntryPolicy, AttachmentPolicy — nahrazují inline `abort_unless/abort(403)` checks, registrace v AppServiceProvider, policy matrix test (15 assertions) |
+| 2026-04-14 | Arch-PR2 | Work Actions: CreateTask/UpdateTask/ChangeTaskStatus/DuplicateTask — extrakce business logiky z TaskController (563→494 ř.) |
 | 2026-04-14 | Arch-PR1 | Async infra: InvitationMail ShouldQueue, named queues (mail/notifications), Horizon viewHorizon gate pro Executive, AuditService afterCommit (rollback-safe audit), 2 nové audit regresní testy |
 | 2026-03-25 | M0 | Foundation bootstrap: Laravel 13 + Inertia + React + Docker stack, CI pipeline, modulová struktura |
 | 2026-03-25 | M1 | Horizon setup: queue worker běží, dashboard na /horizon, dual Redis konfigurace |

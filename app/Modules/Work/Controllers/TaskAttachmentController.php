@@ -42,8 +42,7 @@ final class TaskAttachmentController extends Controller
 
     public function destroy(Request $request, Attachment $attachment): RedirectResponse
     {
-        $attachable = $attachment->attachable;
-        Gate::authorize('update', $attachable);
+        Gate::authorize('delete', $attachment);
 
         $attachment->deleteFile();
         $attachment->delete();

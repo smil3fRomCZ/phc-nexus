@@ -37,9 +37,7 @@ final class TaskCommentController extends Controller
 
     public function update(Request $request, Comment $comment, EditComment $action): RedirectResponse
     {
-        Gate::authorize('update', $comment->commentable);
-
-        abort_unless($comment->author_id === $request->user()->id, 403);
+        Gate::authorize('update', $comment);
 
         $validated = $request->validate([
             'body' => ['required', 'string', 'max:10000'],
@@ -52,9 +50,7 @@ final class TaskCommentController extends Controller
 
     public function destroy(Request $request, Comment $comment): RedirectResponse
     {
-        Gate::authorize('update', $comment->commentable);
-
-        abort_unless($comment->author_id === $request->user()->id, 403);
+        Gate::authorize('delete', $comment);
 
         $comment->delete();
 

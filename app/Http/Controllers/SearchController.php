@@ -9,6 +9,7 @@ use App\Modules\Audit\PhiAccessGuard;
 use App\Modules\Organization\Enums\SystemRole;
 use App\Modules\Projects\Models\Project;
 use App\Modules\Work\Models\Task;
+use App\Support\CaseInsensitiveLike;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 
@@ -32,8 +33,8 @@ final class SearchController extends Controller
 
         $projects = Project::query()
             ->where(function ($q) use ($like) {
-                $q->whereRaw('LOWER(name) LIKE ?', [$like])
-                    ->orWhereRaw('LOWER(key) LIKE ?', [$like]);
+                CaseInsensitiveLike::apply($q, 'name', $like);
+                CaseInsensitiveLike::applyOr($q, 'key', $like);
             })
             ->when($isTeamMember, function ($q) use ($user) {
                 $q->where(function ($sub) use ($user) {
@@ -47,7 +48,7 @@ final class SearchController extends Controller
 
         $tasks = Task::query()
             ->with(['project:id,name,key', 'workflowStatus:id,name,color'])
-            ->whereRaw('LOWER(title) LIKE ?', [$like])
+            ->tap(fn ($q) => CaseInsensitiveLike::apply($q, 'title', $like))
             ->whereHas('project', function ($q) use ($user, $isTeamMember, $hasPhiClearance) {
                 $q->when($isTeamMember, function ($sub) use ($user) {
                     $sub->where('owner_id', $user->id)

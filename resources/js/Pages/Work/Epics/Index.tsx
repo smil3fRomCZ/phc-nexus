@@ -128,7 +128,7 @@ export default function EpicsIndex({ project, epics, filters = {} }: Props) {
                             <tr
                                 key={epic.id}
                                 className="cursor-pointer transition-colors hover:bg-brand-soft"
-                                onClick={() => (window.location.href = `/projects/${project.id}/epics/${epic.id}`)}
+                                onClick={() => router.visit(`/projects/${project.id}/epics/${epic.id}`)}
                             >
                                 <td className="border-b border-border-subtle px-4 py-2.5 font-mono text-xs font-semibold text-text-muted">
                                     {displayKey(project.key, epic.number)}

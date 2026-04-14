@@ -40,7 +40,9 @@ final class GoogleAuthController extends Controller
                 ->with('error', 'Tvůj Google účet není povolen. Použij prosím pracovní e-mail (pearseurope.com nebo pearshealthcyber.com).');
         }
 
-        Auth::login($user, remember: true);
+        // Bez remember=true — SSO nepotřebuje persistent cookie (re-login přes Google je rychlý).
+        // Persistent remember token zvyšuje window pro session theft, viz security audit.
+        Auth::login($user);
 
         return redirect()->intended(route('dashboard'));
     }

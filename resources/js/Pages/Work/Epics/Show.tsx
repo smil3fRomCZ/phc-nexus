@@ -273,7 +273,7 @@ export default function EpicShow({
                                                         key={task.id}
                                                         className="cursor-pointer transition-colors hover:bg-brand-soft"
                                                         onClick={() =>
-                                                            (window.location.href = `/projects/${project.id}/tasks/${task.id}`)
+                                                            router.visit(`/projects/${project.id}/tasks/${task.id}`)
                                                         }
                                                     >
                                                         <td className="border-b border-border-subtle px-3 py-2 font-mono text-xs font-semibold text-text-muted">

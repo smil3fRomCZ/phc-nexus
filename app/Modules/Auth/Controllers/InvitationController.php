@@ -8,6 +8,7 @@ use App\Http\Controllers\Controller;
 use App\Models\User;
 use App\Modules\Auth\Actions\InviteUser;
 use App\Modules\Auth\Models\Invitation;
+use App\Modules\Auth\Rules\AllowedSsoDomain;
 use App\Modules\Organization\Enums\SystemRole;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
@@ -20,7 +21,7 @@ final class InvitationController extends Controller
         Gate::authorize('invite', User::class);
 
         $validated = $request->validate([
-            'email' => ['required', 'email', 'unique:invitations,email,NULL,id,accepted_at,NULL'],
+            'email' => ['required', 'email', new AllowedSsoDomain, 'unique:invitations,email,NULL,id,accepted_at,NULL'],
             'system_role' => ['required', 'string', 'in:'.implode(',', array_column(SystemRole::cases(), 'value'))],
             'team_id' => ['nullable', 'uuid', 'exists:teams,id'],
         ]);

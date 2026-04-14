@@ -34,6 +34,7 @@
 | — | Workflow Templates & Reports | **DONE** | Globální workflow šablony, záložka Reporty, workflow editor sidebar |
 | — | Planning UX | **DONE** | Start date úkolů, drag&drop validace, editace worklogu, epic linking, backlog UX |
 | — | Security Audit — Sprint 1 (Quick wins) | **DONE** | Compose porty na 127.0.0.1, fail-fast required env vars (POSTGRES/REDIS), session encrypt + secure cookies, staging APP_DEBUG=false, Caddy `admin off` + Permissions-Policy, SSO domain whitelist (env), e2e route hard guard |
+| — | Security Audit — Sprint 2 (Auth hardening) | **DONE** | Google SSO domain whitelist (kód + validace invite), AuditLogPolicy, named rate limiters (login/SSO/invite-accept), invite TTL 72h→24h, AuditLog input validation |
 
 ---
 

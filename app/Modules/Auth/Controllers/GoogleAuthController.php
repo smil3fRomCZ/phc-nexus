@@ -6,9 +6,11 @@ namespace App\Modules\Auth\Controllers;
 
 use App\Http\Controllers\Controller;
 use App\Modules\Auth\Actions\AuthenticateGoogleUser;
+use App\Modules\Auth\Exceptions\DomainNotAllowedException;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\Log;
 use Laravel\Socialite\Facades\Socialite;
 
 final class GoogleAuthController extends Controller
@@ -29,7 +31,14 @@ final class GoogleAuthController extends Controller
 
         $invitationToken = session()->pull('pending_invitation');
 
-        $user = $authenticateUser->execute($socialiteUser, $invitationToken);
+        try {
+            $user = $authenticateUser->execute($socialiteUser, $invitationToken);
+        } catch (DomainNotAllowedException $e) {
+            Log::warning('Google SSO: doména zamítnuta', ['email' => $e->email]);
+
+            return redirect()->route('login')
+                ->with('error', 'Tvůj Google účet není povolen. Použij prosím pracovní e-mail (pearseurope.com nebo pearshealthcyber.com).');
+        }
 
         Auth::login($user, remember: true);
 

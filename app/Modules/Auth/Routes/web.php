@@ -7,11 +7,17 @@ use App\Modules\Auth\Controllers\InvitationController;
 use App\Modules\Auth\Controllers\LoginController;
 use Illuminate\Support\Facades\Route;
 
-// Guest routes — rate limited (20 attempts per minute)
-Route::middleware(['guest', 'throttle:20,1'])->group(function () {
+// Guest routes — named limitery (v testech vypnuté, viz AppServiceProvider)
+Route::middleware(['guest', 'throttle:guest-login'])->group(function () {
     Route::get('/login', [LoginController::class, 'show'])->name('login');
+});
+
+Route::middleware(['guest', 'throttle:guest-sso'])->group(function () {
     Route::get('/auth/google', [GoogleAuthController::class, 'redirect'])->name('auth.google');
     Route::get('/auth/google/callback', [GoogleAuthController::class, 'callback'])->name('auth.google.callback');
+});
+
+Route::middleware(['guest', 'throttle:invite-accept'])->group(function () {
     Route::get('/auth/invite/{token}', [InvitationController::class, 'accept'])->name('auth.invite.accept');
 });
 

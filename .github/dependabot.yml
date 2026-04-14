@@ -61,3 +61,14 @@ updates:
     labels:
       - dependencies
       - docker
+    ignore:
+      # PHP a Node držíme na aktuálních LTS; major bump řešíme ručně
+      - dependency-name: php
+        update-types:
+          - version-update:semver-major
+      - dependency-name: node
+        update-types:
+          - version-update:semver-major
+      - dependency-name: composer
+        update-types:
+          - version-update:semver-major

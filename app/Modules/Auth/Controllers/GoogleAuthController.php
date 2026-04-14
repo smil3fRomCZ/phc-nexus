@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace App\Modules\Auth\Controllers;
 
 use App\Http\Controllers\Controller;
+use App\Http\Middleware\EnforceSecurityStamp;
 use App\Modules\Auth\Actions\AuthenticateGoogleUser;
 use App\Modules\Auth\Exceptions\DomainNotAllowedException;
 use Illuminate\Http\RedirectResponse;
@@ -43,6 +44,10 @@ final class GoogleAuthController extends Controller
         // Bez remember=true — SSO nepotřebuje persistent cookie (re-login přes Google je rychlý).
         // Persistent remember token zvyšuje window pro session theft, viz security audit.
         Auth::login($user);
+
+        // Vázat session na aktuální security stamp uživatele — po "logout everywhere"
+        // budou mít ostatní sessions zastaralou hodnotu a odhlásí se.
+        $request->session()->put(EnforceSecurityStamp::SESSION_KEY, $user->security_stamp);
 
         return redirect()->intended(route('dashboard'));
     }

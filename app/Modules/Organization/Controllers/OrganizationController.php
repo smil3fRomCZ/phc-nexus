@@ -6,6 +6,8 @@ namespace App\Modules\Organization\Controllers;
 
 use App\Http\Controllers\Controller;
 use App\Models\User;
+use App\Modules\Audit\AuditService;
+use App\Modules\Audit\Enums\AuditAction;
 use App\Modules\Organization\Models\Division;
 use App\Modules\Organization\Models\Team;
 use Illuminate\Http\RedirectResponse;
@@ -99,7 +101,7 @@ final class OrganizationController extends Controller
         ]);
     }
 
-    public function storeDivision(Request $request): RedirectResponse
+    public function storeDivision(Request $request, AuditService $audit): RedirectResponse
     {
         Gate::authorize('create', Division::class);
 
@@ -108,13 +110,15 @@ final class OrganizationController extends Controller
             'description' => ['nullable', 'string'],
         ]);
 
-        Division::create($validated);
+        $division = Division::create($validated);
+
+        $audit->log(AuditAction::Created, $division, newValues: $validated);
 
         return redirect()->route('admin.organization')
             ->with('success', 'Divize vytvořena.');
     }
 
-    public function updateDivision(Request $request, Division $division): RedirectResponse
+    public function updateDivision(Request $request, Division $division, AuditService $audit): RedirectResponse
     {
         Gate::authorize('update', $division);
 
@@ -123,23 +127,29 @@ final class OrganizationController extends Controller
             'description' => ['nullable', 'string'],
         ]);
 
+        $oldValues = $division->only(array_keys($validated));
         $division->update($validated);
+
+        $audit->log(AuditAction::Updated, $division, oldValues: $oldValues, newValues: $validated);
 
         return redirect()->back()
             ->with('success', 'Divize aktualizována.');
     }
 
-    public function destroyDivision(Division $division): RedirectResponse
+    public function destroyDivision(Division $division, AuditService $audit): RedirectResponse
     {
         Gate::authorize('delete', $division);
 
+        $snapshot = $division->only(['id', 'name', 'description']);
         $division->delete();
+
+        $audit->log(AuditAction::Deleted, $division, oldValues: $snapshot);
 
         return redirect()->route('admin.organization')
             ->with('success', 'Divize smazána.');
     }
 
-    public function storeTeam(Request $request): RedirectResponse
+    public function storeTeam(Request $request, AuditService $audit): RedirectResponse
     {
         Gate::authorize('create', Team::class);
 
@@ -150,13 +160,15 @@ final class OrganizationController extends Controller
             'team_lead_id' => ['nullable', 'uuid', 'exists:users,id'],
         ]);
 
-        Team::create($validated);
+        $team = Team::create($validated);
+
+        $audit->log(AuditAction::Created, $team, newValues: $validated);
 
         return redirect()->back()
             ->with('success', 'Tým vytvořen.');
     }
 
-    public function updateTeam(Request $request, Team $team): RedirectResponse
+    public function updateTeam(Request $request, Team $team, AuditService $audit): RedirectResponse
     {
         Gate::authorize('update', $team);
 
@@ -167,23 +179,29 @@ final class OrganizationController extends Controller
             'team_lead_id' => ['nullable', 'uuid', 'exists:users,id'],
         ]);
 
+        $oldValues = $team->only(array_keys($validated));
         $team->update($validated);
+
+        $audit->log(AuditAction::Updated, $team, oldValues: $oldValues, newValues: $validated);
 
         return redirect()->back()
             ->with('success', 'Tým aktualizován.');
     }
 
-    public function destroyTeam(Team $team): RedirectResponse
+    public function destroyTeam(Team $team, AuditService $audit): RedirectResponse
     {
         Gate::authorize('delete', $team);
 
+        $snapshot = $team->only(['id', 'name', 'description', 'division_id', 'team_lead_id']);
         $team->delete();
+
+        $audit->log(AuditAction::Deleted, $team, oldValues: $snapshot);
 
         return redirect()->back()
             ->with('success', 'Tým smazán.');
     }
 
-    public function addMember(Request $request, Team $team): RedirectResponse
+    public function addMember(Request $request, Team $team, AuditService $audit): RedirectResponse
     {
         Gate::authorize('manageMembers', $team);
 
@@ -191,18 +209,38 @@ final class OrganizationController extends Controller
             'user_id' => ['required', 'uuid', 'exists:users,id'],
         ]);
 
+        $user = User::find($validated['user_id']);
+        $oldTeam = $user?->team_id;
         User::where('id', $validated['user_id'])->update(['team_id' => $team->id]);
+
+        if ($user) {
+            $audit->log(
+                AuditAction::Updated,
+                $user,
+                payload: ['operation' => 'team_member_added', 'team_id' => $team->id],
+                oldValues: ['team_id' => $oldTeam],
+                newValues: ['team_id' => $team->id],
+            );
+        }
 
         return redirect()->back()
             ->with('success', 'Člen přidán do týmu.');
     }
 
-    public function removeMember(Team $team, User $user): RedirectResponse
+    public function removeMember(Team $team, User $user, AuditService $audit): RedirectResponse
     {
         Gate::authorize('manageMembers', $team);
 
         if ($user->team_id === $team->id) {
             $user->update(['team_id' => null]);
+
+            $audit->log(
+                AuditAction::Updated,
+                $user,
+                payload: ['operation' => 'team_member_removed', 'team_id' => $team->id],
+                oldValues: ['team_id' => $team->id],
+                newValues: ['team_id' => null],
+            );
         }
 
         return redirect()->back()

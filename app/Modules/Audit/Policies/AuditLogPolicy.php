@@ -16,4 +16,15 @@ final class AuditLogPolicy
             SystemRole::ProjectManager,
         ], true);
     }
+
+    /**
+     * Plný (global) pohled na audit trail — napříč všemi projekty a uživateli.
+     * Ostatní role sice mohou audit otevřít (viewAny), ale výsledky jsou
+     * omezené na jejich scope (entries, které sami způsobili, nebo entity
+     * v projektech, kde jsou členy).
+     */
+    public function viewAll(User $user): bool
+    {
+        return $user->system_role === SystemRole::Executive;
+    }
 }

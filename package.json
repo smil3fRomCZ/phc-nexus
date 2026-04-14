@@ -37,7 +37,7 @@
         "typescript": "^6.0.2",
         "typescript-eslint": "^8.58.2",
         "vite": "^8.0.0",
-        "vitest": "^4.1.1"
+        "vitest": "^4.1.4"
     },
     "dependencies": {
         "@dnd-kit/core": "^6.3.1",

@@ -26,14 +26,22 @@ final class ProjectExportController extends Controller
         $format = $request->input('format', 'csv');
         abort_unless(in_array($format, ['csv', 'excel', 'html', 'md'], true), 422, 'Nepodporovaný formát.');
 
-        $audit->log(AuditAction::Exported, $project, ['type' => "tasks_{$format}"]);
-
+        // Unknown = PHI strictness: propustit jen explicit non_phi tasks.
         $tasks = Task::query()
             ->where('project_id', $project->id)
             ->where('data_classification', 'non_phi')
             ->with(['assignee:id,name', 'reporter:id,name', 'epic:id,title', 'workflowStatus:id,name'])
             ->orderBy('created_at')
             ->get();
+
+        $totalTasks = Task::query()->where('project_id', $project->id)->count();
+
+        $audit->log(AuditAction::Exported, $project, [
+            'type' => "tasks_{$format}",
+            'rows' => $tasks->count(),
+            'phi_filter' => 'non_phi_only',
+            'excluded_count' => $totalTasks - $tasks->count(),
+        ]);
 
         $date = now()->format('Y-m-d');
         $ext = match ($format) {
@@ -58,7 +66,11 @@ final class ProjectExportController extends Controller
 
         abort_unless($phiGuard->canExport($request->user(), $project), 403, 'Export PHI dat není povolen.');
 
-        $audit->log(AuditAction::Exported, $project, ['type' => 'project_csv']);
+        $audit->log(AuditAction::Exported, $project, [
+            'type' => 'project_csv',
+            'rows' => 1,
+            'fields' => ['name', 'key', 'status', 'description', 'owner', 'team', 'start_date', 'target_date', 'tasks_count', 'epics_count', 'members'],
+        ]);
 
         $project->load(['owner:id,name', 'team:id,name', 'members:id,name']);
         $project->loadCount(['tasks', 'epics']);

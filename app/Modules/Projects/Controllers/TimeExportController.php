@@ -26,13 +26,20 @@ final class TimeExportController extends Controller
         abort_unless($phiGuard->canExport($request->user(), $project), 403, 'Export PHI dat není povolen.');
 
         $format = $this->validFormat($request);
-        $audit->log(AuditAction::Exported, $project, ['type' => "time_{$format}"]);
 
-        /** @var EloquentCollection<int, TimeEntry> $entries */
-        $entries = $project->timeEntries()
-            ->with(['user:id,name', 'task:id,title', 'epic:id,title'])
+        /** @var EloquentCollection<int, TimeEntry> $raw */
+        $raw = $project->timeEntries()
+            ->with(['user:id,name', 'task:id,title,data_classification', 'epic:id,title,data_classification'])
             ->latest('date')
             ->get();
+
+        $entries = $this->filterNonPhiEntries($raw);
+
+        $audit->log(AuditAction::Exported, $project, [
+            'type' => "time_{$format}",
+            'rows' => $entries->count(),
+            'phi_filter' => 'non_phi_only',
+        ]);
 
         return $this->export($entries, $format, $project->key, $project->name);
     }
@@ -41,26 +48,33 @@ final class TimeExportController extends Controller
     {
         Gate::authorize('view', $project);
         abort_unless($phiGuard->canExport($request->user(), $project), 403, 'Export PHI dat není povolen.');
+        // Block export pokud samotný epic je PHI-restricted (i kdyby project nebyl).
+        abort_unless($phiGuard->canExport($request->user(), $epic), 403, 'Export PHI dat není povolen.');
 
         $format = $this->validFormat($request);
-        $audit->log(AuditAction::Exported, $epic, ['type' => "time_{$format}"]);
 
         /** @var EloquentCollection<int, TimeEntry> $directEntries */
         $directEntries = $epic->timeEntries()
-            ->with(['user:id,name', 'task:id,title', 'epic:id,title'])
+            ->with(['user:id,name', 'task:id,title,data_classification', 'epic:id,title,data_classification'])
             ->latest('date')
             ->get();
 
         /** @var EloquentCollection<int, TimeEntry> $taskEntries */
         $taskEntries = TimeEntry::whereIn('task_id', $epic->tasks()->pluck('id'))
-            ->with(['user:id,name', 'task:id,title', 'epic:id,title'])
+            ->with(['user:id,name', 'task:id,title,data_classification', 'epic:id,title,data_classification'])
             ->latest('date')
             ->get();
 
         /** @var EloquentCollection<int, TimeEntry> $entries */
-        $entries = new EloquentCollection(
+        $entries = $this->filterNonPhiEntries(new EloquentCollection(
             $directEntries->concat($taskEntries)->sortByDesc('date')->values()->all()
-        );
+        ));
+
+        $audit->log(AuditAction::Exported, $epic, [
+            'type' => "time_{$format}",
+            'rows' => $entries->count(),
+            'phi_filter' => 'non_phi_only',
+        ]);
 
         return $this->export($entries, $format, $project->key, "{$project->name} — {$epic->title}");
     }
@@ -69,17 +83,44 @@ final class TimeExportController extends Controller
     {
         Gate::authorize('view', $project);
         abort_unless($phiGuard->canExport($request->user(), $project), 403, 'Export PHI dat není povolen.');
+        // Task-level PHI check: block pokud je task PHI-restricted.
+        abort_unless($phiGuard->canExport($request->user(), $task), 403, 'Export PHI dat není povolen.');
 
         $format = $this->validFormat($request);
-        $audit->log(AuditAction::Exported, $task, ['type' => "time_{$format}"]);
 
         /** @var EloquentCollection<int, TimeEntry> $entries */
         $entries = $task->timeEntries()
-            ->with(['user:id,name', 'task:id,title', 'epic:id,title'])
+            ->with(['user:id,name', 'task:id,title,data_classification', 'epic:id,title,data_classification'])
             ->latest('date')
             ->get();
 
+        $audit->log(AuditAction::Exported, $task, [
+            'type' => "time_{$format}",
+            'rows' => $entries->count(),
+        ]);
+
         return $this->export($entries, $format, $project->key, "{$project->name} — {$task->title}");
+    }
+
+    /**
+     * Odfiltruje time entries, kde je přiřazený task nebo epic označen jako PHI.
+     *
+     * @param  EloquentCollection<int, TimeEntry>  $entries
+     * @return EloquentCollection<int, TimeEntry>
+     */
+    private function filterNonPhiEntries(EloquentCollection $entries): EloquentCollection
+    {
+        /** @var EloquentCollection<int, TimeEntry> $filtered */
+        $filtered = $entries->filter(function (TimeEntry $entry): bool {
+            // isPhiRestricted() zahrnuje Unknown = PHI strictness politiku.
+            if ($entry->task && $entry->task->isPhiRestricted()) {
+                return false;
+            }
+
+            return ! $entry->epic || ! $entry->epic->isPhiRestricted();
+        })->values();
+
+        return $filtered;
     }
 
     private function validFormat(Request $request): string

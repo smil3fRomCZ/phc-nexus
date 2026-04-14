@@ -12,6 +12,12 @@ use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 
+/**
+ * @property ?Task $task
+ * @property ?Epic $epic
+ * @property ?Project $project
+ * @property ?User $user
+ */
 class TimeEntry extends Model
 {
     /** @use HasFactory<TimeEntryFactory> */
@@ -40,21 +46,25 @@ class TimeEntry extends Model
         ];
     }
 
+    /** @return BelongsTo<Project, $this> */
     public function project(): BelongsTo
     {
         return $this->belongsTo(Project::class);
     }
 
+    /** @return BelongsTo<Task, $this> */
     public function task(): BelongsTo
     {
         return $this->belongsTo(Task::class);
     }
 
+    /** @return BelongsTo<Epic, $this> */
     public function epic(): BelongsTo
     {
         return $this->belongsTo(Epic::class);
     }
 
+    /** @return BelongsTo<User, $this> */
     public function user(): BelongsTo
     {
         return $this->belongsTo(User::class);

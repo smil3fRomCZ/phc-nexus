@@ -18,7 +18,9 @@ class TaskAssignedNotification extends Notification implements ShouldQueue
     public function __construct(
         public readonly Task $task,
         public readonly User $assignedBy,
-    ) {}
+    ) {
+        $this->onQueue('notifications');
+    }
 
     /** @return list<string> */
     public function via(object $notifiable): array

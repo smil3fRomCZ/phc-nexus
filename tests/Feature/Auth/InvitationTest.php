@@ -34,7 +34,7 @@ class InvitationTest extends TestCase
 
         $response->assertRedirect();
         $this->assertDatabaseHas('invitations', ['email' => 'novy@pearseurope.com']);
-        Mail::assertSent(InvitationMail::class);
+        Mail::assertQueued(InvitationMail::class);
     }
 
     public function test_pm_can_send_invitation(): void
@@ -49,7 +49,7 @@ class InvitationTest extends TestCase
         ]);
 
         $response->assertRedirect();
-        Mail::assertSent(InvitationMail::class);
+        Mail::assertQueued(InvitationMail::class);
     }
 
     public function test_regular_member_cannot_send_invitation(): void

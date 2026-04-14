@@ -8,6 +8,7 @@ use App\Modules\Audit\Enums\AuditAction;
 use App\Modules\Audit\Models\AuditEntry;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Request;
 
 final class AuditService
@@ -18,10 +19,10 @@ final class AuditService
         ?array $payload = null,
         ?array $oldValues = null,
         ?array $newValues = null,
-    ): AuditEntry {
+    ): ?AuditEntry {
         $masked = $this->isPhiRestricted($entity);
 
-        return AuditEntry::create([
+        $attributes = [
             'action' => $action,
             'entity_type' => $entity->getMorphClass(),
             'entity_id' => $entity->getKey(),
@@ -31,7 +32,16 @@ final class AuditService
             'new_values' => $masked ? self::maskedPlaceholder() : $newValues,
             'ip_address' => Request::ip(),
             'user_agent' => Request::userAgent(),
-        ]);
+        ];
+
+        // Uvnitř transakce odložíme zápis po commitu — při rollbacku se audit nezapíše.
+        if (DB::transactionLevel() > 0) {
+            DB::afterCommit(static fn () => AuditEntry::create($attributes));
+
+            return null;
+        }
+
+        return AuditEntry::create($attributes);
     }
 
     /**

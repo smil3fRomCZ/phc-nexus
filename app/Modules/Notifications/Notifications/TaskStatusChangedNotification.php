@@ -19,7 +19,9 @@ class TaskStatusChangedNotification extends Notification implements ShouldQueue
         public readonly Task $task,
         public readonly WorkflowStatus $oldStatus,
         public readonly WorkflowStatus $newStatus,
-    ) {}
+    ) {
+        $this->onQueue('notifications');
+    }
 
     /** @return list<string> */
     public function via(object $notifiable): array

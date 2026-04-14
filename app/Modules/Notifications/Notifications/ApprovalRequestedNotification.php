@@ -16,7 +16,9 @@ class ApprovalRequestedNotification extends Notification implements ShouldQueue
 
     public function __construct(
         public readonly ApprovalRequest $approvalRequest,
-    ) {}
+    ) {
+        $this->onQueue('notifications');
+    }
 
     /** @return list<string> */
     public function via(object $notifiable): array

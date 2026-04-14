@@ -2,7 +2,7 @@
 
 Živý dokument mapující co je **reálně implementováno** vs. plánováno. Aktualizuje se po každém milestone a významné změně.
 
-> Poslední aktualizace: 2026-04-13
+> Poslední aktualizace: 2026-04-14
 
 ---
 
@@ -375,6 +375,7 @@ Aktuální stav:
 
 | Datum | Milestone | Co se stalo |
 |-------|-----------|-------------|
+| 2026-04-14 | Arch-PR1 | Async infra: InvitationMail ShouldQueue, named queues (mail/notifications), Horizon viewHorizon gate pro Executive, AuditService afterCommit (rollback-safe audit), 2 nové audit regresní testy |
 | 2026-03-25 | M0 | Foundation bootstrap: Laravel 13 + Inertia + React + Docker stack, CI pipeline, modulová struktura |
 | 2026-03-25 | M1 | Horizon setup: queue worker běží, dashboard na /horizon, dual Redis konfigurace |
 | 2026-03-25 | M1 | Google SSO: login/logout flow, Auth modul (controller, action, routes), login stránka, 8 testů |

@@ -8,13 +8,14 @@ use App\Models\User;
 use App\Modules\Audit\AuditService;
 use App\Modules\Audit\Enums\AuditAction;
 use App\Modules\Audit\Enums\PhiClassification;
+use App\Modules\Audit\Models\AuditEntry;
 use App\Modules\Projects\Models\Project;
-use Illuminate\Foundation\Testing\RefreshDatabase;
+use Illuminate\Foundation\Testing\DatabaseMigrations;
 use Tests\TestCase;
 
 class AuditPhiMaskingTest extends TestCase
 {
-    use RefreshDatabase;
+    use DatabaseMigrations;
 
     public function test_payload_masked_for_phi_entity(): void
     {
@@ -26,13 +27,14 @@ class AuditPhiMaskingTest extends TestCase
             'name' => 'Pacientský registr — citlivé',
         ]);
 
-        $entry = app(AuditService::class)->log(
+        app(AuditService::class)->log(
             AuditAction::Viewed,
             $project,
             payload: ['name' => 'Pacientský registr', 'ssn' => '123-45-6789'],
             newValues: ['field' => 'value'],
         );
 
+        $entry = AuditEntry::latest('id')->first();
         $this->assertSame(['_masked' => true, 'reason' => 'PHI/unknown classification'], $entry->payload);
         $this->assertSame(['_masked' => true, 'reason' => 'PHI/unknown classification'], $entry->new_values);
     }
@@ -46,12 +48,13 @@ class AuditPhiMaskingTest extends TestCase
             'data_classification' => PhiClassification::Unknown,
         ]);
 
-        $entry = app(AuditService::class)->log(
+        app(AuditService::class)->log(
             AuditAction::Viewed,
             $project,
             payload: ['leak' => 'xxx'],
         );
 
+        $entry = AuditEntry::latest('id')->first();
         $this->assertSame(['_masked' => true, 'reason' => 'PHI/unknown classification'], $entry->payload);
     }
 
@@ -65,12 +68,13 @@ class AuditPhiMaskingTest extends TestCase
             'name' => 'Veřejný katalog',
         ]);
 
-        $entry = app(AuditService::class)->log(
+        app(AuditService::class)->log(
             AuditAction::Viewed,
             $project,
             payload: ['name' => 'Veřejný katalog'],
         );
 
+        $entry = AuditEntry::latest('id')->first();
         $this->assertSame(['name' => 'Veřejný katalog'], $entry->payload);
     }
 }

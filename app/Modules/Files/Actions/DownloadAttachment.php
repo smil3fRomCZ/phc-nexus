@@ -31,7 +31,14 @@ final class DownloadAttachment
             throw new AuthorizationException('Nemáte oprávnění stahovat přílohy PHI entity.');
         }
 
-        $this->auditService->log(AuditAction::Downloaded, $attachment);
+        // HIPAA-like audit trail: bez kontextu jsme neviděli k jaké entitě patří.
+        $this->auditService->log(AuditAction::Downloaded, $attachment, [
+            'filename' => $attachment->original_filename,
+            'mime_type' => $attachment->mime_type,
+            'size' => $attachment->size,
+            'attachable_type' => $attachment->attachable_type,
+            'attachable_id' => $attachment->attachable_id,
+        ]);
 
         return response()->streamDownload(
             function () use ($attachment) {

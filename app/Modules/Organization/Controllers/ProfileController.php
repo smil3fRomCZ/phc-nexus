@@ -5,7 +5,10 @@ declare(strict_types=1);
 namespace App\Modules\Organization\Controllers;
 
 use App\Http\Controllers\Controller;
+use App\Http\Middleware\EnforceSecurityStamp;
 use App\Models\User;
+use App\Modules\Audit\AuditService;
+use App\Modules\Audit\Enums\AuditAction;
 use App\Modules\Organization\Models\Team;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
@@ -69,6 +72,29 @@ final class ProfileController extends Controller
 
         return redirect()->back()
             ->with('success', 'Avatar aktualizován.');
+    }
+
+    /**
+     * Zregeneruje security_stamp uživatele a aktualizuje ho v aktuální
+     * session — všechny ostatní sessions dostanou při dalším requestu
+     * mismatch a odhlásí se přes EnforceSecurityStamp middleware.
+     */
+    public function logoutEverywhere(Request $request, AuditService $audit): RedirectResponse
+    {
+        $user = $request->user();
+        $newStamp = bin2hex(random_bytes(16));
+
+        $user->forceFill(['security_stamp' => $newStamp])->save();
+        $request->session()->put(EnforceSecurityStamp::SESSION_KEY, $newStamp);
+
+        $audit->log(
+            AuditAction::Updated,
+            $user,
+            payload: ['operation' => 'logout_other_devices'],
+        );
+
+        return redirect()->back()
+            ->with('success', 'Odhlášení na ostatních zařízeních bylo vyžádáno.');
     }
 
     public function removeAvatar(Request $request): RedirectResponse

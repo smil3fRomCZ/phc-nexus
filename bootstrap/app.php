@@ -1,6 +1,7 @@
 <?php
 
 use App\Http\Middleware\EnforceIdleTimeout;
+use App\Http\Middleware\EnforceSecurityStamp;
 use App\Http\Middleware\EnsureUserIsActive;
 use App\Http\Middleware\HandleInertiaRequests;
 use Illuminate\Foundation\Application;
@@ -39,6 +40,7 @@ return Application::configure(basePath: dirname(__DIR__))
             HandleInertiaRequests::class,
             EnsureUserIsActive::class,
             EnforceIdleTimeout::class,
+            EnforceSecurityStamp::class,
         ]);
         $middleware->throttleWithRedis();
     })

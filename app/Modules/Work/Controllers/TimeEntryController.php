@@ -65,9 +65,7 @@ final class TimeEntryController extends Controller
 
     public function update(Request $request, TimeEntry $timeEntry): RedirectResponse
     {
-        if ($timeEntry->user_id !== $request->user()->id) {
-            abort(403);
-        }
+        Gate::authorize('update', $timeEntry);
 
         $validated = $request->validate([
             'date' => ['required', 'date'],
@@ -82,9 +80,7 @@ final class TimeEntryController extends Controller
 
     public function destroy(Request $request, TimeEntry $timeEntry): RedirectResponse
     {
-        if ($timeEntry->user_id !== $request->user()->id) {
-            abort(403);
-        }
+        Gate::authorize('delete', $timeEntry);
 
         $timeEntry->delete();
 

@@ -9,6 +9,10 @@ use App\Modules\Approvals\Models\ApprovalRequest;
 use App\Modules\Approvals\Policies\ApprovalRequestPolicy;
 use App\Modules\Audit\Models\AuditEntry;
 use App\Modules\Audit\Policies\AuditLogPolicy;
+use App\Modules\Comments\Models\Comment;
+use App\Modules\Comments\Policies\CommentPolicy;
+use App\Modules\Files\Models\Attachment;
+use App\Modules\Files\Policies\AttachmentPolicy;
 use App\Modules\Organization\Models\Division;
 use App\Modules\Organization\Models\Team;
 use App\Modules\Organization\Policies\DivisionPolicy;
@@ -18,8 +22,10 @@ use App\Modules\Projects\Models\Project;
 use App\Modules\Projects\Policies\ProjectPolicy;
 use App\Modules\Work\Models\Epic;
 use App\Modules\Work\Models\Task;
+use App\Modules\Work\Models\TimeEntry;
 use App\Modules\Work\Policies\EpicPolicy;
 use App\Modules\Work\Policies\TaskPolicy;
+use App\Modules\Work\Policies\TimeEntryPolicy;
 use Illuminate\Cache\RateLimiting\Limit;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Gate;
@@ -43,6 +49,9 @@ class AppServiceProvider extends ServiceProvider
         Gate::policy(Task::class, TaskPolicy::class);
         Gate::policy(ApprovalRequest::class, ApprovalRequestPolicy::class);
         Gate::policy(AuditEntry::class, AuditLogPolicy::class);
+        Gate::policy(Comment::class, CommentPolicy::class);
+        Gate::policy(TimeEntry::class, TimeEntryPolicy::class);
+        Gate::policy(Attachment::class, AttachmentPolicy::class);
 
         $this->configureRateLimiters();
     }

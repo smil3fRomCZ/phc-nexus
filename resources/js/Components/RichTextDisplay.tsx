@@ -6,9 +6,20 @@ interface Props {
 
 const SANITIZE_CONFIG: Config = {
     ALLOWED_TAGS: [
-        'p', 'br', 'strong', 'em', 'u', 's', 'code', 'pre',
-        'h2', 'h3', 'h4',
-        'ul', 'ol', 'li',
+        'p',
+        'br',
+        'strong',
+        'em',
+        'u',
+        's',
+        'code',
+        'pre',
+        'h2',
+        'h3',
+        'h4',
+        'ul',
+        'ol',
+        'li',
         'blockquote',
         'a',
     ],

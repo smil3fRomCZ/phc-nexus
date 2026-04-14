@@ -114,4 +114,20 @@ return [
 
     'password_timeout' => env('AUTH_PASSWORD_TIMEOUT', 10800),
 
+    /*
+    |--------------------------------------------------------------------------
+    | Google SSO — Allowed Email Domains
+    |--------------------------------------------------------------------------
+    |
+    | Čárkou oddělený seznam domén, ze kterých je povoleno Google SSO.
+    | Pokud je prázdné, doménová kontrola se NEPROVÁDÍ (nepoužívat v prod).
+    | Porovnání je case-insensitive.
+    |
+    */
+
+    'google_allowed_domains' => array_values(array_filter(array_map(
+        fn (string $d): string => strtolower(trim($d)),
+        explode(',', (string) env('AUTH_GOOGLE_ALLOWED_DOMAINS', '')),
+    ))),
+
 ];

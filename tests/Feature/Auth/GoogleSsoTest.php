@@ -33,14 +33,14 @@ class GoogleSsoTest extends TestCase
 
     public function test_google_callback_creates_new_user(): void
     {
-        $this->mockSocialiteUser('jan@pearshealthcare.cz', 'Jan Novák');
+        $this->mockSocialiteUser('jan@pearseurope.com', 'Jan Novák');
 
         $response = $this->get('/auth/google/callback?code=mock-code');
 
         $response->assertRedirect(route('dashboard'));
         $this->assertAuthenticated();
         $this->assertDatabaseHas('users', [
-            'email' => 'jan@pearshealthcare.cz',
+            'email' => 'jan@pearseurope.com',
             'name' => 'Jan Novák',
         ]);
     }
@@ -48,11 +48,11 @@ class GoogleSsoTest extends TestCase
     public function test_google_callback_logs_in_existing_user(): void
     {
         $user = User::factory()->create([
-            'email' => 'jan@pearshealthcare.cz',
+            'email' => 'jan@pearseurope.com',
             'name' => 'Jan Starý',
         ]);
 
-        $this->mockSocialiteUser('jan@pearshealthcare.cz', 'Jan Novák');
+        $this->mockSocialiteUser('jan@pearseurope.com', 'Jan Novák');
 
         $response = $this->get('/auth/google/callback?code=mock-code');
 
@@ -77,6 +77,31 @@ class GoogleSsoTest extends TestCase
 
         $response->assertStatus(200);
         $response->assertInertia(fn ($page) => $page->component('Dashboard/Index'));
+    }
+
+    public function test_google_callback_rejects_disallowed_domain(): void
+    {
+        config()->set('auth.google_allowed_domains', ['pearseurope.com', 'pearshealthcyber.com']);
+
+        $this->mockSocialiteUser('attacker@gmail.com', 'Mr Bad');
+
+        $response = $this->get('/auth/google/callback?code=mock-code');
+
+        $response->assertRedirect(route('login'));
+        $this->assertGuest();
+        $this->assertDatabaseMissing('users', ['email' => 'attacker@gmail.com']);
+    }
+
+    public function test_google_callback_accepts_second_allowed_domain(): void
+    {
+        config()->set('auth.google_allowed_domains', ['pearseurope.com', 'pearshealthcyber.com']);
+
+        $this->mockSocialiteUser('ops@pearshealthcyber.com', 'Ops User');
+
+        $response = $this->get('/auth/google/callback?code=mock-code');
+
+        $response->assertRedirect(route('dashboard'));
+        $this->assertAuthenticated();
     }
 
     public function test_logout_works(): void

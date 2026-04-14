@@ -28,12 +28,12 @@ class InvitationTest extends TestCase
         $admin = User::factory()->executive()->create();
 
         $response = $this->actingAs($admin)->post('/invitations', [
-            'email' => 'novy@pearshealthcare.cz',
+            'email' => 'novy@pearseurope.com',
             'system_role' => 'team_member',
         ]);
 
         $response->assertRedirect();
-        $this->assertDatabaseHas('invitations', ['email' => 'novy@pearshealthcare.cz']);
+        $this->assertDatabaseHas('invitations', ['email' => 'novy@pearseurope.com']);
         Mail::assertSent(InvitationMail::class);
     }
 
@@ -44,7 +44,7 @@ class InvitationTest extends TestCase
         $pm = User::factory()->projectManager()->create();
 
         $response = $this->actingAs($pm)->post('/invitations', [
-            'email' => 'novy@pearshealthcare.cz',
+            'email' => 'novy@pearseurope.com',
             'system_role' => 'team_member',
         ]);
 
@@ -57,7 +57,7 @@ class InvitationTest extends TestCase
         $member = User::factory()->create();
 
         $response = $this->actingAs($member)->post('/invitations', [
-            'email' => 'novy@pearshealthcare.cz',
+            'email' => 'novy@pearseurope.com',
             'system_role' => 'team_member',
         ]);
 
@@ -73,25 +73,25 @@ class InvitationTest extends TestCase
         $team = Team::create(['name' => 'Backend', 'division_id' => $division->id]);
 
         $response = $this->actingAs($admin)->post('/invitations', [
-            'email' => 'novy@pearshealthcare.cz',
+            'email' => 'novy@pearseurope.com',
             'system_role' => 'team_member',
             'team_id' => $team->id,
         ]);
 
         $response->assertRedirect();
         $this->assertDatabaseHas('invitations', [
-            'email' => 'novy@pearshealthcare.cz',
+            'email' => 'novy@pearseurope.com',
             'team_id' => $team->id,
         ]);
     }
 
-    public function test_invitation_expires_after_72_hours(): void
+    public function test_invitation_expires_after_24_hours(): void
     {
         Mail::fake();
 
         $admin = User::factory()->executive()->create();
         $this->actingAs($admin)->post('/invitations', [
-            'email' => 'novy@pearshealthcare.cz',
+            'email' => 'novy@pearseurope.com',
             'system_role' => 'team_member',
         ]);
 
@@ -99,7 +99,7 @@ class InvitationTest extends TestCase
         $this->assertTrue($invitation->isPending());
         $this->assertFalse($invitation->isExpired());
 
-        $this->travel(73)->hours();
+        $this->travel(25)->hours();
         $this->assertTrue($invitation->isExpired());
         $this->assertFalse($invitation->isPending());
     }
@@ -158,15 +158,32 @@ class InvitationTest extends TestCase
 
     public function test_google_callback_without_invitation_creates_default_user(): void
     {
-        $this->mockSocialiteUser('random@example.com', 'Random User');
+        $this->mockSocialiteUser('random@pearseurope.com', 'Random User');
 
         $response = $this->get('/auth/google/callback?code=mock-code');
 
         $response->assertRedirect(route('dashboard'));
 
-        $user = User::where('email', 'random@example.com')->first();
+        $user = User::where('email', 'random@pearseurope.com')->first();
         $this->assertEquals(SystemRole::TeamMember, $user->system_role);
         $this->assertNull($user->team_id);
+    }
+
+    public function test_invitation_rejects_disallowed_domain(): void
+    {
+        config()->set('auth.google_allowed_domains', ['pearseurope.com', 'pearshealthcyber.com']);
+
+        $admin = User::factory()->executive()->create();
+
+        $response = $this->actingAs($admin)
+            ->from('/admin/users')
+            ->post('/invitations', [
+                'email' => 'external@gmail.com',
+                'system_role' => 'team_member',
+            ]);
+
+        $response->assertSessionHasErrors('email');
+        $this->assertDatabaseMissing('invitations', ['email' => 'external@gmail.com']);
     }
 
     private function createPendingInvitation(array $overrides = []): Invitation
@@ -174,12 +191,12 @@ class InvitationTest extends TestCase
         $admin = User::factory()->executive()->create();
 
         return Invitation::create(array_merge([
-            'email' => 'invited@pearshealthcare.cz',
+            'email' => 'invited@pearseurope.com',
             'token' => 'test-token-'.uniqid(),
             'system_role' => SystemRole::TeamMember,
             'team_id' => null,
             'invited_by' => $admin->id,
-            'expires_at' => now()->addHours(72),
+            'expires_at' => now()->addHours(24),
         ], $overrides));
     }
 

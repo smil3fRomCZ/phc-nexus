@@ -25,7 +25,7 @@ final class InviteUser
             'system_role' => $role,
             'team_id' => $teamId,
             'invited_by' => $invitedBy->id,
-            'expires_at' => now()->addHours(72),
+            'expires_at' => now()->addHours(24),
         ]);
 
         Mail::to($email)->send(new InvitationMail($invitation));

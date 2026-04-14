@@ -17,34 +17,44 @@ final class AuditLogController extends Controller
 {
     public function __invoke(Request $request): Response
     {
-        Gate::authorize('viewAny', User::class);
+        Gate::authorize('viewAny', AuditEntry::class);
+
+        $filters = $request->validate([
+            'action' => ['nullable', 'string'],
+            'entity_type' => ['nullable', 'string'],
+            'actor_id' => ['nullable', 'uuid'],
+            'date_from' => ['nullable', 'date_format:Y-m-d'],
+            'date_to' => ['nullable', 'date_format:Y-m-d'],
+            'sort' => ['nullable', 'string'],
+            'dir' => ['nullable', 'in:asc,desc'],
+        ]);
 
         $query = AuditEntry::query()
             ->with(['actor:id,name']);
 
-        if ($request->filled('action')) {
-            $query->where('action', $request->input('action'));
+        if (! empty($filters['action'])) {
+            $query->where('action', $filters['action']);
         }
 
-        if ($request->filled('entity_type')) {
-            $query->where('entity_type', $request->input('entity_type'));
+        if (! empty($filters['entity_type'])) {
+            $query->where('entity_type', $filters['entity_type']);
         }
 
-        if ($request->filled('actor_id')) {
-            $query->where('actor_id', $request->input('actor_id'));
+        if (! empty($filters['actor_id'])) {
+            $query->where('actor_id', $filters['actor_id']);
         }
 
-        if ($request->filled('date_from')) {
-            $query->where('created_at', '>=', $request->input('date_from').' 00:00:00');
+        if (! empty($filters['date_from'])) {
+            $query->where('created_at', '>=', $filters['date_from'].' 00:00:00');
         }
 
-        if ($request->filled('date_to')) {
-            $query->where('created_at', '<=', $request->input('date_to').' 23:59:59');
+        if (! empty($filters['date_to'])) {
+            $query->where('created_at', '<=', $filters['date_to'].' 23:59:59');
         }
 
         $allowedSorts = ['created_at', 'action', 'entity_type'];
-        $sort = $request->input('sort');
-        $dir = $request->input('dir') === 'asc' ? 'asc' : 'desc';
+        $sort = $filters['sort'] ?? null;
+        $dir = ($filters['dir'] ?? 'desc') === 'asc' ? 'asc' : 'desc';
 
         if ($sort && in_array($sort, $allowedSorts, true)) {
             $query->orderBy($sort, $dir);

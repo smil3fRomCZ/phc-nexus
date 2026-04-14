@@ -37,6 +37,7 @@
 | — | Security Audit — Sprint 2 (Auth hardening) | **DONE** | Google SSO domain whitelist (kód + validace invite), AuditLogPolicy, named rate limiters (login/SSO/invite-accept), invite TTL 72h→24h, AuditLog input validation |
 | — | Security Audit — Sprint 3 (Infra & CI) | **DONE** | GitHub Actions pin na commit SHA, Dockerfile HEALTHCHECK, base image pin na patch verze, Dependabot (composer/npm/actions/docker weekly), DB_SSLMODE=prefer default |
 | — | Security Audit — Sprint 4 (App polish) | **DONE** | Upload MIME whitelist (config/attachments.php + AttachmentValidation helper), filename sanitizace (path traversal, kontrolní znaky), AuditService PHI masking pro PHI/Unknown entity, backup GPG doc |
+| — | Dependabot batch (15 PR) + Inertia v3 upgrade | **DONE** | 13/15 Dependabot PR mergnuto (patches/minors/actions majors), PHP 8.5/Node 25 záměrně closed, inertia-laravel 2→3 upgrade s publish configu (paths → `resources/js/Pages`, SSR default off) |
 
 ---
 

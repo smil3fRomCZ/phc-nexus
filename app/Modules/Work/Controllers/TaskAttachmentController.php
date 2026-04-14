@@ -8,6 +8,7 @@ use App\Http\Controllers\Controller;
 use App\Modules\Files\Actions\DownloadAttachment;
 use App\Modules\Files\Actions\UploadAttachment;
 use App\Modules\Files\Models\Attachment;
+use App\Modules\Files\Support\AttachmentValidation;
 use App\Modules\Projects\Models\Project;
 use App\Modules\Work\Models\Task;
 use Illuminate\Http\RedirectResponse;
@@ -22,7 +23,7 @@ final class TaskAttachmentController extends Controller
         Gate::authorize('update', $task);
 
         $request->validate([
-            'file' => ['required', 'file', 'max:20480'], // 20 MB
+            'file' => AttachmentValidation::fileRules(),
         ]);
 
         $action->execute(

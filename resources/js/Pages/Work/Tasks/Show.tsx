@@ -23,14 +23,7 @@ import CollapsibleDependencies from './components/DependenciesPanel';
 import RequestApprovalDialog from './components/RequestApprovalDialog';
 import SidebarSection from './components/SidebarSection';
 import TaskEditDialog from './components/TaskEditDialog';
-import type {
-    BenefitTypeOption,
-    EpicOption,
-    Member,
-    ProjectTask,
-    SelectOption,
-    Task,
-} from './components/types';
+import type { BenefitTypeOption, EpicOption, Member, ProjectTask, SelectOption, Task } from './components/types';
 
 interface Props {
     project: { id: string; name: string; key: string };

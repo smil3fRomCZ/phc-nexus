@@ -5,6 +5,12 @@
 }
 
 {$DOMAIN:phc-nexus.eu} {
+	# Uploadované soubory (avatary, přílohy) — z storage volume
+	handle_path /storage/* {
+		root * /var/www/html/storage/app/public
+		file_server
+	}
+
 	# Statické soubory (Vite built assets, favicon, robots.txt)
 	root * /var/www/html/public
 	file_server

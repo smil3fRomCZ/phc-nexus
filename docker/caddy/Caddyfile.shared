@@ -7,6 +7,12 @@
 # Produkce — phc-nexus.eu
 # =============================================================================
 {$DOMAIN:phc-nexus.eu} {
+	# Uploadované soubory (avatary, přílohy) — z storage volume
+	handle_path /storage/* {
+		root * /var/www/html/storage/app/public
+		file_server
+	}
+
 	# Statické soubory (Vite built assets, favicon, robots.txt)
 	root * /var/www/html/public
 	file_server
@@ -47,6 +53,12 @@ dev.{$DOMAIN:phc-nexus.eu} {
 	# Basic auth ochrana — zamezí neautorizovanému přístupu
 	basicauth {
 		{$STAGING_AUTH_USER:staging} {$STAGING_AUTH_HASH}
+	}
+
+	# Uploadované soubory (avatary, přílohy) — z storage volume
+	handle_path /storage/* {
+		root * /var/www/html/storage-staging/app/public
+		file_server
 	}
 
 	# Statické soubory

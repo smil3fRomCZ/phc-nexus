@@ -1,6 +1,15 @@
-import { Head } from '@inertiajs/react';
+import Modal from '@/Components/Modal';
+import { Head, usePage } from '@inertiajs/react';
+import { AlertCircle } from 'lucide-react';
+import { useState } from 'react';
 
 export default function Login() {
+    const { flash } = usePage<{ flash: { error?: string } }>().props;
+    const [showError, setShowError] = useState(!!flash.error);
+
+    const isDomainError = flash.error === 'domain_not_allowed';
+    const isCancelled = flash.error === 'Přihlášení bylo zrušeno.';
+
     return (
         <>
             <Head title="Přihlášení" />
@@ -11,6 +20,12 @@ export default function Login() {
                             <h1 className="text-2xl font-semibold text-brand-primary">PHC Nexus</h1>
                             <p className="mt-2 text-sm text-text-muted">Přihlaste se pomocí firemního Google účtu</p>
                         </div>
+
+                        {isCancelled && (
+                            <div className="mb-4 rounded-md border border-status-warning/30 bg-status-warning/5 px-3 py-2 text-center text-sm text-status-warning">
+                                Přihlášení bylo zrušeno.
+                            </div>
+                        )}
 
                         <a
                             href="/auth/google"
@@ -26,6 +41,30 @@ export default function Login() {
                     </div>
                 </div>
             </div>
+
+            {isDomainError && (
+                <Modal open={showError} onClose={() => setShowError(false)} size="max-w-sm">
+                    <div className="flex flex-col items-center text-center">
+                        <div className="mb-4 flex h-12 w-12 items-center justify-center rounded-full bg-status-danger-subtle">
+                            <AlertCircle className="h-6 w-6 text-status-danger" />
+                        </div>
+
+                        <h2 className="mb-3 text-lg font-semibold text-text-strong">Nepodporovaný účet</h2>
+
+                        <p className="mb-1 text-sm text-text-muted">Přihlášení je možné pouze firemním Google účtem.</p>
+                        <p className="mb-5 text-sm text-text-muted">
+                            Pokud nemáte přístup, kontaktujte svého nadřízeného nebo IT oddělení.
+                        </p>
+
+                        <button
+                            onClick={() => setShowError(false)}
+                            className="w-full rounded-md bg-brand-primary px-4 py-2.5 text-sm font-medium text-text-inverse transition-colors hover:bg-brand-hover"
+                        >
+                            Rozumím, zkusím znovu
+                        </button>
+                    </div>
+                </Modal>
+            )}
         </>
     );
 }

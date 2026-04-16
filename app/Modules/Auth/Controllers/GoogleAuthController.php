@@ -38,7 +38,7 @@ final class GoogleAuthController extends Controller
             Log::warning('Google SSO: doména zamítnuta', ['email' => $e->email]);
 
             return redirect()->route('login')
-                ->with('error', 'Tvůj Google účet není povolen. Použij prosím pracovní e-mail (pearseurope.com nebo pearshealthcyber.com).');
+                ->with('error', 'domain_not_allowed');
         }
 
         // Bez remember=true — SSO nepotřebuje persistent cookie (re-login přes Google je rychlý).

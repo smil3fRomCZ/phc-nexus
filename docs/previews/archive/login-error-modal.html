@@ -1,0 +1,251 @@
+<!DOCTYPE html>
+<html lang="cs">
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Login — Error Modal Preview</title>
+    <style>
+        :root {
+            --color-brand-primary: #2563eb;
+            --color-brand-hover: #1d4ed8;
+            --color-surface-primary: #ffffff;
+            --color-surface-secondary: #f8fafc;
+            --color-surface-hover: #f1f5f9;
+            --color-text-default: #1e293b;
+            --color-text-muted: #64748b;
+            --color-text-subtle: #94a3b8;
+            --color-text-inverse: #ffffff;
+            --color-border-default: #e2e8f0;
+            --color-status-danger: #dc2626;
+            --color-status-danger-subtle: #fef2f2;
+            --color-status-warning: #f59e0b;
+        }
+
+        * { box-sizing: border-box; margin: 0; padding: 0; }
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+            background: var(--color-surface-secondary);
+            min-height: 100vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .login-card {
+            width: 100%;
+            max-width: 24rem;
+            background: var(--color-surface-primary);
+            border: 1px solid var(--color-border-default);
+            border-radius: 0.5rem;
+            padding: 2rem;
+            box-shadow: 0 1px 3px rgba(0,0,0,0.05);
+        }
+
+        .login-header {
+            text-align: center;
+            margin-bottom: 2rem;
+        }
+
+        .login-header h1 {
+            font-size: 1.5rem;
+            font-weight: 600;
+            color: var(--color-brand-primary);
+        }
+
+        .login-header p {
+            margin-top: 0.5rem;
+            font-size: 0.875rem;
+            color: var(--color-text-muted);
+        }
+
+        .google-btn {
+            display: flex;
+            width: 100%;
+            align-items: center;
+            justify-content: center;
+            gap: 0.75rem;
+            border: 1px solid var(--color-border-default);
+            background: var(--color-surface-primary);
+            border-radius: 0.375rem;
+            padding: 0.75rem 1rem;
+            font-size: 0.875rem;
+            font-weight: 500;
+            color: var(--color-text-default);
+            cursor: pointer;
+            text-decoration: none;
+            transition: background-color 0.15s;
+        }
+
+        .google-btn:hover {
+            background: var(--color-surface-hover);
+        }
+
+        .footer-text {
+            margin-top: 1.5rem;
+            text-align: center;
+            font-size: 0.75rem;
+            color: var(--color-text-subtle);
+        }
+
+        /* ── Modal overlay ── */
+        .modal-overlay {
+            position: fixed;
+            inset: 0;
+            background: rgba(0, 0, 0, 0.5);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            z-index: 50;
+        }
+
+        .modal-overlay.hidden {
+            display: none;
+        }
+
+        .modal-card {
+            background: var(--color-surface-primary);
+            border-radius: 0.75rem;
+            padding: 1.5rem;
+            max-width: 26rem;
+            width: 90%;
+            box-shadow: 0 20px 60px rgba(0, 0, 0, 0.15);
+        }
+
+        .modal-icon {
+            width: 3rem;
+            height: 3rem;
+            border-radius: 50%;
+            background: var(--color-status-danger-subtle);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            margin: 0 auto 1rem;
+        }
+
+        .modal-icon svg {
+            width: 1.5rem;
+            height: 1.5rem;
+            color: var(--color-status-danger);
+        }
+
+        .modal-title {
+            font-size: 1.125rem;
+            font-weight: 600;
+            color: var(--color-text-default);
+            text-align: center;
+            margin-bottom: 0.75rem;
+        }
+
+        .modal-body {
+            font-size: 0.875rem;
+            color: var(--color-text-muted);
+            text-align: center;
+            line-height: 1.5;
+            margin-bottom: 1.25rem;
+        }
+
+        .modal-body strong {
+            color: var(--color-text-default);
+            font-weight: 600;
+        }
+
+        .modal-domains {
+            display: flex;
+            gap: 0.5rem;
+            justify-content: center;
+            margin-top: 0.75rem;
+        }
+
+        .domain-badge {
+            display: inline-flex;
+            align-items: center;
+            gap: 0.25rem;
+            background: #eff6ff;
+            color: var(--color-brand-primary);
+            font-size: 0.75rem;
+            font-weight: 600;
+            padding: 0.25rem 0.625rem;
+            border-radius: 9999px;
+        }
+
+        .modal-btn {
+            display: block;
+            width: 100%;
+            padding: 0.625rem 1rem;
+            border: none;
+            border-radius: 0.375rem;
+            font-size: 0.875rem;
+            font-weight: 500;
+            cursor: pointer;
+            transition: background-color 0.15s;
+        }
+
+        .modal-btn-primary {
+            background: var(--color-brand-primary);
+            color: var(--color-text-inverse);
+        }
+
+        .modal-btn-primary:hover {
+            background: var(--color-brand-hover);
+        }
+
+        /* ── Toggle ── */
+        .demo-toggle {
+            position: fixed;
+            top: 1rem;
+            right: 1rem;
+            padding: 0.5rem 1rem;
+            background: var(--color-status-danger);
+            color: white;
+            border: none;
+            border-radius: 0.375rem;
+            font-size: 0.75rem;
+            font-weight: 600;
+            cursor: pointer;
+        }
+    </style>
+</head>
+<body>
+    <!-- Demo toggle -->
+    <button class="demo-toggle" onclick="document.getElementById('errorModal').classList.toggle('hidden')">
+        Toggle Error Modal
+    </button>
+
+    <!-- Login Card (background) -->
+    <div class="login-card">
+        <div class="login-header">
+            <h1>PHC Nexus</h1>
+            <p>Přihlaste se pomocí firemního Google účtu</p>
+        </div>
+
+        <a href="#" class="google-btn">
+            <svg width="18" height="18" viewBox="0 0 18 18"><path d="M17.64 9.2c0-.637-.057-1.251-.164-1.84H9v3.481h4.844a4.14 4.14 0 01-1.796 2.716v2.259h2.908c1.702-1.567 2.684-3.875 2.684-6.615z" fill="#4285F4"/><path d="M9 18c2.43 0 4.467-.806 5.956-2.18l-2.908-2.259c-.806.54-1.837.86-3.048.86-2.344 0-4.328-1.584-5.036-3.711H.957v2.332A8.997 8.997 0 009 18z" fill="#34A853"/><path d="M3.964 10.71A5.41 5.41 0 013.682 9c0-.593.102-1.17.282-1.71V4.958H.957A8.996 8.996 0 000 9c0 1.452.348 2.827.957 4.042l3.007-2.332z" fill="#FBBC05"/><path d="M9 3.58c1.321 0 2.508.454 3.44 1.345l2.582-2.58C13.463.891 11.426 0 9 0A8.997 8.997 0 00.957 4.958L3.964 7.29C4.672 5.163 6.656 3.58 9 3.58z" fill="#EA4335"/></svg>
+            Přihlásit se přes Google
+        </a>
+
+        <p class="footer-text">Přístup je omezen na zaměstnance Pears Health Care</p>
+    </div>
+
+    <!-- Error Modal -->
+    <div id="errorModal" class="modal-overlay">
+        <div class="modal-card">
+            <div class="modal-icon">
+                <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor">
+                    <path stroke-linecap="round" stroke-linejoin="round" d="M12 9v3.75m9-.75a9 9 0 1 1-18 0 9 9 0 0 1 18 0Zm-9 3.75h.008v.008H12v-.008Z" />
+                </svg>
+            </div>
+
+            <h2 class="modal-title">Nepodporovaný účet</h2>
+
+            <div class="modal-body">
+                <p>Přihlášení je možné pouze firemním Google účtem.</p>
+                <p style="margin-top: 0.5rem;">Pokud nemáte přístup, kontaktujte svého nadřízeného nebo IT oddělení.</p>
+            </div>
+
+            <button class="modal-btn modal-btn-primary" onclick="document.getElementById('errorModal').classList.add('hidden')">
+                Rozumím, zkusím znovu
+            </button>
+        </div>
+    </div>
+</body>
+</html>

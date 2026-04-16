@@ -2,7 +2,7 @@
 
 Živý dokument mapující co je **reálně implementováno** vs. plánováno. Aktualizuje se po každém milestone a významné změně.
 
-> Poslední aktualizace: 2026-04-15
+> Poslední aktualizace: 2026-04-16
 
 ---
 
@@ -375,6 +375,7 @@ Aktuální stav:
 
 | Datum | Milestone | Co se stalo |
 |-------|-----------|-------------|
+| 2026-04-16 | Arch-PR4b | E2E rozšíření: task-lifecycle.spec.ts — 10 nových Playwright scénářů (task CRUD, status change, komentáře, PHI guard, approval request, duplikace, wiki, auth matrix, time tracking) |
 | 2026-04-15 | Arch-PR4a | React dekompozice Tasks/Show.tsx (1265→572 ř.): extrakce 6 sub-komponent do `components/` (TaskEditDialog, RequestApprovalDialog, CollapsibleDependencies, AttachmentList, SidebarSection, EditField) + sdílený `types.ts` |
 | 2026-04-14 | Arch-PR3 | Policies konsolidace: CommentPolicy, TimeEntryPolicy, AttachmentPolicy — nahrazují inline `abort_unless/abort(403)` checks, registrace v AppServiceProvider, policy matrix test (15 assertions) |
 | 2026-04-14 | Arch-PR2 | Work Actions: CreateTask/UpdateTask/ChangeTaskStatus/DuplicateTask — extrakce business logiky z TaskController (563→494 ř.) |

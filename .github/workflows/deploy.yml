@@ -104,10 +104,13 @@ jobs:
               docker compose --env-file .env.staging -f docker-compose.staging.yml exec -T app \
               php artisan config:cache
 
-            echo "=== Reloading shared Caddy ==="
+            echo "=== Syncing shared Caddy config ==="
+            cp /opt/phc-nexus-staging/docker/caddy/Caddyfile.shared /opt/phc-nexus-shared/Caddyfile
+            cp /opt/phc-nexus-staging/docker/caddy/docker-compose.caddy.yml /opt/phc-nexus-shared/docker-compose.caddy.yml
+
+            echo "=== Restarting shared Caddy ==="
             cd /opt/phc-nexus-shared
-            docker compose -f docker-compose.caddy.yml exec -T caddy \
-              caddy reload --config /etc/caddy/Caddyfile || true
+            docker compose -f docker-compose.caddy.yml up -d --force-recreate caddy
 
             echo "=== Staging deploy complete ==="'
 
@@ -152,6 +155,14 @@ jobs:
             docker compose exec -T app php artisan horizon:terminate
 
             sleep 5
+
+            echo "=== Syncing shared Caddy config ==="
+            cp /opt/phc-nexus/docker/caddy/Caddyfile.shared /opt/phc-nexus-shared/Caddyfile
+            cp /opt/phc-nexus/docker/caddy/docker-compose.caddy.yml /opt/phc-nexus-shared/docker-compose.caddy.yml
+
+            echo "=== Restarting shared Caddy ==="
+            cd /opt/phc-nexus-shared
+            docker compose -f docker-compose.caddy.yml up -d --force-recreate caddy
 
             echo "=== Health check ==="
             curl -sf --max-time 10 https://${{ secrets.DOMAIN }}/up || {

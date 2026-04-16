@@ -11,6 +11,14 @@ async function getProjectId(page: Page, name: string): Promise<string> {
     return href?.split('/projects/')[1]?.split('/')[0] ?? '';
 }
 
+async function openFirstTaskInTable(page: Page, projectId: string) {
+    await page.goto(`/projects/${projectId}/table`);
+    // Table rows contain links to task details — click the first task link in tbody
+    const taskLink = page.locator('table tbody a[href*="/tasks/"]').first();
+    await taskLink.click();
+    await page.waitForURL(/\/tasks\//);
+}
+
 const EXEC_EMAIL = 'jiri.kratochvil@example.cz';
 const PM_EMAIL = 'monika.fialova@example.cz';
 const DEV_EMAIL = 'ondrej.maly@example.cz';
@@ -24,13 +32,7 @@ test.describe('Task detail', () => {
         await loginAs(page, PM_EMAIL);
         const projectId = await getProjectId(page, 'Replatform E-shop');
 
-        await page.goto(`/projects/${projectId}/table`);
-        await page
-            .getByRole('link')
-            .filter({ hasText: /^(?!Projekty|Replatform)/ })
-            .first()
-            .click();
-        await page.waitForURL(/\/tasks\//);
+        await openFirstTaskInTable(page, projectId);
 
         await expect(page.locator('h1')).toBeVisible();
         await expect(page.getByText('Stav')).toBeVisible();
@@ -61,14 +63,14 @@ test.describe('Task CRUD lifecycle', () => {
         await expect(page.locator('h1', { hasText: taskName })).toBeVisible();
 
         // Edit via modal
-        await page.getByLabel('Upravit').click();
+        await page.getByTitle('Upravit').click();
         const editedName = `${taskName} edited`;
         await page.locator('form input[type="text"]').first().fill(editedName);
         await page.getByRole('button', { name: 'Uložit změny' }).click();
         await expect(page.locator('h1', { hasText: editedName })).toBeVisible();
 
         // Delete
-        await page.getByLabel('Smazat').click();
+        await page.getByTitle('Smazat').click();
         await page.getByRole('button', { name: 'Smazat' }).last().click();
         await page.waitForURL(/\/table/);
     });
@@ -115,13 +117,7 @@ test.describe('Komentáře', () => {
         await loginAs(page, PM_EMAIL);
         const projectId = await getProjectId(page, 'Replatform E-shop');
 
-        await page.goto(`/projects/${projectId}/table`);
-        await page
-            .getByRole('link')
-            .filter({ hasText: /^(?!Projekty|Replatform)/ })
-            .first()
-            .click();
-        await page.waitForURL(/\/tasks\//);
+        await openFirstTaskInTable(page, projectId);
 
         const commentText = `E2E komentář ${Date.now().toString().slice(-6)}`;
         await page.getByPlaceholder(/komentář|Napište/i).fill(commentText);
@@ -146,20 +142,14 @@ test.describe('Přílohy', () => {
 });
 
 // ============================================================
-// 6. Time entry log + delete
+// 6. Time entry log
 // ============================================================
 test.describe('Time tracking', () => {
     test('dev zaloguje čas k úkolu', async ({ page }) => {
         await loginAs(page, DEV_EMAIL);
         const projectId = await getProjectId(page, 'Replatform E-shop');
 
-        await page.goto(`/projects/${projectId}/table`);
-        await page
-            .getByRole('link')
-            .filter({ hasText: /^(?!Projekty|Replatform)/ })
-            .first()
-            .click();
-        await page.waitForURL(/\/tasks\//);
+        await openFirstTaskInTable(page, projectId);
 
         // Switch to time tab
         const timeTab = page.getByRole('button', { name: /Čas|Time/i });
@@ -194,8 +184,8 @@ test.describe('Approval request', () => {
         await page.getByRole('link', { name: taskName }).click();
         await page.waitForURL(/\/tasks\//);
 
-        // Open approval dialog
-        await page.getByLabel('Žádost o schválení').click();
+        // Open approval dialog via title attribute
+        await page.getByTitle('Žádost o schválení').click();
         await expect(page.getByText('Žádost o schválení').first()).toBeVisible();
 
         // Fill form — select first approver
@@ -219,24 +209,18 @@ test.describe('Duplikace úkolu', () => {
         await loginAs(page, PM_EMAIL);
         const projectId = await getProjectId(page, 'Replatform E-shop');
 
-        await page.goto(`/projects/${projectId}/table`);
-        await page
-            .getByRole('link')
-            .filter({ hasText: /^(?!Projekty|Replatform)/ })
-            .first()
-            .click();
-        await page.waitForURL(/\/tasks\//);
+        await openFirstTaskInTable(page, projectId);
 
-        const originalTitle = await page.locator('h1').innerText();
-        await page.getByLabel('Duplikovat').click();
+        await page.getByTitle('Duplikovat').click();
 
-        await page.waitForURL(/\/tasks\//);
+        // Duplicate redirects to new task — may take a moment
+        await page.waitForURL(/\/tasks\//, { timeout: 10000 });
         await expect(page.locator('h1', { hasText: '(kopie)' })).toBeVisible();
     });
 });
 
 // ============================================================
-// 9. Wiki page CRUD
+// 9. Wiki page
 // ============================================================
 test.describe('Wiki', () => {
     test('PM vidí wiki stránku projektu', async ({ page }) => {

@@ -67,7 +67,7 @@ Navrženo pro 50–200 uživatelů. Invite-only přístup přes Google SSO.
 - **Editace komentářů** — inline editace existujících komentářů
 - **Pagination** — na všech seznamech
 - **Klávesové zkratky** — Shift+Enter pro komentáře, Cmd+Enter pro formuláře
-- **Error handling** — globální error modal pro HTTP chyby (404/500), zavíratelný křížkem/klikem mimo/Escape
+- **Error handling** — globální error modal pro HTTP chyby (404/500), login error modal pro nefiremní účet, zavíratelný křížkem/klikem mimo/Escape
 
 ## Quick Start
 
@@ -89,7 +89,9 @@ npm run build
 
 ## Autentizace
 
-Google SSO (invite-only). Nové uživatele zvou Executive nebo Project Manager z admin sekce. Pozvánka platí 72 hodin.
+Google SSO (invite-only). Nové uživatele zvou Executive nebo Project Manager z admin sekce. Pozvánka platí 24 hodin.
+
+Přihlášení nefiremním účtem zobrazí chybový modal s instrukcí kontaktovat IT.
 
 **5 systémových rolí:** Executive · Project Manager · Team Member · Service Desk Agent · Reader
 
@@ -101,30 +103,31 @@ Google SSO (invite-only). Nové uživatele zvou Executive nebo Project Manager z
 
 | Vrstva       | Technologie                                                              |
 | ------------ | ------------------------------------------------------------------------ |
-| Backend      | Laravel 13 (PHP 8.4), Inertia.js v2                                      |
+| Backend      | Laravel 13 (PHP 8.4), Inertia.js v3                                      |
 | Frontend     | React 19, TypeScript, Tailwind CSS 4, shadcn/ui, Vite 6                  |
 | DB           | PostgreSQL 17 (UUIDv7 PK, JSONB)                                         |
 | Cache/Queues | Redis dual (cache allkeys-lru + data noeviction), Horizon                |
 | Auth         | Laravel Socialite (Google SSO)                                           |
 | Infra        | Docker Compose (9 kontejnerů), Caddy (reverse proxy + TLS), PHP-FPM      |
-| CI           | GitHub Actions (Pint + PHPStan + ESLint + Prettier + testy + Vite build) |
+| CI           | GitHub Actions (Pint + PHPStan + ESLint + Prettier + testy + Playwright E2E + Vite build) |
 
 ### Architektura
 
-Modulární monolit s 11 doménovými moduly:
+Modulární monolit s 11 doménovými moduly. Business logika v **Actions** (single-responsibility use-case třídy), autorizace přes **Policy** třídy.
 
 ```
 app/Modules/
   Auth/           — Google SSO, invite flow, login/logout
   Organization/   — Division, Team, Tribe, User management
   Projects/       — Projekty CRUD, membership, workflow engine, šablony, reporty, export
-  Work/           — Epiky, úkoly, kanban, tabulka, dependencies, recurrence, time logging, story points
+  Work/           — Epiky, úkoly, kanban, tabulka, dependencies, recurrence, time logging
+                    Actions: CreateTask, UpdateTask, ChangeTaskStatus, DuplicateTask
   Approvals/      — Approval requesty, hlasování, analytics
-  Notifications/  — In-app (DB) + email notifikace
-  Audit/          — Append-only audit trail, PHI klasifikace a access guard
-  Comments/       — Polymorfní threaded komentáře
+  Notifications/  — In-app (DB) + queued email (Horizon, named queues: mail/notifications)
+  Audit/          — Append-only audit trail, PHI masking, afterCommit guard
+  Comments/       — Polymorfní threaded komentáře, CommentPolicy
   Estimation/     — Planning Poker, multi-round hlasování, story point odhady
-  Files/          — Polymorfní přílohy, upload/download, PHI guard
+  Files/          — Polymorfní přílohy, upload/download, PHI guard, AttachmentPolicy
   Wiki/           — Projektová a epic dokumentace, stromová struktura stránek
 ```
 
@@ -152,8 +155,9 @@ Běží na **FORPSI Standard VPS** (4 vCPU, 8 GB RAM, 80 GB NVMe, ~295 Kč/měs)
 
 - **Produkce:** https://phc-nexus.eu
 - **Staging:** https://dev.phc-nexus.eu (basic auth chráněný, auto-seed při každém deployi)
-- Deploy workflow: push na master → CI → build image → **staging auto** (migrate:fresh --seed) → **produkce po approve** (migrate only)
-- Sdílený Caddy obsluhuje obě domény s auto-TLS (Let's Encrypt)
+- Deploy workflow: push na master → CI → build image → **staging auto** (migrate + seed) → **produkce po approve** (migrate only)
+- Sdílený Caddy obsluhuje obě domény s auto-TLS (Let's Encrypt), automatický sync configu při deployi
+- Caddy servíruje uploaded soubory (avatary, přílohy) přímo ze storage volume (`handle_path /storage/*`)
 - DB sync skript: jednosměrná kopie produkčních dat do stagingu s PHI anonymizací
 - Průvodce: [`docs/runbooks/forpsi-setup.md`](docs/runbooks/forpsi-setup.md), [`docs/staging-setup.md`](docs/staging-setup.md)
 

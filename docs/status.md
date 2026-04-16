@@ -38,6 +38,8 @@
 | — | Security Audit — Sprint 3 (Infra & CI) | **DONE** | GitHub Actions pin na commit SHA, Dockerfile HEALTHCHECK, base image pin na patch verze, Dependabot (composer/npm/actions/docker weekly), DB_SSLMODE=prefer default |
 | — | Security Audit — Sprint 4 (App polish) | **DONE** | Upload MIME whitelist (config/attachments.php + AttachmentValidation helper), filename sanitizace (path traversal, kontrolní znaky), AuditService PHI masking pro PHI/Unknown entity, backup GPG doc |
 | — | Dependabot batch (15 PR) + Inertia v3 upgrade | **DONE** | 13/15 Dependabot PR mergnuto (patches/minors/actions majors), PHP 8.5/Node 25 záměrně closed, inertia-laravel 2→3 upgrade s publish configu (paths → `resources/js/Pages`, SSR default off) |
+| — | Architecture Refactor (PR1–PR4b) | **DONE** | Async infra (named queues, Horizon gate, audit afterCommit), TaskController→Actions, Policies konsolidace, React dekompozice Show.tsx, 10 nových E2E scénářů |
+| — | Login Error Modal + Caddy Storage Fix | **DONE** | Chybový modal při nefiremním Google účtu (bez leakování domén), Caddy handle_path /storage/* pro avatary/přílohy, CSP fonts.bunny.net, automatický Caddy sync v deploy workflow |
 
 ---
 
@@ -368,6 +370,8 @@ Aktuální stav:
 1. **Module READMEs neexistují** — `app/Modules/*/README.md` zatím nevytvořeny (CLAUDE.md je vyžaduje)
 2. **Events/Listeners prázdné** — adresáře existují, ale event-driven architektura zatím nevyužita (notifikace dispatchují přímo)
 3. **Filament nepoužíván** — admin sekce je custom React/Inertia, Filament nikdy nebyl integrován
+4. **TaskController show() stále velký** — 494 ř., z toho ~300 ř. view-data assembly (audit transformace, selecty pro sidebar) — kandidát na Presenter/ViewComposer extrakci
+5. **Board.tsx/Table.tsx** — ~400 ř., menší priorita než Show.tsx ale stále kandidáti na dekompozici
 
 ---
 
@@ -375,6 +379,10 @@ Aktuální stav:
 
 | Datum | Milestone | Co se stalo |
 |-------|-----------|-------------|
+| 2026-04-16 | Infra | Automatický sync Caddy configu v deploy.yml — cp Caddyfile + docker-compose.caddy.yml → shared, force-recreate Caddy (staging i produkce) |
+| 2026-04-16 | Infra | CSP fix: fonts.bunny.net povolený v style-src + font-src (Caddyfile.shared + Caddyfile.prod) |
+| 2026-04-16 | Infra | Caddy storage volume fix: handle_path /storage/* servíruje přímo ze storage volume (avatar 403 fix), volumes přidány do docker-compose.caddy.yml |
+| 2026-04-16 | Auth | Login error modal pro nepodporovaný Google účet — flash 'domain_not_allowed' bez leakování domén, modal s instrukcí kontaktovat IT |
 | 2026-04-16 | Arch-PR4b | E2E rozšíření: task-lifecycle.spec.ts — 10 nových Playwright scénářů (task CRUD, status change, komentáře, PHI guard, approval request, duplikace, wiki, auth matrix, time tracking) |
 | 2026-04-15 | Arch-PR4a | React dekompozice Tasks/Show.tsx (1265→572 ř.): extrakce 6 sub-komponent do `components/` (TaskEditDialog, RequestApprovalDialog, CollapsibleDependencies, AttachmentList, SidebarSection, EditField) + sdílený `types.ts` |
 | 2026-04-14 | Arch-PR3 | Policies konsolidace: CommentPolicy, TimeEntryPolicy, AttachmentPolicy — nahrazují inline `abort_unless/abort(403)` checks, registrace v AppServiceProvider, policy matrix test (15 assertions) |

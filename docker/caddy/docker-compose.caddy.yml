@@ -9,7 +9,9 @@ services:
       - caddy-data:/data
       - caddy-config:/config
       - prod-public:/var/www/html/public:ro
+      - prod-storage:/var/www/html/storage:ro
       - staging-public:/var/www/html/public-staging:ro
+      - staging-storage:/var/www/html/storage-staging:ro
     environment:
       DOMAIN: ${DOMAIN:-phc-nexus.eu}
       STAGING_AUTH_USER: ${STAGING_AUTH_USER:-staging}
@@ -28,9 +30,15 @@ volumes:
   prod-public:
     external: true
     name: phc-nexus_app-public
+  prod-storage:
+    external: true
+    name: phc-nexus_app-storage
   staging-public:
     external: true
     name: phc-nexus-staging_app-public
+  staging-storage:
+    external: true
+    name: phc-nexus-staging_app-storage
 
 networks:
   prod-network:

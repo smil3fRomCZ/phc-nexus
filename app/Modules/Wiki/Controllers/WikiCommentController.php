@@ -16,7 +16,7 @@ final class WikiCommentController extends Controller
 {
     public function store(Request $request, Project $project, WikiPage $wikiPage, AddComment $action): RedirectResponse
     {
-        Gate::authorize('view', $project);
+        Gate::authorize('contribute', $project);
 
         $validated = $request->validate([
             'body' => ['required', 'string', 'max:10000'],

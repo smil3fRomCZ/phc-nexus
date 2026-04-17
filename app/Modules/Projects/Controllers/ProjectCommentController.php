@@ -15,7 +15,7 @@ final class ProjectCommentController extends Controller
 {
     public function store(Request $request, Project $project, AddComment $action): RedirectResponse
     {
-        Gate::authorize('view', $project);
+        Gate::authorize('contribute', $project);
 
         $validated = $request->validate([
             'body' => ['required', 'string', 'max:10000'],

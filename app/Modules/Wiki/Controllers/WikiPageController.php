@@ -59,7 +59,7 @@ final class WikiPageController extends Controller
 
     public function store(Request $request, Project $project): RedirectResponse
     {
-        Gate::authorize('view', $project);
+        Gate::authorize('contribute', $project);
 
         $validated = $request->validate([
             'title' => ['required', 'string', 'max:255'],
@@ -83,7 +83,7 @@ final class WikiPageController extends Controller
 
     public function update(Request $request, Project $project, WikiPage $wikiPage): RedirectResponse
     {
-        Gate::authorize('view', $project);
+        Gate::authorize('contribute', $project);
 
         $validated = $request->validate([
             'title' => ['required', 'string', 'max:255'],
@@ -98,7 +98,7 @@ final class WikiPageController extends Controller
 
     public function destroy(Project $project, WikiPage $wikiPage): RedirectResponse
     {
-        Gate::authorize('view', $project);
+        Gate::authorize('contribute', $project);
 
         $wikiPage->delete();
 

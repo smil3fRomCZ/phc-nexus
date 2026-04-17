@@ -18,7 +18,7 @@ final class TaskCommentController extends Controller
 {
     public function store(Request $request, Project $project, Task $task, AddComment $action): RedirectResponse
     {
-        Gate::authorize('view', $task);
+        Gate::authorize('contribute', $project);
 
         $validated = $request->validate([
             'body' => ['required', 'string', 'max:10000'],

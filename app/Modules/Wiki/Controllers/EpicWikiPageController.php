@@ -35,7 +35,7 @@ final class EpicWikiPageController extends Controller
 
     public function store(Request $request, Project $project, Epic $epic): RedirectResponse
     {
-        Gate::authorize('view', $epic);
+        Gate::authorize('contribute', $project);
 
         $validated = $request->validate([
             'title' => ['required', 'string', 'max:255'],
@@ -87,7 +87,7 @@ final class EpicWikiPageController extends Controller
 
     public function update(Request $request, Project $project, Epic $epic, WikiPage $wikiPage): RedirectResponse
     {
-        Gate::authorize('view', $epic);
+        Gate::authorize('contribute', $project);
 
         $validated = $request->validate([
             'title' => ['required', 'string', 'max:255'],
@@ -102,7 +102,7 @@ final class EpicWikiPageController extends Controller
 
     public function destroy(Project $project, Epic $epic, WikiPage $wikiPage): RedirectResponse
     {
-        Gate::authorize('view', $epic);
+        Gate::authorize('contribute', $project);
 
         $wikiPage->delete();
 

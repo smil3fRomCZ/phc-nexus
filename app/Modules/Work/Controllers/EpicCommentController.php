@@ -16,7 +16,7 @@ final class EpicCommentController extends Controller
 {
     public function store(Request $request, Project $project, Epic $epic, AddComment $action): RedirectResponse
     {
-        Gate::authorize('view', $epic);
+        Gate::authorize('contribute', $project);
 
         $validated = $request->validate([
             'body' => ['required', 'string', 'max:10000'],

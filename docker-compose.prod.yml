@@ -1,6 +1,11 @@
 # Production overrides — minimal volume mounts, built assets in image
 # Caddy je sdílený (docker-compose.caddy.yml) — obsluhuje produkci i staging
 # Usage: docker compose -f docker-compose.yml -f docker-compose.prod.yml up -d
+#
+# Resource limits jsou kalkulované pro 8 GB / 4 vCPU VPS se spolu-bydlícím
+# stagingem. Prod ~5.5 GB + staging ~1.4 GB + Caddy ~256 MB = 7.2 GB,
+# zbytek pro OS/buffers. Bez limitů může jeden runaway Horizon job srazit
+# celou DB (OOM killer neumí vybírat — sežere, kdo je první).
 
 services:
   app:
@@ -14,6 +19,8 @@ services:
       - no-new-privileges:true
     cap_drop:
       - ALL
+    mem_limit: 1536m
+    cpus: 1.5
 
   worker:
     volumes:
@@ -24,6 +31,8 @@ services:
       - no-new-privileges:true
     cap_drop:
       - ALL
+    mem_limit: 1024m
+    cpus: 1.0
 
   scheduler:
     volumes:
@@ -34,6 +43,8 @@ services:
       - no-new-privileges:true
     cap_drop:
       - ALL
+    mem_limit: 256m
+    cpus: 0.25
 
   caddy:
     profiles:
@@ -43,6 +54,8 @@ services:
     restart: unless-stopped
     security_opt:
       - no-new-privileges:true
+    mem_limit: 2048m
+    cpus: 2.0
 
   redis-cache:
     command: redis-server --maxmemory 128mb --maxmemory-policy allkeys-lru --requirepass ${REDIS_CACHE_PASSWORD:?REDIS_CACHE_PASSWORD must be set}
@@ -51,6 +64,8 @@ services:
       - no-new-privileges:true
     cap_drop:
       - ALL
+    mem_limit: 256m
+    cpus: 0.5
 
   redis-data:
     command: redis-server --maxmemory 128mb --maxmemory-policy noeviction --appendonly yes --requirepass ${REDIS_DATA_PASSWORD:?REDIS_DATA_PASSWORD must be set}
@@ -59,6 +74,8 @@ services:
       - no-new-privileges:true
     cap_drop:
       - ALL
+    mem_limit: 512m
+    cpus: 0.5
 
   mailpit:
     profiles:

@@ -20,6 +20,8 @@ services:
       redis:
         condition: service_healthy
     restart: unless-stopped
+    mem_limit: 384m
+    cpus: 1.0
     networks:
       - app-network
 
@@ -37,6 +39,8 @@ services:
     profiles:
       - full
     restart: unless-stopped
+    mem_limit: 384m
+    cpus: 0.5
     networks:
       - app-network
 
@@ -45,7 +49,7 @@ services:
   # ==========================================================================
   scheduler:
     image: phc-nexus:latest
-    command: sh -c "while true; do php artisan schedule:run --verbose --no-interaction; sleep 60; done"
+    command: sh -c "while true; do touch /tmp/scheduler.heartbeat; php artisan schedule:run --verbose --no-interaction; sleep 60; done"
     volumes:
       - ./.env.staging:/var/www/html/.env:ro
       - app-storage:/var/www/html/storage
@@ -54,6 +58,8 @@ services:
     profiles:
       - full
     restart: unless-stopped
+    mem_limit: 128m
+    cpus: 0.1
     networks:
       - app-network
 
@@ -74,6 +80,8 @@ services:
       timeout: 5s
       retries: 5
     restart: unless-stopped
+    mem_limit: 512m
+    cpus: 0.5
     networks:
       - app-network
 
@@ -89,6 +97,8 @@ services:
       timeout: 5s
       retries: 5
     restart: unless-stopped
+    mem_limit: 256m
+    cpus: 0.25
     networks:
       - app-network
 
@@ -100,6 +110,8 @@ services:
     ports:
       - "127.0.0.1:8026:8025"
     restart: unless-stopped
+    mem_limit: 64m
+    cpus: 0.1
     networks:
       - app-network
 

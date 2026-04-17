@@ -37,12 +37,10 @@ final class WikiAttachmentController extends Controller
     {
         Gate::authorize('view', $project);
 
-        // Jen obrázky pro wiki inline embed; menší limit než full attachments.
+        // Whitelist centralizovaný v config/attachments.php — zejména NE svg
+        // (same-origin render by spustil inline <script>, XSS viz C3 audit).
         $request->validate([
-            'file' => [
-                'required', 'file', 'max:10240',
-                'mimetypes:image/jpeg,image/png,image/gif,image/webp,image/svg+xml',
-            ],
+            'file' => AttachmentValidation::imageRules(),
         ]);
 
         $attachment = $action->execute(

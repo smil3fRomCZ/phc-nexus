@@ -42,13 +42,15 @@ final class InvitationController extends Controller
         // — zabraňuje enumeraci tokenů a timing-attack rozlišení stavů.
         $genericError = 'Pozvánka je neplatná nebo její platnost vypršela.';
 
-        $invitation = Invitation::where('token', $token)->first();
+        $invitation = Invitation::where('token_hash', hash('sha256', $token))->first();
 
         if ($invitation === null || $invitation->isAccepted() || $invitation->isExpired()) {
             return redirect()->route('login')->with('error', $genericError);
         }
 
-        session(['pending_invitation' => $invitation->token]);
+        // Plaintext token putujeme session → AuthenticateGoogleUser si ho
+        // znova přehashuje při lookupu.
+        session(['pending_invitation' => $token]);
 
         return redirect()->route('auth.google');
     }

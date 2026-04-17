@@ -8,6 +8,7 @@ use App\Models\User;
 use App\Modules\Auth\Exceptions\DomainNotAllowedException;
 use App\Modules\Auth\Models\Invitation;
 use App\Modules\Organization\Enums\UserStatus;
+use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Str;
 use Laravel\Socialite\Contracts\User as SocialiteUser;
 
@@ -19,9 +20,15 @@ final class AuthenticateGoogleUser
         $this->assertDomainAllowed($email);
         $this->assertHostedDomainMatches($socialiteUser, $email);
 
-        $invitation = $invitationToken
-            ? Invitation::where('token', $invitationToken)->whereNull('accepted_at')->first()
+        $invitation = $invitationToken !== null && $invitationToken !== ''
+            ? Invitation::findActiveByToken($invitationToken)
             : null;
+
+        if ($invitation !== null) {
+            $this->assertInvitationMatchesIdentity($invitation, $email);
+        }
+
+        $existingUser = User::where('email', $email)->first();
 
         $attributes = [
             'name' => $socialiteUser->getName(),
@@ -29,10 +36,18 @@ final class AuthenticateGoogleUser
             'avatar_url' => $socialiteUser->getAvatar(),
         ];
 
-        if ($invitation) {
+        // Invitation attributes (role, team, status) přebíráme pouze pro nově
+        // vznikající usery. Existující účet si drží svou roli — jinak by token
+        // swap stačil k tiché eskalaci privilegií.
+        if ($invitation !== null && $existingUser === null) {
             $attributes['system_role'] = $invitation->system_role;
             $attributes['team_id'] = $invitation->team_id;
             $attributes['status'] = UserStatus::Active;
+        } elseif ($invitation !== null && $existingUser !== null) {
+            Log::warning('Invitation redeemed by existing user; role unchanged.', [
+                'invitation_id' => $invitation->id,
+                'user_id' => $existingUser->id,
+            ]);
         }
 
         $user = User::updateOrCreate(
@@ -40,11 +55,45 @@ final class AuthenticateGoogleUser
             $attributes,
         );
 
-        if ($invitation) {
+        if ($invitation !== null) {
             $invitation->update(['accepted_at' => now()]);
         }
 
         return $user;
+    }
+
+    /**
+     * Email z pozvánky musí sedět s Google emailem a pozvánka nesmí být
+     * expirovaná. Bez těchto kontrol by stačil útočníkovi získat cizí
+     * invitation URL (e-mail forward, shoulder surfing, kompromitovaná
+     * inbox) a přihlásit se s ní jakýmkoli allow-listem povoleným účtem
+     * → převzal by roli z pozvánky.
+     *
+     * Chyba je uniformní (DomainNotAllowedException), aby útočník přes
+     * error message nerozeznal stav pozvánky.
+     *
+     * @throws DomainNotAllowedException
+     */
+    private function assertInvitationMatchesIdentity(Invitation $invitation, string $googleEmail): void
+    {
+        $invitationEmail = strtolower((string) $invitation->email);
+        $normalizedGoogle = strtolower($googleEmail);
+
+        if ($invitationEmail !== $normalizedGoogle) {
+            Log::warning('Invitation token used with non-matching Google email.', [
+                'invitation_id' => $invitation->id,
+                'invitation_email' => $invitationEmail,
+                'google_email' => $normalizedGoogle,
+            ]);
+            throw new DomainNotAllowedException($googleEmail);
+        }
+
+        if ($invitation->isExpired()) {
+            Log::warning('Expired invitation used during Google callback.', [
+                'invitation_id' => $invitation->id,
+            ]);
+            throw new DomainNotAllowedException($googleEmail);
+        }
     }
 
     private function assertDomainAllowed(string $email): void

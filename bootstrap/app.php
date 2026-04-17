@@ -9,6 +9,7 @@ use Illuminate\Foundation\Configuration\Exceptions;
 use Illuminate\Foundation\Configuration\Middleware;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Route;
+use Sentry\Laravel\Integration as SentryIntegration;
 
 return Application::configure(basePath: dirname(__DIR__))
     ->withRouting(
@@ -59,5 +60,8 @@ return Application::configure(basePath: dirname(__DIR__))
         $middleware->throttleWithRedis();
     })
     ->withExceptions(function (Exceptions $exceptions): void {
-        //
+        // Sentry error reporting — DSN prázdný = no-op (dev/test), v prod
+        // vše co projde standardním Laravel exception handlerem jde i do
+        // Sentry (včetně failed jobs, scheduler errors, http 5xx).
+        SentryIntegration::handles($exceptions);
     })->create();

@@ -20,6 +20,7 @@ use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Schema\Blueprint;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Http\UploadedFile;
+use Illuminate\Support\Facades\Gate;
 use Illuminate\Support\Facades\Schema;
 use Illuminate\Support\Facades\Storage;
 use Tests\TestCase;
@@ -39,6 +40,15 @@ class AttachmentTest extends TestCase
             $table->string('title');
             $table->string('data_classification')->default('non_phi');
             $table->timestamps();
+        });
+
+        // Test-only model bez Policy — DownloadAttachment vyžaduje `view` ability.
+        Gate::before(function ($user, $ability, $arguments) {
+            if ($ability === 'view' && ($arguments[0] ?? null) instanceof AttachableItem) {
+                return true;
+            }
+
+            return null;
         });
     }
 

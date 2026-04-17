@@ -24,8 +24,10 @@ concurrency:
   cancel-in-progress: false
 
 env:
-  # Image repo v GHCR — matches repo owner, image name `phc-nexus`.
-  IMAGE_NAME: ghcr.io/${{ github.repository_owner }}/phc-nexus
+  # Image repo v GHCR — OCI registry vyžaduje lowercase. `github.repository_owner`
+  # je `smil3fRomCZ` (mixed case), takže hardcode na lowercase variantu
+  # (shodně s docker-compose.prod/staging.yml a scripts/rollback.sh).
+  IMAGE_NAME: ghcr.io/smil3fromcz/phc-nexus
 
 jobs:
   # ==========================================================================

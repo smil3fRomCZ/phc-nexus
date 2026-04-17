@@ -4,6 +4,15 @@ Interní produktivitní platforma pro **Pears Health Care**. Nahrazuje Jira, Asa
 
 Navrženo pro 50–200 uživatelů. Invite-only přístup přes Google SSO.
 
+## ⚠ Čeká na operační setup
+
+Kód je hotový a v produkci, ale **některé externí integrace čekají na manuální setup**. Bez nich aplikace funguje, pouze je slepá vůči nočním pádům / nemá automatizované zálohy. Seznam + instrukce najdeš v [`docs/status.md` → Operational TODO](docs/status.md#operational-todo-čeká-na-akci-uživatele):
+
+- **Sentry** — error tracking účet + DSN do `.env` ([monitoring.md](docs/runbooks/monitoring.md#sentry--error-tracking))
+- **UptimeRobot** — externí monitor na `/up` ([monitoring.md](docs/runbooks/monitoring.md#uptimerobot--external-uptime))
+- **GHCR pull auth** — po zavedení GHCR image (PR #207) se musí VPS přihlásit
+- **Restore drill** — kvartální ověření že backup jde obnovit ([backup-restore.md](docs/runbooks/backup-restore.md))
+
 ## Co PHC Nexus umí
 
 ### Projektové řízení

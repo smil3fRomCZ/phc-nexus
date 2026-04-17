@@ -2,12 +2,11 @@ name: Deploy
 
 permissions:
   contents: read
+  packages: write # publikace do ghcr.io
 
 on:
-  # Automaticky po merge do master (po úspěšném CI)
   push:
     branches: [master]
-  # Manuální spuštění z GitHub UI
   workflow_dispatch:
     inputs:
       target:
@@ -20,10 +19,13 @@ on:
           - production
           - both
 
-# Zajistí že běží pouze jeden deploy najednou
 concurrency:
   group: deploy
   cancel-in-progress: false
+
+env:
+  # Image repo v GHCR — matches repo owner, image name `phc-nexus`.
+  IMAGE_NAME: ghcr.io/${{ github.repository_owner }}/phc-nexus
 
 jobs:
   # ==========================================================================
@@ -33,46 +35,58 @@ jobs:
     uses: ./.github/workflows/ci.yml
 
   # ==========================================================================
-  # Build — jeden image pro obě prostředí
+  # Build + Push do GHCR (v runneru, ne na VPS)
   # ==========================================================================
-  build-image:
+  build-and-push:
     needs: ci-check
     runs-on: ubuntu-latest
+    outputs:
+      image-tag: ${{ steps.meta.outputs.tag }}
     steps:
-      - name: Setup SSH key
+      - name: Checkout
+        uses: actions/checkout@de0fac2db8d66faa72092eabd9e1c0cff62b7ee9 # v5.0.0
+
+      - name: Setup Docker Buildx
+        uses: docker/setup-buildx-action@e468171a9de216ec08956ac3ada2f0791b6bd435 # v3.11.1
+
+      - name: Login to GHCR
+        uses: docker/login-action@184bdaa0721073962dff0199f1fb9940f07167d1 # v3.5.0
+        with:
+          registry: ghcr.io
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Compute image tag
+        id: meta
         run: |
-          mkdir -p ~/.ssh
-          echo "${{ secrets.VPS_SSH_KEY }}" > ~/.ssh/deploy_key
-          chmod 600 ~/.ssh/deploy_key
-          ssh-keyscan -H ${{ secrets.VPS_HOST }} >> ~/.ssh/known_hosts
+          SHA_SHORT=$(echo "${GITHUB_SHA}" | cut -c1-7)
+          echo "tag=sha-${SHA_SHORT}" >> "$GITHUB_OUTPUT"
+          echo "Building tag: sha-${SHA_SHORT}"
 
-      - name: Build Docker image na VPS
-        run: |
-          ssh -i ~/.ssh/deploy_key -o StrictHostKeyChecking=accept-new ${{ secrets.VPS_USER }}@${{ secrets.VPS_HOST }} 'set -e
-            cd /opt/phc-nexus
-
-            echo "=== Pulling latest code ==="
-            git pull origin master
-
-            echo "=== Building image ==="
-            docker build -t phc-nexus:latest --target production .
-
-            echo "=== Syncing staging repo ==="
-            cd /opt/phc-nexus-staging
-            git pull origin master
-
-            echo "=== Build complete ==="'
+      - name: Build and push
+        uses: docker/build-push-action@263435318d21b8e681c14492fe198d362a7d2c83 # v6.18.0
+        with:
+          context: .
+          target: production
+          push: true
+          tags: |
+            ${{ env.IMAGE_NAME }}:${{ steps.meta.outputs.tag }}
+            ${{ env.IMAGE_NAME }}:latest
+          cache-from: type=gha
+          cache-to: type=gha,mode=max
 
   # ==========================================================================
   # Deploy Staging — automaticky po každém push na master
   # ==========================================================================
   deploy-staging:
-    needs: build-image
+    needs: build-and-push
     runs-on: ubuntu-latest
     if: >
       github.event_name == 'push' ||
       github.event.inputs.target == 'staging' ||
       github.event.inputs.target == 'both'
+    env:
+      IMAGE_TAG: ${{ needs.build-and-push.outputs.image-tag }}
 
     steps:
       - name: Setup SSH key
@@ -84,14 +98,28 @@ jobs:
 
       - name: Deploy staging
         run: |
-          ssh -i ~/.ssh/deploy_key -o StrictHostKeyChecking=accept-new ${{ secrets.VPS_USER }}@${{ secrets.VPS_HOST }} 'set -e
+          ssh -i ~/.ssh/deploy_key -o StrictHostKeyChecking=accept-new ${{ secrets.VPS_USER }}@${{ secrets.VPS_HOST }} "set -e
             cd /opt/phc-nexus-staging
 
-            echo "=== Starting staging services ==="
+            echo '=== Pulling repo pro compose/config změny ==='
+            git pull origin master
+
+            echo '=== Setting IMAGE_TAG=${IMAGE_TAG} v .env.staging ==='
+            if grep -q '^IMAGE_TAG=' .env.staging; then
+              sed -i 's|^IMAGE_TAG=.*|IMAGE_TAG=${IMAGE_TAG}|' .env.staging
+            else
+              echo 'IMAGE_TAG=${IMAGE_TAG}' >> .env.staging
+            fi
+
+            echo '=== Pulling image z GHCR ==='
+            COMPOSE_PROJECT_NAME=phc-nexus-staging \
+              docker compose --env-file .env.staging -f docker-compose.staging.yml pull
+
+            echo '=== Starting staging services ==='
             COMPOSE_PROJECT_NAME=phc-nexus-staging \
               docker compose --env-file .env.staging -f docker-compose.staging.yml up -d
 
-            echo "=== Migrace + systémový seed (zachová existující data) ==="
+            echo '=== Migrace + systémový seed ==='
             COMPOSE_PROJECT_NAME=phc-nexus-staging \
               docker compose --env-file .env.staging -f docker-compose.staging.yml exec -T app \
               php artisan migrate --force
@@ -99,33 +127,34 @@ jobs:
               docker compose --env-file .env.staging -f docker-compose.staging.yml exec -T app \
               php artisan db:seed --class=SystemSeeder --force
 
-            echo "=== Caching config ==="
+            echo '=== Caching config ==='
             COMPOSE_PROJECT_NAME=phc-nexus-staging \
               docker compose --env-file .env.staging -f docker-compose.staging.yml exec -T app \
               php artisan config:cache
 
-            echo "=== Syncing shared Caddy config ==="
+            echo '=== Syncing shared Caddy config ==='
             cp /opt/phc-nexus-staging/docker/caddy/Caddyfile.shared /opt/phc-nexus-shared/Caddyfile
             cp /opt/phc-nexus-staging/docker/caddy/docker-compose.caddy.yml /opt/phc-nexus-shared/docker-compose.caddy.yml
 
-            echo "=== Restarting shared Caddy ==="
+            echo '=== Restarting shared Caddy ==='
             cd /opt/phc-nexus-shared
             docker compose -f docker-compose.caddy.yml up -d --force-recreate caddy
 
-            echo "=== Staging deploy complete ==="'
+            echo '=== Staging deploy complete (tag: ${IMAGE_TAG}) ==='"
 
   # ==========================================================================
   # Deploy Production — vyžaduje manuální approve v GitHub UI
   # ==========================================================================
   deploy-production:
-    needs: build-image
+    needs: build-and-push
     runs-on: ubuntu-latest
     environment: production
-
     if: >
       github.event_name == 'workflow_dispatch' &&
       (github.event.inputs.target == 'production' ||
        github.event.inputs.target == 'both')
+    env:
+      IMAGE_TAG: ${{ needs.build-and-push.outputs.image-tag }}
 
     steps:
       - name: Setup SSH key
@@ -137,37 +166,50 @@ jobs:
 
       - name: Deploy production
         run: |
-          ssh -i ~/.ssh/deploy_key -o StrictHostKeyChecking=accept-new ${{ secrets.VPS_USER }}@${{ secrets.VPS_HOST }} 'set -e
+          ssh -i ~/.ssh/deploy_key -o StrictHostKeyChecking=accept-new ${{ secrets.VPS_USER }}@${{ secrets.VPS_HOST }} "set -e
             cd /opt/phc-nexus
 
-            echo "=== Starting production services ==="
+            echo '=== Pulling repo pro compose/config změny ==='
+            git pull origin master
+
+            echo '=== Setting IMAGE_TAG=${IMAGE_TAG} v .env ==='
+            if grep -q '^IMAGE_TAG=' .env; then
+              sed -i 's|^IMAGE_TAG=.*|IMAGE_TAG=${IMAGE_TAG}|' .env
+            else
+              echo 'IMAGE_TAG=${IMAGE_TAG}' >> .env
+            fi
+
+            echo '=== Pulling image z GHCR ==='
+            docker compose -f docker-compose.yml -f docker-compose.prod.yml pull
+
+            echo '=== Starting production services ==='
             docker compose -f docker-compose.yml -f docker-compose.prod.yml up -d
 
-            echo "=== Running migrations ==="
+            echo '=== Running migrations ==='
             docker compose exec -T app php artisan migrate --force
 
-            echo "=== Clearing caches ==="
+            echo '=== Clearing caches ==='
             docker compose exec -T app php artisan config:cache
             docker compose exec -T app php artisan route:cache
             docker compose exec -T app php artisan view:cache
 
-            echo "=== Restarting Horizon ==="
+            echo '=== Restarting Horizon ==='
             docker compose exec -T app php artisan horizon:terminate
 
             sleep 5
 
-            echo "=== Syncing shared Caddy config ==="
+            echo '=== Syncing shared Caddy config ==='
             cp /opt/phc-nexus/docker/caddy/Caddyfile.shared /opt/phc-nexus-shared/Caddyfile
             cp /opt/phc-nexus/docker/caddy/docker-compose.caddy.yml /opt/phc-nexus-shared/docker-compose.caddy.yml
 
-            echo "=== Restarting shared Caddy ==="
+            echo '=== Restarting shared Caddy ==='
             cd /opt/phc-nexus-shared
             docker compose -f docker-compose.caddy.yml up -d --force-recreate caddy
 
-            echo "=== Health check ==="
+            echo '=== Health check ==='
             curl -sf --max-time 10 https://${{ secrets.DOMAIN }}/up || {
-              echo "Health check failed!"
+              echo 'Health check failed!'
               exit 1
             }
 
-            echo "=== Production deploy complete ==="'
+            echo '=== Production deploy complete (tag: ${IMAGE_TAG}) ==='"

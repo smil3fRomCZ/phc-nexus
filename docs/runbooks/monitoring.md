@@ -156,6 +156,66 @@ docker compose logs --tail=50 worker
 
 ---
 
+## External monitoring
+
+### Sentry — error tracking
+
+**Setup (one-time):**
+1. Vytvořit účet na [sentry.io](https://sentry.io) (free tier: 5k events/month, stačí pro 200 userů).
+2. Create Project → Platform: PHP → Framework: Laravel. Project name `phc-nexus-prod` (+ samostatný `phc-nexus-staging`).
+3. Project Settings → Client Keys (DSN) → copy DSN (`https://xxx@oyyy.ingest.sentry.io/zzz`).
+4. VPS:
+   ```bash
+   echo "SENTRY_LARAVEL_DSN=https://..." >> /opt/phc-nexus/.env
+   docker compose -f docker-compose.yml -f docker-compose.prod.yml up -d --force-recreate app worker scheduler
+   ```
+5. Smoke test: `docker compose exec app php artisan tinker` → `throw new Exception('sentry test');` → ověř že issue se objeví v Sentry UI do 30s.
+
+**Co Sentry zachytí:**
+- Všechny unhandled exceptions (HTTP 500, CLI command fail, failed queue jobs)
+- Stack trace, request context (URL, method, parametry — bez cookies/email kvůli `send_default_pii=false`)
+- Breadcrumbs: log entries, cache ops, SQL queries (bez bindings, PHI ochrana)
+
+**Co NEzachytí (by design):**
+- User email / IP (PHI ochrana, `send_default_pii=false`)
+- SQL query bindings (obsah pacientských dat)
+- 4xx chyby (validation errors, unauthorized) — nejsou incident
+
+**Alerting:**
+- Sentry → Alerts → Issue Alerts → New Issue / Regression → email/Slack
+- Doporučené pravidlo: "Issue count > 10 events in 1h" nebo "New issue appeared"
+
+### UptimeRobot — external uptime
+
+**Setup (one-time):**
+1. [uptimerobot.com](https://uptimerobot.com) → free account (50 monitorů, 5 min interval).
+2. Add New Monitor:
+   - Type: HTTPS
+   - URL: `https://phc-nexus.eu/up`
+   - Monitoring interval: 5 minutes
+   - Alert contacts: tvůj email (+ volitelně SMS 20 kreditů free).
+3. Opakovat pro staging: `https://dev.phc-nexus.eu/up` (staging basic auth musíš nastavit v UptimeRobot monitoring HTTP auth).
+
+**Co sleduje:**
+- HTTP 200 na `/up` endpoint (Laravel health check, bez middleware overhead)
+- Response time (alarm > 5s = degradation)
+- TLS cert expirace (varování 14 dní před)
+
+**Alerting:**
+- Down detekce: 2 checky v řadě selhaly (tj. ~10 min jistota)
+- UptimeRobot pošle email ihned, opakuje po 1h pokud stále down.
+
+### Logy
+
+Prod/staging používají `LOG_STACK=stderr` → logy jdou přes `docker compose logs`, nepřepíšou se při `--force-recreate`. Tail:
+```bash
+docker compose -f docker-compose.yml -f docker-compose.prod.yml logs -f --tail=100 app worker scheduler
+```
+
+Pro dlouhodobou archivaci zvážit: Grafana Loki / Axiom / Papertrail (free tier 50 MB/day).
+
+---
+
 ## Eskalace
 
 | Severity | Příklad | Reakce |

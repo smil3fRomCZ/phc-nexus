@@ -27,6 +27,7 @@ use App\Modules\Work\Policies\EpicPolicy;
 use App\Modules\Work\Policies\TaskPolicy;
 use App\Modules\Work\Policies\TimeEntryPolicy;
 use Illuminate\Cache\RateLimiting\Limit;
+use Illuminate\Http\Middleware\TrustProxies;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Gate;
 use Illuminate\Support\Facades\RateLimiter;
@@ -54,6 +55,16 @@ class AppServiceProvider extends ServiceProvider
         Gate::policy(Attachment::class, AttachmentPolicy::class);
 
         $this->configureRateLimiters();
+        $this->configureTrustedProxies();
+    }
+
+    private function configureTrustedProxies(): void
+    {
+        $proxies = (string) config('trustedproxy.at', '*');
+
+        if ($proxies !== '*' && $proxies !== '') {
+            TrustProxies::at(array_map('trim', explode(',', $proxies)));
+        }
     }
 
     private function configureRateLimiters(): void

@@ -2,7 +2,7 @@
 
 Živý dokument mapující co je **reálně implementováno** vs. plánováno. Aktualizuje se po každém milestone a významné změně.
 
-> Poslední aktualizace: 2026-04-16
+> Poslední aktualizace: 2026-04-17
 
 ---
 
@@ -40,6 +40,7 @@
 | — | Dependabot batch (15 PR) + Inertia v3 upgrade | **DONE** | 13/15 Dependabot PR mergnuto (patches/minors/actions majors), PHP 8.5/Node 25 záměrně closed, inertia-laravel 2→3 upgrade s publish configu (paths → `resources/js/Pages`, SSR default off) |
 | — | Architecture Refactor (PR1–PR4b) | **DONE** | Async infra (named queues, Horizon gate, audit afterCommit), TaskController→Actions, Policies konsolidace, React dekompozice Show.tsx, 10 nových E2E scénářů |
 | — | Login Error Modal + Caddy Storage Fix | **DONE** | Chybový modal při nefiremním Google účtu (bez leakování domén), Caddy handle_path /storage/* pro avatary/přílohy, CSP fonts.bunny.net, automatický Caddy sync v deploy workflow |
+| — | Security Audit — Sprint 5 (Critical findings) — PR1 | **DONE** | Trusted proxies middleware (C4) — Caddy X-Forwarded-* trust, Request::ip() resolvuje klientskou IP → rate limitery + audit log mají reálnou forensics value. Env `TRUSTED_PROXIES` (default `*`) + override v AppServiceProvider. |
 
 ---
 

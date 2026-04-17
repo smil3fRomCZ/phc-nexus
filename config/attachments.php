@@ -46,4 +46,28 @@ return [
         'application/x-zip-compressed',
         'application/x-7z-compressed',
     ],
+
+    /*
+    |--------------------------------------------------------------------------
+    | Povolené MIME typy pro inline obrázky (wiki RichTextEditor)
+    |--------------------------------------------------------------------------
+    |
+    | Wiki storeImage endpoint embedduje obrázek zpět do same-origin URL;
+    | SVG by se při přímém otevření vykonalo jako dokument (XSS). Držíme
+    | vlastní — menší — whitelist, který nikdy nezahrnuje svg/xml/html.
+    |
+    */
+    'allowed_image_mime_types' => [
+        'image/jpeg',
+        'image/png',
+        'image/gif',
+        'image/webp',
+    ],
+
+    /*
+    |--------------------------------------------------------------------------
+    | Max upload size pro wiki inline obrázky (v KB)
+    |--------------------------------------------------------------------------
+    */
+    'max_image_size_kb' => (int) env('ATTACHMENTS_MAX_IMAGE_SIZE_KB', 10240), // 10 MB
 ];

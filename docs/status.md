@@ -42,6 +42,7 @@
 | — | Login Error Modal + Caddy Storage Fix | **DONE** | Chybový modal při nefiremním Google účtu (bez leakování domén), Caddy handle_path /storage/* pro avatary/přílohy, CSP fonts.bunny.net, automatický Caddy sync v deploy workflow |
 | — | Security Audit — Sprint 5 (Critical findings) — PR1 | **DONE** | Trusted proxies middleware (C4) — Caddy X-Forwarded-* trust, Request::ip() resolvuje klientskou IP → rate limitery + audit log mají reálnou forensics value. Env `TRUSTED_PROXIES` (default `*`) + override v AppServiceProvider. |
 | — | Security Audit — Sprint 5 — PR2 (C1) | **DONE** | Attachment download autorizace — `DownloadAttachment::execute` vyžaduje `can('view', $attachable)` (WikiPage přes parent Project). Před fixem mohl kdokoli přihlášený enumerovat UUID a stahovat cizí přílohy. 8 feature testů pokrývajících Task/Epic/Project/Wiki + HTTP endpoint. |
+| — | Security Audit — Sprint 5 — PR4 (C3) | **DONE** | SVG upload XSS — `WikiAttachmentController::storeImage` nepustí svg (dříve inline whitelist; teď `AttachmentValidation::imageRules()` z centralizovaného `config/attachments.php:allowed_image_mime_types`). `DownloadAttachment` nastavuje `Content-Disposition: attachment` + `X-Content-Type-Options: nosniff` (defense-in-depth). 3 regresní testy. |
 
 ---
 

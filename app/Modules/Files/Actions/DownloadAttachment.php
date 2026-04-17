@@ -48,12 +48,19 @@ final class DownloadAttachment
             'attachable_id' => $attachment->attachable_id,
         ]);
 
+        // nosniff + Content-Disposition: attachment defense-in-depth pro případ,
+        // kdy by se dostal např. svg/html do uploadu — streamDownload už sám
+        // vkládá inline disposition; přepíšeme explicit na attachment.
         return response()->streamDownload(
             function () use ($attachment) {
                 echo file_get_contents($attachment->getFullPath());
             },
             $attachment->original_filename,
-            ['Content-Type' => $attachment->mime_type],
+            [
+                'Content-Type' => $attachment->mime_type,
+                'Content-Disposition' => 'attachment; filename="'.addslashes($attachment->original_filename).'"',
+                'X-Content-Type-Options' => 'nosniff',
+            ],
         );
     }
 

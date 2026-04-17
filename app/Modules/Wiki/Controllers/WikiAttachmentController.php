@@ -18,7 +18,7 @@ final class WikiAttachmentController extends Controller
 {
     public function store(Request $request, Project $project, WikiPage $wikiPage, UploadAttachment $action): RedirectResponse
     {
-        Gate::authorize('view', $project);
+        Gate::authorize('contribute', $project);
 
         $request->validate([
             'file' => AttachmentValidation::fileRules(),
@@ -35,7 +35,7 @@ final class WikiAttachmentController extends Controller
 
     public function storeImage(Request $request, Project $project, WikiPage $wikiPage, UploadAttachment $action): JsonResponse
     {
-        Gate::authorize('view', $project);
+        Gate::authorize('contribute', $project);
 
         // Whitelist centralizovaný v config/attachments.php — zejména NE svg
         // (same-origin render by spustil inline <script>, XSS viz C3 audit).

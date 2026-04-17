@@ -18,6 +18,7 @@ class Invitation extends Model
     protected $fillable = [
         'email',
         'token',
+        'token_hash',
         'system_role',
         'team_id',
         'invited_by',
@@ -32,6 +33,26 @@ class Invitation extends Model
             'expires_at' => 'datetime',
             'accepted_at' => 'datetime',
         ];
+    }
+
+    protected static function booted(): void
+    {
+        // DB ukládá jen SHA256 hash; plaintext `token` jde do URL/mailu.
+        // Auto-hash zachovává kompatibilitu s testovacími fixtures, které
+        // vytvářejí invitation jen s `token`.
+        static::saving(function (self $invitation): void {
+            if ($invitation->token !== null && $invitation->token !== '' && empty($invitation->token_hash)) {
+                $invitation->token_hash = hash('sha256', (string) $invitation->token);
+            }
+        });
+    }
+
+    public static function findActiveByToken(string $plaintext): ?self
+    {
+        return self::query()
+            ->where('token_hash', hash('sha256', $plaintext))
+            ->whereNull('accepted_at')
+            ->first();
     }
 
     public function invitedBy(): BelongsTo

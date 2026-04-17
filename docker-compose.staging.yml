@@ -7,7 +7,8 @@ services:
   # Application (PHP-FPM) — lehčí FPM pool (max 5 children)
   # ==========================================================================
   app:
-    image: phc-nexus:latest
+    image: ghcr.io/smil3fromcz/phc-nexus:${IMAGE_TAG:-latest}
+    pull_policy: always
     container_name: staging-app
     volumes:
       - ./.env.staging:/var/www/html/.env:ro
@@ -29,7 +30,8 @@ services:
   # Queue Worker (Horizon) — volitelný, jen pro testování front
   # ==========================================================================
   worker:
-    image: phc-nexus:latest
+    image: ghcr.io/smil3fromcz/phc-nexus:${IMAGE_TAG:-latest}
+    pull_policy: always
     command: php artisan horizon
     volumes:
       - ./.env.staging:/var/www/html/.env:ro
@@ -48,7 +50,8 @@ services:
   # Scheduler — volitelný, jen pro testování cronů
   # ==========================================================================
   scheduler:
-    image: phc-nexus:latest
+    image: ghcr.io/smil3fromcz/phc-nexus:${IMAGE_TAG:-latest}
+    pull_policy: always
     command: sh -c "while true; do touch /tmp/scheduler.heartbeat; php artisan schedule:run --verbose --no-interaction; sleep 60; done"
     volumes:
       - ./.env.staging:/var/www/html/.env:ro

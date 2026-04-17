@@ -6,9 +6,15 @@
 # stagingem. Prod ~5.5 GB + staging ~1.4 GB + Caddy ~256 MB = 7.2 GB,
 # zbytek pro OS/buffers. Bez limitů může jeden runaway Horizon job srazit
 # celou DB (OOM killer neumí vybírat — sežere, kdo je první).
+#
+# Image pullujeme z GHCR (ghcr.io/smil3fromcz/phc-nexus) — buildí GitHub
+# Actions v runneru, ne na VPS. IMAGE_TAG je SHA z deploy workflow; pro
+# rollback `scripts/rollback.sh <tag>`.
 
 services:
   app:
+    image: ghcr.io/smil3fromcz/phc-nexus:${IMAGE_TAG:-latest}
+    pull_policy: always
     container_name: prod-app
     volumes:
       - ./.env:/var/www/html/.env:ro
@@ -23,6 +29,8 @@ services:
     cpus: 1.5
 
   worker:
+    image: ghcr.io/smil3fromcz/phc-nexus:${IMAGE_TAG:-latest}
+    pull_policy: always
     volumes:
       - ./.env:/var/www/html/.env:ro
       - app-storage:/var/www/html/storage
@@ -35,6 +43,8 @@ services:
     cpus: 1.0
 
   scheduler:
+    image: ghcr.io/smil3fromcz/phc-nexus:${IMAGE_TAG:-latest}
+    pull_policy: always
     volumes:
       - ./.env:/var/www/html/.env:ro
       - app-storage:/var/www/html/storage

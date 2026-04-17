@@ -3,6 +3,8 @@
 Živý dokument mapující co je **reálně implementováno** vs. plánováno. Aktualizuje se po každém milestone a významné změně.
 
 > Poslední aktualizace: 2026-04-17
+>
+> ⚠ **Čeká na user akce:** viz sekce [Operational TODO](#operational-todo-čeká-na-akci-uživatele) níže (Sentry, UptimeRobot, GHCR auth).
 
 ---
 
@@ -49,6 +51,20 @@
 | — | Security Audit — Sprint 6 — PR7 (H7) | **DONE** | CSP `img-src` zúžen — `https:` (všechno) nahrazeno `https://*.googleusercontent.com` (jen Google avatary). Exfiltration path přes `<img src=attacker/?c=...>` uzavřena. Změna v `Caddyfile.prod` + `Caddyfile.shared` (prod + staging). Oba validované přes `caddy validate`. |
 | — | DevOps Sprint — PR1 (Resource limits + healthchecks) | **DONE** | `mem_limit` + `cpus` na prod (součet 5.5G), staging (1.4G), Caddy (256M) kontejnery — 8 GB VPS s 500 MB OS headroom. Healthcheck pro worker (`horizon:status`), scheduler (heartbeat touch/find), Caddy (`nc -z :80`). Jedna runaway query už nesrazí Postgres, zamrzlý Horizon/scheduler Docker restartne automaticky. |
 | — | DevOps Sprint — PR2 (Sentry + stderr logs + UptimeRobot docs) | **DONE** | `sentry/sentry-laravel` integrace přes `SentryIntegration::handles()` v `bootstrap/app.php`, PHI-safe config (`send_default_pii=false`, bindings off). Prod/staging `LOG_STACK=stderr` → `docker compose logs` persistentní přes restart. Runbook s instrukcí Sentry + UptimeRobot setup (oba free tier). DSN prázdný = SDK no-op v dev. |
+| — | DevOps Sprint — PR3 (Docker image → GHCR + rollback) | **DONE** | Build přesunut z VPS do GitHub Actions runneru → push `ghcr.io/smil3fromcz/phc-nexus:sha-<short>` + `:latest`. VPS jen `docker compose pull`. Deploy trvá ~15s místo 2 min, VPS není během deploye na 100 % CPU. `scripts/rollback.sh <tag> <env>` pro okamžitý návrat na předchozí SHA (~30s). Runbook `docs/runbooks/rollback.md`. |
+
+---
+
+## Operational TODO (čeká na akci uživatele)
+
+Věci, co kód řeší, ale potřebují manuální setup v externích službách nebo na VPS. Nic z toho neblokuje prod funkcionalitu — jen ji rozšiřují/zesilují.
+
+| # | Téma | Co udělat | Odhad | Priorita |
+|---|------|-----------|-------|----------|
+| 1 | **Sentry DSN** | Vytvořit 2 Sentry projekty (`phc-nexus-prod`, `phc-nexus-staging`), DSN do `.env`, restart app/worker/scheduler. Detail: `docs/runbooks/monitoring.md#sentry`. | 15 min | Vysoká |
+| 2 | **UptimeRobot** | Free účet → HTTPS monitor na `phc-nexus.eu/up` a `dev.phc-nexus.eu/up`. Detail: `docs/runbooks/monitoring.md#uptimerobot`. | 10 min | Vysoká |
+| 3 | **GHCR image public** | Po prvním GHCR buildu: https://github.com/users/smil3fRomCZ/packages/container/phc-nexus/settings → Danger Zone → Public. Bez této akce staging deploy selhává na pull. | 2 min | **Kritická** (blokuje první GHCR deploy) |
+| 4 | **Kvartální restore drill** | Jednou za 3 měsíce test obnova z backupu v izolovaném prostředí. Viz `docs/runbooks/backup-restore.md`. | 30 min / kvartál | Střední |
 
 ---
 

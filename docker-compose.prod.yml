@@ -69,6 +69,14 @@ services:
 
   redis-cache:
     command: redis-server --maxmemory 128mb --maxmemory-policy allkeys-lru --requirepass ${REDIS_CACHE_PASSWORD:?REDIS_CACHE_PASSWORD must be set}
+    # Base compose má `redis-cli ping` bez auth — s `--requirepass` vrací
+    # NOAUTH a kontejner je označen unhealthy. App na něj čeká (depends_on
+    # service_healthy) → deploy timeout. Override healthcheck s heslem.
+    healthcheck:
+      test: ["CMD", "redis-cli", "-a", "${REDIS_CACHE_PASSWORD:?REDIS_CACHE_PASSWORD must be set}", "ping"]
+      interval: 5s
+      timeout: 5s
+      retries: 5
     restart: unless-stopped
     security_opt:
       - no-new-privileges:true
@@ -79,6 +87,11 @@ services:
 
   redis-data:
     command: redis-server --maxmemory 128mb --maxmemory-policy noeviction --appendonly yes --requirepass ${REDIS_DATA_PASSWORD:?REDIS_DATA_PASSWORD must be set}
+    healthcheck:
+      test: ["CMD", "redis-cli", "-a", "${REDIS_DATA_PASSWORD:?REDIS_DATA_PASSWORD must be set}", "ping"]
+      interval: 5s
+      timeout: 5s
+      retries: 5
     restart: unless-stopped
     security_opt:
       - no-new-privileges:true

@@ -80,8 +80,9 @@ services:
     restart: unless-stopped
     security_opt:
       - no-new-privileges:true
-    cap_drop:
-      - ALL
+    # POZN: cap_drop: ALL blokuje su-exec v redis entrypointu (switch z root
+    # na redis user). Redis alpine image řeší privilege drop samostatně;
+    # `no-new-privileges` + běh jako redis user dostatečně chrání.
     mem_limit: 256m
     cpus: 0.5
 
@@ -95,8 +96,6 @@ services:
     restart: unless-stopped
     security_opt:
       - no-new-privileges:true
-    cap_drop:
-      - ALL
     mem_limit: 512m
     cpus: 0.5
 

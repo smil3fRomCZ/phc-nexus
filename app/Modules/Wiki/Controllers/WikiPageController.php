@@ -10,6 +10,8 @@ use App\Modules\Wiki\Models\WikiPage;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Gate;
+use Illuminate\Validation\Rule;
+use Illuminate\Validation\Rules\Exists;
 use Inertia\Inertia;
 use Inertia\Response;
 
@@ -34,6 +36,8 @@ final class WikiPageController extends Controller
     public function show(Project $project, WikiPage $wikiPage): Response
     {
         Gate::authorize('view', $project);
+
+        $this->ensureWikiPageBelongsToProject($project, $wikiPage);
 
         $wikiPage->load([
             'author:id,name',
@@ -64,7 +68,7 @@ final class WikiPageController extends Controller
         $validated = $request->validate([
             'title' => ['required', 'string', 'max:255'],
             'content' => ['nullable', 'string'],
-            'parent_id' => ['nullable', 'uuid', 'exists:wiki_pages,id'],
+            'parent_id' => ['nullable', 'uuid', $this->projectParentRule($project)],
         ]);
 
         $maxPosition = $project->wikiPages()
@@ -85,10 +89,12 @@ final class WikiPageController extends Controller
     {
         Gate::authorize('contribute', $project);
 
+        $this->ensureWikiPageBelongsToProject($project, $wikiPage);
+
         $validated = $request->validate([
             'title' => ['required', 'string', 'max:255'],
             'content' => ['nullable', 'string'],
-            'parent_id' => ['nullable', 'uuid', 'exists:wiki_pages,id'],
+            'parent_id' => ['nullable', 'uuid', $this->projectParentRule($project, $wikiPage)],
         ]);
 
         $wikiPage->update($validated);
@@ -96,9 +102,42 @@ final class WikiPageController extends Controller
         return back()->with('success', 'Stránka dokumentace aktualizována.');
     }
 
+    /**
+     * parent_id musí patřit do stejného projektu a zároveň NEbýt epic stránka.
+     * Pro update navíc zakazujeme self-reference (stránka nemůže být svým
+     * vlastním rodičem; cycle detection řeší tree integrita mimo scope).
+     */
+    private function projectParentRule(Project $project, ?WikiPage $excluding = null): Exists
+    {
+        $rule = Rule::exists('wiki_pages', 'id')
+            ->where('project_id', $project->id)
+            ->whereNull('epic_id');
+
+        if ($excluding !== null) {
+            $rule->whereNot('id', $excluding->id);
+        }
+
+        return $rule;
+    }
+
+    /**
+     * Route model binding ověří existenci stránky, ne ale vazbu na projekt
+     * v URL. Bez tohoto checku by útočník mohl editovat cizí stránku přes
+     * `/projects/{vlastní}/wiki/{cizí-id}`. Vracíme 404 (nepotvrdit existenci
+     * stránky v jiném projektu).
+     */
+    private function ensureWikiPageBelongsToProject(Project $project, WikiPage $wikiPage): void
+    {
+        if ($wikiPage->project_id !== $project->id || $wikiPage->epic_id !== null) {
+            abort(404);
+        }
+    }
+
     public function destroy(Project $project, WikiPage $wikiPage): RedirectResponse
     {
         Gate::authorize('contribute', $project);
+
+        $this->ensureWikiPageBelongsToProject($project, $wikiPage);
 
         $wikiPage->delete();
 

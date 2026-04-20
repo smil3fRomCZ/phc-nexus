@@ -45,6 +45,10 @@ final class GoogleAuthController extends Controller
         // Persistent remember token zvyšuje window pro session theft, viz security audit.
         Auth::login($user);
 
+        // Session fixation prevention — regenerace session ID po přihlášení invaliduje
+        // případné cookies, které útočník mohl podstrčit přes CSRF/XSS před loginem.
+        $request->session()->regenerate();
+
         // Vázat session na aktuální security stamp uživatele — po "logout everywhere"
         // budou mít ostatní sessions zastaralou hodnotu a odhlásí se.
         $request->session()->put(EnforceSecurityStamp::SESSION_KEY, $user->security_stamp);

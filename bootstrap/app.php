@@ -12,6 +12,12 @@ use Illuminate\Support\Facades\Route;
 use Sentry\Laravel\Integration as SentryIntegration;
 
 return Application::configure(basePath: dirname(__DIR__))
+    ->withCommands([
+        // Laravel 11+ default auto-discoveruje jen app/Console/Commands/ —
+        // moduly v app/Modules/<Name>/Commands/ musí být explicit.
+        __DIR__.'/../app/Modules/Organization/Commands',
+        __DIR__.'/../app/Modules/Work/Commands',
+    ])
     ->withRouting(
         web: __DIR__.'/../routes/web.php',
         commands: __DIR__.'/../routes/console.php',

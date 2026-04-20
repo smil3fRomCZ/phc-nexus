@@ -1,0 +1,9 @@
+-----BEGIN PGP PUBLIC KEY BLOCK-----
+
+REPLACE_WITH_EXPORTED_PUBLIC_KEY
+
+Export příkaz (na stroji, kde jsi vygeneroval keypair):
+  gpg --export --armor backup@phc-nexus.eu > phc-nexus-backup-pub.asc
+
+Viz docs/runbooks/backup-restore.md — sekce "GPG keypair setup".
+-----END PGP PUBLIC KEY BLOCK-----

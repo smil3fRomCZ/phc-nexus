@@ -53,6 +53,7 @@
 | — | DevOps Sprint — PR2 (Sentry + stderr logs + UptimeRobot docs) | **DONE** | `sentry/sentry-laravel` integrace přes `SentryIntegration::handles()` v `bootstrap/app.php`, PHI-safe config (`send_default_pii=false`, bindings off). Prod/staging `LOG_STACK=stderr` → `docker compose logs` persistentní přes restart. Runbook s instrukcí Sentry + UptimeRobot setup (oba free tier). DSN prázdný = SDK no-op v dev. |
 | — | DevOps Sprint — PR3 (Docker image → GHCR + rollback) | **DONE** | Build přesunut z VPS do GitHub Actions runneru → push `ghcr.io/smil3fromcz/phc-nexus:sha-<short>` + `:latest`. VPS jen `docker compose pull`. Deploy trvá ~15s místo 2 min, VPS není během deploye na 100 % CPU. `scripts/rollback.sh <tag> <env>` pro okamžitý návrat na předchozí SHA (~30s). Runbook `docs/runbooks/rollback.md`. |
 | — | CLI `user:promote` command | **DONE** | Artisan command pro promote/demote uživatele mimo UI (první Executive bootstrap, incident response, rollback oprávnění). Vyžaduje `--reason` → audit entry s `source=cli`. Bonus: registrace modulových commands v `bootstrap/app.php->withCommands` (dříve nefungoval ani `tasks:generate-recurring`). User model `@property` anotace → PHPStan baseline shrink. 6 feature testů. |
+| — | DevOps Sprint — PR4 (GPG off-site backup) | **DONE** | `scripts/backup.sh` (pg_dump + tar storage → GPG → Backblaze B2), `scripts/restore-drill.sh` (kvartální ověření obnovy v izolovaném postgres kontejneru), kompletně přepsaný `backup-restore.md` runbook (B2 setup, GPG keypair, cron, rotace klíčů, disaster recovery). Public GPG key committed (`docker/backup/phc-nexus-backup-pub.asc`), private key drží user v password manageru. GDPR Art. 32 compliance — šifrování client-side, off-site retence 90+30 dní přes B2 lifecycle. |
 
 ---
 
@@ -65,7 +66,8 @@ Věci, co kód řeší, ale potřebují manuální setup v externích službách
 | 1 | **Sentry DSN** | Vytvořit 2 Sentry projekty (`phc-nexus-prod`, `phc-nexus-staging`), DSN do `.env`, restart app/worker/scheduler. Detail: `docs/runbooks/monitoring.md#sentry`. | 15 min | Vysoká |
 | 2 | **UptimeRobot** | Free účet → HTTPS monitor na `phc-nexus.eu/up` a `dev.phc-nexus.eu/up`. Detail: `docs/runbooks/monitoring.md#uptimerobot`. | 10 min | Vysoká |
 | 3 | **GHCR image public** | Po prvním GHCR buildu: https://github.com/users/smil3fRomCZ/packages/container/phc-nexus/settings → Danger Zone → Public. Bez této akce staging deploy selhává na pull. | 2 min | **Kritická** (blokuje první GHCR deploy) |
-| 4 | **Kvartální restore drill** | Jednou za 3 měsíce test obnova z backupu v izolovaném prostředí. Viz `docs/runbooks/backup-restore.md`. | 30 min / kvartál | Střední |
+| 4 | **Backblaze B2 + GPG keypair** | Vytvořit B2 účet, bucket `phc-nexus-backups`, Application Key. Vygenerovat GPG keypair (public commit, private do password manageru). Detail: `docs/runbooks/backup-restore.md#setup--one-time`. | 45 min | **Kritická** (GDPR Art. 32) |
+| 5 | **Kvartální restore drill** | Jednou za 3 měsíce `./scripts/restore-drill.sh production` + zápis do tabulky v runbooku. | 30 min / kvartál | Střední |
 
 ---
 

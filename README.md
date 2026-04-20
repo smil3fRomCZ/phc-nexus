@@ -11,7 +11,8 @@ Kód je hotový a v produkci, ale **některé externí integrace čekají na man
 - **Sentry** — error tracking účet + DSN do `.env` ([monitoring.md](docs/runbooks/monitoring.md#sentry--error-tracking))
 - **UptimeRobot** — externí monitor na `/up` ([monitoring.md](docs/runbooks/monitoring.md#uptimerobot--external-uptime))
 - **GHCR pull auth** — po zavedení GHCR image (PR #207) se musí VPS přihlásit
-- **Restore drill** — kvartální ověření že backup jde obnovit ([backup-restore.md](docs/runbooks/backup-restore.md))
+- **Backblaze B2 + GPG keypair** — šifrovaný off-site backup, GDPR Art. 32 ([backup-restore.md](docs/runbooks/backup-restore.md#setup--one-time))
+- **Restore drill** — kvartální ověření že backup jde obnovit ([backup-restore.md](docs/runbooks/backup-restore.md#restore-drill-kvartální-ověření))
 
 ## Co PHC Nexus umí
 

@@ -1,0 +1,20 @@
+# rclone.conf — Backblaze B2 remote pro PHC Nexus backupy.
+#
+# Deploy:
+#   1. Vygeneruj B2 Application Key (viz docs/runbooks/backup-restore.md)
+#   2. Zkopíruj tento soubor na VPS: /root/.config/rclone/rclone.conf
+#      (nebo /etc/rclone/rclone.conf — záleží, pod kterým userem běží cron)
+#   3. Vyplň `account` = Application Key ID
+#   4. Vyplň `key`     = Application Key
+#   5. chmod 600 /root/.config/rclone/rclone.conf
+#   6. Ověř: rclone lsd phc-b2:
+#
+# Remote name `phc-b2` musí odpovídat BACKUP_B2_REMOTE v .env.
+
+[phc-b2]
+type = b2
+account = REPLACE_WITH_B2_APPLICATION_KEY_ID
+key = REPLACE_WITH_B2_APPLICATION_KEY
+hard_delete = false
+# hard_delete=false → soft delete (hidden marker). B2 lifecycle rule pak
+# permanentně smaže po X dnech (GDPR: nastav 90 dní retenci v bucketu).

@@ -23,8 +23,9 @@ services:
     restart: unless-stopped
     security_opt:
       - no-new-privileges:true
-    cap_drop:
-      - ALL
+    # POZN: cap_drop: ALL blokuje chown/chmod v entrypoint.sh (storage volume
+    # vyžaduje fix ownership na každém bootu). Ponecháváme default Docker
+    # capabilities + no-new-privileges (brání post-start escalation).
     mem_limit: 1536m
     cpus: 1.5
 
@@ -37,8 +38,6 @@ services:
     restart: unless-stopped
     security_opt:
       - no-new-privileges:true
-    cap_drop:
-      - ALL
     mem_limit: 1024m
     cpus: 1.0
 
@@ -51,8 +50,6 @@ services:
     restart: unless-stopped
     security_opt:
       - no-new-privileges:true
-    cap_drop:
-      - ALL
     mem_limit: 256m
     cpus: 0.25
 

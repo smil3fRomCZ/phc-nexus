@@ -5,7 +5,7 @@
 
 # Stage 1: Composer dependencies
 # Base image pinned na konkrétní patch verzi (reproducibilní build, auto-update přes Dependabot)
-FROM composer:2.9.5 AS composer-build
+FROM composer:2.9.7 AS composer-build
 WORKDIR /build
 COPY composer.json composer.lock ./
 RUN composer install --no-dev --no-scripts --no-autoloader --prefer-dist --ignore-platform-req=ext-pcntl

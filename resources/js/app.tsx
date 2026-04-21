@@ -1,7 +1,7 @@
 import './bootstrap';
 import '../css/app.css';
 
-import { createInertiaApp, router } from '@inertiajs/react';
+import { createInertiaApp, router, type ResolvedComponent } from '@inertiajs/react';
 import { createRoot } from 'react-dom/client';
 import ErrorBoundary from '@/Components/ErrorBoundary';
 import ErrorModal from '@/Components/ErrorModal';
@@ -25,7 +25,8 @@ function AppWithErrorModal({ children }: { children: ReactNode }) {
     const [error, setError] = useState<{ status: number; message: string } | null>(null);
 
     // Handle non-Inertia responses (404, 500, etc.)
-    router.on('invalid', (event) => {
+    // V Inertia v3 byl event 'invalid' přejmenován na 'httpException'.
+    router.on('httpException', (event) => {
         event.preventDefault();
         const status = event.detail.response.status;
         setError({ status, message: '' });
@@ -47,7 +48,7 @@ function AppWithErrorModal({ children }: { children: ReactNode }) {
 createInertiaApp({
     title: (title) => (title ? `${title} — PHC Nexus` : 'PHC Nexus'),
     resolve: (name) => {
-        const pages = import.meta.glob('./Pages/**/*.tsx', { eager: true });
+        const pages = import.meta.glob<{ default: ResolvedComponent }>('./Pages/**/*.tsx', { eager: true });
         return pages[`./Pages/${name}.tsx`];
     },
     setup({ el, App, props }) {

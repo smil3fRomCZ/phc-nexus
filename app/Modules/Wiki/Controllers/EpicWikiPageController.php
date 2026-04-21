@@ -11,6 +11,8 @@ use App\Modules\Work\Models\Epic;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Gate;
+use Illuminate\Validation\Rule;
+use Illuminate\Validation\Rules\Exists;
 use Inertia\Inertia;
 use Inertia\Response;
 
@@ -37,10 +39,12 @@ final class EpicWikiPageController extends Controller
     {
         Gate::authorize('contribute', $project);
 
+        $this->ensureEpicBelongsToProject($project, $epic);
+
         $validated = $request->validate([
             'title' => ['required', 'string', 'max:255'],
             'content' => ['nullable', 'string'],
-            'parent_id' => ['nullable', 'uuid', 'exists:wiki_pages,id'],
+            'parent_id' => ['nullable', 'uuid', $this->epicParentRule($project, $epic)],
         ]);
 
         $maxPosition = $epic->wikiPages()
@@ -61,6 +65,9 @@ final class EpicWikiPageController extends Controller
     public function show(Project $project, Epic $epic, WikiPage $wikiPage): Response
     {
         Gate::authorize('view', $epic);
+
+        $this->ensureEpicBelongsToProject($project, $epic);
+        $this->ensureWikiPageBelongsToEpic($project, $epic, $wikiPage);
 
         $wikiPage->load([
             'author:id,name',
@@ -89,10 +96,13 @@ final class EpicWikiPageController extends Controller
     {
         Gate::authorize('contribute', $project);
 
+        $this->ensureEpicBelongsToProject($project, $epic);
+        $this->ensureWikiPageBelongsToEpic($project, $epic, $wikiPage);
+
         $validated = $request->validate([
             'title' => ['required', 'string', 'max:255'],
             'content' => ['nullable', 'string'],
-            'parent_id' => ['nullable', 'uuid', 'exists:wiki_pages,id'],
+            'parent_id' => ['nullable', 'uuid', $this->epicParentRule($project, $epic, $wikiPage)],
         ]);
 
         $wikiPage->update($validated);
@@ -104,9 +114,43 @@ final class EpicWikiPageController extends Controller
     {
         Gate::authorize('contribute', $project);
 
+        $this->ensureEpicBelongsToProject($project, $epic);
+        $this->ensureWikiPageBelongsToEpic($project, $epic, $wikiPage);
+
         $wikiPage->delete();
 
         return redirect()->route('projects.epics.wiki.index', [$project, $epic])
             ->with('success', 'Stránka dokumentace smazána.');
+    }
+
+    /**
+     * parent_id musí patřit do stejného epicu (a tím pádem i projektu).
+     * Pro update zakazujeme self-reference.
+     */
+    private function epicParentRule(Project $project, Epic $epic, ?WikiPage $excluding = null): Exists
+    {
+        $rule = Rule::exists('wiki_pages', 'id')
+            ->where('project_id', $project->id)
+            ->where('epic_id', $epic->id);
+
+        if ($excluding !== null) {
+            $rule->whereNot('id', $excluding->id);
+        }
+
+        return $rule;
+    }
+
+    private function ensureEpicBelongsToProject(Project $project, Epic $epic): void
+    {
+        if ($epic->project_id !== $project->id) {
+            abort(404);
+        }
+    }
+
+    private function ensureWikiPageBelongsToEpic(Project $project, Epic $epic, WikiPage $wikiPage): void
+    {
+        if ($wikiPage->project_id !== $project->id || $wikiPage->epic_id !== $epic->id) {
+            abort(404);
+        }
     }
 }

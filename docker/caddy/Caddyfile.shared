@@ -48,10 +48,31 @@
 
 # =============================================================================
 # Staging — dev.phc-nexus.eu
+#
+# H6 hardening:
+#   1. Basic Auth pro všechny — kromě trusted IP a /up health endpointu
+#   2. Trusted IP bypass — firemní / VPN IP se nemusí logovat credentials
+#      (konfigurace přes STAGING_TRUSTED_IPS env var, space-separated CIDR)
+#   3. /up public — UptimeRobot monitoring (aktuálně i Caddy healthcheck)
+#   4. X-Robots-Tag noindex + nofollow + noarchive — search engine crawlers off
 # =============================================================================
 dev.{$DOMAIN:phc-nexus.eu} {
-	# Basic auth ochrana — zamezí neautorizovanému přístupu
-	basicauth {
+	# Matcher: trusted IP rozsahy. Default 0.0.0.0 = nikdo (Basic Auth vždy).
+	# User upraví STAGING_TRUSTED_IPS v /opt/phc-nexus-caddy/.env na reálné
+	# office/VPN CIDR (např. "203.0.113.0/24 10.8.0.0/24").
+	@trusted remote_ip {$STAGING_TRUSTED_IPS:0.0.0.0}
+
+	# Matcher: /up endpoint — must be public pro externí monitoring.
+	@healthcheck path /up
+
+	# Matcher: žádné z výše uvedených → vyžaduje Basic Auth.
+	@needsAuth {
+		not remote_ip {$STAGING_TRUSTED_IPS:0.0.0.0}
+		not path /up
+	}
+
+	# Basic Auth pouze pro @needsAuth matcher. Trusted IP a /up projdou bez hesla.
+	basic_auth @needsAuth {
 		{$STAGING_AUTH_USER:staging} {$STAGING_AUTH_HASH}
 	}
 
@@ -83,7 +104,7 @@ dev.{$DOMAIN:phc-nexus.eu} {
 		X-Permitted-Cross-Domain-Policies none
 		Cross-Origin-Opener-Policy same-origin
 		Cross-Origin-Resource-Policy same-origin
-		X-Robots-Tag "noindex, nofollow"
+		X-Robots-Tag "noindex, nofollow, noarchive"
 		-Server
 	}
 

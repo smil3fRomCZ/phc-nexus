@@ -58,9 +58,10 @@ Kód je hotový a v produkci, ale **některé externí integrace čekají na man
 - **User management** — seznam, role, status, vyhledávání, pozvánky
 - **Organizační struktura** — oddělení → týmy → uživatelé
 - **Profil** — editovatelný uživatelský profil s avatarem, bio, titul, telefon
-- **Audit log** — kompletní trail všech akcí, filtrování
+- **Audit log** — kompletní trail všech akcí, append-only na DB úrovni (ani admin ho nepřepíše), filtrování
 - **PHI access report** — kdo přistupoval k chráněným zdravotním údajům
 - **PHI klasifikace** — PHI/Non-PHI/Unknown na entitách, export guard
+- **PHI reclassification** — změna klasifikace projektu jen přes dedikovaný endpoint, Executive-only, povinný důvod (min 10 znaků), separátní audit entry s `PhiClassificationChanged` akcí a čitelným `{from, to, reason}` payloadem
 
 ### UX
 
@@ -111,14 +112,14 @@ Přihlášení nefiremním účtem zobrazí chybový modal s instrukcí kontakto
 
 ### Tech Stack
 
-| Vrstva       | Technologie                                                              |
-| ------------ | ------------------------------------------------------------------------ |
-| Backend      | Laravel 13 (PHP 8.4), Inertia.js v3                                      |
-| Frontend     | React 19, TypeScript, Tailwind CSS 4, shadcn/ui, Vite 6                  |
-| DB           | PostgreSQL 17 (UUIDv7 PK, JSONB)                                         |
-| Cache/Queues | Redis dual (cache allkeys-lru + data noeviction), Horizon                |
-| Auth         | Laravel Socialite (Google SSO)                                           |
-| Infra        | Docker Compose (9 kontejnerů), Caddy (reverse proxy + TLS), PHP-FPM      |
+| Vrstva       | Technologie                                                                               |
+| ------------ | ----------------------------------------------------------------------------------------- |
+| Backend      | Laravel 13 (PHP 8.4), Inertia.js v3                                                       |
+| Frontend     | React 19, TypeScript, Tailwind CSS 4, shadcn/ui, Vite 6                                   |
+| DB           | PostgreSQL 17 (UUIDv7 PK, JSONB)                                                          |
+| Cache/Queues | Redis dual (cache allkeys-lru + data noeviction), Horizon                                 |
+| Auth         | Laravel Socialite (Google SSO)                                                            |
+| Infra        | Docker Compose (9 kontejnerů), Caddy (reverse proxy + TLS), PHP-FPM                       |
 | CI           | GitHub Actions (Pint + PHPStan + ESLint + Prettier + testy + Playwright E2E + Vite build) |
 
 ### Architektura

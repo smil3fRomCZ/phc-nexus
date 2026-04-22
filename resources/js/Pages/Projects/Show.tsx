@@ -2,6 +2,7 @@ import AppLayout from '@/Layouts/AppLayout';
 import type { Breadcrumb } from '@/Layouts/AppLayout';
 import Button from '@/Components/Button';
 import ConfirmModal from '@/Components/ConfirmModal';
+import FormSelect from '@/Components/FormSelect';
 import FormTextarea from '@/Components/FormTextarea';
 import Popover, { PopoverItem } from '@/Components/Popover';
 import StatusBadge from '@/Components/StatusBadge';
@@ -12,7 +13,7 @@ import AttachmentsSection from '@/Components/AttachmentsSection';
 import type { Attachment } from '@/Components/AttachmentsSection';
 import { PROJECT_STATUS } from '@/constants/status';
 import { formatDate } from '@/utils/formatDate';
-import { Link, router } from '@inertiajs/react';
+import { Link, router, useForm } from '@inertiajs/react';
 import {
     Trash2,
     Pencil,
@@ -97,13 +98,18 @@ export default function ProjectShow({
     project,
     totalHours = 0,
     latestUpdate,
+    classifications = [],
+    can = { manageMembers: false, reclassify: false },
 }: {
     project: Project;
     totalHours: number;
     latestUpdate?: StatusUpdate | null;
+    classifications?: Array<{ value: string; label: string }>;
+    can?: { manageMembers: boolean; reclassify: boolean };
 }) {
     const [showDeleteModal, setShowDeleteModal] = useState(false);
     const [deleteConfirmName, setDeleteConfirmName] = useState('');
+    const [showReclassifyModal, setShowReclassifyModal] = useState(false);
 
     const breadcrumbs: Breadcrumb[] = [
         { label: 'Domů', href: '/' },
@@ -184,8 +190,19 @@ export default function ProjectShow({
                             <div className="text-xs font-semibold uppercase tracking-wider text-text-subtle">
                                 Klasifikace
                             </div>
-                            <div className="mt-0.5 text-sm font-medium text-text-strong">
-                                {project.data_classification.toUpperCase()}
+                            <div className="mt-0.5 flex items-center gap-2">
+                                <span className="text-sm font-medium text-text-strong">
+                                    {project.data_classification.toUpperCase()}
+                                </span>
+                                {can.reclassify && (
+                                    <button
+                                        type="button"
+                                        onClick={() => setShowReclassifyModal(true)}
+                                        className="text-xs font-medium text-brand-600 hover:text-brand-700 hover:underline"
+                                    >
+                                        Změnit
+                                    </button>
+                                )}
                             </div>
                         </div>
                         <div>
@@ -266,7 +283,107 @@ export default function ProjectShow({
                     autoFocus
                 />
             </ConfirmModal>
+
+            {can.reclassify && (
+                <ReclassifyDialog
+                    open={showReclassifyModal}
+                    onClose={() => setShowReclassifyModal(false)}
+                    projectId={project.id}
+                    current={project.data_classification}
+                    classifications={classifications}
+                />
+            )}
         </AppLayout>
+    );
+}
+
+function ReclassifyDialog({
+    open,
+    onClose,
+    projectId,
+    current,
+    classifications,
+}: {
+    open: boolean;
+    onClose: () => void;
+    projectId: string;
+    current: string;
+    classifications: Array<{ value: string; label: string }>;
+}) {
+    const { data, setData, patch, processing, errors, reset } = useForm({
+        data_classification: current,
+        reason: '',
+    });
+
+    function submit(e: React.FormEvent) {
+        e.preventDefault();
+        patch(`/projects/${projectId}/classification`, {
+            onSuccess: () => {
+                reset();
+                onClose();
+            },
+            preserveScroll: true,
+        });
+    }
+
+    return (
+        <Modal
+            open={open}
+            onClose={() => {
+                reset();
+                onClose();
+            }}
+            isDirty={data.reason.trim().length > 0 || data.data_classification !== current}
+        >
+            <h2 className="mb-4 text-lg font-semibold text-text-strong">Změnit klasifikaci dat</h2>
+            <form onSubmit={submit} className="space-y-4">
+                <div className="rounded-md border border-amber-300 bg-amber-50 p-3 text-sm text-amber-900">
+                    <div className="flex items-start gap-2">
+                        <AlertTriangle className="mt-0.5 h-4 w-4 flex-shrink-0" />
+                        <div>
+                            Tato akce bude zaznamenána v auditu včetně důvodu. Reklasifikace PHI má regulatorní dopad
+                            (GDPR) a může být revidována.
+                        </div>
+                    </div>
+                </div>
+
+                <FormSelect
+                    id="reclassify-value"
+                    label="Nová klasifikace"
+                    value={data.data_classification}
+                    onChange={(e) => setData('data_classification', e.target.value)}
+                    options={classifications}
+                    error={errors.data_classification}
+                />
+
+                <FormTextarea
+                    id="reclassify-reason"
+                    label="Důvod změny"
+                    required
+                    value={data.reason}
+                    onChange={(e) => setData('reason', e.target.value)}
+                    rows={3}
+                    placeholder="Proč se klasifikace mění? (min. 10 znaků)"
+                    error={errors.reason}
+                />
+
+                <div className="flex items-center justify-end gap-2 pt-2">
+                    <Button
+                        type="button"
+                        variant="secondary"
+                        onClick={() => {
+                            reset();
+                            onClose();
+                        }}
+                    >
+                        Zrušit
+                    </Button>
+                    <Button type="submit" loading={processing}>
+                        Změnit klasifikaci
+                    </Button>
+                </div>
+            </form>
+        </Modal>
     );
 }
 

@@ -2,7 +2,7 @@
 
 Živý dokument mapující co je **reálně implementováno** vs. plánováno. Aktualizuje se po každém milestone a významné změně.
 
-> Poslední aktualizace: 2026-04-17
+> Poslední aktualizace: 2026-04-22
 >
 > ⚠ **Čeká na user akce:** viz sekce [Operational TODO](#operational-todo-čeká-na-akci-uživatele) níže (Sentry, UptimeRobot, GHCR auth).
 
@@ -58,6 +58,8 @@
 | — | Security Audit — Sprint 7 — PR9 (H6 staging hardening) | **DONE** | Staging `dev.phc-nexus.eu` už měl Basic Auth + `X-Robots-Tag: noindex`; doplněn IP whitelist (bypass Basic Auth pro office/VPN), `/up` exempce (UptimeRobot může monitorovat), `noarchive` v robots tagu. `STAGING_TRUSTED_IPS` env var (default 0.0.0.0 = nikdo). |
 | — | Inertia.js v3 frontend upgrade | **DONE** | `@inertiajs/core` + `@inertiajs/react` 2.3.18 → 3.0.3. Breaking changes fix v `app.tsx`: `router.on('invalid')` → `'httpException'`, `import.meta.glob<{ default: ResolvedComponent }>` pro TypeScript striktní ComponentResolver. Backend `inertia-laravel` byl na v3 od 2026-04-10, tímto se sjednotil frontend. |
 | — | Dependabot batch 2026-04-20 | **DONE** | 11 PR mergnuto: composer Docker bump, 4 GH Actions bumps (docker/build-push 6→7, setup-node 6.4, setup-buildx 3→4, login-action 3→4), laravel-minor group (4), phpstan + larastan, tiptap-minor group (5), eslint + typescript. Inertia 2→3 řešen samostatným PR (viz výše). |
+| — | Security Audit — Sprint 7 — PR10 (H5 + H9 PHI reclassification audit) | **DONE** | Dedikovaný endpoint `PATCH /projects/{project}/classification` s povinným polem `reason` (min 10, max 500). Nová Policy metoda `reclassify` → **Executive only** (regulatorní/GDPR dopad). `ReclassifyProject` Action s explicitním `AuditAction::PhiClassificationChanged` auditem (payload `{from, to, reason}`). `data_classification` odstraněn z běžného `ProjectController::update` validace — defense in depth, běžný update klasifikaci nikdy nezmění (regresní test). `AuditService` unmasks `PhiClassificationChanged` action payload — meta-audit musí zůstat čitelný. UI: `Projects/Edit.tsx` zbavený Select, `Projects/Show.tsx` klasifikační řádek s tlačítkem „Změnit" (jen Executive) → `ReclassifyDialog` s textareou důvodu + warning bannerem. 8 regresních testů (Policy matrix, reason validation, audit entry, standard-update regrese). |
+| — | DevOps — deploy workflow hardening (idempotent sync + retry health check) | **DONE** | PR #232: `git pull origin master` → `git fetch + git reset --hard origin/master` ve staging i prod deploy stepu — deploy runner už nedrží lokální state a není blokovatelný divergencí (např. `package-lock.json`). PR #233: single-shot health check curl nahrazen retry loopem 6×á10s (max 60s) — Caddy/app warmup po force-recreate už nevede k false-positive failu. |
 
 ---
 
@@ -411,6 +413,8 @@ Aktuální stav:
 
 | Datum | Milestone | Co se stalo |
 |-------|-----------|-------------|
+| 2026-04-22 | Sec-PR10 | H5+H9 PHI reclassification audit: dedikovaný endpoint `PATCH /projects/{id}/classification`, Executive-only Policy, povinné `reason` (min 10), `AuditAction::PhiClassificationChanged` s `{from,to,reason}` payloadem. `data_classification` vyhozené z běžného update (defense in depth). UI reclassify dialog s warning bannerem. 8 regresních testů |
+| 2026-04-22 | Infra | Deploy workflow hardening: `git reset --hard origin/master` místo `git pull` (idempotentní, imunní proti divergenci); health check retry loop 6×á10s (warmup-resilient) |
 | 2026-04-16 | Infra | Automatický sync Caddy configu v deploy.yml — cp Caddyfile + docker-compose.caddy.yml → shared, force-recreate Caddy (staging i produkce) |
 | 2026-04-16 | Infra | CSP fix: fonts.bunny.net povolený v style-src + font-src (Caddyfile.shared + Caddyfile.prod) |
 | 2026-04-16 | Infra | Caddy storage volume fix: handle_path /storage/* servíruje přímo ze storage volume (avatar 403 fix), volumes přidány do docker-compose.caddy.yml |

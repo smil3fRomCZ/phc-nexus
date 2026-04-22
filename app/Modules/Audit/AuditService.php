@@ -20,7 +20,7 @@ final class AuditService
         ?array $oldValues = null,
         ?array $newValues = null,
     ): ?AuditEntry {
-        $masked = $this->isPhiRestricted($entity);
+        $masked = $this->isPhiRestricted($entity, $action);
 
         $attributes = [
             'action' => $action,
@@ -52,8 +52,15 @@ final class AuditService
         return ['_masked' => true, 'reason' => 'PHI/unknown classification'];
     }
 
-    private function isPhiRestricted(Model $entity): bool
+    private function isPhiRestricted(Model $entity, AuditAction $action): bool
     {
+        // PhiClassificationChanged je meta-audit o samotné klasifikaci —
+        // jeho payload (from/to/reason) musí zůstat čitelný, jinak by byl
+        // audit bezcenný. Normální PHI masking se na něj nevztahuje.
+        if ($action === AuditAction::PhiClassificationChanged) {
+            return false;
+        }
+
         // Bez volání reflection na každý log — stačí detekovat metodu traitu.
         return method_exists($entity, 'isPhiRestricted') && $entity->isPhiRestricted();
     }

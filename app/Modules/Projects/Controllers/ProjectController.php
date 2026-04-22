@@ -8,6 +8,7 @@ use App\Http\Controllers\Controller;
 use App\Models\User;
 use App\Modules\Audit\Enums\PhiClassification;
 use App\Modules\Organization\Models\Team;
+use App\Modules\Projects\Actions\ReclassifyProject;
 use App\Modules\Projects\Actions\SeedDefaultWorkflow;
 use App\Modules\Projects\Enums\BenefitType;
 use App\Modules\Projects\Enums\ProjectStatus;
@@ -133,6 +134,7 @@ final class ProjectController extends Controller
             ->first();
 
         $canManageMembers = Gate::allows('manageMembers', $project);
+        $canReclassify = Gate::allows('reclassify', $project);
 
         $availableUsers = $canManageMembers
             ? User::query()
@@ -147,8 +149,15 @@ final class ProjectController extends Controller
             'totalHours' => $totalHours,
             'latestUpdate' => $latestUpdate,
             'availableUsers' => $availableUsers,
+            'classifications' => $canReclassify
+                ? collect(PhiClassification::cases())->map(fn ($c) => [
+                    'value' => $c->value,
+                    'label' => $c->label(),
+                ])->values()
+                : [],
             'can' => [
                 'manageMembers' => $canManageMembers,
+                'reclassify' => $canReclassify,
             ],
         ]);
     }
@@ -227,10 +236,6 @@ final class ProjectController extends Controller
                 'value' => $s->value,
                 'label' => $s->label(),
             ]),
-            'classifications' => collect(PhiClassification::cases())->map(fn ($c) => [
-                'value' => $c->value,
-                'label' => $c->label(),
-            ]),
             'teams' => Team::orderBy('name')->get(['id', 'name']),
             'benefitTypes' => collect(BenefitType::cases())->map(fn ($b) => [
                 'value' => $b->value,
@@ -248,7 +253,6 @@ final class ProjectController extends Controller
             'name' => ['required', 'string', 'max:255'],
             'description' => ['nullable', 'string'],
             'status' => ['required', 'string', 'in:'.implode(',', array_column(ProjectStatus::cases(), 'value'))],
-            'data_classification' => ['nullable', 'string', 'in:'.implode(',', array_column(PhiClassification::cases(), 'value'))],
             'team_id' => ['nullable', 'uuid', 'exists:teams,id'],
             'start_date' => ['nullable', 'date'],
             'target_date' => ['nullable', 'date', 'after_or_equal:start_date'],
@@ -261,6 +265,26 @@ final class ProjectController extends Controller
 
         return redirect()->route('projects.show', $project)
             ->with('success', 'Projekt aktualizován.');
+    }
+
+    public function reclassify(Request $request, Project $project, ReclassifyProject $action): RedirectResponse
+    {
+        Gate::authorize('reclassify', $project);
+
+        $validated = $request->validate([
+            'data_classification' => ['required', 'string', 'in:'.implode(',', array_column(PhiClassification::cases(), 'value'))],
+            'reason' => ['required', 'string', 'min:10', 'max:500'],
+        ]);
+
+        $action->execute(
+            project: $project,
+            newClassification: PhiClassification::from($validated['data_classification']),
+            reason: $validated['reason'],
+            actor: $request->user(),
+        );
+
+        return redirect()->route('projects.show', $project)
+            ->with('success', 'Klasifikace projektu změněna.');
     }
 
     public function destroy(Project $project): RedirectResponse

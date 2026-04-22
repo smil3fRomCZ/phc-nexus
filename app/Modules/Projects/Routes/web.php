@@ -31,6 +31,9 @@ Route::middleware('auth')->group(function () {
     // Project updates
     Route::post('projects/{project}/updates', [ProjectController::class, 'storeUpdate'])->name('projects.updates.store');
 
+    // PHI reclassification (dedikovaný endpoint, Executive only, vyžaduje reason)
+    Route::patch('projects/{project}/classification', [ProjectController::class, 'reclassify'])->name('projects.reclassify');
+
     // Project exports
     Route::get('projects/{project}/export/tasks', [ProjectExportController::class, 'tasks'])->name('projects.export.tasks');
     Route::get('projects/{project}/export/summary', [ProjectExportController::class, 'project'])->name('projects.export.summary');

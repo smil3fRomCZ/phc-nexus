@@ -212,10 +212,18 @@ jobs:
             cd /opt/phc-nexus-shared
             docker compose -f docker-compose.caddy.yml up -d --force-recreate caddy
 
-            echo '=== Health check ==='
-            curl -sf --max-time 10 https://${{ secrets.DOMAIN }}/up || {
-              echo 'Health check failed!'
-              exit 1
-            }
+            echo '=== Health check (retry up to 60s) ==='
+            for i in 1 2 3 4 5 6; do
+              if curl -sf --max-time 10 https://${{ secrets.DOMAIN }}/up; then
+                echo \"Health check OK (attempt \$i)\"
+                break
+              fi
+              if [ \$i -eq 6 ]; then
+                echo 'Health check failed after 6 attempts!'
+                exit 1
+              fi
+              echo \"Health check attempt \$i failed, retrying in 10s...\"
+              sleep 10
+            done
 
             echo '=== Production deploy complete (tag: ${IMAGE_TAG}) ==='"

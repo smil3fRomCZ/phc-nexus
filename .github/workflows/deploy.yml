@@ -105,8 +105,9 @@ jobs:
           ssh -i ~/.ssh/deploy_key -o StrictHostKeyChecking=accept-new ${{ secrets.VPS_USER }}@${{ secrets.VPS_HOST }} "set -e
             cd /opt/phc-nexus-staging
 
-            echo '=== Pulling repo pro compose/config změny ==='
-            git pull origin master
+            echo '=== Syncing repo pro compose/config změny ==='
+            git fetch origin master
+            git reset --hard origin/master
 
             echo '=== Setting IMAGE_TAG=${IMAGE_TAG} v .env.staging ==='
             if grep -q '^IMAGE_TAG=' .env.staging; then
@@ -173,8 +174,9 @@ jobs:
           ssh -i ~/.ssh/deploy_key -o StrictHostKeyChecking=accept-new ${{ secrets.VPS_USER }}@${{ secrets.VPS_HOST }} "set -e
             cd /opt/phc-nexus
 
-            echo '=== Pulling repo pro compose/config změny ==='
-            git pull origin master
+            echo '=== Syncing repo pro compose/config změny ==='
+            git fetch origin master
+            git reset --hard origin/master
 
             echo '=== Setting IMAGE_TAG=${IMAGE_TAG} v .env ==='
             if grep -q '^IMAGE_TAG=' .env; then

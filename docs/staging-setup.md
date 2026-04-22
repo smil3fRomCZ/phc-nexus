@@ -79,6 +79,9 @@ cat > /opt/phc-nexus-shared/.env <<'EOF'
 DOMAIN=phc-nexus.eu
 STAGING_AUTH_USER=staging
 STAGING_AUTH_HASH=CHANGE_ME
+# Trusted IP bypass (H6) — space-separated CIDR. 0.0.0.0 = nikdo (Basic Auth vždy).
+# Příklad: "203.0.113.0/24 10.8.0.0/24 198.51.100.42/32"
+STAGING_TRUSTED_IPS=0.0.0.0
 EOF
 ```
 
@@ -90,6 +93,23 @@ docker run --rm caddy:2-alpine caddy hash-password --plaintext 'vase-heslo'
 # DŮLEŽITÉ: Všechny $ v hashi zdvojit na $$ (Docker Compose interpolace)
 # Příklad: $2a$14$abc... → $$2a$$14$$abc...
 ```
+
+## 4b. (Volitelné) Trusted IP whitelist pro staging
+
+Firemní / VPN IP obcházejí Basic Auth. `/up` endpoint je vždy public
+(potřebuje UptimeRobot). Úprava je runtime-only — žádný rebuild:
+
+```bash
+# /opt/phc-nexus-shared/.env
+STAGING_TRUSTED_IPS="203.0.113.0/24 10.8.0.0/24"   # office + VPN
+
+# Aplikovat změnu (Caddy reload, žádný downtime)
+cd /opt/phc-nexus-shared
+docker compose -f docker-compose.caddy.yml up -d --force-recreate caddy
+```
+
+Jak zjistit vlastní IP z office: `curl https://ifconfig.me`. Pro VPN:
+spojit se na VPN, pak stejný curl.
 
 ## 5. Spuštění služeb (správné pořadí)
 

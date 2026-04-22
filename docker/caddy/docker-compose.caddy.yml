@@ -16,6 +16,7 @@ services:
       DOMAIN: ${DOMAIN:-phc-nexus.eu}
       STAGING_AUTH_USER: ${STAGING_AUTH_USER:-staging}
       STAGING_AUTH_HASH: ${STAGING_AUTH_HASH}
+      STAGING_TRUSTED_IPS: ${STAGING_TRUSTED_IPS:-0.0.0.0}
     networks:
       - prod-network
       - staging-network

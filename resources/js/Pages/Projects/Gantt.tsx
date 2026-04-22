@@ -161,7 +161,7 @@ export default function ProjectGantt({ project, tasks, epics }: Props) {
                             ))}
                         </div>
 
-                        <div className="overflow-x-auto rounded-lg border border-border-subtle bg-surface-primary">
+                        <div className="gantt-viewport rounded-lg border border-border-subtle bg-surface-primary">
                             <div ref={containerRef} />
                         </div>
                     </>

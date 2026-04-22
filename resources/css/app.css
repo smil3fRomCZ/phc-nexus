@@ -34,11 +34,30 @@ button {
     fill: #94a3b8;
     opacity: 0.6;
 }
-.gantt-container {
-    overflow-y: hidden !important;
-}
 .gantt-container .popup-wrapper {
     z-index: 1050 !important;
+}
+
+/*
+ * Gantt viewport: drží min 50vh (aby malé projekty nebyly "nudle"),
+ * při přetečení aktivuje scroll. `justify-content: safe center`
+ * centruje obsah vertikálně když se vejde a přepne na start (bez
+ * oříznutí) když ne — kritické pro dostupnost všech úkolů.
+ */
+.gantt-viewport {
+    min-height: 50vh;
+    max-height: calc(100vh - 220px);
+    overflow: auto;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    justify-content: safe center;
+}
+
+@media (max-height: 400px) {
+    .gantt-viewport {
+        min-height: auto;
+    }
 }
 
 /* ==========================================================================
@@ -81,11 +100,21 @@ button {
 }
 
 /* Indent support — renderuje data-indent atribut z Indent extension */
-[data-indent="1"] { margin-left: 24px; }
-[data-indent="2"] { margin-left: 48px; }
-[data-indent="3"] { margin-left: 72px; }
-[data-indent="4"] { margin-left: 96px; }
-[data-indent="5"] { margin-left: 120px; }
+[data-indent='1'] {
+    margin-left: 24px;
+}
+[data-indent='2'] {
+    margin-left: 48px;
+}
+[data-indent='3'] {
+    margin-left: 72px;
+}
+[data-indent='4'] {
+    margin-left: 96px;
+}
+[data-indent='5'] {
+    margin-left: 120px;
+}
 
 .ProseMirror a {
     color: var(--color-brand-primary);
@@ -105,8 +134,9 @@ button {
 
 @theme {
     /* Font */
-    --font-sans: 'Inter', ui-sans-serif, system-ui, sans-serif, 'Apple Color Emoji', 'Segoe UI Emoji',
-        'Segoe UI Symbol', 'Noto Color Emoji';
+    --font-sans:
+        'Inter', ui-sans-serif, system-ui, sans-serif, 'Apple Color Emoji', 'Segoe UI Emoji', 'Segoe UI Symbol',
+        'Noto Color Emoji';
     --font-mono: 'SFMono-Regular', Consolas, 'Liberation Mono', Menlo, monospace;
 
     /* Font Sizes — matching design preview (Tailwind v4 uses --text-* namespace) */

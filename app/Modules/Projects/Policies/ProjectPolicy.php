@@ -77,4 +77,13 @@ final class ProjectPolicy
 
         return $project->isProjectContributor($user);
     }
+
+    /**
+     * Změna PHI klasifikace projektu. Vyžaduje Executive system role —
+     * reclassifikace má regulatorní dopad (GDPR), takže omezené jen na nejvyšší úroveň.
+     */
+    public function reclassify(User $user, Project $project): bool
+    {
+        return $user->system_role === SystemRole::Executive;
+    }
 }

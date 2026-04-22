@@ -14,7 +14,6 @@ interface Project {
     key: string;
     description: string | null;
     status: string;
-    data_classification: string;
     team_id: string | null;
     benefit_type: string | null;
     benefit_amount: string | null;
@@ -32,12 +31,11 @@ interface BenefitTypeOption {
 interface Props {
     project: Project;
     statuses: Array<{ value: string; label: string }>;
-    classifications: Array<{ value: string; label: string }>;
     teams: Array<{ id: string; name: string }>;
     benefitTypes: BenefitTypeOption[];
 }
 
-export default function ProjectEdit({ project, statuses, classifications, teams = [], benefitTypes = [] }: Props) {
+export default function ProjectEdit({ project, statuses, teams = [], benefitTypes = [] }: Props) {
     const breadcrumbs: Breadcrumb[] = [
         { label: 'Domů', href: '/' },
         { label: 'Projekty', href: '/projects' },
@@ -49,7 +47,6 @@ export default function ProjectEdit({ project, statuses, classifications, teams 
         name: project.name,
         description: project.description ?? '',
         status: project.status,
-        data_classification: project.data_classification ?? 'non_phi',
         team_id: project.team_id ?? '',
         benefit_type: project.benefit_type ?? '',
         benefit_amount: project.benefit_amount ?? '',
@@ -88,14 +85,6 @@ export default function ProjectEdit({ project, statuses, classifications, teams 
                         value={data.description}
                         onChange={(e) => setData('description', e.target.value)}
                         rows={3}
-                    />
-
-                    <FormSelect
-                        id="project-classification"
-                        label="Klasifikace dat"
-                        value={data.data_classification}
-                        onChange={(e) => setData('data_classification', e.target.value)}
-                        options={classifications}
                     />
 
                     <FormSelect
